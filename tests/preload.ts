@@ -6,5 +6,5 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  db.$executeRaw`ROLLBACK TO before_test`;
+  db.$executeRaw`ROLLBACK TO SAVEPOINT before_test`;
 });

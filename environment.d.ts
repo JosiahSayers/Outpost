@@ -10,5 +10,6 @@ declare namespace Express {
     start: number;
     id: string;
     logger: import("winston").Logger;
+    session?: import("$/utils/auth").Session;
   }
 }
