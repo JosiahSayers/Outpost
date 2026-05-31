@@ -1,5 +1,16 @@
 services:
-  db:
+  redis:
     image: redis
     ports:
       - 6379:6379
+  
+  db:
+      image: postgres
+      volumes:
+        - ./container_files/db:/var/lib/postgresql
+      ports:
+        - 5432:5432
+      environment:
+        - POSTGRES_DB=backpacking-trip-planner
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres

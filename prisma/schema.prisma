@@ -12,7 +12,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -77,3 +77,12 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+// model GearCategory {
+//   id        String   @id @default(uuid())
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   name   String
+//   public Boolean @default(false)
+// }
