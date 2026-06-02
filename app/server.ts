@@ -7,9 +7,10 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "$/utils/auth";
 import { frontendRouter } from "$/routers/frontend";
 import { apiRouter } from "$/routers/api";
+import { stashSession } from "$/middleware/stash-session";
 
 export const app = express();
-app.use(stashRequestMetadata, attachLogger, requestLogger);
+app.use(stashRequestMetadata, attachLogger, requestLogger, stashSession);
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 app.disable("x-powered-by");
 

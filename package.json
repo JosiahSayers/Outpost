@@ -9,13 +9,16 @@
     "dev:workers": "NODE_ENV=development bun --watch app/jobs/workers/index.ts",
     "db:reset": "bunx --bun prisma migrate reset && bun db:migrate && bun db:seed",
     "db:migrate": "bunx --bun prisma migrate dev && bunx --bun prisma generate",
+    "db:seed": "bun prisma/seeds",
     "test": "bun test --watch",
     "test:single": "bun test",
     "docker:publish": "docker buildx build --build-arg BUILD_VERSION=$(cat version) --push --platform linux/amd64 -t josiahsayers15/$npm_package_name:latest -t josiahsayers15/$npm_package_name:$(cat version) .",
     "start": "bunx --bun prisma migrate deploy && bun run /usr/src/app/app/index.ts"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
     "@types/bun": "latest",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "prisma": "^7.8.0",
     "supertest": "^7.2.2"
@@ -24,13 +27,14 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@types/express": "^5.0.6",
     "better-auth": "^1.6.12",
     "bullmq": "^5.77.6",
     "express": "^5.2.1",
     "express-zod-safe": "^3.2.1",
+    "pg": "^8.21.0",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
   }

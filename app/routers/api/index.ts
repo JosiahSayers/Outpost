@@ -1,6 +1,8 @@
-import { exampleRouter } from "$/routers/api/example";
+import { gearCategoriesRouter } from "$/routers/api/gear-categories";
+import { gearInventoryRouter } from "$/routers/api/gear-inventory";
 import { Router } from "express";
 
 export const apiRouter = Router();
 
-apiRouter.use("/example", exampleRouter);
+apiRouter.use("/gear-inventory", gearInventoryRouter);
+apiRouter.use("/gear-categories", gearCategoriesRouter);

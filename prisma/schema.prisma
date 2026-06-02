@@ -12,19 +12,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id                 String              @id
+  name               String
+  email              String
+  emailVerified      Boolean             @default(false)
+  image              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  sessions           Session[]
+  accounts           Account[]
+  gearInventoryItems GearInventoryItem[]
+  gearCategories     GearCategory[]
 
   @@unique([email])
   @@map("user")
@@ -76,4 +78,37 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model GearCategory {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name   String
+  public Boolean @default(false)
+
+  user               User?               @relation(fields: [userId], references: [id])
+  userId             String?
+  gearInventoryItems GearInventoryItem[]
+
+  // Full Text Search
+  data_fts Unsupported("tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(name, ''))) STORED")?
+
+  @@index([data_fts], type: Gin)
+}
+
+model GearInventoryItem {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name     String
+  quantity Int    @default(1)
+
+  category       GearCategory @relation(fields: [gearCategoryId], references: [id])
+  gearCategoryId Int
+
+  owner  User   @relation(fields: [userId], references: [id])
+  userId String
 }
