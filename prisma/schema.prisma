@@ -15,6 +15,12 @@ datasource db {
   provider = "postgresql"
 }
 
+model AppliedSeeds {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  appliedAt DateTime @default(now())
+}
+
 model User {
   id                 String              @id
   name               String
@@ -139,9 +145,10 @@ model PackingListSection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name String
+  name         String
+  sortPosition Int
 
-  packingList   PackingList       @relation(fields: [packingListId], references: [id])
+  packingList   PackingList       @relation(fields: [packingListId], references: [id], onDelete: Cascade)
   packingListId Int
   items         PackingListItem[]
 
@@ -153,15 +160,16 @@ model PackingListItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name     String
-  quantity Int     @default(1)
-  optional Boolean @default(false)
+  name         String
+  quantity     Int     @default(1)
+  optional     Boolean @default(false)
+  sortPosition Int
 
   category             GearCategory        @relation(fields: [gearCategoryId], references: [id])
   gearCategoryId       Int
   assignedGear         GearInventoryItem?  @relation(fields: [gearInventoryItemId], references: [id])
   gearInventoryItemId  Int?
-  packingListSection   PackingListSection? @relation(fields: [packingListSectionId], references: [id])
+  packingListSection   PackingListSection? @relation(fields: [packingListSectionId], references: [id], onDelete: Cascade)
   packingListSectionId Int?
 
   @@unique([name, packingListSectionId])
