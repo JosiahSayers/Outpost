@@ -38,10 +38,12 @@ async function run() {
       "Backpacking Extras",
     ];
 
+    let sectionSortPosition = 1;
     const storedSections = await db.packingListSection.createManyAndReturn({
       data: sections.map((name) => ({
         name,
         packingListId: packingList.id,
+        sortPosition: sectionSortPosition++,
       })),
     });
 
@@ -515,12 +517,23 @@ async function run() {
       },
     ];
 
+    let itemSortPosition = 0;
+    let lastSection = items[0]!.section;
+    const resetSort = (newSection: string) => {
+      lastSection = newSection;
+      itemSortPosition = 1;
+      return itemSortPosition;
+    };
     await db.packingListItem.createMany({
       data: items.map((item) => ({
         name: item.name,
         gearCategoryId: item.category.id,
         packingListSectionId: getSection(item.section)!.id,
         optional: item.optional,
+        sortPosition:
+          lastSection === item.section
+            ? ++itemSortPosition
+            : resetSort(item.section),
       })),
     });
   });

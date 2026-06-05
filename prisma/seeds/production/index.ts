@@ -3,9 +3,7 @@ import { reiPackingList } from "./packing-lists/rei-packing-list";
 
 const productionSeeds = [reiPackingList];
 
-let experiencedFailure = false;
-
-async function applyProductionSeeds() {
+export default async function applyProductionSeeds() {
   for (const seed of productionSeeds) {
     const alreadyApplied = await db.appliedSeeds.findUnique({
       where: { name: seed.name },
@@ -24,6 +22,3 @@ async function applyProductionSeeds() {
     }
   }
 }
-
-await applyProductionSeeds();
-process.exit(experiencedFailure ? 1 : 0);

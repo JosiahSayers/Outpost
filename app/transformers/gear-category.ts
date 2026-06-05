@@ -1,8 +1,8 @@
 import type { GearCategory } from "../../generated/prisma/browser";
 
-export type ClientGeatCategory = Pick<GearCategory, "id" | "name" | "public">;
+export type ClientGearCategory = Pick<GearCategory, "id" | "name" | "public">;
 
-export function transform(item: GearCategory): ClientGeatCategory {
+export function transform(item: GearCategory): ClientGearCategory {
   return {
     id: item.id,
     name: item.name,
