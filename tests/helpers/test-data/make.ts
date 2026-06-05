@@ -2,15 +2,25 @@ import { ModelName } from "../../../generated/prisma/internal/prismaNamespace";
 import type { PickStringLiteral } from "../../../type-helpers";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
+import makePackingList from "./generators/packing-list";
+import makePackingListItem from "./generators/packing-list-item";
+import makePackingListSection from "./generators/packing-list-section";
 
 type SupportedModels = PickStringLiteral<
   ModelName,
-  "GearInventoryItem" | "GearCategory"
+  | "GearInventoryItem"
+  | "GearCategory"
+  | "PackingList"
+  | "PackingListSection"
+  | "PackingListItem"
 >;
 
 const generators = {
   GearCategory: makeGearCategory,
   GearInventoryItem: makeGearInventoryItem,
+  PackingList: makePackingList,
+  PackingListSection: makePackingListSection,
+  PackingListItem: makePackingListItem,
 } as const;
 
 export function make<Model extends SupportedModels>(
