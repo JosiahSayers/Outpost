@@ -1,0 +1,8 @@
+name: Local Dev
+variables:
+  - name: baseUrl
+    value: http://localhost:3000
+  - name: userEmail
+    value: user@test.com
+  - name: userPassword
+    value: user-password

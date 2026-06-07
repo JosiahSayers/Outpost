@@ -1,0 +1,19 @@
+info:
+  name: Search
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/packing-lists?query=rei"
+  params:
+    - name: query
+      value: rei
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
