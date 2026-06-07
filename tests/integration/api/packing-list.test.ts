@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { getAuthCookies } from "../../helpers/auth";
+import { getAuthCookies, testAuth } from "../../helpers/auth";
 import supertest from "supertest";
 import { app } from "$/server";
 import { db } from "$/utils/db";
+import { transformers } from "$/transformers";
 
 let authCookies: Array<string>;
 
@@ -21,6 +22,7 @@ describe("GET /", () => {
       {
         "packingLists": [
           {
+            "copiedFromPackingListId": null,
             "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
             "id": 1,
             "name": "REI Backpacking Checklist",
@@ -79,6 +81,7 @@ describe("GET /:id", () => {
     expect(response.body).toMatchInlineSnapshot(`
       {
         "packingList": {
+          "copiedFromPackingListId": null,
           "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
           "id": 1,
           "name": "REI Backpacking Checklist",
@@ -770,5 +773,181 @@ describe("GET /:id", () => {
     const response = await supertest(app)
       .get(`/api/packing-lists/${existingPackingList!.id}`)
       .expect(401);
+  });
+});
+
+describe("POST /", () => {
+  it("requires a name to be provided", async () => {
+    const response = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({
+        name: undefined,
+      })
+      .expect("Content-Type", /application\/json/)
+      .expect(400);
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "message": "Invalid input: expected string, received undefined",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("requires name to be at least 3 characters long after trimming", async () => {
+    const response = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({
+        name: "12    ",
+      })
+      .expect("Content-Type", /application\/json/)
+      .expect(400);
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "too_small",
+              "inclusive": true,
+              "message": "Too small: expected string to have >=3 characters",
+              "minimum": 3,
+              "origin": "string",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("requires a valid session", async () => {
+    await supertest(app)
+      .post("/api/packing-lists")
+      .send({ name: "New Packing List" })
+      .expect(401);
+  });
+
+  it("returns a 404 when copiedFromPackingListId is sent but does not exist", async () => {
+    const { body } = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({ name: "New Packing List", copiedFromPackingListId: -1 })
+      .expect("Content-Type", /application\/json/)
+      .expect(404);
+
+    expect(body).toMatchInlineSnapshot(`
+      {
+        "error": "Could not find an existing packing list with the id: -1",
+      }
+    `);
+  });
+
+  it("returns a 404 when the copiedFromPackingListId is not public and is not owned by the user", async () => {
+    const user1 = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const user1List = await db.packingList.create({
+      data: { name: "Can't Touch This", userId: user1!.id },
+    });
+    const user2AuthCookies = await getAuthCookies("user2@test.com");
+
+    const { body } = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2AuthCookies)
+      .send({
+        name: "My Original List That I Totally Created Myself",
+        copiedFromPackingListId: user1List.id,
+      })
+      .expect("Content-Type", /application\/json/)
+      .expect(404);
+
+    expect(body).toMatchInlineSnapshot(`
+      {
+        "error": "Could not find an existing packing list with the id: 2",
+      }
+    `);
+  });
+
+  it("creates a new packing list when no copiedFromPackingListId is sent", async () => {
+    const { body } = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({ name: "New Packing List" })
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(body).toEqual({
+      packingList: {
+        copiedFromPackingListId: null,
+        description: null,
+        id: expect.any(Number),
+        name: "New Packing List",
+        public: false,
+        sections: [],
+        sourceUrl: null,
+      },
+    });
+  });
+
+  it("creates a new packing list with all of the sections and items from the sent copiedFromPackingListId", async () => {
+    const existingList = await db.packingList.findFirst({
+      where: { name: "REI Backpacking Checklist" },
+      include: {
+        packingListSections: {
+          include: {
+            items: true,
+          },
+        },
+      },
+    });
+    const transformedExistingList = transformers.packingList(existingList!);
+
+    const { body } = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({
+        name: "New Packing List",
+        copiedFromPackingListId: transformedExistingList.id,
+      })
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(body.packingList.copiedFromPackingListId).toBe(
+      transformedExistingList.id,
+    );
+    const newWithoutIds = body.packingList.sections.map((section: any) => ({
+      ...section,
+      id: undefined,
+      items: section.items.map((item: any) => ({
+        ...item,
+        id: undefined,
+      })),
+    }));
+    const originalWithoutIds = transformedExistingList.sections.map(
+      (section: any) => ({
+        ...section,
+        id: undefined,
+        items: section.items.map((item: any) => ({
+          ...item,
+          id: undefined,
+        })),
+      }),
+    );
+    expect(newWithoutIds).toEqual(originalWithoutIds);
   });
 });

@@ -12,6 +12,7 @@ describe("transform", () => {
         public: list.public,
         sourceUrl: list.sourceUrl,
         description: list.description,
+        copiedFromPackingListId: list.copiedFromPackingListId,
       });
     });
   });
@@ -46,6 +47,7 @@ describe("transform", () => {
         public: list.public,
         sourceUrl: list.sourceUrl,
         description: list.description,
+        copiedFromPackingListId: input.copiedFromPackingListId,
         sections: [
           {
             id: section1.id,

@@ -10,7 +10,12 @@ import { transform as transformItem } from "./packing-list-item";
 
 export type ClientPackingList = Pick<
   PackingList,
-  "id" | "name" | "public" | "sourceUrl" | "description"
+  | "id"
+  | "name"
+  | "public"
+  | "sourceUrl"
+  | "description"
+  | "copiedFromPackingListId"
 >;
 export type ClientFullPackingList = ClientPackingList & {
   sections: Array<
@@ -18,7 +23,7 @@ export type ClientFullPackingList = ClientPackingList & {
   >;
 };
 
-type FullPackingList = PackingList & {
+export type FullPackingList = PackingList & {
   packingListSections: Array<
     PackingListSection & { items: Array<PackingListItem> }
   >;
@@ -39,6 +44,7 @@ export function transform<Input extends PackingList | FullPackingList>(
     public: item.public,
     sourceUrl: item.sourceUrl,
     description: item.description,
+    copiedFromPackingListId: item.copiedFromPackingListId,
   };
 
   if (isFullPackingList(item)) {
