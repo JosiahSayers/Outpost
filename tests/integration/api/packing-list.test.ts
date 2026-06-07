@@ -4,6 +4,8 @@ import supertest from "supertest";
 import { app } from "$/server";
 import { db } from "$/utils/db";
 import { transformers } from "$/transformers";
+import type { User } from "better-auth";
+import type { PackingList } from "../../../generated/prisma/client";
 
 let authCookies: Array<string>;
 
@@ -889,7 +891,7 @@ describe("POST /", () => {
       .set("Cookie", authCookies)
       .send({ name: "New Packing List" })
       .expect("Content-Type", /application\/json/)
-      .expect(200);
+      .expect(201);
 
     expect(body).toEqual({
       packingList: {
@@ -925,7 +927,7 @@ describe("POST /", () => {
         copiedFromPackingListId: transformedExistingList.id,
       })
       .expect("Content-Type", /application\/json/)
-      .expect(200);
+      .expect(201);
 
     expect(body.packingList.copiedFromPackingListId).toBe(
       transformedExistingList.id,
@@ -949,5 +951,114 @@ describe("POST /", () => {
       }),
     );
     expect(newWithoutIds).toEqual(originalWithoutIds);
+  });
+});
+
+describe("DELETE /:id", () => {
+  let user2AuthCookies: string[];
+  let user1: User;
+  let user2: User;
+  let reiPackingList: PackingList;
+
+  beforeAll(async () => {
+    user1 = (await db.user.findUnique({ where: { email: "user@test.com" } }))!;
+    user2 = (await db.user.findUnique({ where: { email: "user2@test.com" } }))!;
+    user2AuthCookies = await getAuthCookies(user2.email);
+    reiPackingList = (await db.packingList.findFirst({
+      where: { name: "REI Backpacking Checklist" },
+    }))!;
+  });
+
+  it("requires a valid session", (done) => {
+    supertest(app).delete("/api/packing-lists/1").expect(401, done);
+  });
+
+  it("returns a 404 when the packing list cannot be found", (done) => {
+    supertest(app)
+      .delete("/api/packing-lists/-1")
+      .set("Cookie", authCookies)
+      .expect(404, done);
+  });
+
+  it("returns a 403 when the user does not own the packing list", async (done) => {
+    const user1List = await db.packingList.create({
+      data: { name: "Can't Touch This", userId: user1!.id },
+    });
+
+    supertest(app)
+      .delete(`/api/packing-lists/${user1List.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403, done);
+  });
+
+  it("returns a 403 when the packing list does not have an associated user", async (done) => {
+    expect(reiPackingList!.userId).toBeNull();
+    supertest(app)
+      .delete(`/api/packing-lists/${reiPackingList!.id}`)
+      .set("Cookie", authCookies)
+      .expect(403, done);
+  });
+
+  it("returns a 200 when the packing list is deleted", async (done) => {
+    const user1List = await db.packingList.create({
+      data: { name: "New List", userId: user1!.id },
+    });
+
+    supertest(app)
+      .delete(`/api/packing-lists/${user1List.id}`)
+      .set("Cookie", authCookies)
+      .expect(200, done);
+  });
+
+  it("deletes the list, all list sections, and all list items when successful", async () => {
+    const newListResponse = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({ name: "My New List", copiedFromPackingListId: reiPackingList.id })
+      .expect(201);
+
+    const packingListId = newListResponse.body.packingList.id;
+    const sectionIds = newListResponse.body.packingList.sections.map(
+      (section: any) => section.id,
+    );
+    const itemIds = newListResponse.body.packingList.sections.reduce(
+      (currentIdList: number[], section: any) => {
+        const sectionItemIds = section.items.map((item: any) => item.id);
+        return [...currentIdList, ...sectionItemIds];
+      },
+      [],
+    );
+    const preDeleteCounts = {
+      list: await db.packingList.count({ where: { id: packingListId } }),
+      sections: await db.packingListSection.count({
+        where: { id: { in: sectionIds } },
+      }),
+      items: await db.packingListItem.count({
+        where: { id: { in: itemIds } },
+      }),
+    };
+
+    expect(preDeleteCounts.list).toBe(1);
+    expect(preDeleteCounts.sections).toBe(sectionIds.length);
+    expect(preDeleteCounts.items).toBe(itemIds.length);
+
+    await supertest(app)
+      .delete(`/api/packing-lists/${packingListId}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const postDeleteCounts = {
+      list: await db.packingList.count({ where: { id: packingListId } }),
+      sections: await db.packingListSection.count({
+        where: { id: { in: sectionIds } },
+      }),
+      items: await db.packingListItem.count({
+        where: { id: { in: itemIds } },
+      }),
+    };
+
+    expect(postDeleteCounts.list).toBe(0);
+    expect(postDeleteCounts.sections).toBe(0);
+    expect(postDeleteCounts.items).toBe(0);
   });
 });
