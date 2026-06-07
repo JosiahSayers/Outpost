@@ -148,6 +148,9 @@ packingListRouter.delete("/:id", async (req, res) => {
   }
 
   if (packingList.userId !== req.session!.user.id) {
+    req.logger.warn("User tried to delete a packing list they don't own", {
+      triedToDeleteListId: packingList.id,
+    });
     return res.sendStatus(403);
   }
 
