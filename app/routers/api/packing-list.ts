@@ -1,11 +1,20 @@
 import { requireValidSession } from "$/middleware/require-valid-session";
-import { userCanAccessPackingList } from "$/middleware/authorization/packing-list";
+import {
+  userCanAccessPackingList,
+  userCanEditPackingList,
+} from "$/middleware/authorization/packing-list";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
-import { newPackingList, packingListSearch } from "$/validation/packing-list";
+import {
+  editPackingList,
+  newPackingList,
+  packingListSearch,
+} from "$/validation/packing-list";
 import { Router } from "express";
 import validate from "express-zod-safe";
 import { generatePackingListPdf } from "$/utils/pdf/packing-list-generator";
+import { sectionsRouter } from "$/routers/api/packing-list/sections";
+import { idParam } from "$/validation/shared";
 
 export const packingListRouter = Router();
 packingListRouter.use(requireValidSession);
@@ -164,3 +173,28 @@ packingListRouter.get(
     return await generatePackingListPdf(Number(req.params.id), res);
   },
 );
+
+packingListRouter.patch(
+  "/:id",
+  userCanEditPackingList,
+  validate({ body: editPackingList, params: idParam }),
+  async (req, res) => {
+    const updatedPackingList = await db.packingList.update({
+      data: { name: req.body.name },
+      where: { id: Number(req.params.id) },
+      include: {
+        packingListSections: {
+          include: {
+            items: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      packingList: transformers.packingList(updatedPackingList),
+    });
+  },
+);
+
+packingListRouter.use("/:id/sections", userCanEditPackingList, sectionsRouter);
