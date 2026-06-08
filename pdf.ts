@@ -103,18 +103,30 @@ await new Promise((resolve, reject) => {
 
   packingList.packingListSections
     .sort((a, b) => a.sortPosition - b.sortPosition)
-    .forEach((section) => {
+    .forEach((section, index) => {
+      const titleTopMargin = index === 0 ? 0 : 24;
       document
         .fontSize(12)
         .font("Courier-Bold")
-        .text(section.name, checkboxX, document.y, {
+        .text(section.name, checkboxX, document.y + titleTopMargin, {
           width: columnWidth,
         });
 
       document.fontSize(8).font("Courier");
 
+      let lastItemWasOptional = false;
       section.items
-        .sort((a, b) => a.sortPosition - b.sortPosition)
+        .sort((a, b) => {
+          if (a.optional && !b.optional) {
+            return 1;
+          }
+
+          if (!a.optional && b.optional) {
+            return -1;
+          }
+
+          return a.sortPosition - b.sortPosition;
+        })
         .forEach((item) => {
           const atEndOfColumn =
             document.y >=
@@ -123,17 +135,17 @@ await new Promise((resolve, reject) => {
             document.heightOfString(item.name, { width: columnTextWidth }) +
               document.y >
             document.page.height - document.page.margins.bottom;
-          console.log({
-            checkboxX,
-            y: document.y,
-            pageHeight: document.page.height,
-            lineGap,
-            bottomMargin: document.page.margins.bottom,
-            column,
-            item: item.name,
-            atEndOfColumn,
-            willOverflowPage,
-          });
+          // console.log({
+          //   checkboxX,
+          //   y: document.y,
+          //   pageHeight: document.page.height,
+          //   lineGap,
+          //   bottomMargin: document.page.margins.bottom,
+          //   column,
+          //   item: item.name,
+          //   atEndOfColumn,
+          //   willOverflowPage,
+          // });
 
           if ((atEndOfColumn || willOverflowPage) && column < 3) {
             checkboxX =
@@ -155,6 +167,18 @@ await new Promise((resolve, reject) => {
           }
 
           document.lineGap(lineGap);
+          if (item.optional && !lastItemWasOptional) {
+            document.font("Courier-Bold");
+            document
+              .font("Courier-Bold")
+              .fontSize(10)
+              .text("Optional:", checkboxX, document.y + 12, {
+                width: columnWidth,
+              });
+            lastItemWasOptional = true;
+            document.font("Courier").fontSize(8);
+          }
+
           document
             .rect(checkboxX, document.y, checkboxSize, checkboxSize)
             .stroke();
