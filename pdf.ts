@@ -84,7 +84,7 @@ await new Promise((resolve, reject) => {
   let currentPage = 1;
   const checkboxGap = 12;
   const checkboxSize = 8;
-  const lineGap = 8;
+  const lineGap = 2;
   const columnGap = 24;
   const columnWidth =
     (document.page.width -
@@ -101,18 +101,62 @@ await new Promise((resolve, reject) => {
     margin: document.page.margins.left,
   });
 
+  const columnCalculations = (
+    nextString: string,
+    nextStringWidth: number,
+    nextStringTopMargin: number = 0,
+  ) => {
+    const atEndOfColumn =
+      document.y >=
+      document.page.height - lineGap - document.page.margins.bottom;
+    const willOverflowPage =
+      document.heightOfString(nextString, { width: nextStringWidth }) +
+        document.y +
+        nextStringTopMargin >
+      document.page.height - document.page.margins.bottom;
+
+    if ((atEndOfColumn || willOverflowPage) && column < 3) {
+      checkboxX =
+        document.page.margins.left + columnGap * column + columnWidth * column;
+      column += 1;
+      const newY = currentPage === 1 ? startingY : document.page.margins.top;
+      document.x = checkboxX;
+      document.y = newY;
+      return true;
+    } else if (atEndOfColumn || willOverflowPage) {
+      column = 1;
+      currentPage += 1;
+      checkboxX = document.page.margins.left;
+      document.x = document.page.margins.left;
+      document.y =
+        document.page.height * currentPage + document.page.margins.top;
+      return true;
+    }
+
+    return false;
+  };
+
   packingList.packingListSections
     .sort((a, b) => a.sortPosition - b.sortPosition)
     .forEach((section, index) => {
-      const titleTopMargin = index === 0 ? 0 : 24;
+      // TODO: Calculate height of entire section.
+      // If it will overflow the current page (maybe column?) go ahead and move it before rendering anything
+      let titleTopMargin = index === 0 ? 0 : 24;
+      const overflowed = columnCalculations(
+        section.name,
+        columnWidth,
+        titleTopMargin,
+      );
+      titleTopMargin = overflowed ? 0 : titleTopMargin;
       document
         .fontSize(12)
         .font("Courier-Bold")
+        .lineGap(lineGap * 2)
         .text(section.name, checkboxX, document.y + titleTopMargin, {
           width: columnWidth,
         });
 
-      document.fontSize(8).font("Courier");
+      document.fontSize(8).font("Courier").lineGap(lineGap);
 
       let lastItemWasOptional = false;
       section.items
@@ -128,55 +172,19 @@ await new Promise((resolve, reject) => {
           return a.sortPosition - b.sortPosition;
         })
         .forEach((item) => {
-          const atEndOfColumn =
-            document.y >=
-            document.page.height - lineGap - document.page.margins.bottom;
-          const willOverflowPage =
-            document.heightOfString(item.name, { width: columnTextWidth }) +
-              document.y >
-            document.page.height - document.page.margins.bottom;
-          // console.log({
-          //   checkboxX,
-          //   y: document.y,
-          //   pageHeight: document.page.height,
-          //   lineGap,
-          //   bottomMargin: document.page.margins.bottom,
-          //   column,
-          //   item: item.name,
-          //   atEndOfColumn,
-          //   willOverflowPage,
-          // });
+          columnCalculations(item.name, columnTextWidth);
 
-          if ((atEndOfColumn || willOverflowPage) && column < 3) {
-            checkboxX =
-              document.page.margins.left +
-              columnGap * column +
-              columnWidth * column;
-            column += 1;
-            const newY =
-              currentPage === 1 ? startingY : document.page.margins.top;
-            document.x = checkboxX;
-            document.y = newY;
-          } else if (atEndOfColumn || willOverflowPage) {
-            column = 1;
-            currentPage += 1;
-            checkboxX = document.page.margins.left;
-            document.x = document.page.margins.left;
-            document.y =
-              document.page.height * currentPage + document.page.margins.top;
-          }
-
-          document.lineGap(lineGap);
           if (item.optional && !lastItemWasOptional) {
             document.font("Courier-Bold");
             document
               .font("Courier-Bold")
               .fontSize(10)
+              .lineGap(lineGap * 2)
               .text("Optional:", checkboxX, document.y + 12, {
                 width: columnWidth,
               });
             lastItemWasOptional = true;
-            document.font("Courier").fontSize(8);
+            document.font("Courier").fontSize(8).lineGap(lineGap);
           }
 
           document
