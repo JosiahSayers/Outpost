@@ -1,9 +1,11 @@
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { userCanAccessPackingList } from "$/middleware/authorization/packing-list";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { newPackingList, packingListSearch } from "$/validation/packing-list";
 import { Router } from "express";
 import validate from "express-zod-safe";
+import { generatePackingListPdf } from "$/utils/pdf/packing-list-generator";
 
 export const packingListRouter = Router();
 packingListRouter.use(requireValidSession);
@@ -28,7 +30,7 @@ packingListRouter.get(
   },
 );
 
-packingListRouter.get("/:id", async (req, res) => {
+packingListRouter.get("/:id", userCanAccessPackingList, async (req, res) => {
   const packingList = await db.packingList.findUnique({
     where: { id: Number(req.params.id) },
     include: {
@@ -40,11 +42,7 @@ packingListRouter.get("/:id", async (req, res) => {
     },
   });
 
-  if (!packingList) {
-    return res.sendStatus(404);
-  }
-
-  return res.json({ packingList: transformers.packingList(packingList) });
+  return res.json({ packingList: transformers.packingList(packingList!) });
 });
 
 packingListRouter.post(
@@ -157,3 +155,12 @@ packingListRouter.delete("/:id", async (req, res) => {
   await db.packingList.delete({ where: { id: packingList.id } });
   return res.sendStatus(200);
 });
+
+packingListRouter.get(
+  "/:id/pdf",
+  userCanAccessPackingList,
+  async (req, res) => {
+    res.attachment("packing-list.pdf");
+    return await generatePackingListPdf(Number(req.params.id), res);
+  },
+);

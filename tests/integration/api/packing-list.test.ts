@@ -1062,3 +1062,68 @@ describe("DELETE /:id", () => {
     expect(postDeleteCounts.items).toBe(0);
   });
 });
+
+describe("GET /:id/pdf", () => {
+  let reiPackingList: PackingList;
+
+  beforeAll(async () => {
+    reiPackingList = (await db.packingList.findFirst({
+      where: { name: "REI Backpacking Checklist" },
+    }))!;
+  });
+
+  it("transfers a pdf document to the user for public packing lists", async () => {
+    await supertest(app)
+      .get(`/api/packing-lists/${reiPackingList!.id}/pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect("content-disposition", 'attachment; filename="packing-list.pdf"')
+      .expect(200);
+  });
+
+  it("transfers a pdf document to the user for private packing lists", async () => {
+    const newListResponse = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({ name: "My New List", copiedFromPackingListId: reiPackingList.id })
+      .expect(201);
+
+    const newListId = newListResponse.body.packingList.id;
+
+    await supertest(app)
+      .get(`/api/packing-lists/${newListId}/pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect("content-disposition", 'attachment; filename="packing-list.pdf"')
+      .expect(200);
+  });
+
+  it("returns a 403 when a user tries to download a packing-list they don't own and is not public", async () => {
+    const newListResponse = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .send({ name: "My New List", copiedFromPackingListId: reiPackingList.id })
+      .expect(201);
+
+    const newListId = newListResponse.body.packingList.id;
+    const user2AuthCookies = await getAuthCookies("user2@test.com");
+
+    await supertest(app)
+      .get(`/api/packing-lists/${newListId}/pdf`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("requires a valid session", async () => {
+    await supertest(app)
+      .get(`/api/packing-lists/${reiPackingList.id}/pdf`)
+      .expect(401);
+  });
+
+  it("returns a 404 when the packing-list id cannot be found", async () => {
+    await supertest(app)
+      .get(`/api/packing-lists/-1/pdf`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+});

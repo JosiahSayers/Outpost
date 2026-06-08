@@ -1,26 +1,26 @@
-import { createWriteStream } from "node:fs";
 import PDFDocument from "pdfkit";
 import { db } from "$/utils/db";
 
-const packingList = await db.packingList.findFirst({
-  where: { name: "REI Backpacking Checklist" },
-  include: {
-    owner: true,
-    packingListSections: {
-      include: {
-        items: true,
+export async function generatePackingListPdf(
+  packingListId: number,
+  output: NodeJS.WritableStream,
+) {
+  const packingList = await db.packingList.findFirst({
+    where: { id: packingListId },
+    include: {
+      owner: true,
+      packingListSections: {
+        include: {
+          items: true,
+        },
       },
     },
-  },
-});
+  });
 
-if (!packingList) {
-  console.error("Could not find packing list");
-  process.exit(1);
-}
+  if (!packingList) {
+    throw new Error(`Packing list not found (id: ${packingListId})`);
+  }
 
-console.time("pdf");
-await new Promise((resolve, reject) => {
   const document = new PDFDocument({
     info: {
       Title: packingList.name,
@@ -38,8 +38,7 @@ await new Promise((resolve, reject) => {
     },
     size: "LETTER",
   });
-  const stream = createWriteStream("./out.pdf");
-  document.pipe(stream);
+  document.pipe(output);
 
   document
     .fontSize(24)
@@ -205,7 +204,6 @@ await new Promise((resolve, reject) => {
         .forEach((item) => {
           if (item.optional && !lastItemWasOptional) {
             const didMove = columnCalculations("Optional:", columnWidth, 12);
-            console.log({ name: item.name, didMove });
             document.font("Courier-Bold");
             document
               .font("Courier-Bold")
@@ -230,10 +228,4 @@ await new Promise((resolve, reject) => {
     });
 
   document.end();
-
-  stream.on("finish", resolve);
-  stream.on("error", reject);
-});
-console.timeEnd("pdf");
-console.timeLog("pdf");
-await db.$disconnect();
+}
