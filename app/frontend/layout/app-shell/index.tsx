@@ -1,14 +1,13 @@
 import Header from "$/frontend/layout/app-shell/header";
 import { AppShellMain, AppShell as MantineShell, Text } from "@mantine/core";
+import type { PropsWithChildren } from "react";
 
-export default function AppShell() {
+export default function AppShell({ children }: PropsWithChildren) {
   return (
     <MantineShell padding="md" header={{ height: 60 }}>
       <Header />
 
-      <AppShellMain>
-        <Text>This is where the main content will be</Text>
-      </AppShellMain>
+      <AppShellMain>{children}</AppShellMain>
     </MantineShell>
   );
 }
