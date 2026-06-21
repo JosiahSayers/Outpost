@@ -1,24 +1,36 @@
 import GearSummaryBar from "$/frontend/dashboard/gear-summary";
-import type { GearSummary } from "$/frontend/dashboard/types";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, expect, it } from "bun:test";
+import { beforeEach, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
-const summary: GearSummary = {
-  totalItems: 47,
-  totalWeightKg: 12.3,
-  categoryCount: 8,
-};
+mock.module("$/frontend/utils/api/gear-inventory", () => ({
+  useGearInventory: () => ({
+    data: { items: [] },
+    isPending: false,
+  }),
+}));
+
+mock.module("$/frontend/utils/build-gear-summary", () => ({
+  buildGearSummary: () => ({
+    totalItems: 47,
+    totalWeightKg: 12.3,
+    categoryCount: 8,
+  }),
+}));
 
 beforeEach(() => {
+  const queryClient = new QueryClient();
   render(
-    <MantineProvider>
-      <Router hook={() => ["/dashboard", () => {}]}>
-        <GearSummaryBar summary={summary} />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Router hook={() => ["/dashboard", () => {}]}>
+          <GearSummaryBar />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 });
 
