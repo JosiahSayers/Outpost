@@ -13,12 +13,14 @@
     "docker:publish": "docker buildx build --build-arg BUILD_VERSION=$(cat version) --push --platform linux/amd64 -t josiahsayers15/$npm_package_name:latest -t josiahsayers15/$npm_package_name:$(cat version) .",
     "start": "bunx --bun prisma migrate deploy && bun run /usr/src/app/app/index.ts",
     "test": "find tests \\( -name '*.test.ts' -o -name '*.test.tsx' \\) | sort | xargs -I{} bun test {}",
+    "test:e2e": "playwright test",
     "format": "prettier . --write",
     "format:check": "prettier . -c"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
     "@happy-dom/global-registrator": "^20.10.6",
+    "@playwright/test": "^1.61.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/bun": "latest",

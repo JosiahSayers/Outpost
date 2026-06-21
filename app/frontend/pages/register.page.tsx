@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useState } from "react";
-import { useLocation } from "wouter";
+
 import { z } from "zod/v4";
 
 const registerSchema = z
@@ -38,7 +38,7 @@ export default function RegisterPage() {
   useUnauthenticatedGuard();
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [, navigate] = useLocation();
+
 
   const form = useForm<RegisterValues>({
     initialValues: { name: "", email: "", password: "", confirmPassword: "" },
@@ -61,7 +61,7 @@ export default function RegisterPage() {
     if (error) {
       setServerError(error.message ?? "Registration failed. Please try again.");
     } else {
-      navigate("/dashboard");
+      window.location.href = "/dashboard";
     }
   };
 
