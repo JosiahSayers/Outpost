@@ -61,7 +61,7 @@ export default function RegisterPage() {
     if (error) {
       setServerError(error.message ?? "Registration failed. Please try again.");
     } else {
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 

@@ -1,11 +1,11 @@
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { createGearInventoryItemValidator } from "$/validation/gear-inventory";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { Router } from "express";
 import validate from "express-zod-safe";
 import type { GearCategory } from "../../../generated/prisma/client";
-import { transformers } from "$/transformers";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 
 export const gearInventoryRouter = Router();
 gearInventoryRouter.use(requireValidSession);
@@ -75,6 +75,9 @@ gearInventoryRouter.delete("/:id", async (req, res) => {
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError && e.code === "P2025") {
       return res.sendStatus(404);
+    } else {
+      req.logger.error("Error deleting gear inventory item", e);
+      return res.sendStatus(500);
     }
   }
 });

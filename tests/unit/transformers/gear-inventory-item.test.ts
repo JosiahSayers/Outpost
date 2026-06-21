@@ -1,6 +1,6 @@
+import { transform } from "$/transformers/gear-inventory-item";
 import { describe, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
-import { transform } from "$/transformers/gear-inventory-item";
 
 describe("transform", () => {
   it("returns the expected shape", () => {
@@ -16,6 +16,7 @@ describe("transform", () => {
       id: gearInventoryItem.id,
       name: gearInventoryItem.name,
       quantity: gearInventoryItem.quantity,
+      grams: gearInventoryItem.grams,
       category: {
         id: gearCategory.id,
         name: gearCategory.name,

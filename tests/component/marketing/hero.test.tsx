@@ -21,7 +21,7 @@ it("renders the expected title", () => {
 it("Renders the expected copy below the title", () => {
   expect(
     screen.getByText(
-      "Summit Journal is a backpacking planner that keeps your gear organised, your lists dialled in, and the people back home informed about your whereabouts.",
+      "Outpost is a backpacking planner that keeps your gear organized, your lists dialed in, and the people back home informed about your whereabouts.",
     ),
   ).toBeInTheDocument();
 });
