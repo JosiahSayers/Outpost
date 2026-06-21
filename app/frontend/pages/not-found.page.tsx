@@ -1,7 +1,12 @@
 import AppLink from "$/frontend/app-link";
+import { authClient } from "$/frontend/utils/auth-client";
 import { Center, Stack, Text, Title } from "@mantine/core";
 
 export default function NotFoundPage() {
+  const session = authClient.useSession();
+  const homeHref =
+    !session.isPending && session.data?.user ? "/dashboard" : "/";
+
   return (
     <Center mih="calc(100vh - 60px)">
       <Stack align="center" gap="xs">
@@ -12,7 +17,7 @@ export default function NotFoundPage() {
         <Text c="dimmed" ta="center">
           The page you&apos;re looking for doesn&apos;t exist.
         </Text>
-        <AppLink href="/">Go home</AppLink>
+        <AppLink href={homeHref}>Go home</AppLink>
       </Stack>
     </Center>
   );

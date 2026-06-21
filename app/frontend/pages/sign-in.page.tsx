@@ -44,7 +44,7 @@ export default function SignInPage() {
     const { error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
-      callbackURL: redirect ?? "/",
+      callbackURL: redirect ?? "/dashboard",
     });
 
     setLoading(false);
@@ -52,7 +52,7 @@ export default function SignInPage() {
     if (error) {
       setServerError(error.message ?? "Sign in failed. Please try again.");
     } else {
-      navigate(redirect ?? "/");
+      navigate(redirect ?? "/dashboard");
     }
   };
 

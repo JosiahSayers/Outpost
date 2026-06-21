@@ -1,4 +1,5 @@
 import AppShell from "$/frontend/layout/app-shell";
+import DashboardPage from "$/frontend/pages/dashboard.page";
 import MarketingPage from "$/frontend/pages/marketing.page";
 import NotFoundPage from "$/frontend/pages/not-found.page";
 import RegisterPage from "$/frontend/pages/register.page";
@@ -16,6 +17,7 @@ export default function App() {
         <AppShell>
           <Switch>
             <Route path="/" component={MarketingPage} />
+            <Route path="/dashboard" component={DashboardPage} />
             <Route path="/sign-in" component={SignInPage} />
             <Route path="/register" component={RegisterPage} />
             <Route component={NotFoundPage} />

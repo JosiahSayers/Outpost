@@ -39,9 +39,9 @@ export default function Hero() {
               style={{ color: "var(--mantine-color-trail-green-1)" }}
               maw={540}
             >
-              Summit Journal is a backpacking planner that keeps your gear
-              organised, your lists dialled in, and the people back home
-              informed about your whereabouts.
+              Outpost is a backpacking planner that keeps your gear organized,
+              your lists dialed in, and the people back home informed about your
+              whereabouts.
             </Text>
           </Stack>
           <Group>
