@@ -34,12 +34,18 @@ it("renders the Gear feature card", () => {
 
 it("renders the Lists feature card", () => {
   expect(
-    screen.getByRole("heading", { level: 3, name: "Pack lists that actually fit" }),
+    screen.getByRole("heading", {
+      level: 3,
+      name: "Pack lists that actually fit",
+    }),
   ).toBeInTheDocument();
 });
 
 it("renders the Trips feature card", () => {
   expect(
-    screen.getByRole("heading", { level: 3, name: "Share where you're headed" }),
+    screen.getByRole("heading", {
+      level: 3,
+      name: "Share where you're headed",
+    }),
   ).toBeInTheDocument();
 });
