@@ -1,5 +1,8 @@
-import { beforeEach, afterEach, beforeAll } from "bun:test";
-import { db } from "../app/utils/db";
+import { db } from "$/utils/db";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { afterEach, beforeAll, beforeEach } from "bun:test";
+
+GlobalRegistrator.register();
 
 beforeAll(async () => {
   await Bun.$`bunx -bun prisma migrate reset --force`;
@@ -10,6 +13,8 @@ beforeEach(() => {
   db.$executeRaw`SAVEPOINT before_test`;
 });
 
-afterEach(() => {
+afterEach(async () => {
   db.$executeRaw`ROLLBACK TO SAVEPOINT before_test`;
+  const { cleanup } = await import("@testing-library/react");
+  cleanup();
 });
