@@ -18,5 +18,5 @@ frontendRouter.use("{*path}", async (req, res) => {
 
   const bunResponse = await fetch(url);
   res.setHeaders(bunResponse.headers);
-  Readable.fromWeb(bunResponse.body!).pipe(res);
+  Readable.fromWeb(bunResponse.body! as any).pipe(res);
 });

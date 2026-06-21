@@ -18,4 +18,4 @@ app.use(express.json());
 
 app.use(healthRouter);
 app.use("/api", apiRouter);
-// app.use(frontendRouter); // Needs to be the final router
+app.use(frontendRouter); // Needs to be the final router

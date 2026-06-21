@@ -6,5 +6,5 @@ app.listen(Bun.env.PORT, (err) => {
     logger.error("Error starting application", err);
   }
 
-  logger.info(`Ready to accept connections`);
+  logger.info(`Ready to accept connections on port ${Bun.env.PORT}`);
 });

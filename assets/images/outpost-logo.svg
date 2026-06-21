@@ -1,0 +1,21 @@
+<svg width="430" height="140" viewBox="144 36 418 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&amp;display=swap');
+    </style>
+  </defs>
+
+  <g transform="translate(200, 100)">
+    <circle cx="0" cy="0" r="48" fill="none" stroke="#BA7517" stroke-width="2"/>
+    <circle cx="0" cy="0" r="6" fill="#BA7517"/>
+    <polygon points="0,-40 7,0 0,-6 -7,0" fill="#BA7517"/>
+    <polygon points="0,40 7,0 0,6 -7,0" fill="#D3D1C7"/>
+    <polygon points="-40,0 0,7 -6,0 0,-7" fill="#D3D1C7"/>
+    <polygon points="40,0 0,7 6,0 0,-7" fill="#D3D1C7"/>
+    <text x="0" y="-52" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#BA7517">N</text>
+  </g>
+
+  <text x="272" y="118" font-family="'Playfair Display', Georgia, serif" font-size="58" font-weight="400" letter-spacing="3" fill="#2C2C2A">Outpost</text>
+  <line x1="200" y1="148" x2="560" y2="148" stroke="#BA7517" stroke-width="1.5"/>
+  <text x="380" y="168" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" letter-spacing="4" fill="#888780">BACKPACKING COMPANION</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg width="100" height="112" viewBox="-2 -8 104 114" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(50, 54)">
+    <circle cx="0" cy="0" r="44" fill="none" stroke="#BA7517" stroke-width="2"/>
+    <circle cx="0" cy="0" r="6" fill="#BA7517"/>
+    <polygon points="0,-36 6,0 0,-6 -6,0" fill="#BA7517"/>
+    <polygon points="0,36 6,0 0,6 -6,0" fill="#D3D1C7"/>
+    <polygon points="-36,0 0,6 -6,0 0,-6" fill="#D3D1C7"/>
+    <polygon points="36,0 0,6 6,0 0,-6" fill="#D3D1C7"/>
+    <text x="0" y="-48" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#BA7517">N</text>
+  </g>
+</svg>
