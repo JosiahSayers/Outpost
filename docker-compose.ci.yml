@@ -14,5 +14,5 @@ services:
       - PORT=3000
       - SKIP_LOG_WRITE=true
       - BETTER_AUTH_SECRET=really-bad-secret
-      - BETTER_AUTH_URL=http://app:3000
+      - BETTER_AUTH_URL=http://localhost:3000
       - REDIS_URL=valkey://redis:6379

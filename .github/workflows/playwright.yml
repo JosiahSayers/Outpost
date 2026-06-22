@@ -33,7 +33,7 @@ jobs:
         run: docker compose -f docker-compose.ci.yml exec -T -d app bun dev
 
       - name: Run Playwright tests
-        run: bunx playwright test
+        run: bun test:e2e
         env:
           BASE_URL: http://localhost:3000
 
