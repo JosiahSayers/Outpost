@@ -1,4 +1,4 @@
-# bun-quickstart
+# Outpost
 
 To install dependencies:
 

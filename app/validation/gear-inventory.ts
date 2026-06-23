@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const createGearInventoryItemValidator = z
   .strictObject({
-    name: z.string(),
-    quantity: z.int().default(1),
+    name: z.string().min(1),
+    quantity: z.int().min(1).default(1),
     existingCategoryId: z.int().optional(),
     newCategoryName: z.string().optional(),
     grams: z.int().optional(),

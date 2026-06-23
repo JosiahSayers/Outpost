@@ -10,7 +10,7 @@ services:
       - 3000:3000
       - 3001:3001
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/backpacking-trip-planner
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/outpost
       - PORT=3000
       - SKIP_LOG_WRITE=true
       - BETTER_AUTH_SECRET=really-bad-secret

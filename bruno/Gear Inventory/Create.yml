@@ -1,0 +1,25 @@
+info:
+  name: Create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/gear-inventory"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Durston X-Mid 1",
+        "quantity": 1,
+      //   "existingCategoryId": 1,
+        "newCategoryName": "Shelter"
+      //   "grams": undefined
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

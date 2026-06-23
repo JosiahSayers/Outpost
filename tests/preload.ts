@@ -10,7 +10,7 @@ const { cleanup } = await import("@testing-library/react");
 
 if (!process.env.SKIP_DB_SETUP) {
   beforeAll(async () => {
-    await Bun.$`bunx -bun prisma migrate reset --force`;
+    await Bun.$`bunx --bun prisma migrate reset --force`;
     await Bun.$`bun db:seed`;
   });
 

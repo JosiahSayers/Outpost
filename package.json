@@ -1,5 +1,5 @@
 {
-  "name": "backpacking-trip-planner",
+  "name": "outpost",
   "module": "index.ts",
   "type": "module",
   "private": true,

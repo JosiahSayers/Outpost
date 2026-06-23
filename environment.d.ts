@@ -3,6 +3,8 @@ declare module "*.svg" {
   export default url;
 }
 
+declare module "*.css" {}
+
 declare module "bun" {
   interface Env {
     DATABASE_URL: string;
