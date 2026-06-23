@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const itemIdParamsValidator = z.object({ id: z.string() });
+
 export const createGearInventoryItemValidator = z
   .strictObject({
     name: z.string().min(1),
