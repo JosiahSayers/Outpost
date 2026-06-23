@@ -26,7 +26,9 @@ it("returns parsed json on a successful json response", async () => {
 
 it("returns text on a successful non-json response", async () => {
   fetchSpy.mockImplementation((() =>
-    Promise.resolve(new Response("ok", { status: 200 }))) as unknown as typeof fetch);
+    Promise.resolve(
+      new Response("ok", { status: 200 }),
+    )) as unknown as typeof fetch);
 
   const result = await apiClient<string>("/api/test");
   expect(result).toBe("ok");
