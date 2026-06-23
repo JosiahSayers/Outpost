@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 it("renders the total gear item count", () => {
-  expect(screen.getByText("4")).toBeInTheDocument();
+  expect(screen.getByText("4 (3 unique)")).toBeInTheDocument();
 });
 
 it("renders the total weight in kg", () => {
@@ -59,5 +59,5 @@ it("renders the category count", () => {
 it("renders a link to the gear inventory", () => {
   const link = screen.getByRole("link", { name: "Manage Gear Inventory →" });
   expect(link).toBeInTheDocument();
-  expect(link).toHaveAttribute("href", "/gear");
+  expect(link).toHaveAttribute("href", "/gear-inventory");
 });

@@ -1,4 +1,4 @@
-import StatBar from "$/frontend/gear-inventory/stat-bar";
+import GearStatsGroup from "$/frontend/gear-inventory/gear-stats-group";
 import { transformers } from "$/transformers";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
@@ -24,7 +24,7 @@ function makeClientItem(
 
 // cat 1: qty=2 @ 500g + qty=1 @ 1000g = 3 items, 2000g
 // cat 2: qty=1 @ 500g = 1 item, 500g
-// total: 4 items, 3 unique, 2.50 kg, 2 categories
+// total: 4 items, 3 unique, 2.5 kg, 2 categories
 const items = [
   makeClientItem(1, "Shelter", 2, 500),
   makeClientItem(1, "Shelter", 1, 1000),
@@ -35,7 +35,7 @@ describe("with items", () => {
   beforeEach(() => {
     render(
       <MantineProvider>
-        <StatBar items={items} />
+        <GearStatsGroup items={items} />
       </MantineProvider>,
     );
   });
@@ -45,7 +45,7 @@ describe("with items", () => {
   });
 
   it("renders total weight in kg", () => {
-    expect(screen.getByText("2.50 kg")).toBeInTheDocument();
+    expect(screen.getByText("2.5 kg")).toBeInTheDocument();
   });
 
   it("renders category count", () => {
@@ -57,7 +57,7 @@ describe("with no items", () => {
   beforeEach(() => {
     render(
       <MantineProvider>
-        <StatBar items={[]} />
+        <GearStatsGroup items={[]} />
       </MantineProvider>,
     );
   });
@@ -67,7 +67,7 @@ describe("with no items", () => {
   });
 
   it("renders zero weight", () => {
-    expect(screen.getByText("0.00 kg")).toBeInTheDocument();
+    expect(screen.getByText("0 kg")).toBeInTheDocument();
   });
 
   it("renders zero category count", () => {

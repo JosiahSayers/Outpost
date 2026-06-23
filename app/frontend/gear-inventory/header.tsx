@@ -1,4 +1,4 @@
-import StatBar from "$/frontend/gear-inventory/stat-bar";
+import GearStatsGroup from "$/frontend/gear-inventory/gear-stats-group";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { PlusIcon } from "@phosphor-icons/react";
@@ -20,7 +20,7 @@ export default function Header({ items, onAdd }: Props) {
           Add Item
         </Button>
       </Group>
-      <StatBar items={items} />
+      <GearStatsGroup items={items} />
     </Stack>
   );
 }

@@ -74,8 +74,8 @@ test.describe("Gear Inventory Page", () => {
     test("shows the correct total weight, ignoring items without a weight value", async ({
       page,
     }) => {
-      // (745 + 1615 + 82) / 1000 = 2.44 kg
-      await expect(page.getByText("2.44 kg")).toBeVisible();
+      // (745 + 1615 + 82) / 1000 = 2.442, rounds to 2.4
+      await expect(page.getByText("2.4 kg")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
