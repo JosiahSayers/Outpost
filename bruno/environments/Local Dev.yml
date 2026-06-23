@@ -3,6 +3,6 @@ variables:
   - name: baseUrl
     value: http://localhost:3000
   - name: userEmail
-    value: josiah.sayers@me.com
+    value: user@test.com
   - name: userPassword
-    value: badpassword
+    value: user-password
