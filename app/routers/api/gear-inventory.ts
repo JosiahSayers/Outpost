@@ -2,7 +2,10 @@ import { userCanAccessGearInventoryItem } from "$/middleware/authorization/gear-
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
-import { createGearInventoryItemValidator, itemIdParamsValidator } from "$/validation/gear-inventory";
+import {
+  createGearInventoryItemValidator,
+  itemIdParamsValidator,
+} from "$/validation/gear-inventory";
 import { Router } from "express";
 import validate from "express-zod-safe";
 import type { GearCategory } from "../../../generated/prisma/client";
@@ -59,7 +62,10 @@ gearInventoryRouter.post(
 
 gearInventoryRouter.put(
   "/:id",
-  validate({ params: itemIdParamsValidator, body: createGearInventoryItemValidator }),
+  validate({
+    params: itemIdParamsValidator,
+    body: createGearInventoryItemValidator,
+  }),
   userCanAccessGearInventoryItem,
   async (req, res) => {
     const existingItem = await db.gearInventoryItem.findUnique({
