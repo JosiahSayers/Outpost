@@ -2,6 +2,7 @@ export const MOCK_LIST = {
   id: 1,
   name: "REI Backpacking Checklist",
   public: true,
+  editable: false,
   sourceUrl: "https://www.rei.com/dam/backpacking_checklist_printable.pdf",
   description:
     "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won't take all items.",

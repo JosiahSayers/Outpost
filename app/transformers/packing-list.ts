@@ -16,7 +16,7 @@ export type ClientPackingList = Pick<
   | "sourceUrl"
   | "description"
   | "copiedFromPackingListId"
->;
+> & { editable: boolean };
 export type ClientFullPackingList = ClientPackingList & {
   sections: Array<
     ClientPackingListSection & { items: Array<ClientPackingListItem> }
@@ -37,6 +37,7 @@ function isFullPackingList(
 
 export function transform<Input extends PackingList | FullPackingList>(
   item: Input,
+  currentUserId?: string | null,
 ): Input extends FullPackingList ? ClientFullPackingList : ClientPackingList {
   const baseMap: ClientPackingList = {
     id: item.id,
@@ -45,6 +46,7 @@ export function transform<Input extends PackingList | FullPackingList>(
     sourceUrl: item.sourceUrl,
     description: item.description,
     copiedFromPackingListId: item.copiedFromPackingListId,
+    editable: item.userId != null && item.userId === currentUserId,
   };
 
   if (isFullPackingList(item)) {

@@ -34,7 +34,9 @@ packingListRouter.get(
     });
 
     return res.json({
-      packingLists: matchingPackingLists.map(transformers.packingList),
+      packingLists: matchingPackingLists.map((list) =>
+        transformers.packingList(list, req.session!.user.id),
+      ),
     });
   },
 );
@@ -51,7 +53,9 @@ packingListRouter.get("/:id", userCanAccessPackingList, async (req, res) => {
     },
   });
 
-  return res.json({ packingList: transformers.packingList(packingList!) });
+  return res.json({
+    packingList: transformers.packingList(packingList!, req.session!.user.id),
+  });
 });
 
 packingListRouter.post(
@@ -139,9 +143,9 @@ packingListRouter.post(
       },
     });
 
-    return res
-      .status(201)
-      .json({ packingList: transformers.packingList(packingList!) });
+    return res.status(201).json({
+      packingList: transformers.packingList(packingList!, req.session!.user.id),
+    });
   },
 );
 
@@ -192,7 +196,10 @@ packingListRouter.patch(
     });
 
     return res.json({
-      packingList: transformers.packingList(updatedPackingList),
+      packingList: transformers.packingList(
+        updatedPackingList,
+        req.session!.user.id,
+      ),
     });
   },
 );

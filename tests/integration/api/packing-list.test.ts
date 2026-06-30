@@ -26,6 +26,7 @@ describe("GET /", () => {
           {
             "copiedFromPackingListId": null,
             "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
+            "editable": false,
             "id": 1,
             "name": "REI Backpacking Checklist",
             "public": true,
@@ -85,6 +86,7 @@ describe("GET /:id", () => {
         "packingList": {
           "copiedFromPackingListId": null,
           "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
+          "editable": false,
           "id": 1,
           "name": "REI Backpacking Checklist",
           "public": true,
@@ -761,6 +763,36 @@ describe("GET /:id", () => {
     `);
   });
 
+  it("returns editable: false when the user does not own the list", async () => {
+    const reiList = (await db.packingList.findFirst({
+      where: { name: "REI Backpacking Checklist" },
+    }))!;
+    expect(reiList.userId).toBeNull();
+
+    const response = await supertest(app)
+      .get(`/api/packing-lists/${reiList.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.packingList.editable).toBe(false);
+  });
+
+  it("returns editable: true when the user owns the list", async () => {
+    const user = (await db.user.findUnique({
+      where: { email: "user@test.com" },
+    }))!;
+    const ownedList = await db.packingList.create({
+      data: { name: "My Editable List", userId: user.id },
+    });
+
+    const response = await supertest(app)
+      .get(`/api/packing-lists/${ownedList.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.packingList.editable).toBe(true);
+  });
+
   it("returns a 404 status when the packing list is not found", async () => {
     const response = await supertest(app)
       .get(`/api/packing-lists/-1`)
@@ -897,6 +929,7 @@ describe("POST /", () => {
       packingList: {
         copiedFromPackingListId: null,
         description: null,
+        editable: true,
         id: expect.any(Number),
         name: "New Packing List",
         public: false,

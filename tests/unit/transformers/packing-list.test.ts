@@ -13,7 +13,30 @@ describe("transform", () => {
         sourceUrl: list.sourceUrl,
         description: list.description,
         copiedFromPackingListId: list.copiedFromPackingListId,
+        editable: false,
       });
+    });
+  });
+
+  describe("editable", () => {
+    it("is true when the current user owns the list", () => {
+      const list = make("PackingList", { userId: "user-1" });
+      expect(transformers.packingList(list, "user-1").editable).toBe(true);
+    });
+
+    it("is false when the current user does not own the list", () => {
+      const list = make("PackingList", { userId: "user-1" });
+      expect(transformers.packingList(list, "user-2").editable).toBe(false);
+    });
+
+    it("is false when no current user is provided", () => {
+      const list = make("PackingList", { userId: "user-1" });
+      expect(transformers.packingList(list).editable).toBe(false);
+    });
+
+    it("is false for an unowned list even when a user is provided", () => {
+      const list = make("PackingList"); // userId defaults to null
+      expect(transformers.packingList(list, "user-1").editable).toBe(false);
     });
   });
 
@@ -48,6 +71,7 @@ describe("transform", () => {
         sourceUrl: list.sourceUrl,
         description: list.description,
         copiedFromPackingListId: input.copiedFromPackingListId,
+        editable: false,
         sections: [
           {
             id: section1.id,
