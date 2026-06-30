@@ -8,13 +8,48 @@ import type {
   createSection,
   updateSection,
 } from "$/validation/packing-list/section";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+  type QueryKey,
+} from "@tanstack/react-query";
 import type { z } from "zod";
 import { apiClient } from "./client";
 
 export const packingListKeys = {
   detail: (id: number) => ["packing-list", id] as const,
 };
+
+// Shared optimistic-update plumbing: cancel in-flight refetches, snapshot the
+// cache for rollback, then apply `updater`. Pair with `rollbackList` in
+// `onError` and an invalidate in `onSettled`.
+async function snapshotList(
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+  updater: (list: ClientFullPackingList) => ClientFullPackingList,
+): Promise<{ previous?: ClientFullPackingList }> {
+  await queryClient.cancelQueries({ queryKey });
+  const previous = queryClient.getQueryData<ClientFullPackingList>(queryKey);
+  if (previous) {
+    queryClient.setQueryData<ClientFullPackingList>(
+      queryKey,
+      updater(previous),
+    );
+  }
+  return { previous };
+}
+
+function rollbackList(
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+  context: { previous?: ClientFullPackingList } | undefined,
+) {
+  if (context?.previous) {
+    queryClient.setQueryData(queryKey, context.previous);
+  }
+}
 
 /**
  * The backend makes no ordering guarantees, so sorting lives here — the single
@@ -80,6 +115,7 @@ export function useUpdatePackingList(listId: number) {
 
 export function useCreateSection(listId: number) {
   const queryClient = useQueryClient();
+  const queryKey = packingListKeys.detail(listId);
   return useMutation({
     mutationFn: (data: z.input<typeof createSection>) =>
       apiClient<{ section: ClientPackingListSection }>(
@@ -90,16 +126,25 @@ export function useCreateSection(listId: number) {
           body: JSON.stringify(data),
         },
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: packingListKeys.detail(listId),
-      });
+    // Append the server's section (with its real id) so it can be put straight
+    // into edit mode — no temp id to swap, which avoids losing in-progress
+    // input if the response lands mid-keystroke.
+    onSuccess: ({ section }) => {
+      queryClient.setQueryData<ClientFullPackingList>(queryKey, (old) =>
+        old
+          ? { ...old, sections: [...old.sections, { ...section, items: [] }] }
+          : old,
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
 
 export function useUpdateSection(listId: number) {
   const queryClient = useQueryClient();
+  const queryKey = packingListKeys.detail(listId);
   return useMutation({
     mutationFn: ({
       sectionId,
@@ -113,25 +158,52 @@ export function useUpdateSection(listId: number) {
           body: JSON.stringify(data),
         },
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: packingListKeys.detail(listId),
-      });
+    onMutate: ({ sectionId, ...data }) =>
+      snapshotList(queryClient, queryKey, (list) => {
+        let sections = list.sections;
+        // Reorder: mirror the backend by pushing every section at or after the
+        // new position down one, then placing the target — keeps the optimistic
+        // order identical to what the refetch will return.
+        if (data.sortPosition != null) {
+          sections = sections.map((section) =>
+            section.id !== sectionId &&
+            section.sortPosition >= data.sortPosition!
+              ? { ...section, sortPosition: section.sortPosition + 1 }
+              : section,
+          );
+        }
+        return {
+          ...list,
+          sections: sections.map((section) =>
+            section.id === sectionId ? { ...section, ...data } : section,
+          ),
+        };
+      }),
+    onError: (_error, _vars, context) =>
+      rollbackList(queryClient, queryKey, context),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
 
 export function useDeleteSection(listId: number) {
   const queryClient = useQueryClient();
+  const queryKey = packingListKeys.detail(listId);
   return useMutation({
     mutationFn: (sectionId: number) =>
       apiClient(`/api/packing-lists/${listId}/sections/${sectionId}`, {
         method: "DELETE",
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: packingListKeys.detail(listId),
-      });
+    onMutate: (sectionId) =>
+      snapshotList(queryClient, queryKey, (list) => ({
+        ...list,
+        sections: list.sections.filter((section) => section.id !== sectionId),
+      })),
+    onError: (_error, _sectionId, context) =>
+      rollbackList(queryClient, queryKey, context),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

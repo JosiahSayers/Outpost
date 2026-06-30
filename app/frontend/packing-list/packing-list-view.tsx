@@ -2,13 +2,17 @@ import CallToAction from "$/frontend/packing-list/header/call-to-action";
 import PackingListDescription from "$/frontend/packing-list/header/packing-list-description";
 import PackingListTitle from "$/frontend/packing-list/header/packing-list-title";
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
-import { useUpdatePackingList } from "$/frontend/utils/api/packing-list";
+import {
+  useCreateSection,
+  useDeleteSection,
+  useUpdatePackingList,
+  useUpdateSection,
+} from "$/frontend/utils/api/packing-list";
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
-import { notifications } from "@mantine/notifications";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
 import { Divider, Group, Stack, Text } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useRef, useState } from "react";
 import SectionContent from "./section/section-content";
 import { useFlipReorder } from "./use-flip-reorder";
@@ -19,18 +23,23 @@ interface Props {
 }
 
 export default function PackingListView({ editable = false, list }: Props) {
-  // Local copy of the sections kept in display order. Ordering is not yet
-  // persisted to the backend, so reorders only mutate this state for now.
-  const [sections, setSections] = useState(() => sortByPosition(list.sections));
+  // Sections render straight from the cache-fed prop; sort defensively since the
+  // backend makes no ordering guarantee.
+  const sections = sortByPosition(list.sections);
   // Section the user just added, so it mounts directly in edit mode.
   const [autoEditSectionId, setAutoEditSectionId] = useState<number | null>(
     null,
   );
-  // Temporary client-side ids for sections added before they're persisted.
-  const nextTempId = useRef(-1);
   const columnsRef = useRef<HTMLDivElement>(null);
   const { register: registerSection, markMoved } = useFlipReorder();
+
   const updateList = useUpdatePackingList(list.id);
+  const createSection = useCreateSection(list.id);
+  const updateSection = useUpdateSection(list.id);
+  const deleteSection = useDeleteSection(list.id);
+
+  const notifyError = (title: string) => (error: Error) =>
+    notifications.show({ color: "red", title, message: error.message });
 
   // Scroll a newly added section into view once it has mounted.
   useEffect(() => {
@@ -40,34 +49,44 @@ export default function PackingListView({ editable = false, list }: Props) {
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [autoEditSectionId]);
 
-  function moveSection(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= sections.length) return;
+  function handleMoveSection(index: number, direction: "up" | "down") {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= sections.length) return;
+    const upper = sections[Math.min(index, targetIndex)]!;
+    const lower = sections[Math.max(index, targetIndex)]!;
     // Only the two swapped sections should animate; everything else may shift
     // due to column rebalancing and should snap into place instead.
-    markMoved([sections[index]!.id, sections[target]!.id]);
-    setSections((prev) => arrayMove(prev, index, target));
-  }
-
-  function renameSection(index: number, name: string) {
-    setSections((prev) =>
-      prev.map((section, i) => (i === index ? { ...section, name } : section)),
+    markMoved([upper.id, lower.id]);
+    // Persist a swap by moving the lower section up into the upper's slot; the
+    // backend's insert-and-push-down logic handles both directions this way.
+    updateSection.mutate(
+      { sectionId: lower.id, sortPosition: upper.sortPosition },
+      { onError: notifyError("Couldn't reorder sections") },
     );
   }
 
-  function deleteSection(index: number) {
-    setSections((prev) => prev.filter((_, i) => i !== index));
+  function handleRenameSection(sectionId: number, name: string) {
+    updateSection.mutate(
+      { sectionId, name },
+      { onError: notifyError("Couldn't rename section") },
+    );
   }
 
-  function addSection() {
-    const id = nextTempId.current--;
-    setAutoEditSectionId(id);
-    setSections((prev) => {
-      const sortPosition = prev.length
-        ? Math.max(...prev.map((s) => s.sortPosition)) + 1
-        : 1;
-      return [...prev, { id, name: "New section", sortPosition, items: [] }];
+  function handleDeleteSection(sectionId: number) {
+    deleteSection.mutate(sectionId, {
+      onError: notifyError("Couldn't delete section"),
     });
+  }
+
+  function handleAddSection() {
+    createSection.mutate(
+      { name: "New section" },
+      {
+        // Reveal the persisted section in edit mode once it has an id.
+        onSuccess: ({ section }) => setAutoEditSectionId(section.id),
+        onError: notifyError("Couldn't add section"),
+      },
+    );
   }
 
   return (
@@ -80,32 +99,18 @@ export default function PackingListView({ editable = false, list }: Props) {
               onSave={(name) =>
                 updateList.mutate(
                   { name },
-                  {
-                    onError: (error) =>
-                      notifications.show({
-                        color: "red",
-                        title: "Couldn't rename list",
-                        message: error.message,
-                      }),
-                  },
+                  { onError: notifyError("Couldn't rename list") },
                 )
               }
             />
-            <CallToAction onAddSection={addSection} />
+            <CallToAction onAddSection={handleAddSection} />
           </Group>
           <PackingListDescription
             value={list.description}
             onSave={(description) =>
               updateList.mutate(
                 { name: list.name, description },
-                {
-                  onError: (error) =>
-                    notifications.show({
-                      color: "red",
-                      title: "Couldn't update description",
-                      message: error.message,
-                    }),
-                },
+                { onError: notifyError("Couldn't update description") },
               )
             }
           />
@@ -136,10 +141,10 @@ export default function PackingListView({ editable = false, list }: Props) {
                 section={section}
                 isFirst={index === 0}
                 isLast={index === sections.length - 1}
-                onMoveUp={() => moveSection(index, "up")}
-                onMoveDown={() => moveSection(index, "down")}
-                onRename={(name) => renameSection(index, name)}
-                onDelete={() => deleteSection(index)}
+                onMoveUp={() => handleMoveSection(index, "up")}
+                onMoveDown={() => handleMoveSection(index, "down")}
+                onRename={(name) => handleRenameSection(section.id, name)}
+                onDelete={() => handleDeleteSection(section.id)}
                 autoEdit={section.id === autoEditSectionId}
               />
             </div>

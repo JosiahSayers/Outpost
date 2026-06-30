@@ -27,7 +27,6 @@ export function useFlipReorder(durationMs = 250) {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const toAnimate = movedIds.current;
-    movedIds.current = null;
 
     // Reset any in-flight transforms so we read each node's true layout
     // position, then remember those positions for the next reorder. We use
@@ -42,6 +41,7 @@ export function useFlipReorder(durationMs = 250) {
       nextPositions.set(id, { top: el.offsetTop, left: el.offsetLeft });
     });
 
+    let animated = false;
     if (!reduceMotion && toAnimate) {
       refs.current.forEach((el, id) => {
         if (!toAnimate.has(id)) return;
@@ -60,7 +60,16 @@ export function useFlipReorder(durationMs = 250) {
           el.style.transition = `transform ${durationMs}ms ease`;
           el.style.transform = "";
         });
+        animated = true;
       });
+    }
+
+    // Keep the pending-move marker until an animation actually plays. A reorder
+    // driven by an async mutation can trigger an intermediate render (the
+    // mutation entering its pending state) before the cache update renders the
+    // new order; clearing eagerly there would swallow the animation.
+    if (toAnimate && (animated || reduceMotion)) {
+      movedIds.current = null;
     }
 
     prevPositions.current = nextPositions;

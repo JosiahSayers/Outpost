@@ -33,6 +33,19 @@ async function findListIdByName(page: Page, name: string): Promise<number> {
   return match.id;
 }
 
+async function addSectionViaApi(page: Page, listId: number, name: string) {
+  const response = await page.request.post(
+    `/api/packing-lists/${listId}/sections`,
+    { data: { name } },
+  );
+  expect(response.ok()).toBe(true);
+}
+
+// A section card is the wrapper around one section's header and items.
+function sectionCard(page: Page, name: string) {
+  return page.locator("div[data-section-id]").filter({ hasText: name });
+}
+
 test.beforeEach(async ({ page }) => {
   // Suppress benign ResizeObserver errors that trigger Bun's dev-server error
   // overlay, which intercepts pointer events and causes test failures.
@@ -56,11 +69,12 @@ test.beforeEach(async ({ page }) => {
 test.describe("Packing List Page", () => {
   test.describe("an editable list (owned by the user)", () => {
     let listName: string;
+    let listId: number;
 
     test.beforeEach(async ({ page }) => {
       await signIn(page);
       listName = `E2E Editable ${Date.now()}`;
-      const listId = await createOwnedList(page, listName);
+      listId = await createOwnedList(page, listName);
       await page.goto(`/packing-lists/${listId}`);
       await expect(
         page.getByRole("heading", { level: 1, name: listName }),
@@ -126,6 +140,92 @@ test.describe("Packing List Page", () => {
 
       await page.reload();
       await expect(page.getByText(description)).toBeVisible();
+    });
+
+    test.describe("sections", () => {
+      test("adding a section reveals it in edit mode and persists", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "Add section" }).click();
+
+        const input = page.getByRole("textbox");
+        await expect(input).toHaveValue("New section");
+        await input.fill("Camp Kitchen");
+        await input.press("Enter");
+
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Camp Kitchen" }),
+        ).toBeVisible();
+
+        await page.reload();
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Camp Kitchen" }),
+        ).toBeVisible();
+      });
+
+      test("renaming a section persists across a reload", async ({ page }) => {
+        await addSectionViaApi(page, listId, "Original Section");
+        await page.reload();
+
+        await page
+          .getByRole("heading", { level: 5, name: "Original Section" })
+          .click();
+        const input = page.getByRole("textbox");
+        await input.fill("Renamed Section");
+        await input.press("Enter");
+
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Renamed Section" }),
+        ).toBeVisible();
+
+        await page.reload();
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Renamed Section" }),
+        ).toBeVisible();
+      });
+
+      test("deleting a section removes it and persists", async ({ page }) => {
+        await addSectionViaApi(page, listId, "Doomed Section");
+        await page.reload();
+
+        const card = sectionCard(page, "Doomed Section");
+        await card
+          .getByRole("heading", { level: 5, name: "Doomed Section" })
+          .hover();
+        await card.getByRole("button", { name: "Delete section" }).click();
+
+        await expect(page.getByText("Delete section?")).toBeVisible();
+        await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Doomed Section" }),
+        ).not.toBeVisible();
+
+        await page.reload();
+        await expect(
+          page.getByRole("heading", { level: 5, name: "Doomed Section" }),
+        ).not.toBeVisible();
+      });
+
+      test("moving a section up reorders it and persists", async ({ page }) => {
+        await addSectionViaApi(page, listId, "First Section");
+        await addSectionViaApi(page, listId, "Second Section");
+        await page.reload();
+
+        const headings = page.getByRole("heading", { level: 5 });
+        await expect(headings).toHaveText(["First Section", "Second Section"]);
+
+        const card = sectionCard(page, "Second Section");
+        await card
+          .getByRole("heading", { level: 5, name: "Second Section" })
+          .hover();
+        await card.getByRole("button", { name: "Move section up" }).click();
+
+        await expect(headings).toHaveText(["Second Section", "First Section"]);
+
+        await page.reload();
+        await expect(headings).toHaveText(["Second Section", "First Section"]);
+      });
     });
   });
 
