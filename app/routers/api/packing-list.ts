@@ -180,7 +180,7 @@ packingListRouter.patch(
   validate({ body: editPackingList, params: idParam }),
   async (req, res) => {
     const updatedPackingList = await db.packingList.update({
-      data: { name: req.body.name },
+      data: { name: req.body.name, description: req.body.description },
       where: { id: Number(req.params.id) },
       include: {
         packingListSections: {

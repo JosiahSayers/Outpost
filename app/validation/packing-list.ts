@@ -13,4 +13,5 @@ export const newPackingList = z.strictObject({
 
 export const editPackingList = z.strictObject({
   name: packingListName,
+  description: z.string().trim().optional(),
 });

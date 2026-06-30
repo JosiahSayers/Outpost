@@ -1063,6 +1063,98 @@ describe("DELETE /:id", () => {
   });
 });
 
+describe("PATCH /:id", () => {
+  let user1: User;
+  let user2: User;
+  let user2AuthCookies: string[];
+
+  beforeAll(async () => {
+    user1 = (await db.user.findUnique({ where: { email: "user@test.com" } }))!;
+    user2 = (await db.user.findUnique({ where: { email: "user2@test.com" } }))!;
+    user2AuthCookies = await getAuthCookies(user2.email);
+  });
+
+  it("requires a valid session", (done) => {
+    supertest(app).patch("/api/packing-lists/1").expect(401, done);
+  });
+
+  it("returns a 403 when the user cannot edit the packing list", async () => {
+    const user1List = await db.packingList.create({
+      data: { name: "User 1 List", userId: user1.id },
+    });
+
+    await supertest(app)
+      .patch(`/api/packing-lists/${user1List.id}`)
+      .set("Cookie", user2AuthCookies)
+      .send({ name: "Hijacked" })
+      .expect(403);
+  });
+
+  it("returns a 400 when name is not provided", async () => {
+    const list = await db.packingList.create({
+      data: { name: "Editable List", userId: user1.id },
+    });
+
+    await supertest(app)
+      .patch(`/api/packing-lists/${list.id}`)
+      .set("Cookie", authCookies)
+      .send({ description: "No name here" })
+      .expect(400);
+  });
+
+  it("updates the name", async () => {
+    const list = await db.packingList.create({
+      data: { name: "Old Name", userId: user1.id },
+    });
+
+    const response = await supertest(app)
+      .patch(`/api/packing-lists/${list.id}`)
+      .set("Cookie", authCookies)
+      .send({ name: "New Name" })
+      .expect(200);
+
+    expect(response.body.packingList.name).toBe("New Name");
+  });
+
+  it("updates the description alongside the name", async () => {
+    const list = await db.packingList.create({
+      data: { name: "Has Description", userId: user1.id },
+    });
+
+    const response = await supertest(app)
+      .patch(`/api/packing-lists/${list.id}`)
+      .set("Cookie", authCookies)
+      .send({
+        name: "Has Description",
+        description: "Packed for a weekend trip",
+      })
+      .expect(200);
+
+    expect(response.body.packingList.description).toBe(
+      "Packed for a weekend trip",
+    );
+  });
+
+  it("leaves the description untouched when only the name is sent", async () => {
+    const list = await db.packingList.create({
+      data: {
+        name: "Keep My Description",
+        description: "Original description",
+        userId: user1.id,
+      },
+    });
+
+    const response = await supertest(app)
+      .patch(`/api/packing-lists/${list.id}`)
+      .set("Cookie", authCookies)
+      .send({ name: "Renamed" })
+      .expect(200);
+
+    expect(response.body.packingList.name).toBe("Renamed");
+    expect(response.body.packingList.description).toBe("Original description");
+  });
+});
+
 describe("GET /:id/pdf", () => {
   let reiPackingList: PackingList;
 
