@@ -1,8 +1,10 @@
 import { queryClient } from "$/frontend/utils/api/query-client";
 import { describe, expect, it } from "bun:test";
 
-const retry = queryClient.getDefaultOptions().queries
-  ?.retry as (failureCount: number, error: unknown) => boolean;
+const retry = queryClient.getDefaultOptions().queries?.retry as (
+  failureCount: number,
+  error: unknown,
+) => boolean;
 
 describe("retry", () => {
   it("does not retry on a 403 error", () => {
