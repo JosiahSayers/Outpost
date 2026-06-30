@@ -1,4 +1,11 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "bun:test";
 import { getAuthCookies } from "../../helpers/auth";
 import supertest from "supertest";
 import { app } from "$/server";
