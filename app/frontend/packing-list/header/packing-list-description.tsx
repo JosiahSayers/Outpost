@@ -4,16 +4,22 @@ import { useState } from "react";
 
 interface Props {
   value: string | null;
+  onSave?: (description: string) => void;
 }
 
-export default function PackingListDescription({ value: initialValue }: Props) {
+export default function PackingListDescription({ value, onSave }: Props) {
   const { editable } = usePackingList();
-  const [value, setValue] = useState(initialValue ?? "");
+  // `value` is the source of truth (driven by the React Query cache); only the
+  // in-progress edit lives locally so the displayed text never diverges.
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useState(value ?? "");
 
   const commit = () => {
-    setValue(draft.trim());
+    const description = draft.trim();
+    // Persist any change, including clearing the description back to empty.
+    if (description !== (value ?? "")) {
+      onSave?.(description);
+    }
     setEditing(false);
   };
   const cancel = () => setEditing(false);
@@ -53,7 +59,7 @@ export default function PackingListDescription({ value: initialValue }: Props) {
       onClick={
         editable
           ? () => {
-              setDraft(value);
+              setDraft(value ?? "");
               setEditing(true);
             }
           : undefined

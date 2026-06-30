@@ -93,7 +93,22 @@ export default function PackingListView({ editable = false, list }: Props) {
             />
             <CallToAction onAddSection={addSection} />
           </Group>
-          <PackingListDescription value={list.description} />
+          <PackingListDescription
+            value={list.description}
+            onSave={(description) =>
+              updateList.mutate(
+                { name: list.name, description },
+                {
+                  onError: (error) =>
+                    notifications.show({
+                      color: "red",
+                      title: "Couldn't update description",
+                      message: error.message,
+                    }),
+                },
+              )
+            }
+          />
           {list.sourceUrl && (
             <Group gap="xs">
               <ArrowSquareOutIcon size={14} />

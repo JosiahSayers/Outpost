@@ -112,6 +112,21 @@ test.describe("Packing List Page", () => {
         page.getByRole("heading", { level: 1, name: listName }),
       ).toBeVisible();
     });
+
+    test("editing the description persists across a reload", async ({
+      page,
+    }) => {
+      const description = `Trip notes ${Date.now()}`;
+      // A new list has no description, so it shows the placeholder.
+      await page.getByText("Add a description").click();
+      await page.getByRole("textbox").fill(description);
+      await page.getByRole("textbox").press("Enter");
+
+      await expect(page.getByText(description)).toBeVisible();
+
+      await page.reload();
+      await expect(page.getByText(description)).toBeVisible();
+    });
   });
 
   test.describe("a non-editable list (public, not owned)", () => {
