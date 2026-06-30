@@ -23,3 +23,23 @@ export const userCanAccessPackingList: RequestHandler = async (
 
   return next();
 };
+
+export const userCanEditPackingList: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  const packingList = await db.packingList.findUnique({
+    where: { id: Number(req.params.id) },
+  });
+
+  if (!packingList) {
+    return res.sendStatus(404);
+  }
+
+  if (!packingList.userId || packingList.userId !== req.session!.user.id) {
+    return res.sendStatus(403);
+  }
+
+  return next();
+};

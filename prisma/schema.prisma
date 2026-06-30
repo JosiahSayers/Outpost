@@ -165,8 +165,8 @@ model PackingListItem {
   optional     Boolean @default(false)
   sortPosition Int
 
-  category             GearCategory        @relation(fields: [gearCategoryId], references: [id])
-  gearCategoryId       Int
+  category             GearCategory?       @relation(fields: [gearCategoryId], references: [id])
+  gearCategoryId       Int?
   assignedGear         GearInventoryItem?  @relation(fields: [gearInventoryItemId], references: [id])
   gearInventoryItemId  Int?
   packingListSection   PackingListSection? @relation(fields: [packingListSectionId], references: [id], onDelete: Cascade)

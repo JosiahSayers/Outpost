@@ -379,8 +379,8 @@ describe("PUT /:id", () => {
     ).not.toBeNull();
   });
 
-  it("returns a 403 when the item belongs to another user", async (done) => {
-    request(app)
+  it("returns a 403 when the item belongs to another user", async () => {
+    await request(app)
       .put(`/api/gear-inventory/${user2ItemId}`)
       .send({
         name: "Hacked",
@@ -388,11 +388,11 @@ describe("PUT /:id", () => {
         existingCategoryId: backpacksCategoryId,
       })
       .set("Cookie", authCookies)
-      .expect(403, done);
+      .expect(403);
   });
 
-  it("returns a 404 when the item id cannot be found", async (done) => {
-    request(app)
+  it("returns a 404 when the item id cannot be found", async () => {
+    await request(app)
       .put(`/api/gear-inventory/-1`)
       .send({
         name: "Ghost Item",
@@ -400,7 +400,7 @@ describe("PUT /:id", () => {
         existingCategoryId: backpacksCategoryId,
       })
       .set("Cookie", authCookies)
-      .expect(404, done);
+      .expect(404);
   });
 
   it("returns a 404 when the existing category is not accessible to the user", async () => {
@@ -464,24 +464,24 @@ describe("DELETE /:id", () => {
     user2ItemId = user2Item.id;
   });
 
-  it("returns a 403 when the id does not belong to the user", async (done) => {
-    request(app)
+  it("returns a 403 when the id does not belong to the user", async () => {
+    await request(app)
       .delete(`/api/gear-inventory/${user2ItemId!}`)
       .set("Cookie", authCookies)
-      .expect(403, done);
+      .expect(403);
   });
 
-  it("returns a 404 when the id cannot be found", async (done) => {
-    request(app)
+  it("returns a 404 when the id cannot be found", async () => {
+    await request(app)
       .delete(`/api/gear-inventory/-1`)
       .set("Cookie", authCookies)
-      .expect(404, done);
+      .expect(404);
   });
 
-  it("returns a 200 when the id belongs to the user", async (done) => {
-    request(app)
+  it("returns a 200 when the id belongs to the user", async () => {
+    await request(app)
       .delete(`/api/gear-inventory/${user2ItemId!}`)
       .set("Cookie", user2AuthCookies)
-      .expect(200, done);
+      .expect(200);
   });
 });

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { getAuthCookies, testAuth } from "../../helpers/auth";
+import { getAuthCookies } from "../../helpers/auth";
 import supertest from "supertest";
 import { app } from "$/server";
 import { db } from "$/utils/db";
@@ -980,34 +980,34 @@ describe("DELETE /:id", () => {
       .expect(404, done);
   });
 
-  it("returns a 403 when the user does not own the packing list", async (done) => {
+  it("returns a 403 when the user does not own the packing list", async () => {
     const user1List = await db.packingList.create({
       data: { name: "Can't Touch This", userId: user1!.id },
     });
 
-    supertest(app)
+    await supertest(app)
       .delete(`/api/packing-lists/${user1List.id}`)
       .set("Cookie", user2AuthCookies)
-      .expect(403, done);
+      .expect(403);
   });
 
-  it("returns a 403 when the packing list does not have an associated user", async (done) => {
+  it("returns a 403 when the packing list does not have an associated user", async () => {
     expect(reiPackingList!.userId).toBeNull();
-    supertest(app)
+    await supertest(app)
       .delete(`/api/packing-lists/${reiPackingList!.id}`)
       .set("Cookie", authCookies)
-      .expect(403, done);
+      .expect(403);
   });
 
-  it("returns a 200 when the packing list is deleted", async (done) => {
+  it("returns a 200 when the packing list is deleted", async () => {
     const user1List = await db.packingList.create({
       data: { name: "New List", userId: user1!.id },
     });
 
-    supertest(app)
+    await supertest(app)
       .delete(`/api/packing-lists/${user1List.id}`)
       .set("Cookie", authCookies)
-      .expect(200, done);
+      .expect(200);
   });
 
   it("deletes the list, all list sections, and all list items when successful", async () => {
