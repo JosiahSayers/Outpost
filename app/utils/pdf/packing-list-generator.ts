@@ -25,13 +25,45 @@ export async function generatePackingListPdf(
   });
   document.pipe(output);
 
+  document.registerFont(
+    "Playfair Display Bold",
+    "./assets/fonts/playfair-display-bold.ttf",
+  );
+  document.registerFont(
+    "Playfair Display Black",
+    "./assets/fonts/playfair-display-black.ttf",
+  );
+  document.registerFont(
+    "Source Sans 3",
+    "./assets/fonts/source-sans-3-regular.ttf",
+  );
+  document.registerFont(
+    "Source Sans 3 SemiBold",
+    "./assets/fonts/source-sans-3-semibold.ttf",
+  );
+
+  // Mark every page with the Outpost logo, tucked into the top margin so it
+  // never overlaps the title or the packing list content that starts below it.
+  const logoHeight = 22;
+  const logoWidth = logoHeight * (430 / 107); // source SVG aspect ratio
+  const drawLogo = () => {
+    document.image(
+      "./assets/images/outpost-logo-no-tagline.png",
+      document.page.width - document.page.margins.right - logoWidth,
+      document.page.margins.top - logoHeight,
+      { width: logoWidth, height: logoHeight },
+    );
+  };
+  drawLogo();
+  document.on("pageAdded", drawLogo);
+
   document
     .fontSize(24)
-    .font("./assets/fonts/carter-one.ttf")
+    .font("Playfair Display Black")
     .text(packingList.name, { align: "center" });
   document.moveDown();
 
-  document.font("Courier");
+  document.font("Source Sans 3");
   if (packingList.description) {
     document
       .fontSize(8)
@@ -63,6 +95,21 @@ export async function generatePackingListPdf(
   document.moveDown().moveDown().moveDown();
 
   document.fillColor("black");
+
+  // pdfkit positions text by the top of the font's ascender box, which
+  // varies by font. Compute the offset that centers the font's cap-height
+  // (rather than its full ascender) inside a box of `boxSize`, so item text
+  // lines up with its checkbox regardless of the active font's metrics.
+  const capHeightCenterOffset = (boxSize: number) => {
+    const internal = document as unknown as {
+      _font: { ascender: number; capHeight: number };
+      _fontSize: number;
+    };
+    const scale = internal._fontSize / 1000;
+    const ascender = internal._font.ascender * scale;
+    const capHeight = internal._font.capHeight * scale;
+    return boxSize / 2 + capHeight / 2 - ascender;
+  };
 
   let checkboxX = document.x;
   const startingY = document.y;
@@ -162,7 +209,7 @@ export async function generatePackingListPdf(
       titleTopMargin = overflowed ? 0 : titleTopMargin;
       document
         .fontSize(12)
-        .font("Courier-Bold")
+        .font("Playfair Display Bold")
         .lineGap(lineGap * 2)
         .text(
           section.name,
@@ -171,7 +218,7 @@ export async function generatePackingListPdf(
           sectionTitleOptions,
         );
 
-      document.fontSize(8).font("Courier").lineGap(lineGap);
+      document.fontSize(8).font("Source Sans 3").lineGap(lineGap);
 
       let lastItemWasOptional = false;
       section.items
@@ -189,16 +236,15 @@ export async function generatePackingListPdf(
         .forEach((item) => {
           if (item.optional && !lastItemWasOptional) {
             const didMove = columnCalculations("Optional:", columnWidth, 12);
-            document.font("Courier-Bold");
             document
-              .font("Courier-Bold")
+              .font("Source Sans 3 SemiBold")
               .fontSize(10)
               .lineGap(lineGap * 2)
               .text("Optional:", checkboxX, document.y + (didMove ? 0 : 12), {
                 width: columnWidth,
               });
             lastItemWasOptional = true;
-            document.font("Courier").fontSize(8).lineGap(lineGap);
+            document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
           }
 
           columnCalculations(item.name, columnTextWidth, 1);
@@ -206,9 +252,12 @@ export async function generatePackingListPdf(
           document
             .rect(checkboxX, document.y, checkboxSize, checkboxSize)
             .stroke();
-          document.text(item.name, checkboxX + checkboxGap, document.y + 1, {
-            width: columnTextWidth,
-          });
+          document.text(
+            item.name,
+            checkboxX + checkboxGap,
+            document.y + capHeightCenterOffset(checkboxSize),
+            { width: columnTextWidth },
+          );
         });
     });
 
