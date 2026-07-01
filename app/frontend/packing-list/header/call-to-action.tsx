@@ -1,5 +1,5 @@
 import { usePackingList } from "$/frontend/packing-list/packing-list-context";
-import { Button, Group } from "@mantine/core";
+import { ActionIcon, Button, Group, Tooltip } from "@mantine/core";
 import {
   CopyIcon,
   FilePdfIcon,
@@ -51,16 +51,18 @@ export default function CallToAction({
       >
         Add section
       </Button>
-      <Button
-        leftSection={<TrashIcon size={16} />}
-        color="red"
-        variant="subtle"
-        size="md"
-        onClick={onDelete}
-        loading={isDeleting}
-      >
-        Delete list
-      </Button>
+      <Tooltip label="Delete list">
+        <ActionIcon
+          color="red"
+          variant="subtle"
+          size="lg"
+          onClick={onDelete}
+          loading={isDeleting}
+          aria-label="Delete list"
+        >
+          <TrashIcon size={18} />
+        </ActionIcon>
+      </Tooltip>
     </Group>
   ) : (
     <Group gap="sm">
