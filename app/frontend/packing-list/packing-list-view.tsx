@@ -4,6 +4,7 @@ import PackingListTitle from "$/frontend/packing-list/header/packing-list-title"
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
 import {
   useCreateItem,
+  useCreatePackingList,
   useCreateSection,
   useDeleteItem,
   useDeleteSection,
@@ -18,6 +19,7 @@ import { Divider, Group, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
 import SectionContent from "./section/section-content";
 import { useFlipReorder } from "./use-flip-reorder";
 
@@ -38,8 +40,10 @@ export default function PackingListView({ editable = false, list }: Props) {
   const [autoEditItemId, setAutoEditItemId] = useState<number | null>(null);
   const columnsRef = useRef<HTMLDivElement>(null);
   const { register: registerSection, markMoved } = useFlipReorder();
+  const [, navigate] = useLocation();
 
   const updateList = useUpdatePackingList(list.id);
+  const copyList = useCreatePackingList();
   const createSection = useCreateSection(list.id);
   const updateSection = useUpdateSection(list.id);
   const deleteSection = useDeleteSection(list.id);
@@ -92,6 +96,17 @@ export default function PackingListView({ editable = false, list }: Props) {
     deleteSection.mutate(sectionId, {
       onError: notifyError("Couldn't delete section"),
     });
+  }
+
+  function handleCopy() {
+    copyList.mutate(
+      { name: `Copy of ${list.name}`, copiedFromPackingListId: list.id },
+      {
+        onSuccess: ({ packingList }) =>
+          navigate(`/packing-lists/${packingList.id}`),
+        onError: notifyError("Couldn't copy list"),
+      },
+    );
   }
 
   function handleAddSection() {
@@ -165,7 +180,11 @@ export default function PackingListView({ editable = false, list }: Props) {
                 )
               }
             />
-            <CallToAction onAddSection={handleAddSection} />
+            <CallToAction
+              onAddSection={handleAddSection}
+              onCopy={handleCopy}
+              isCopying={copyList.isPending}
+            />
           </Group>
           <PackingListDescription
             value={list.description}

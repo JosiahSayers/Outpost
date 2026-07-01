@@ -1,6 +1,6 @@
 import GearSummaryBar from "$/frontend/dashboard/gear-summary";
-import StandaloneLists from "$/frontend/dashboard/standalone-lists";
-import type { StandaloneList, Trip } from "$/frontend/dashboard/types";
+import PackingLists from "$/frontend/dashboard/packing-lists";
+import type { Trip } from "$/frontend/dashboard/types";
 import UpcomingTrips from "$/frontend/dashboard/upcoming-trips";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { Center, Loader, Stack, Text, Title } from "@mantine/core";
@@ -55,16 +55,6 @@ const DUMMY_TRIPS: Trip[] = [
   },
 ];
 
-const DUMMY_STANDALONE_LISTS: StandaloneList[] = [
-  { id: 5, name: "Base Ultralight Kit", itemCount: 12, totalWeightKg: 5.2 },
-  {
-    id: 6,
-    name: "Winter Emergency Supplies",
-    itemCount: 8,
-    totalWeightKg: 2.1,
-  },
-];
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -91,7 +81,7 @@ export default function DashboardPage() {
 
       <UpcomingTrips trips={DUMMY_TRIPS} />
 
-      <StandaloneLists lists={DUMMY_STANDALONE_LISTS} />
+      <PackingLists />
 
       <GearSummaryBar />
     </Stack>

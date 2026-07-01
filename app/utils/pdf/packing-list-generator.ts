@@ -1,26 +1,11 @@
-import { db } from "$/utils/db";
+import type { FullPackingList } from "$/transformers/packing-list";
 import PDFDocument from "pdfkit";
+import type { User } from "../../../generated/prisma/client";
 
 export async function generatePackingListPdf(
-  packingListId: number,
+  packingList: FullPackingList & { owner: User | null },
   output: NodeJS.WritableStream,
 ) {
-  const packingList = await db.packingList.findFirst({
-    where: { id: packingListId },
-    include: {
-      owner: true,
-      packingListSections: {
-        include: {
-          items: true,
-        },
-      },
-    },
-  });
-
-  if (!packingList) {
-    throw new Error(`Packing list not found (id: ${packingListId})`);
-  }
-
   const document = new PDFDocument({
     info: {
       Title: packingList.name,

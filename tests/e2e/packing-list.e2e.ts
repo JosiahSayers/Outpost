@@ -404,5 +404,17 @@ test.describe("Packing List Page", () => {
       await page.getByRole("heading", { level: 1, name: REI_LIST }).click();
       await expect(page.getByRole("textbox")).not.toBeVisible();
     });
+
+    test("copying the list navigates to the new list named 'Copy of …'", async ({
+      page,
+    }) => {
+      await page.getByRole("button", { name: "Copy to my lists" }).click();
+
+      const expectedName = `Copy of ${REI_LIST}`;
+      await page.waitForURL(/\/packing-lists\/\d+/);
+      await expect(
+        page.getByRole("heading", { level: 1, name: expectedName }),
+      ).toBeVisible();
+    });
   });
 });

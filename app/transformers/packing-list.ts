@@ -5,8 +5,8 @@ import type {
   PackingListItem,
   PackingListSection,
 } from "../../generated/prisma/browser";
-import { transform as transformSection } from "./packing-list-section";
 import { transform as transformItem } from "./packing-list-item";
+import { transform as transformSection } from "./packing-list-section";
 
 export type ClientPackingList = Pick<
   PackingList,
@@ -16,7 +16,12 @@ export type ClientPackingList = Pick<
   | "sourceUrl"
   | "description"
   | "copiedFromPackingListId"
-> & { editable: boolean };
+> & {
+  editable: boolean;
+  totalItems: number;
+  totalUniqueItems: number;
+  totalSections: number;
+};
 export type ClientFullPackingList = ClientPackingList & {
   sections: Array<
     ClientPackingListSection & { items: Array<ClientPackingListItem> }
@@ -29,16 +34,13 @@ export type FullPackingList = PackingList & {
   >;
 };
 
-function isFullPackingList(
-  item: PackingList | FullPackingList,
-): item is FullPackingList {
-  return "packingListSections" in item;
-}
-
-export function transform<Input extends PackingList | FullPackingList>(
-  item: Input,
+export function transform<ReturnFull extends boolean>(
+  item: FullPackingList,
+  returnFullVersion: ReturnFull,
   currentUserId?: string | null,
-): Input extends FullPackingList ? ClientFullPackingList : ClientPackingList {
+): ReturnFull extends true ? ClientFullPackingList : ClientPackingList {
+  const flatItems = item.packingListSections.flatMap((s) => s.items);
+
   const baseMap: ClientPackingList = {
     id: item.id,
     name: item.name,
@@ -47,9 +49,12 @@ export function transform<Input extends PackingList | FullPackingList>(
     description: item.description,
     copiedFromPackingListId: item.copiedFromPackingListId,
     editable: item.userId != null && item.userId === currentUserId,
+    totalItems: flatItems.length,
+    totalUniqueItems: flatItems.reduce((acc, item) => acc + item.quantity, 0),
+    totalSections: item.packingListSections.length,
   };
 
-  if (isFullPackingList(item)) {
+  if (returnFullVersion) {
     return {
       ...baseMap,
       sections: item.packingListSections.map((section) => ({

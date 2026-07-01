@@ -1,8 +1,14 @@
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
-import type { ClientFullPackingList } from "$/transformers/packing-list";
+import type {
+  ClientFullPackingList,
+  ClientPackingList,
+} from "$/transformers/packing-list";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import type { ClientPackingListSection } from "$/transformers/packing-list-section";
-import type { editPackingList } from "$/validation/packing-list";
+import type {
+  editPackingList,
+  newPackingList,
+} from "$/validation/packing-list";
 import type { createItem, updateItem } from "$/validation/packing-list/item";
 import type {
   createSection,
@@ -20,6 +26,8 @@ import { apiClient } from "./client";
 
 export const packingListKeys = {
   detail: (id: number) => ["packing-list", id] as const,
+  all: () => ["packing-lists"],
+  search: (query: string) => ["packing-lists", "search", query] as const,
 };
 
 // Shared optimistic-update plumbing: cancel in-flight refetches, snapshot the
@@ -67,6 +75,27 @@ function sortPackingList<T extends ClientFullPackingList>(list: T): T {
   };
 }
 
+export function usePackingListSearch(query: string, publicOnly = false) {
+  return useQuery({
+    queryKey: packingListKeys.search(query),
+    queryFn: () =>
+      apiClient<{ packingLists: ClientPackingList[] }>(
+        `/api/packing-lists?query=${encodeURIComponent(query)}&publicOnly=${encodeURIComponent(publicOnly.toString())}`,
+      ).then((res) => res.packingLists),
+    enabled: query.length > 0,
+  });
+}
+
+export function usePackingLists() {
+  return useQuery({
+    queryKey: packingListKeys.all(),
+    queryFn: () =>
+      apiClient<{ packingLists: ClientPackingList[] }>(
+        "/api/packing-lists",
+      ).then((res) => res.packingLists),
+  });
+}
+
 export function usePackingList(id: number) {
   return useQuery({
     queryKey: packingListKeys.detail(id),
@@ -75,6 +104,21 @@ export function usePackingList(id: number) {
         `/api/packing-lists/${id}`,
       ).then((res) => res.packingList),
     select: sortPackingList,
+  });
+}
+
+export function useCreatePackingList() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: z.input<typeof newPackingList>) =>
+      apiClient<{ packingList: ClientFullPackingList }>("/api/packing-lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: packingListKeys.all() });
+    },
   });
 }
 

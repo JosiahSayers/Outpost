@@ -1,20 +1,20 @@
-import { requireValidSession } from "$/middleware/require-valid-session";
 import {
   userCanAccessPackingList,
   userCanEditPackingList,
 } from "$/middleware/authorization/packing-list";
+import { requireValidSession } from "$/middleware/require-valid-session";
+import { sectionsRouter } from "$/routers/api/packing-list/sections";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
+import { generatePackingListPdf } from "$/utils/pdf/packing-list-generator";
 import {
   editPackingList,
   newPackingList,
   packingListSearch,
 } from "$/validation/packing-list";
+import { idParam } from "$/validation/shared";
 import { Router } from "express";
 import validate from "express-zod-safe";
-import { generatePackingListPdf } from "$/utils/pdf/packing-list-generator";
-import { sectionsRouter } from "$/routers/api/packing-list/sections";
-import { idParam } from "$/validation/shared";
 
 export const packingListRouter = Router();
 packingListRouter.use(requireValidSession);
@@ -23,19 +23,32 @@ packingListRouter.get(
   "/",
   validate({ query: packingListSearch }),
   async (req, res) => {
+    const publicOnly = req.query.publicOnly === "true";
     const matchingPackingLists = await db.packingList.findMany({
-      where: {
-        name: {
-          contains: req.query.query,
-          mode: "insensitive",
+      where: req.query.query
+        ? {
+            name: {
+              contains: req.query.query,
+              mode: "insensitive",
+            },
+            public: publicOnly ? true : undefined,
+            OR: publicOnly
+              ? undefined
+              : [{ public: true }, { userId: req.session!.user.id }],
+          }
+        : { userId: req.session!.user.id },
+      include: {
+        packingListSections: {
+          include: {
+            items: true,
+          },
         },
-        OR: [{ public: true }, { userId: req.session!.user.id }],
       },
     });
 
     return res.json({
       packingLists: matchingPackingLists.map((list) =>
-        transformers.packingList(list, req.session!.user.id),
+        transformers.packingList(list, false, req.session!.user.id),
       ),
     });
   },
@@ -54,7 +67,11 @@ packingListRouter.get("/:id", userCanAccessPackingList, async (req, res) => {
   });
 
   return res.json({
-    packingList: transformers.packingList(packingList!, req.session!.user.id),
+    packingList: transformers.packingList(
+      packingList!,
+      true,
+      req.session!.user.id,
+    ),
   });
 });
 
@@ -103,6 +120,7 @@ packingListRouter.post(
           data: {
             userId: req.session!.user.id,
             name,
+            description: copiedList.description,
             copiedFromPackingListId,
           },
         });
@@ -144,7 +162,11 @@ packingListRouter.post(
     });
 
     return res.status(201).json({
-      packingList: transformers.packingList(packingList!, req.session!.user.id),
+      packingList: transformers.packingList(
+        packingList!,
+        true,
+        req.session!.user.id,
+      ),
     });
   },
 );
@@ -173,8 +195,23 @@ packingListRouter.get(
   "/:id/pdf",
   userCanAccessPackingList,
   async (req, res) => {
-    res.attachment("packing-list.pdf");
-    return await generatePackingListPdf(Number(req.params.id), res);
+    const packingList = await db.packingList.findFirst({
+      where: { id: Number(req.params.id) },
+      include: {
+        owner: true,
+        packingListSections: {
+          include: {
+            items: true,
+          },
+        },
+      },
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${packingList!.name}.pdf"`,
+    );
+    return await generatePackingListPdf(packingList!, res);
   },
 );
 
@@ -198,6 +235,7 @@ packingListRouter.patch(
     return res.json({
       packingList: transformers.packingList(
         updatedPackingList,
+        true,
         req.session!.user.id,
       ),
     });

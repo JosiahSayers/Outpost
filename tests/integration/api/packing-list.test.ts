@@ -1,11 +1,11 @@
-import { beforeAll, describe, expect, it } from "bun:test";
-import { getAuthCookies } from "../../helpers/auth";
-import supertest from "supertest";
 import { app } from "$/server";
-import { db } from "$/utils/db";
 import { transformers } from "$/transformers";
+import { db } from "$/utils/db";
 import type { User } from "better-auth";
+import { beforeAll, describe, expect, it } from "bun:test";
+import supertest from "supertest";
 import type { PackingList } from "../../../generated/prisma/client";
+import { getAuthCookies } from "../../helpers/auth";
 
 let authCookies: Array<string>;
 
@@ -31,43 +31,62 @@ describe("GET /", () => {
             "name": "REI Backpacking Checklist",
             "public": true,
             "sourceUrl": "https://www.rei.com/dam/backpacking_checklist_printable.pdf",
+            "totalItems": 85,
+            "totalSections": 10,
+            "totalUniqueItems": 85,
           },
         ],
       }
     `);
   });
 
-  it("returns a validation error when a query is not sent", async () => {
+  it("returns only the user's own packing lists when no query is provided", async () => {
     const response = await supertest(app)
-      .get("/api/packing-lists?query=")
+      .get("/api/packing-lists")
       .set("Cookie", authCookies)
       .expect("Content-Type", /application\/json/)
-      .expect(400);
+      .expect(200);
     expect(response.body).toMatchInlineSnapshot(`
-      [
-        {
-          "errors": [
-            {
-              "code": "too_small",
-              "inclusive": true,
-              "message": "Too small: expected string to have >=1 characters",
-              "minimum": 1,
-              "origin": "string",
-              "path": [
-                "query",
-              ],
-            },
-          ],
-          "type": "query",
-        },
-      ]
+      {
+        "packingLists": [],
+      }
     `);
   });
 
-  it("requires a valid session", async () => {
+  it("returns the user's own packing lists when no query is provided and they have lists", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.create({
+      data: { name: "My Trip List", userId: user!.id },
+    });
+
     const response = await supertest(app)
-      .get("/api/packing-lists?query=")
-      .expect(401);
+      .get("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      packingLists: [
+        {
+          id: expect.any(Number),
+          name: "My Trip List",
+          public: false,
+          sourceUrl: null,
+          description: null,
+          copiedFromPackingListId: null,
+          editable: true,
+          totalItems: 0,
+          totalSections: 0,
+          totalUniqueItems: 0,
+        },
+      ],
+    });
+  });
+
+  it("requires a valid session", async () => {
+    await supertest(app).get("/api/packing-lists").expect(401);
   });
 });
 
@@ -758,6 +777,9 @@ describe("GET /:id", () => {
             },
           ],
           "sourceUrl": "https://www.rei.com/dam/backpacking_checklist_printable.pdf",
+          "totalItems": 85,
+          "totalSections": 10,
+          "totalUniqueItems": 85,
         },
       }
     `);
@@ -935,6 +957,9 @@ describe("POST /", () => {
         public: false,
         sections: [],
         sourceUrl: null,
+        totalItems: 0,
+        totalSections: 0,
+        totalUniqueItems: 0,
       },
     });
   });
@@ -950,7 +975,10 @@ describe("POST /", () => {
         },
       },
     });
-    const transformedExistingList = transformers.packingList(existingList!);
+    const transformedExistingList = transformers.packingList(
+      existingList!,
+      true,
+    );
 
     const { body } = await supertest(app)
       .post("/api/packing-lists")
@@ -964,6 +992,9 @@ describe("POST /", () => {
 
     expect(body.packingList.copiedFromPackingListId).toBe(
       transformedExistingList.id,
+    );
+    expect(body.packingList.description).toBe(
+      transformedExistingList.description,
     );
     const newWithoutIds = body.packingList.sections.map((section: any) => ({
       ...section,
@@ -1202,7 +1233,10 @@ describe("GET /:id/pdf", () => {
       .get(`/api/packing-lists/${reiPackingList!.id}/pdf`)
       .set("Cookie", authCookies)
       .expect("Content-Type", "application/pdf")
-      .expect("content-disposition", 'attachment; filename="packing-list.pdf"')
+      .expect(
+        "content-disposition",
+        `inline; filename="${reiPackingList.name}.pdf"`,
+      )
       .expect(200);
   });
 
@@ -1219,7 +1253,7 @@ describe("GET /:id/pdf", () => {
       .get(`/api/packing-lists/${newListId}/pdf`)
       .set("Cookie", authCookies)
       .expect("Content-Type", "application/pdf")
-      .expect("content-disposition", 'attachment; filename="packing-list.pdf"')
+      .expect("content-disposition", 'inline; filename="My New List.pdf"')
       .expect(200);
   });
 

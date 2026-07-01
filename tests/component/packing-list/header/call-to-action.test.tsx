@@ -6,18 +6,22 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const onAddSection = mock(() => {});
+const onCopy = mock(() => {});
 
 function renderComponent(editable: boolean) {
   render(
     <MantineProvider>
       <PackingListProvider value={{ editable }}>
-        <CallToAction onAddSection={onAddSection} />
+        <CallToAction onAddSection={onAddSection} onCopy={onCopy} />
       </PackingListProvider>
     </MantineProvider>,
   );
 }
 
-beforeEach(() => onAddSection.mockReset());
+beforeEach(() => {
+  onAddSection.mockReset();
+  onCopy.mockReset();
+});
 
 describe("when editable", () => {
   beforeEach(() => renderComponent(true));
@@ -47,6 +51,11 @@ describe("when not editable", () => {
     expect(
       screen.getByRole("button", { name: /copy to my lists/i }),
     ).toBeInTheDocument();
+  });
+
+  it("calls onCopy when clicked", () => {
+    fireEvent.click(screen.getByRole("button", { name: /copy to my lists/i }));
+    expect(onCopy).toHaveBeenCalledTimes(1);
   });
 
   it("does not render an 'Add section' button", () => {

@@ -4,9 +4,9 @@ import { transformers } from "$/transformers";
 
 describe("transform", () => {
   describe("when given a shallow packing list", () => {
-    const list = make("PackingList");
+    const list = { ...make("PackingList"), packingListSections: [] };
     it("returns the expected shape", () => {
-      expect(transformers.packingList(list)).toEqual({
+      expect(transformers.packingList(list, false)).toEqual({
         id: list.id,
         name: list.name,
         public: list.public,
@@ -14,29 +14,47 @@ describe("transform", () => {
         description: list.description,
         copiedFromPackingListId: list.copiedFromPackingListId,
         editable: false,
+        totalItems: 0,
+        totalSections: 0,
+        totalUniqueItems: 0,
       });
     });
   });
 
   describe("editable", () => {
     it("is true when the current user owns the list", () => {
-      const list = make("PackingList", { userId: "user-1" });
-      expect(transformers.packingList(list, "user-1").editable).toBe(true);
+      const list = {
+        ...make("PackingList", { userId: "user-1" }),
+        packingListSections: [],
+      };
+      expect(transformers.packingList(list, false, "user-1").editable).toBe(
+        true,
+      );
     });
 
     it("is false when the current user does not own the list", () => {
-      const list = make("PackingList", { userId: "user-1" });
-      expect(transformers.packingList(list, "user-2").editable).toBe(false);
+      const list = {
+        ...make("PackingList", { userId: "user-1" }),
+        packingListSections: [],
+      };
+      expect(transformers.packingList(list, false, "user-2").editable).toBe(
+        false,
+      );
     });
 
     it("is false when no current user is provided", () => {
-      const list = make("PackingList", { userId: "user-1" });
-      expect(transformers.packingList(list).editable).toBe(false);
+      const list = {
+        ...make("PackingList", { userId: "user-1" }),
+        packingListSections: [],
+      };
+      expect(transformers.packingList(list, false).editable).toBe(false);
     });
 
     it("is false for an unowned list even when a user is provided", () => {
-      const list = make("PackingList"); // userId defaults to null
-      expect(transformers.packingList(list, "user-1").editable).toBe(false);
+      const list = { ...make("PackingList"), packingListSections: [] }; // userId defaults to null
+      expect(transformers.packingList(list, false, "user-1").editable).toBe(
+        false,
+      );
     });
   });
 
@@ -64,7 +82,7 @@ describe("transform", () => {
           { ...section2, items: [item2_1] },
         ],
       };
-      expect(transformers.packingList(input)).toEqual({
+      expect(transformers.packingList(input, true)).toEqual({
         id: list.id,
         name: list.name,
         public: list.public,
@@ -72,6 +90,13 @@ describe("transform", () => {
         description: list.description,
         copiedFromPackingListId: input.copiedFromPackingListId,
         editable: false,
+        totalItems: 4,
+        totalSections: 2,
+        totalUniqueItems:
+          item1_1.quantity +
+          item1_2.quantity +
+          item1_3.quantity +
+          item2_1.quantity,
         sections: [
           {
             id: section1.id,

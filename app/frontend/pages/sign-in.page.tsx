@@ -25,12 +25,12 @@ const signInSchema = z.object({
 type SignInValues = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
-  useUnauthenticatedGuard();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  useUnauthenticatedGuard(redirect ?? "/dashboard");
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [, navigate] = useLocation();
-  const [searchParams] = useSearchParams();
-  const redirect = searchParams.get("redirect");
 
   const form = useForm<SignInValues>({
     initialValues: { email: "", password: "" },
