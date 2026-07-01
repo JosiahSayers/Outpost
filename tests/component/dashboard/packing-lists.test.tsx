@@ -1,10 +1,10 @@
 import PackingLists from "$/frontend/dashboard/packing-lists";
 import { packingListKeys } from "$/frontend/utils/api/packing-list";
 import type { ClientPackingList } from "$/transformers/packing-list";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
 
@@ -53,7 +53,7 @@ describe("while loading", () => {
   it("does not render the empty state message", () => {
     expect(
       screen.queryByText(
-        "No Packing lists yet. Create a list or attach one to a trip.",
+        "No Packing lists yet. Create one to get started planning.",
       ),
     ).not.toBeInTheDocument();
   });
@@ -77,7 +77,7 @@ describe("when there are no lists", () => {
   it("renders the empty state message", () => {
     expect(
       screen.getByText(
-        "No Packing lists yet. Create a list or attach one to a trip.",
+        "No Packing lists yet. Create one to get started planning.",
       ),
     ).toBeInTheDocument();
   });
@@ -88,14 +88,14 @@ describe("when there are no lists", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders a 'View all lists' link to /packing-lists", () => {
-    const link = screen.getByRole("link", { name: "View all lists" });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/packing-lists");
+  it("does not render the 'View all lists' button", () => {
+    expect(
+      screen.queryByRole("button", { name: "View all lists" }),
+    ).not.toBeInTheDocument();
   });
 });
 
-describe("when there are lists", () => {
+describe("when there are 3 or fewer lists", () => {
   const lists: ClientPackingList[] = [
     { id: 1, name: "Weekend Kit", totalItems: 18, totalUniqueItems: 18 },
     { id: 2, name: "Emergency Bag", totalItems: 12, totalUniqueItems: 16 },
@@ -117,5 +117,71 @@ describe("when there are lists", () => {
     expect(screen.getAllByRole("button", { name: "Export PDF" })).toHaveLength(
       2,
     );
+  });
+
+  it("renders the 'View all lists' button", () => {
+    expect(
+      screen.getByRole("button", { name: "View all lists" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("when there are more than 3 lists", () => {
+  const lists: ClientPackingList[] = [
+    { id: 1, name: "Weekend Kit", totalItems: 18, totalUniqueItems: 18 },
+    { id: 2, name: "Emergency Bag", totalItems: 12, totalUniqueItems: 16 },
+    { id: 3, name: "Summer Trip", totalItems: 10, totalUniqueItems: 10 },
+    { id: 4, name: "Winter Hike", totalItems: 22, totalUniqueItems: 22 },
+  ] as any;
+
+  beforeEach(() => renderComponent(lists));
+
+  it("renders only the first 3 lists initially", () => {
+    expect(screen.getAllByRole("button", { name: "Export PDF" })).toHaveLength(
+      3,
+    );
+  });
+
+  it("renders the 'View all lists' button", () => {
+    expect(
+      screen.getByRole("button", { name: "View all lists" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows all list cards after clicking 'View all lists'", async () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all lists" }));
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: "Export PDF" }),
+      ).toHaveLength(4),
+    );
+  });
+
+  it("changes button text to 'View less' after clicking 'View all lists'", () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all lists" }));
+    expect(
+      screen.getByRole("button", { name: "View less" }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses back to 3 cards after clicking 'View less'", async () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all lists" }));
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: "Export PDF" }),
+      ).toHaveLength(4),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View less" }));
+    expect(screen.getAllByRole("button", { name: "Export PDF" })).toHaveLength(
+      3,
+    );
+  });
+
+  it("changes button text back to 'View all lists' after clicking 'View less'", () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all lists" }));
+    fireEvent.click(screen.getByRole("button", { name: "View less" }));
+    expect(
+      screen.getByRole("button", { name: "View all lists" }),
+    ).toBeInTheDocument();
   });
 });

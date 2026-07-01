@@ -1,27 +1,52 @@
-import AppLink from "$/frontend/app-link";
 import { usePackingLists } from "$/frontend/utils/api/packing-list";
+import type { ClientPackingList } from "$/transformers/packing-list";
 import {
   Button,
   Card,
+  Collapse,
   Group,
   SimpleGrid,
   Skeleton,
   Text,
   Title,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { FilePdfIcon, ListBulletsIcon, PlusIcon } from "@phosphor-icons/react";
+
+function PackingListCard({ list }: { list: ClientPackingList }) {
+  return (
+    <Card>
+      <Group gap="xs" mb="xs">
+        <ListBulletsIcon size={18} />
+        <Text fw={600}>{list.name}</Text>
+      </Group>
+      <Group gap="md" c="dimmed" mb="md">
+        <Text size="sm">
+          {list.totalItems === list.totalUniqueItems
+            ? `${list.totalItems} items`
+            : `${list.totalItems} items (${list.totalUniqueItems} unique)`}
+        </Text>
+      </Group>
+      <Button
+        size="xs"
+        variant="subtle"
+        leftSection={<FilePdfIcon size={14} />}
+      >
+        Export PDF
+      </Button>
+    </Card>
+  );
+}
 
 export default function PackingLists() {
   const { data: lists, isFetching } = usePackingLists();
+  const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
 
   return (
     <section>
       <Group justify="space-between" mb="md" align="flex-end">
         <div>
           <Title order={2}>My Packing Lists</Title>
-          <Text c="dimmed" size="sm">
-            Lists not attached to a trip
-          </Text>
         </div>
         <Button leftSection={<PlusIcon size={16} />} variant="light">
           New List
@@ -38,38 +63,33 @@ export default function PackingLists() {
         </SimpleGrid>
       ) : !lists || lists.length === 0 ? (
         <Text c="dimmed">
-          No Packing lists yet. Create a list or attach one to a trip.
+          No Packing lists yet. Create one to get started planning.
         </Text>
       ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          {lists.map((list) => (
-            <Card key={list.id}>
-              <Group gap="xs" mb="xs">
-                <ListBulletsIcon size={18} />
-                <Text fw={600}>{list.name}</Text>
-              </Group>
-              <Group gap="md" c="dimmed" mb="md">
-                <Text size="sm">
-                  {list.totalItems === list.totalUniqueItems
-                    ? `${list.totalItems} items`
-                    : `${list.totalItems} items (${list.totalUniqueItems} unique)`}
-                </Text>
-              </Group>
-              <Button
-                size="xs"
-                variant="subtle"
-                leftSection={<FilePdfIcon size={14} />}
-              >
-                Export PDF
-              </Button>
-            </Card>
-          ))}
-        </SimpleGrid>
-      )}
+        <>
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            {lists.slice(0, 3).map((list) => (
+              <PackingListCard key={list.id} list={list} />
+            ))}
+          </SimpleGrid>
 
-      <Group justify="flex-end" mt="sm">
-        <AppLink href="/packing-lists">View all lists</AppLink>
-      </Group>
+          {lists.length > 3 && (
+            <Collapse expanded={showAll}>
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="md">
+                {lists.slice(3).map((list) => (
+                  <PackingListCard key={list.id} list={list} />
+                ))}
+              </SimpleGrid>
+            </Collapse>
+          )}
+
+          <Group justify="flex-end" mt="sm">
+            <Button variant="subtle" onClick={toggleShowAll}>
+              {showAll ? "View less" : "View all lists"}
+            </Button>
+          </Group>
+        </>
+      )}
     </section>
   );
 }
