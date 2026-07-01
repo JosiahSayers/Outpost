@@ -191,6 +191,37 @@ test.describe("Packing List Page", () => {
       await expect(page.getByText(description)).toBeVisible();
     });
 
+    test("deleting the list navigates to /dashboard and removes the list", async ({
+      page,
+    }) => {
+      await page.getByRole("button", { name: /delete list/i }).click();
+      await expect(page.getByText(`"${listName}"`)).toBeVisible();
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      await page.waitForURL("/dashboard");
+      const response = await page.request.get(`/api/packing-lists/${listId}`);
+      expect(response.status()).toBe(404);
+    });
+
+    test("shows an error notification when the delete fails", async ({
+      page,
+    }) => {
+      await page.route(`**/api/packing-lists/${listId}`, (route) => {
+        if (route.request().method() === "DELETE") {
+          return route.fulfill({ status: 500 });
+        }
+        return route.continue();
+      });
+
+      await page.getByRole("button", { name: /delete list/i }).click();
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      await expect(page.getByText("Couldn't delete list")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 1, name: listName }),
+      ).toBeVisible();
+    });
+
     test.describe("sections", () => {
       test("adding a section reveals it in edit mode and persists", async ({
         page,

@@ -7,6 +7,7 @@ import {
   useCreatePackingList,
   useCreateSection,
   useDeleteItem,
+  useDeletePackingList,
   useDeleteSection,
   useUpdateItem,
   useUpdatePackingList,
@@ -20,6 +21,7 @@ import { notifications } from "@mantine/notifications";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import ConfirmDeleteModal from "./confirm-delete-modal";
 import SectionContent from "./section/section-content";
 import { useFlipReorder } from "./use-flip-reorder";
 
@@ -42,7 +44,10 @@ export default function PackingListView({ editable = false, list }: Props) {
   const { register: registerSection, markMoved } = useFlipReorder();
   const [, navigate] = useLocation();
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const updateList = useUpdatePackingList(list.id);
+  const deleteList = useDeletePackingList(list.id);
   const copyList = useCreatePackingList();
   const createSection = useCreateSection(list.id);
   const updateSection = useUpdateSection(list.id);
@@ -95,6 +100,13 @@ export default function PackingListView({ editable = false, list }: Props) {
   function handleDeleteSection(sectionId: number) {
     deleteSection.mutate(sectionId, {
       onError: notifyError("Couldn't delete section"),
+    });
+  }
+
+  function handleDelete() {
+    deleteList.mutate(undefined, {
+      onSuccess: () => navigate("/dashboard"),
+      onError: notifyError("Couldn't delete list"),
     });
   }
 
@@ -183,6 +195,8 @@ export default function PackingListView({ editable = false, list }: Props) {
             <CallToAction
               listId={list.id}
               onAddSection={handleAddSection}
+              onDelete={() => setDeleteModalOpen(true)}
+              isDeleting={deleteList.isPending}
               onCopy={handleCopy}
               isCopying={copyList.isPending}
             />
@@ -243,6 +257,15 @@ export default function PackingListView({ editable = false, list }: Props) {
           ))}
         </div>
       </Stack>
+      <ConfirmDeleteModal
+        opened={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete list?"
+      >
+        "{list.name}" and all its sections and items will be permanently
+        deleted.
+      </ConfirmDeleteModal>
     </PackingListProvider>
   );
 }

@@ -1,10 +1,17 @@
 import { usePackingList } from "$/frontend/packing-list/packing-list-context";
 import { Button, Group } from "@mantine/core";
-import { CopyIcon, FilePdfIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  CopyIcon,
+  FilePdfIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 interface Props {
   listId: number;
   onAddSection: () => void;
+  onDelete?: () => void;
+  isDeleting?: boolean;
   onCopy?: () => void;
   isCopying?: boolean;
 }
@@ -12,6 +19,8 @@ interface Props {
 export default function CallToAction({
   listId,
   onAddSection,
+  onDelete,
+  isDeleting,
   onCopy,
   isCopying,
 }: Props) {
@@ -41,6 +50,16 @@ export default function CallToAction({
         onClick={onAddSection}
       >
         Add section
+      </Button>
+      <Button
+        leftSection={<TrashIcon size={16} />}
+        color="red"
+        variant="subtle"
+        size="md"
+        onClick={onDelete}
+        loading={isDeleting}
+      >
+        Delete list
       </Button>
     </Group>
   ) : (

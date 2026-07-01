@@ -6,6 +6,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const onAddSection = mock(() => {});
+const onDelete = mock(() => {});
 const onCopy = mock(() => {});
 
 function renderComponent(editable: boolean, listId = 42) {
@@ -15,6 +16,7 @@ function renderComponent(editable: boolean, listId = 42) {
         <CallToAction
           listId={listId}
           onAddSection={onAddSection}
+          onDelete={onDelete}
           onCopy={onCopy}
         />
       </PackingListProvider>
@@ -24,6 +26,7 @@ function renderComponent(editable: boolean, listId = 42) {
 
 beforeEach(() => {
   onAddSection.mockReset();
+  onDelete.mockReset();
   onCopy.mockReset();
 });
 
@@ -62,6 +65,17 @@ describe("when editable", () => {
       screen.queryByRole("button", { name: /copy to my lists/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("renders a 'Delete list' button", () => {
+    expect(
+      screen.getByRole("button", { name: /delete list/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls onDelete when the delete button is clicked", () => {
+    fireEvent.click(screen.getByRole("button", { name: /delete list/i }));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("when not editable", () => {
@@ -81,6 +95,12 @@ describe("when not editable", () => {
   it("does not render an 'Add section' button", () => {
     expect(
       screen.queryByRole("button", { name: /add section/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render a 'Delete list' button", () => {
+    expect(
+      screen.queryByRole("button", { name: /delete list/i }),
     ).not.toBeInTheDocument();
   });
 });

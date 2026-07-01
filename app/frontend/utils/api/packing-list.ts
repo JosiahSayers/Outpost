@@ -107,6 +107,18 @@ export function usePackingList(id: number) {
   });
 }
 
+export function useDeletePackingList(listId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiClient(`/api/packing-lists/${listId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: packingListKeys.detail(listId) });
+      queryClient.invalidateQueries({ queryKey: packingListKeys.all() });
+    },
+  });
+}
+
 export function useCreatePackingList() {
   const queryClient = useQueryClient();
   return useMutation({
