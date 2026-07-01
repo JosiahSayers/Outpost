@@ -3,6 +3,7 @@ import z from "zod";
 export const packingListSearch = z.strictObject({
   query: z.string().optional(),
   publicOnly: z.string().optional(),
+  take: z.string().optional(),
 });
 
 export const packingListName = z.string().trim().min(3);

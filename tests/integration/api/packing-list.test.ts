@@ -85,6 +85,126 @@ describe("GET /", () => {
     });
   });
 
+  it("does not limit results when loading the user's own full dataset with no query", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(7);
+  });
+
+  it("defaults to returning at most 5 packing lists when searching with a query", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?query=Trip")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(5);
+  });
+
+  it("respects a provided take parameter when searching with a query", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?query=Trip&take=2")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(2);
+  });
+
+  it("defaults to 5 when take is not a valid number and a query is provided", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?query=Trip&take=not-a-number")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(5);
+  });
+
+  it("defaults to returning at most 5 packing lists when publicOnly is true", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?publicOnly=true")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(5);
+  });
+
+  it("respects a provided take parameter when publicOnly is true", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?publicOnly=true&take=2")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(2);
+  });
+
   it("requires a valid session", async () => {
     await supertest(app).get("/api/packing-lists").expect(401);
   });
