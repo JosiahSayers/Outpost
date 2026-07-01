@@ -173,6 +173,7 @@ describe("GET /", () => {
       data: Array.from({ length: 7 }, (_, i) => ({
         name: `Trip List ${i}`,
         userId: user!.id,
+        public: true,
       })),
     });
 
@@ -193,6 +194,7 @@ describe("GET /", () => {
       data: Array.from({ length: 7 }, (_, i) => ({
         name: `Trip List ${i}`,
         userId: user!.id,
+        public: true,
       })),
     });
 
@@ -203,6 +205,25 @@ describe("GET /", () => {
       .expect(200);
 
     expect(response.body.packingLists).toHaveLength(2);
+  });
+
+  it("excludes the user's own private packing lists when publicOnly is true and no query is provided", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.create({
+      data: { name: "My Private Trip", userId: user!.id },
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?publicOnly=true")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(
+      response.body.packingLists.map((list: { name: string }) => list.name),
+    ).not.toContain("My Private Trip");
   });
 
   it("requires a valid session", async () => {
