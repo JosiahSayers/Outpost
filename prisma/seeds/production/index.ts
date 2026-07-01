@@ -1,7 +1,8 @@
 import { db } from "$/utils/db";
 import { reiPackingList } from "./packing-lists/rei-packing-list";
+import { reiWinterBackcountryCampingChecklist } from "./packing-lists/rei-winter-backcountry-camping-checklist";
 
-const productionSeeds = [reiPackingList];
+const productionSeeds = [reiPackingList, reiWinterBackcountryCampingChecklist];
 
 export default async function applyProductionSeeds() {
   for (const seed of productionSeeds) {
