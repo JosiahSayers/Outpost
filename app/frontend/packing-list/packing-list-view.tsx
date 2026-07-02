@@ -16,7 +16,7 @@ import {
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
-import { Box, Divider, Group, Stack, Text } from "@mantine/core";
+import { Box, Divider, Flex, Group, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
@@ -188,7 +188,12 @@ export default function PackingListView({ editable = false, list }: Props) {
     <PackingListProvider value={{ editable }}>
       <Stack gap="xl" maw={1100} mx="auto">
         <Stack gap="xs">
-          <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <Flex
+            direction={{ base: "column", xs: "row" }}
+            justify="space-between"
+            align={{ base: "stretch", xs: "flex-start" }}
+            gap="sm"
+          >
             <Box flex={1} miw={0}>
               <PackingListTitle
                 value={list.name}
@@ -210,7 +215,7 @@ export default function PackingListView({ editable = false, list }: Props) {
                 isCopying={copyList.isPending}
               />
             </Box>
-          </Group>
+          </Flex>
           <PackingListDescription
             value={list.description}
             onSave={(description) =>

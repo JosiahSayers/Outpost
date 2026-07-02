@@ -10,7 +10,7 @@ import {
   NumberInput,
   TextInput,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { DotsSixVerticalIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
@@ -30,6 +30,9 @@ export default function EditableItemRow({
   autoEdit,
 }: Props) {
   const [hovered, setHovered] = useState(false);
+  // Touch devices can't hover, so CRUD controls and the drag handle must stay
+  // visible unconditionally rather than waiting for a mouseenter that never fires.
+  const isTouchDevice = useMediaQuery("(hover: none)");
   const [confirmOpened, confirm] = useDisclosure(false);
   const [editing, setEditing] = useState(autoEdit);
   const [draftName, setDraftName] = useState(item.name);
@@ -104,7 +107,8 @@ export default function EditableItemRow({
     );
   }
 
-  const showControls = hovered && !isDragging && dndActive === null;
+  const showControls =
+    (hovered || isTouchDevice) && !isDragging && dndActive === null;
 
   return (
     <div
@@ -126,9 +130,10 @@ export default function EditableItemRow({
         opacity: isDragging ? 0.4 : 1,
         cursor: "pointer",
         borderRadius: "var(--mantine-radius-sm)",
-        background: showControls
-          ? "var(--mantine-color-default-hover)"
-          : undefined,
+        background:
+          showControls && !isTouchDevice
+            ? "var(--mantine-color-default-hover)"
+            : undefined,
         margin: "0 -6px",
       }}
       onMouseEnter={() => setHovered(true)}
@@ -143,6 +148,9 @@ export default function EditableItemRow({
           visibility: showControls ? "visible" : "hidden",
           cursor: "grab",
           flexShrink: 0,
+          // Without this, touchstart on the handle is interpreted as a page
+          // scroll before dnd-kit's PointerSensor can claim the gesture.
+          touchAction: "none",
         }}
         {...listeners}
         {...attributes}
