@@ -20,6 +20,8 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
+RUN bunx --bun prisma generate
+RUN bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend
 
 # [optional] tests & build
 ENV NODE_ENV=ci
@@ -27,21 +29,30 @@ ENTRYPOINT [ "bun", "dev" ]
 
 # copy production dependencies and source code into final image
 FROM base AS release
+# deps
 COPY --from=install /temp/prod/node_modules node_modules
+# single files
 COPY --from=prerelease /usr/src/app/index.ts .
 COPY --from=prerelease /usr/src/app/package.json .
+COPY --from=prerelease /usr/src/app/tsconfig.json .
+COPY --from=prerelease /usr/src/app/prisma.config.ts .
+COPY --from=prerelease /usr/src/app/postcss.config.cjs .
+COPY --from=prerelease /usr/src/app/version .
+# folders
 COPY --from=prerelease /usr/src/app/app ./app
+COPY --from=prerelease /usr/src/app/prisma ./prisma
 COPY --from=prerelease /usr/src/app/generated ./generated
+COPY --from=prerelease /usr/src/app/dist/frontend ./dist/frontend
+COPY --from=prerelease /usr/src/app/assets ./assets
 
 ARG BUILD_VERSION
 
 ENV VERSION=$BUILD_VERSION
 ENV NODE_ENV=production
-ENV DATABASE_URL="file:/usr/src/database/production.db"
-ENV LOG_FOLDER="file:/usr/src/log"
+ENV LOG_FOLDER="/usr/src/log"
 ENV PORT=3000
 
 # run the app
 USER bun
 EXPOSE 3000/tcp
-ENTRYPOINT [ "bun", "run", "index.ts" ]
+ENTRYPOINT [ "bun", "run", "start" ]

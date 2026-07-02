@@ -1,6 +1,6 @@
-import { Readable } from "node:stream";
-import { Router } from "express";
 import indexPage from "$/frontend/index.html";
+import { Router } from "express";
+import { Readable } from "node:stream";
 
 export const frontendRouter = Router();
 
