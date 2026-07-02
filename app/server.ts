@@ -22,11 +22,4 @@ app.use("/api", apiRouter);
 
 if (process.env.NODE_ENV !== "production") {
   app.use(frontendRouter); // Needs to be the final router
-} else {
-  app.use(express.static("/usr/src/app/dist/frontend"));
-  // SPA fallback: any non-API route that doesn't match a static asset
-  // should serve index.html so client-side routing (wouter) can take over.
-  app.get("{*path}", (_req, res) => {
-    res.sendFile("/usr/src/app/dist/frontend/index.html");
-  });
 }

@@ -21,7 +21,7 @@ FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 RUN bunx --bun prisma generate
-RUN bun build /usr/src/app/app/frontend/index.html --minify --outdir=/usr/src/app/dist/frontend
+RUN bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend
 
 # [optional] tests & build
 ENV NODE_ENV=ci

@@ -1,0 +1,80 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - frontend_assets:/srv/frontend:ro
+    depends_on:
+      app:
+        condition: service_started
+      static-assets:
+        condition: service_completed_successfully
+
+  # One-off container that copies the frontend build out of the app image
+  # into a shared volume on every `up`, so caddy always serves assets that
+  # match the currently pulled app image (a plain volume mount only
+  # auto-populates once, on first creation).
+  static-assets:
+    image: josiahsayers15/outpost:latest
+    user: root
+    entrypoint:
+      ["sh", "-c", "rm -rf /shared/* && cp -r /usr/src/app/dist/frontend/. /shared/"]
+    volumes:
+      - frontend_assets:/shared
+
+  app:
+    image: josiahsayers15/outpost:latest
+    restart: unless-stopped
+    volumes:
+      - ./container_files/logs:/usr/src/log
+    env_file:
+      - .env.staging
+
+  redis:
+    image: redis
+    restart: unless-stopped
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - ./container_files/db:/var/lib/postgresql
+    env_file:
+      - .env.staging
+
+configs:
+  caddyfile:
+    content: |
+      outpost.sayerscloud.com {
+          handle /api/* {
+              reverse_proxy app:3000
+          }
+
+          handle /health {
+              reverse_proxy app:3000
+          }
+
+          handle /ready {
+              reverse_proxy app:3000
+          }
+
+          handle {
+              root * /srv/frontend
+              encode gzip
+              try_files {path} /index.html
+              file_server
+          }
+      }
+
+volumes:
+  caddy_data:
+  caddy_config:
+  frontend_assets:
