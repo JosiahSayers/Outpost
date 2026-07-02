@@ -26,7 +26,11 @@ services:
     image: josiahsayers15/outpost:latest
     user: root
     entrypoint:
-      ["sh", "-c", "rm -rf /shared/* && cp -r /usr/src/app/dist/frontend/. /shared/"]
+      [
+        "sh",
+        "-c",
+        "rm -rf /shared/* && cp -r /usr/src/app/dist/frontend/. /shared/",
+      ]
     volumes:
       - frontend_assets:/shared
 
