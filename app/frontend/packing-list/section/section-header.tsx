@@ -1,7 +1,7 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
 import { usePackingList } from "$/frontend/packing-list/packing-list-context";
 import { ActionIcon, Group, TextInput, Title } from "@mantine/core";
-import { useDisclosure, useHover } from "@mantine/hooks";
+import { useDisclosure, useHover, useMediaQuery } from "@mantine/hooks";
 import { CaretDownIcon, CaretUpIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
@@ -28,6 +28,9 @@ export default function SectionHeader({
 }: Props) {
   const { editable } = usePackingList();
   const { hovered, ref } = useHover<HTMLDivElement>();
+  // Touch devices can't hover, so the section controls must stay visible
+  // unconditionally rather than waiting for a mouseenter that never fires.
+  const isTouchDevice = useMediaQuery("(hover: none)");
   const [editing, setEditing] = useState(autoEdit);
   const [draft, setDraft] = useState(name);
   const [confirmOpened, confirm] = useDisclosure(false);
@@ -85,7 +88,10 @@ export default function SectionHeader({
       >
         {name}
       </Title>
-      <Group gap={2} style={{ visibility: hovered ? "visible" : "hidden" }}>
+      <Group
+        gap={2}
+        style={{ visibility: hovered || isTouchDevice ? "visible" : "hidden" }}
+      >
         <ActionIcon
           variant="subtle"
           color="gray"
