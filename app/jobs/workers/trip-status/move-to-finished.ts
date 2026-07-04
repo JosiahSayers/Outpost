@@ -2,11 +2,13 @@ import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
 import { Worker } from "bullmq";
 
-export const TRIPS__MOVE_TO_IN_PROGRESS_WORKER = "trips__move_to_in_progress";
+export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_completed";
 
 const BATCH_SIZE = 1000;
 
-export async function moveTripsToInProgress(now: Date = new Date()) {
+export async function moveTripsToFinished(now: Date = new Date()) {
+  // Runs against jobs that ended yesterday
+  now.setUTCDate(now.getUTCDate() - 1);
   const startOfDayUTC = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   );
@@ -24,8 +26,8 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
         id: true,
       },
       where: {
-        status: "planning",
-        start: {
+        status: "in_progress",
+        end: {
           gte: startOfDayUTC,
           lt: startOfNextDayUTC,
         },
@@ -36,7 +38,7 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
 
     await db.trip.updateMany({
       where: { id: { in: tripIdsToMove } },
-      data: { status: "in_progress" },
+      data: { status: "finished" },
     });
 
     changedTripIds.push(...tripIdsToMove);
@@ -51,8 +53,8 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
   return { changedTripIds, changedCount: changedTripIds.length };
 }
 
-export const moveToInProgressWorker = new Worker(
-  TRIPS__MOVE_TO_IN_PROGRESS_WORKER,
-  async () => moveTripsToInProgress(),
+export const moveToFinishedWorker = new Worker(
+  TRIPS__MOVE_TO_FINISHED_WORKER,
+  async () => moveTripsToFinished(),
   defaultWorkerOptions,
 );
