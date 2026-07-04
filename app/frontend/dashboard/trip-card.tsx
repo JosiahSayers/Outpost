@@ -21,9 +21,14 @@ export const STATUS_LABEL: Record<TripStatus, string> = {
 function formatDateRange(start: string | null, end: string | null): string {
   if (!start && !end) return "Dates TBD";
 
+  // Trip dates are calendar days, not instants, so they're always formatted
+  // in UTC (the timezone they were stored in) rather than the viewer's local
+  // timezone, which could otherwise roll a UTC-midnight timestamp back to
+  // the previous day.
   const fmt = new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 
   if (!start || !end) {
@@ -33,7 +38,7 @@ function formatDateRange(start: string | null, end: string | null): string {
 
   const startDate = new Date(start);
   const endDate = new Date(end);
-  return `${fmt.format(startDate)} – ${fmt.format(endDate)}, ${endDate.getFullYear()}`;
+  return `${fmt.format(startDate)} – ${fmt.format(endDate)}, ${endDate.getUTCFullYear()}`;
 }
 
 export default function TripCard({ trip }: { trip: Trip }) {

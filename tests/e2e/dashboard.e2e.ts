@@ -447,5 +447,60 @@ test.describe("Dashboard Page", () => {
         ).toBeVisible();
       });
     });
+
+    // A trip's start/end are calendar dates, not instants, so the day shown
+    // must not shift depending on the viewer's local clock relative to the
+    // server. Honolulu (UTC-10, no DST) reproduces the bug class where a
+    // UTC-midnight timestamp rendered in local time rolls back to the
+    // previous day.
+    test.describe("date handling across timezones", () => {
+      test.use({ timezoneId: "Pacific/Honolulu" });
+
+      test("shows the trip's dates exactly as entered, even when the viewer is behind UTC", async ({
+        page,
+      }) => {
+        // A fresh user has no trips yet, so the one we create here is
+        // guaranteed to be the only entry in the dashboard's preview,
+        // regardless of how many other trips exist in the shared dev
+        // database or how they sort. This keeps the test end-to-end (real
+        // create request, real refetch, real render) without mocking any
+        // part of the client-server round trip.
+        const email = `e2e-tz-${Date.now()}@test.com`;
+        // The parent beforeEach signs in as the shared test user; clear that
+        // session first so /register doesn't redirect away immediately.
+        await page.context().clearCookies();
+        await page.goto("/register");
+        await page.getByLabel("Name").fill("E2E Timezone User");
+        await page.getByLabel("Email").fill(email);
+        await page
+          .getByRole("textbox", { name: "Password", exact: true })
+          .fill("test-password");
+        await page
+          .getByRole("textbox", { name: "Confirm password" })
+          .fill("test-password");
+        await page.getByRole("button", { name: "Create account" }).click();
+        await page.waitForURL("/dashboard");
+
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page
+          .getByRole("textbox", { name: "Trip name" })
+          .fill("Timezone Test Trip");
+        await page
+          .getByRole("textbox", { name: "Start date" })
+          .fill("June 1, 2026");
+        await page
+          .getByRole("textbox", { name: "End date" })
+          .fill("June 10, 2026");
+        await page.getByRole("button", { name: "Create trip" }).click();
+
+        await expect(
+          page.getByRole("heading", { level: 4, name: "Timezone Test Trip" }),
+        ).toBeVisible();
+        await expect(page.getByText("Jun 1 – Jun 10, 2026")).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText("Jun 1 – Jun 10, 2026")).toBeVisible();
+      });
+    });
   });
 });
