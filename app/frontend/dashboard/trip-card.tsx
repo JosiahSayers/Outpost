@@ -3,7 +3,7 @@ import { Badge, Button, Card, Group, Text, Title } from "@mantine/core";
 import { CalendarBlank, MapPin } from "@phosphor-icons/react";
 
 const STATUS_COLOR: Record<TripStatus, string> = {
-  planned: "trail-dust",
+  planning: "trail-dust",
   in_progress: "trail-green",
   postponed: "stone-gray",
   finished: "stone-gray",
@@ -11,7 +11,7 @@ const STATUS_COLOR: Record<TripStatus, string> = {
 };
 
 const STATUS_LABEL: Record<TripStatus, string> = {
-  planned: "Planning",
+  planning: "Planning",
   in_progress: "In Progress",
   postponed: "Postponed",
   finished: "Completed",

@@ -32,7 +32,7 @@ describe("POST /", () => {
     expect(response.body).toMatchObject({
       trip: {
         name: "Appalachian Trail",
-        status: "planned",
+        status: "planning",
         trail: null,
         location: null,
         start: null,
@@ -41,7 +41,7 @@ describe("POST /", () => {
     });
   });
 
-  it("defaults status to planned in the database when not provided", async () => {
+  it("defaults status to planning in the database when not provided", async () => {
     const response = await request(app)
       .post("/api/trips")
       .send({ name: "Appalachian Trail" })
@@ -51,7 +51,7 @@ describe("POST /", () => {
     const dbTrip = await db.trip.findUnique({
       where: { id: response.body.trip.id },
     });
-    expect(dbTrip?.status).toBe("planned");
+    expect(dbTrip?.status).toBe("planning");
   });
 
   it("creates a trip with all fields provided", async () => {
@@ -149,13 +149,13 @@ describe("POST /", () => {
           "errors": [
             {
               "code": "invalid_value",
-              "message": "Invalid option: expected one of "planned"|"in_progress"|"postponed"|"finished"|"cancelled"",
+              "message": "Invalid option: expected one of "in_progress"|"planning"|"postponed"|"finished"|"cancelled"",
               "path": [
                 "status",
               ],
               "values": [
-                "planned",
                 "in_progress",
+                "planning",
                 "postponed",
                 "finished",
                 "cancelled",
@@ -300,19 +300,19 @@ describe("GET /", () => {
         make("Trip", {
           name: "First",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-01-01"),
         }),
         make("Trip", {
           name: "Second",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-02-01"),
         }),
         make("Trip", {
           name: "Third",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-03-01"),
         }),
       ],
@@ -361,9 +361,9 @@ describe("GET /", () => {
           start: new Date("2026-02-01"),
         }),
         make("Trip", {
-          name: "Planned, later start",
+          name: "Planning, later start",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-03-01"),
         }),
         make("Trip", {
@@ -373,10 +373,22 @@ describe("GET /", () => {
           start: new Date("2026-01-01"),
         }),
         make("Trip", {
-          name: "Planned, earlier start",
+          name: "Planning, earlier start",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-01-15"),
+        }),
+        make("Trip", {
+          name: "In progress, later start",
+          userId: user!.id,
+          status: "in_progress",
+          start: new Date("2026-02-15"),
+        }),
+        make("Trip", {
+          name: "In progress, earlier start",
+          userId: user!.id,
+          status: "in_progress",
+          start: new Date("2026-01-10"),
         }),
       ],
     });
@@ -390,16 +402,20 @@ describe("GET /", () => {
     // Filter out seed data
     const testTripNames = new Set([
       "Finished, later start",
-      "Planned, later start",
+      "Planning, later start",
       "Finished, earlier start",
-      "Planned, earlier start",
+      "Planning, earlier start",
+      "In progress, later start",
+      "In progress, earlier start",
     ]);
     const tripNames = response.body.trips
       .map((trip: any) => trip.name)
       .filter((name: string) => testTripNames.has(name));
     expect(tripNames).toEqual([
-      "Planned, earlier start",
-      "Planned, later start",
+      "In progress, earlier start",
+      "In progress, later start",
+      "Planning, earlier start",
+      "Planning, later start",
       "Finished, earlier start",
       "Finished, later start",
     ]);

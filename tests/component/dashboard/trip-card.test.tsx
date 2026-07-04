@@ -13,7 +13,7 @@ const baseTrip: Trip = {
   // Use noon UTC so date formatting is stable across US timezones
   start: "2026-07-15T12:00:00.000Z",
   end: "2026-07-22T12:00:00.000Z",
-  status: "planned",
+  status: "planning",
 };
 
 function renderCard(trip: Trip = baseTrip) {
@@ -63,8 +63,8 @@ describe("missing optional fields", () => {
 });
 
 describe("status badge", () => {
-  it("renders 'Planning' for planned trips", () => {
-    renderCard({ ...baseTrip, status: "planned" });
+  it("renders 'Planning' for planning trips", () => {
+    renderCard({ ...baseTrip, status: "planning" });
     expect(screen.getByText("Planning")).toBeInTheDocument();
   });
 

@@ -16,7 +16,7 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     location: "Sierra Nevada, CA",
     start: "2026-08-01T12:00:00.000Z",
     end: "2026-08-10T12:00:00.000Z",
-    status: "planned",
+    status: "planning",
     ...overrides,
   };
 }
@@ -87,7 +87,7 @@ describe("when all trips are finished or cancelled", () => {
 describe("when there are active trips", () => {
   const trips = [
     makeTrip({ id: "1", name: "John Muir Trail", status: "in_progress" }),
-    makeTrip({ id: "2", name: "Wonderland Trail", status: "planned" }),
+    makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
     makeTrip({ id: "3", name: "Finished Hike", status: "finished" }),
   ];
 
@@ -115,9 +115,9 @@ describe("navigation", () => {
 
 describe("when there are more trips beyond the initial preview", () => {
   const previewTrips = [
-    makeTrip({ id: "1", name: "John Muir Trail", status: "planned" }),
-    makeTrip({ id: "2", name: "Wonderland Trail", status: "planned" }),
-    makeTrip({ id: "3", name: "Teton Crest Trail", status: "planned" }),
+    makeTrip({ id: "1", name: "John Muir Trail", status: "planning" }),
+    makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
+    makeTrip({ id: "3", name: "Teton Crest Trail", status: "planning" }),
   ];
 
   function jsonResponse(body: unknown) {
@@ -136,11 +136,11 @@ describe("when there are more trips beyond the initial preview", () => {
       if (skip === 3) {
         return jsonResponse({
           trips: [
-            makeTrip({ id: "4", name: "Long Trail", status: "planned" }),
+            makeTrip({ id: "4", name: "Long Trail", status: "planning" }),
             makeTrip({
               id: "5",
               name: "Superior Hiking Trail",
-              status: "planned",
+              status: "planning",
             }),
           ],
           total: 12,
@@ -149,7 +149,7 @@ describe("when there are more trips beyond the initial preview", () => {
       }
       return jsonResponse({
         trips: [
-          makeTrip({ id: "10", name: "Colorado Trail", status: "planned" }),
+          makeTrip({ id: "10", name: "Colorado Trail", status: "planning" }),
         ],
         total: 12,
         pageSize: 6,
