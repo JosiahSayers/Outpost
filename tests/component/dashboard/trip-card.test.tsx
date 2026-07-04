@@ -8,16 +8,12 @@ import { beforeEach, describe, expect, it } from "bun:test";
 const baseTrip: Trip = {
   id: "1",
   name: "Olympic Peninsula Loop",
+  trail: "Olympic National Park Loop",
   location: "Olympic National Park, WA",
   // Use noon UTC so date formatting is stable across US timezones
-  startDate: "2026-07-15T12:00:00.000Z",
-  endDate: "2026-07-22T12:00:00.000Z",
+  start: "2026-07-15T12:00:00.000Z",
+  end: "2026-07-22T12:00:00.000Z",
   status: "planning",
-  packingLists: [
-    { id: 1, name: "Gear List", itemCount: 24, status: "in-progress" },
-    { id: 2, name: "Food Plan", itemCount: 8, status: "complete" },
-    { id: 3, name: "First Aid", itemCount: 6, status: "not-started" },
-  ],
 };
 
 function renderCard(trip: Trip = baseTrip) {
@@ -52,24 +48,17 @@ describe("trip details", () => {
   });
 });
 
-describe("packing lists", () => {
-  beforeEach(() => renderCard());
-
-  it("renders each packing list name", () => {
-    expect(screen.getByText("Gear List")).toBeInTheDocument();
-    expect(screen.getByText("Food Plan")).toBeInTheDocument();
-    expect(screen.getByText("First Aid")).toBeInTheDocument();
+describe("missing optional fields", () => {
+  it("omits the location line when the trip has no location", () => {
+    renderCard({ ...baseTrip, location: null });
+    expect(
+      screen.queryByText("Olympic National Park, WA"),
+    ).not.toBeInTheDocument();
   });
 
-  it("renders the item count for each packing list", () => {
-    expect(screen.getByText("24 items")).toBeInTheDocument();
-    expect(screen.getByText("8 items")).toBeInTheDocument();
-    expect(screen.getByText("6 items")).toBeInTheDocument();
-  });
-
-  it("renders nothing when the trip has no packing lists", () => {
-    renderCard({ ...baseTrip, packingLists: [] });
-    expect(screen.queryByText("items")).not.toBeInTheDocument();
+  it("shows a fallback when the trip has no dates", () => {
+    renderCard({ ...baseTrip, start: null, end: null });
+    expect(screen.getByText("Dates TBD")).toBeInTheDocument();
   });
 });
 
@@ -79,13 +68,23 @@ describe("status badge", () => {
     expect(screen.getByText("Planning")).toBeInTheDocument();
   });
 
-  it("renders 'Upcoming' for upcoming trips", () => {
-    renderCard({ ...baseTrip, status: "upcoming" });
-    expect(screen.getByText("Upcoming")).toBeInTheDocument();
+  it("renders 'In Progress' for in-progress trips", () => {
+    renderCard({ ...baseTrip, status: "in_progress" });
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
   });
 
-  it("renders 'Completed' for completed trips", () => {
-    renderCard({ ...baseTrip, status: "completed" });
+  it("renders 'Completed' for finished trips", () => {
+    renderCard({ ...baseTrip, status: "finished" });
     expect(screen.getByText("Completed")).toBeInTheDocument();
+  });
+
+  it("renders 'Cancelled' for cancelled trips", () => {
+    renderCard({ ...baseTrip, status: "cancelled" });
+    expect(screen.getByText("Cancelled")).toBeInTheDocument();
+  });
+
+  it("renders 'Postponed' for postponed trips", () => {
+    renderCard({ ...baseTrip, status: "postponed" });
+    expect(screen.getByText("Postponed")).toBeInTheDocument();
   });
 });

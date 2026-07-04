@@ -182,7 +182,7 @@ model Trip {
   updatedAt DateTime @updatedAt
 
   name     String
-  status   TripStatus @default(planned)
+  status   TripStatus @default(planning)
   trail    String?
   location String?
   start    DateTime?
@@ -197,8 +197,8 @@ model Trip {
 }
 
 enum TripStatus {
-  planned
   in_progress
+  planning
   postponed
   finished
   cancelled

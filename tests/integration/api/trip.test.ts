@@ -32,7 +32,7 @@ describe("POST /", () => {
     expect(response.body).toMatchObject({
       trip: {
         name: "Appalachian Trail",
-        status: "planned",
+        status: "planning",
         trail: null,
         location: null,
         start: null,
@@ -41,7 +41,7 @@ describe("POST /", () => {
     });
   });
 
-  it("defaults status to planned in the database when not provided", async () => {
+  it("defaults status to planning in the database when not provided", async () => {
     const response = await request(app)
       .post("/api/trips")
       .send({ name: "Appalachian Trail" })
@@ -51,7 +51,7 @@ describe("POST /", () => {
     const dbTrip = await db.trip.findUnique({
       where: { id: response.body.trip.id },
     });
-    expect(dbTrip?.status).toBe("planned");
+    expect(dbTrip?.status).toBe("planning");
   });
 
   it("creates a trip with all fields provided", async () => {
@@ -135,6 +135,35 @@ describe("POST /", () => {
     `);
   });
 
+  it("rejects an empty name", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "   " })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "too_small",
+              "inclusive": true,
+              "message": "Name is required",
+              "minimum": 1,
+              "origin": "string",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
   it("rejects an invalid status", async () => {
     const response = await request(app)
       .post("/api/trips")
@@ -149,13 +178,13 @@ describe("POST /", () => {
           "errors": [
             {
               "code": "invalid_value",
-              "message": "Invalid option: expected one of "planned"|"in_progress"|"postponed"|"finished"|"cancelled"",
+              "message": "Invalid option: expected one of "in_progress"|"planning"|"postponed"|"finished"|"cancelled"",
               "path": [
                 "status",
               ],
               "values": [
-                "planned",
                 "in_progress",
+                "planning",
                 "postponed",
                 "finished",
                 "cancelled",
@@ -188,6 +217,36 @@ describe("POST /", () => {
                 "start",
               ],
               "received": "Invalid Date",
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an end date before the start date", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({
+        name: "Appalachian Trail",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-05-01T00:00:00.000Z",
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "custom",
+              "message": "End date must be on or after the start date",
+              "path": [
+                "end",
+              ],
             },
           ],
           "type": "body",
@@ -263,9 +322,70 @@ describe("GET /", () => {
 
     expect(response.body).toMatchInlineSnapshot(`
       {
+        "pageSize": 3,
+        "total": 0,
         "trips": [],
       }
     `);
+  });
+
+  it("returns the total count and page size alongside the trips, regardless of take/skip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const before = await db.trip.count({ where: { userId: user!.id } });
+    await db.trip.createMany({
+      data: Array.from({ length: 5 }, (_, i) =>
+        make("Trip", { name: `Trip ${i}`, userId: user!.id }),
+      ),
+    });
+
+    const response = await request(app)
+      .get("/api/trips?take=2")
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trips).toHaveLength(2);
+    expect(response.body.total).toBe(before + 5);
+    expect(response.body.pageSize).toBe(2);
+  });
+
+  it("respects a provided skip parameter", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.trip.createMany({
+      data: [
+        make("Trip", {
+          name: "First",
+          userId: user!.id,
+          status: "planning",
+          start: new Date("2026-01-01"),
+        }),
+        make("Trip", {
+          name: "Second",
+          userId: user!.id,
+          status: "planning",
+          start: new Date("2026-02-01"),
+        }),
+        make("Trip", {
+          name: "Third",
+          userId: user!.id,
+          status: "planning",
+          start: new Date("2026-03-01"),
+        }),
+      ],
+    });
+
+    const response = await request(app)
+      .get("/api/trips?take=100&skip=1")
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const tripNames = response.body.trips.map((trip: any) => trip.name);
+    expect(tripNames).not.toContain("First");
+    expect(tripNames).toContain("Second");
+    expect(tripNames).toContain("Third");
   });
 
   it("defaults to returning at most 3 trips", async () => {
@@ -300,9 +420,9 @@ describe("GET /", () => {
           start: new Date("2026-02-01"),
         }),
         make("Trip", {
-          name: "Planned, later start",
+          name: "Planning, later start",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-03-01"),
         }),
         make("Trip", {
@@ -312,10 +432,22 @@ describe("GET /", () => {
           start: new Date("2026-01-01"),
         }),
         make("Trip", {
-          name: "Planned, earlier start",
+          name: "Planning, earlier start",
           userId: user!.id,
-          status: "planned",
+          status: "planning",
           start: new Date("2026-01-15"),
+        }),
+        make("Trip", {
+          name: "In progress, later start",
+          userId: user!.id,
+          status: "in_progress",
+          start: new Date("2026-02-15"),
+        }),
+        make("Trip", {
+          name: "In progress, earlier start",
+          userId: user!.id,
+          status: "in_progress",
+          start: new Date("2026-01-10"),
         }),
       ],
     });
@@ -329,16 +461,20 @@ describe("GET /", () => {
     // Filter out seed data
     const testTripNames = new Set([
       "Finished, later start",
-      "Planned, later start",
+      "Planning, later start",
       "Finished, earlier start",
-      "Planned, earlier start",
+      "Planning, earlier start",
+      "In progress, later start",
+      "In progress, earlier start",
     ]);
     const tripNames = response.body.trips
       .map((trip: any) => trip.name)
       .filter((name: string) => testTripNames.has(name));
     expect(tripNames).toEqual([
-      "Planned, earlier start",
-      "Planned, later start",
+      "In progress, earlier start",
+      "In progress, later start",
+      "Planning, earlier start",
+      "Planning, later start",
       "Finished, earlier start",
       "Finished, later start",
     ]);

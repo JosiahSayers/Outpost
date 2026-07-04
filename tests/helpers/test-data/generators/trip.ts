@@ -10,7 +10,7 @@ export default function makeTrip(overrides: OptionalPartial<Trip> = {}): Trip {
     name: `${faker.animal.bear()} Wilderness Trip`,
     trail: `${faker.location.state()} Trail`,
     location: faker.location.state(),
-    status: "planned",
+    status: "planning",
     start: faker.date.soon(),
     end: faker.date.future(),
     userId: faker.string.uuid(),
