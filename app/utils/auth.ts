@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
 import { admin } from "better-auth/plugins";
 
-export const baseAuthConfig: BetterAuthOptions = {
+export const baseAuthConfig = {
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
@@ -11,7 +11,7 @@ export const baseAuthConfig: BetterAuthOptions = {
     enabled: true,
   },
   plugins: [admin()],
-};
+} satisfies BetterAuthOptions;
 
 export const auth = betterAuth(baseAuthConfig);
 
