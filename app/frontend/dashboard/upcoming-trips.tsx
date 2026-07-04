@@ -1,22 +1,51 @@
-import AppLink from "$/frontend/app-link";
 import TripCard from "$/frontend/dashboard/trip-card";
-import { useTrips } from "$/frontend/utils/api/trip";
+import { useTrips, useTripsPage } from "$/frontend/utils/api/trip";
 import {
   Button,
   Card,
+  Collapse,
   Group,
-  Skeleton,
+  Pagination,
   SimpleGrid,
+  Skeleton,
   Text,
   Title,
 } from "@mantine/core";
-import { Plus } from "@phosphor-icons/react";
+import { useDisclosure } from "@mantine/hooks";
+import { PlusIcon } from "@phosphor-icons/react";
+import { useState } from "react";
+
+const EXPANDED_PAGE_SIZE = 6;
 
 export default function UpcomingTrips() {
-  const { data: trips, isFetching } = useTrips();
-  const activeTrips = (trips ?? []).filter(
+  const { data, isFetching } = useTrips();
+  const trips = data?.trips ?? [];
+  const total = data?.total ?? 0;
+  const activeTrips = trips.filter(
     (t) => t.status !== "finished" && t.status !== "cancelled",
   );
+
+  const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
+  const [page, setPage] = useState(1);
+
+  // Trips beyond the initial preview batch, browsable in the expanded,
+  // paginated section below.
+  const remainingCount = Math.max(total - trips.length, 0);
+  const totalPages = Math.max(
+    Math.ceil(remainingCount / EXPANDED_PAGE_SIZE),
+    1,
+  );
+
+  const { data: pageData, isFetching: isFetchingPage } = useTripsPage(
+    trips.length + (page - 1) * EXPANDED_PAGE_SIZE,
+    EXPANDED_PAGE_SIZE,
+    showAll,
+  );
+
+  function handleToggle() {
+    setPage(1);
+    toggleShowAll();
+  }
 
   return (
     <section>
@@ -27,7 +56,7 @@ export default function UpcomingTrips() {
             Your planned and upcoming adventures
           </Text>
         </div>
-        <Button leftSection={<Plus size={16} />}>New Trip</Button>
+        <Button leftSection={<PlusIcon size={16} />}>New Trip</Button>
       </Group>
 
       {isFetching ? (
@@ -38,21 +67,54 @@ export default function UpcomingTrips() {
             <Skeleton height={28} width={90} />
           </Card>
         </SimpleGrid>
-      ) : activeTrips.length === 0 ? (
+      ) : activeTrips.length === 0 && remainingCount === 0 ? (
         <Text c="dimmed">
           No upcoming trips. Start planning your next adventure!
         </Text>
       ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          {activeTrips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
-          ))}
-        </SimpleGrid>
-      )}
+        <>
+          {activeTrips.length > 0 && (
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+              {activeTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </SimpleGrid>
+          )}
 
-      <Group justify="flex-end" mt="sm">
-        <AppLink href="/trips">View all trips</AppLink>
-      </Group>
+          {remainingCount > 0 && (
+            <>
+              <Collapse expanded={showAll}>
+                <SimpleGrid
+                  cols={{ base: 1, sm: 2, md: 3 }}
+                  spacing="md"
+                  mt="md"
+                >
+                  {(pageData?.trips ?? []).map((trip) => (
+                    <TripCard key={trip.id} trip={trip} />
+                  ))}
+                </SimpleGrid>
+
+                {totalPages > 1 && (
+                  <Group justify="center" mt="md">
+                    <Pagination
+                      total={totalPages}
+                      value={page}
+                      onChange={setPage}
+                      disabled={isFetchingPage}
+                    />
+                  </Group>
+                )}
+              </Collapse>
+
+              <Group justify="flex-end" mt="sm">
+                <Button variant="subtle" onClick={handleToggle}>
+                  {showAll ? "View less" : "View all trips"}
+                </Button>
+              </Group>
+            </>
+          )}
+        </>
+      )}
     </section>
   );
 }

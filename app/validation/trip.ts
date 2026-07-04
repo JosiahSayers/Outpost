@@ -4,6 +4,7 @@ import { TripStatus } from "../../generated/prisma/enums";
 
 export const tripSearch = z.strictObject({
   take: numberQueryParam(3),
+  skip: numberQueryParam(0),
 });
 
 export const newTrip = z.strictObject({

@@ -1,5 +1,6 @@
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { transformers } from "$/transformers";
+import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
 import { newTrip, tripSearch } from "$/validation/trip";
 import { Router } from "express";
@@ -9,15 +10,25 @@ export const tripRouter = Router();
 tripRouter.use(requireValidSession);
 
 tripRouter.get("/", validate({ query: tripSearch }), async (req, res, next) => {
-  const trips = await db.trip.findMany({
-    where: {
-      userId: req.session!.user.id,
-    },
-    take: req.query.take,
-    orderBy: [{ status: "asc" }, { start: "asc" }],
-  });
+  const where = { userId: req.session!.user.id };
 
-  return res.json({ trips: trips.map(transformers.trip) });
+  const [trips, total] = await Promise.all([
+    db.trip.findMany({
+      where,
+      take: req.query.take,
+      skip: req.query.skip,
+      orderBy: [{ status: "asc" }, { start: "asc" }],
+    }),
+    db.trip.count({ where }),
+  ]);
+
+  const page = paginate(trips, transformers.trip, total, req.query.take);
+
+  return res.json({
+    trips: page.items,
+    total: page.total,
+    pageSize: page.pageSize,
+  });
 });
 
 tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {

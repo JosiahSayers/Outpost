@@ -1,15 +1,30 @@
 import type { Trip } from "$/frontend/dashboard/types";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { apiClient } from "./client";
 
 export const tripKeys = {
   all: ["trips"] as const,
+  page: (skip: number, take: number) => ["trips", "page", skip, take] as const,
 };
 
 export function useTrips() {
   return useQuery({
     queryKey: tripKeys.all,
     queryFn: () =>
-      apiClient<{ trips: Trip[] }>("/api/trips").then((res) => res.trips),
+      apiClient<{ trips: Trip[]; total: number; pageSize: number }>(
+        "/api/trips",
+      ),
+  });
+}
+
+export function useTripsPage(skip: number, take: number, enabled = true) {
+  return useQuery({
+    queryKey: tripKeys.page(skip, take),
+    queryFn: () =>
+      apiClient<{ trips: Trip[]; total: number; pageSize: number }>(
+        `/api/trips?skip=${skip}&take=${take}`,
+      ),
+    enabled,
+    placeholderData: keepPreviousData,
   });
 }

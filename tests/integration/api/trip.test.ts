@@ -263,9 +263,70 @@ describe("GET /", () => {
 
     expect(response.body).toMatchInlineSnapshot(`
       {
+        "pageSize": 3,
+        "total": 0,
         "trips": [],
       }
     `);
+  });
+
+  it("returns the total count and page size alongside the trips, regardless of take/skip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const before = await db.trip.count({ where: { userId: user!.id } });
+    await db.trip.createMany({
+      data: Array.from({ length: 5 }, (_, i) =>
+        make("Trip", { name: `Trip ${i}`, userId: user!.id }),
+      ),
+    });
+
+    const response = await request(app)
+      .get("/api/trips?take=2")
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trips).toHaveLength(2);
+    expect(response.body.total).toBe(before + 5);
+    expect(response.body.pageSize).toBe(2);
+  });
+
+  it("respects a provided skip parameter", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.trip.createMany({
+      data: [
+        make("Trip", {
+          name: "First",
+          userId: user!.id,
+          status: "planned",
+          start: new Date("2026-01-01"),
+        }),
+        make("Trip", {
+          name: "Second",
+          userId: user!.id,
+          status: "planned",
+          start: new Date("2026-02-01"),
+        }),
+        make("Trip", {
+          name: "Third",
+          userId: user!.id,
+          status: "planned",
+          start: new Date("2026-03-01"),
+        }),
+      ],
+    });
+
+    const response = await request(app)
+      .get("/api/trips?take=100&skip=1")
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const tripNames = response.body.trips.map((trip: any) => trip.name);
+    expect(tripNames).not.toContain("First");
+    expect(tripNames).toContain("Second");
+    expect(tripNames).toContain("Third");
   });
 
   it("defaults to returning at most 3 trips", async () => {
