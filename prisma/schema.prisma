@@ -199,10 +199,10 @@ model Trip {
   userId String
 
   // Covers status alone or status + start
-  // Covers start alone for sorting
-  // Covers planned composite search of these three fields
   @@index([status, start])
+  // Covers start alone for sorting
   @@index([start])
+  // Covers planned composite search of these three fields
   @@index([name, trail, location])
 }
 
