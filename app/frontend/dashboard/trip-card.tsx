@@ -1,6 +1,6 @@
 import type { Trip, TripStatus } from "$/frontend/dashboard/types";
 import { Badge, Button, Card, Group, Text, Title } from "@mantine/core";
-import { CalendarBlank, MapPin } from "@phosphor-icons/react";
+import { CalendarBlankIcon, MapPinIcon } from "@phosphor-icons/react";
 
 const STATUS_COLOR: Record<TripStatus, string> = {
   planning: "trail-dust",
@@ -51,13 +51,13 @@ export default function TripCard({ trip }: { trip: Trip }) {
 
       {trip.location && (
         <Group gap="xs" c="dimmed" mb={4}>
-          <MapPin size={14} />
+          <MapPinIcon size={14} />
           <Text size="sm">{trip.location}</Text>
         </Group>
       )}
 
       <Group gap="xs" c="dimmed" mb="md">
-        <CalendarBlank size={14} />
+        <CalendarBlankIcon size={14} />
         <Text size="sm">{formatDateRange(trip.start, trip.end)}</Text>
       </Group>
 
