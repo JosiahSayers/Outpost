@@ -13,6 +13,217 @@ beforeEach(async () => {
   user2AuthCookies = await getAuthCookies("user2@test.com");
 });
 
+describe("POST /", () => {
+  it("requires a valid session", async () => {
+    await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .expect(401);
+  });
+
+  it("creates a trip with only the required fields", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      trip: {
+        name: "Appalachian Trail",
+        status: "planned",
+        trail: null,
+        location: null,
+        start: null,
+        end: null,
+      },
+    });
+  });
+
+  it("defaults status to planned in the database when not provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const dbTrip = await db.trip.findUnique({
+      where: { id: response.body.trip.id },
+    });
+    expect(dbTrip?.status).toBe("planned");
+  });
+
+  it("creates a trip with all fields provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({
+        name: "Appalachian Trail",
+        status: "in_progress",
+        trail: "AT",
+        location: "Georgia to Maine",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-09-01T00:00:00.000Z",
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      trip: {
+        name: "Appalachian Trail",
+        status: "in_progress",
+        trail: "AT",
+        location: "Georgia to Maine",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-09-01T00:00:00.000Z",
+      },
+    });
+  });
+
+  it("trims the name", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "  Appalachian Trail  " })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    expect(response.body.trip.name).toBe("Appalachian Trail");
+  });
+
+  it("assigns the trip to the logged in user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const dbTrip = await db.trip.findUnique({
+      where: { id: response.body.trip.id },
+    });
+    expect(dbTrip?.userId).toBe(user!.id);
+  });
+
+  it("requires a name to be provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({})
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "message": "Invalid input: expected string, received undefined",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an invalid status", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail", status: "bogus" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_value",
+              "message": "Invalid option: expected one of "planned"|"in_progress"|"postponed"|"finished"|"cancelled"",
+              "path": [
+                "status",
+              ],
+              "values": [
+                "planned",
+                "in_progress",
+                "postponed",
+                "finished",
+                "cancelled",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an unparseable start date", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail", start: "not-a-date" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "date",
+              "message": "Invalid date",
+              "path": [
+                "start",
+              ],
+              "received": "Invalid Date",
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail", notAField: true })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+});
+
 describe("GET /", () => {
   it("requires a valid session", async () => {
     await request(app).get("/api/trips").expect(401);
