@@ -1,15 +1,22 @@
 import AppLink from "$/frontend/app-link";
 import TripCard from "$/frontend/dashboard/trip-card";
-import type { Trip } from "$/frontend/dashboard/types";
-import { Button, Group, SimpleGrid, Text, Title } from "@mantine/core";
+import { useTrips } from "$/frontend/utils/api/trip";
+import {
+  Button,
+  Card,
+  Group,
+  Skeleton,
+  SimpleGrid,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Plus } from "@phosphor-icons/react";
 
-interface Props {
-  trips: Trip[];
-}
-
-export default function UpcomingTrips({ trips }: Props) {
-  const activeTrips = trips.filter((t) => t.status !== "completed");
+export default function UpcomingTrips() {
+  const { data: trips, isFetching } = useTrips();
+  const activeTrips = (trips ?? []).filter(
+    (t) => t.status !== "finished" && t.status !== "cancelled",
+  );
 
   return (
     <section>
@@ -23,7 +30,15 @@ export default function UpcomingTrips({ trips }: Props) {
         <Button leftSection={<Plus size={16} />}>New Trip</Button>
       </Group>
 
-      {activeTrips.length === 0 ? (
+      {isFetching ? (
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+          <Card>
+            <Skeleton height={16} width="60%" mb="xs" />
+            <Skeleton height={12} width="30%" mb="md" />
+            <Skeleton height={28} width={90} />
+          </Card>
+        </SimpleGrid>
+      ) : activeTrips.length === 0 ? (
         <Text c="dimmed">
           No upcoming trips. Start planning your next adventure!
         </Text>

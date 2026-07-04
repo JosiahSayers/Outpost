@@ -1,6 +1,8 @@
 import UpcomingTrips from "$/frontend/dashboard/upcoming-trips";
 import type { Trip } from "$/frontend/dashboard/types";
+import { tripKeys } from "$/frontend/utils/api/trip";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "bun:test";
@@ -10,22 +12,28 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
   return {
     id: "1",
     name: "Pacific Crest Trail Section",
+    trail: "Pacific Crest Trail",
     location: "Sierra Nevada, CA",
-    startDate: "2026-08-01T12:00:00.000Z",
-    endDate: "2026-08-10T12:00:00.000Z",
-    status: "upcoming",
-    packingLists: [],
+    start: "2026-08-01T12:00:00.000Z",
+    end: "2026-08-10T12:00:00.000Z",
+    status: "planned",
     ...overrides,
   };
 }
 
 function renderComponent(trips: Trip[]) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  queryClient.setQueryData(tripKeys.all, trips);
   render(
-    <MantineProvider>
-      <Router hook={() => ["/dashboard", () => {}]}>
-        <UpcomingTrips trips={trips} />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Router hook={() => ["/dashboard", () => {}]}>
+          <UpcomingTrips />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -47,14 +55,15 @@ describe("when there are no active trips", () => {
   });
 });
 
-describe("when all trips are completed", () => {
+describe("when all trips are finished or cancelled", () => {
   beforeEach(() =>
     renderComponent([
-      makeTrip({ id: "1", name: "Old Hike", status: "completed" }),
+      makeTrip({ id: "1", name: "Old Hike", status: "finished" }),
+      makeTrip({ id: "2", name: "Scrapped Hike", status: "cancelled" }),
     ]),
   );
 
-  it("shows the empty state since completed trips are excluded", () => {
+  it("shows the empty state since finished/cancelled trips are excluded", () => {
     expect(
       screen.getByText(
         "No upcoming trips. Start planning your next adventure!",
@@ -62,16 +71,17 @@ describe("when all trips are completed", () => {
     ).toBeInTheDocument();
   });
 
-  it("does not render a card for the completed trip", () => {
+  it("does not render a card for the excluded trips", () => {
     expect(screen.queryByText("Old Hike")).not.toBeInTheDocument();
+    expect(screen.queryByText("Scrapped Hike")).not.toBeInTheDocument();
   });
 });
 
 describe("when there are active trips", () => {
   const trips = [
-    makeTrip({ id: "1", name: "John Muir Trail", status: "upcoming" }),
-    makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
-    makeTrip({ id: "3", name: "Finished Hike", status: "completed" }),
+    makeTrip({ id: "1", name: "John Muir Trail", status: "in_progress" }),
+    makeTrip({ id: "2", name: "Wonderland Trail", status: "planned" }),
+    makeTrip({ id: "3", name: "Finished Hike", status: "finished" }),
   ];
 
   beforeEach(() => renderComponent(trips));
@@ -81,7 +91,7 @@ describe("when there are active trips", () => {
     expect(screen.getByText("Wonderland Trail")).toBeInTheDocument();
   });
 
-  it("does not render a card for completed trips", () => {
+  it("does not render a card for finished trips", () => {
     expect(screen.queryByText("Finished Hike")).not.toBeInTheDocument();
   });
 });
