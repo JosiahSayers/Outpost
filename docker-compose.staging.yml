@@ -42,6 +42,15 @@ services:
     env_file:
       - .env.staging
 
+  jobs:
+    image: josiahsayers15/outpost:latest
+    restart: unless-stopped
+    entrypoint: ["bun", "run", "start:workers"]
+    volumes:
+      - ./container_files/logs:/usr/src/log
+    env_file:
+      - .env.staging
+
   redis:
     image: redis
     restart: unless-stopped

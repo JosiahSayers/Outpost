@@ -1,5 +1,6 @@
-import { faker } from "@faker-js/faker";
 import { auth } from "$/utils/auth";
+import { db } from "$/utils/db";
+import { faker } from "@faker-js/faker";
 
 export async function createUsers() {
   await Promise.all([
@@ -17,5 +18,17 @@ export async function createUsers() {
         password: "user2-password",
       },
     }),
+    auth.api.signUpEmail({
+      body: {
+        name: faker.person.fullName(),
+        email: "admin@test.com",
+        password: "admin-password",
+      },
+    }),
   ]);
+
+  await db.user.update({
+    where: { email: "admin@test.com" },
+    data: { role: "admin" },
+  });
 }

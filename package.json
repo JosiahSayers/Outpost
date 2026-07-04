@@ -12,6 +12,7 @@
     "db:seed": "bun prisma/seeds",
     "docker:publish": "docker buildx build --build-arg BUILD_VERSION=$(cat version) --push --platform linux/amd64 -t josiahsayers15/$npm_package_name:latest -t josiahsayers15/$npm_package_name:$(cat version) .",
     "start": "bunx --bun prisma migrate deploy && bun run db:seed && bun run /usr/src/app/index.ts",
+    "start:workers": "bun run /usr/src/app/app/jobs/workers/index.ts",
     "test:e2e": "playwright test",
     "format": "prettier . --write",
     "format:check": "prettier . -c"
@@ -39,6 +40,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@bull-board/api": "^8.1.0",
+    "@bull-board/express": "^8.1.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
