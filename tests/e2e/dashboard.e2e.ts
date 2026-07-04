@@ -290,4 +290,162 @@ test.describe("Dashboard Page", () => {
       });
     });
   });
+
+  test.describe("Upcoming Trips", () => {
+    test.describe("creating a new trip", () => {
+      test("clicking New Trip opens the drawer", async ({ page }) => {
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await expect(
+          page.getByRole("textbox", { name: "Trip name" }),
+        ).toBeVisible();
+      });
+
+      test("Cancel closes the drawer without creating a trip", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page
+          .getByRole("textbox", { name: "Trip name" })
+          .fill("Should not be created");
+        await page.getByRole("button", { name: "Cancel" }).click();
+        await expect(
+          page.getByRole("textbox", { name: "Trip name" }),
+        ).not.toBeVisible();
+        await expect(page.getByText("Should not be created")).not.toBeVisible();
+      });
+
+      test("shows a validation error when the name is empty", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page.getByRole("button", { name: "Create trip" }).click();
+        await expect(
+          page.getByRole("textbox", { name: "Trip name" }),
+        ).toHaveAttribute("aria-invalid", "true");
+      });
+
+      test("shows a validation error when the end date is before the start date", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page
+          .getByRole("textbox", { name: "Trip name" })
+          .fill(`E2E Bad Range ${Date.now()}`);
+        await page
+          .getByRole("textbox", { name: "Start date" })
+          .fill("June 10, 2026");
+        await page
+          .getByRole("textbox", { name: "End date" })
+          .fill("June 1, 2026");
+        await page.getByRole("button", { name: "Create trip" }).click();
+        await expect(
+          page.getByText("End date must be on or after the start date"),
+        ).toBeVisible();
+      });
+
+      test("creates a trip with only the required name field", async ({
+        page,
+      }) => {
+        const tripName = `E2E Minimal Trip ${Date.now()}`;
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
+        await page.getByRole("button", { name: "Create trip" }).click();
+
+        // Drawer closes on success.
+        await expect(
+          page.getByRole("button", { name: "Create trip" }),
+        ).not.toBeVisible();
+
+        const response = await page.request.get("/api/trips?take=100");
+        const { trips } = await response.json();
+        const created = trips.find(
+          (trip: { name: string }) => trip.name === tripName,
+        );
+        expect(created).toMatchObject({
+          name: tripName,
+          status: "planning",
+          trail: null,
+          location: null,
+        });
+      });
+
+      test("creates a trip with all fields and shows it in the upcoming trips list", async ({
+        page,
+      }) => {
+        const tripName = `E2E Full Trip ${Date.now()}`;
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
+        // "In Progress" sorts ahead of the seeded "Planning" trips, so this
+        // trip is guaranteed to land in the (max 3) dashboard preview.
+        await page.getByRole("combobox", { name: "Status" }).click();
+        await page.getByRole("option", { name: "In Progress" }).click();
+        await page
+          .getByRole("textbox", { name: "Trail" })
+          .fill("Wonderland Trail");
+        await page
+          .getByRole("textbox", { name: "Location" })
+          .fill("Mount Rainier National Park, WA");
+        await page
+          .getByRole("textbox", { name: "Start date" })
+          .fill("June 1, 2026");
+        await page
+          .getByRole("textbox", { name: "End date" })
+          .fill("June 10, 2026");
+        await page.getByRole("button", { name: "Create trip" }).click();
+
+        const card = page
+          .locator(".mantine-Card-root")
+          .filter({ hasText: tripName });
+        await expect(
+          card.getByRole("heading", { level: 4, name: tripName }),
+        ).toBeVisible();
+        await expect(
+          card.getByText("Mount Rainier National Park, WA"),
+        ).toBeVisible();
+
+        const response = await page.request.get("/api/trips?take=100");
+        const { trips } = await response.json();
+        const created = trips.find(
+          (trip: { name: string }) => trip.name === tripName,
+        );
+        expect(created).toMatchObject({
+          name: tripName,
+          status: "in_progress",
+          trail: "Wonderland Trail",
+          location: "Mount Rainier National Park, WA",
+          start: "2026-06-01T00:00:00.000Z",
+          end: "2026-06-10T00:00:00.000Z",
+        });
+
+        await page.reload();
+        await expect(
+          page.getByRole("heading", { level: 4, name: tripName }),
+        ).toBeVisible();
+      });
+
+      test("shows an error and keeps the drawer open when the API fails", async ({
+        page,
+      }) => {
+        await page.route("**/api/trips", (route) => {
+          if (route.request().method() === "POST") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page
+          .getByRole("textbox", { name: "Trip name" })
+          .fill(`Fail Test ${Date.now()}`);
+        await page.getByRole("button", { name: "Create trip" }).click();
+
+        await expect(
+          page.getByText("Something went wrong. Please try again."),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("textbox", { name: "Trip name" }),
+        ).toBeVisible();
+      });
+    });
+  });
 });

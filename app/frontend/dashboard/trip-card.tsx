@@ -10,7 +10,7 @@ const STATUS_COLOR: Record<TripStatus, string> = {
   cancelled: "stone-gray",
 };
 
-const STATUS_LABEL: Record<TripStatus, string> = {
+export const STATUS_LABEL: Record<TripStatus, string> = {
   planning: "Planning",
   in_progress: "In Progress",
   postponed: "Postponed",

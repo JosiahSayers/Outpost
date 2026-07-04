@@ -7,11 +7,28 @@ export const tripSearch = z.strictObject({
   skip: numberQueryParam(0),
 });
 
-export const newTrip = z.strictObject({
-  name: z.string().trim(),
+export function withTripDateRange<
+  T extends z.ZodType<{
+    start?: Date | string | null;
+    end?: Date | string | null;
+  }>,
+>(schema: T) {
+  return schema.refine(
+    (data) => !data.start || !data.end || data.start <= data.end,
+    { error: "End date must be on or after the start date", path: ["end"] },
+  );
+}
+
+export const baseNewTrip = z.strictObject({
+  name: z.string().trim().min(1, { error: "Name is required" }),
   status: z.enum(TripStatus).optional(),
   trail: z.string().trim().optional(),
   location: z.string().trim().optional(),
-  start: z.coerce.date({ error: "Invalid date" }).optional(),
-  end: z.coerce.date({ error: "Invalid date" }).optional(),
 });
+
+export const newTrip = withTripDateRange(
+  baseNewTrip.extend({
+    start: z.coerce.date({ error: "Invalid date" }).optional(),
+    end: z.coerce.date({ error: "Invalid date" }).optional(),
+  }),
+);

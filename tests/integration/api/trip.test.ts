@@ -135,6 +135,35 @@ describe("POST /", () => {
     `);
   });
 
+  it("rejects an empty name", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "   " })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "too_small",
+              "inclusive": true,
+              "message": "Name is required",
+              "minimum": 1,
+              "origin": "string",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
   it("rejects an invalid status", async () => {
     const response = await request(app)
       .post("/api/trips")
@@ -188,6 +217,36 @@ describe("POST /", () => {
                 "start",
               ],
               "received": "Invalid Date",
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an end date before the start date", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({
+        name: "Appalachian Trail",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-05-01T00:00:00.000Z",
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "custom",
+              "message": "End date must be on or after the start date",
+              "path": [
+                "end",
+              ],
             },
           ],
           "type": "body",

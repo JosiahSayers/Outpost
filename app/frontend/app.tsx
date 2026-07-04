@@ -10,6 +10,7 @@ import { trailTheme } from "$/frontend/theme";
 import { queryClient } from "$/frontend/utils/api/query-client";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
 import { Notifications } from "@mantine/notifications";
 import "@mantine/notifications/styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";

@@ -1,3 +1,4 @@
+import NewTripDrawer from "$/frontend/dashboard/new-trip-drawer";
 import TripCard from "$/frontend/dashboard/trip-card";
 import { useTrips, useTripsPage } from "$/frontend/utils/api/trip";
 import {
@@ -27,6 +28,8 @@ export default function UpcomingTrips() {
 
   const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
   const [page, setPage] = useState(1);
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
 
   // Trips beyond the initial preview batch, browsable in the expanded,
   // paginated section below.
@@ -56,8 +59,12 @@ export default function UpcomingTrips() {
             Your planned and upcoming adventures
           </Text>
         </div>
-        <Button leftSection={<PlusIcon size={16} />}>New Trip</Button>
+        <Button leftSection={<PlusIcon size={16} />} onClick={openDrawer}>
+          New Trip
+        </Button>
       </Group>
+
+      <NewTripDrawer opened={drawerOpened} onClose={closeDrawer} />
 
       {isFetching ? (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">

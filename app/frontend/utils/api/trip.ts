@@ -1,5 +1,12 @@
 import type { Trip } from "$/frontend/dashboard/types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import type { newTrip } from "$/validation/trip";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { z } from "zod";
 import { apiClient } from "./client";
 
 export const tripKeys = {
@@ -26,5 +33,20 @@ export function useTripsPage(skip: number, take: number, enabled = true) {
       ),
     enabled,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useCreateTrip() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: z.input<typeof newTrip>) =>
+      apiClient<{ trip: Trip }>("/api/trips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tripKeys.all });
+    },
   });
 }
