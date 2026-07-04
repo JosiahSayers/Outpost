@@ -1,8 +1,14 @@
-import { exampleWorker } from "$/jobs/workers/example";
+import { moveToInProgressQueue } from "$/jobs/queues";
+import { moveToInProgressWorker } from "$/jobs/workers/trip-status/move-to-in-progress";
 import { logger } from "$/utils/logger";
 import type { Worker } from "bullmq";
 
-const workers: Worker[] = [exampleWorker];
+const workers: Worker[] = [moveToInProgressWorker];
+
+await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {
+  pattern: "1 0 * * *",
+  tz: "UTC",
+});
 
 workers.forEach((worker) => worker.run());
 
