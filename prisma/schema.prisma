@@ -34,6 +34,7 @@ model User {
   gearInventoryItems GearInventoryItem[]
   gearCategories     GearCategory[]
   packingLists       PackingList[]
+  trips              Trip[]
 
   @@unique([email])
   @@map("user")
@@ -173,4 +174,32 @@ model PackingListItem {
   packingListSectionId Int?
 
   @@unique([name, packingListSectionId])
+}
+
+model Trip {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name     String
+  status   TripStatus @default(planned)
+  trail    String?
+  location String?
+  start    DateTime?
+  end      DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@index([status, start]) // Covers status alone or status + start
+  @@index([start]) // Covers start alone for sorting
+  @@index([name, trail, location]) // Covers planned composite search of these three fields
+}
+
+enum TripStatus {
+  planned
+  in_progress
+  postponed
+  finished
+  cancelled
 }
