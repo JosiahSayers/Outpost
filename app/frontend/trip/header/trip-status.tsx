@@ -1,7 +1,7 @@
 import { STATUS_COLOR, STATUS_LABEL } from "$/frontend/dashboard/trip-card";
-import type { TripStatus } from "$/frontend/dashboard/types";
 import { Badge, Select } from "@mantine/core";
 import { useState } from "react";
+import type { TripStatus } from "../../../../generated/prisma/enums";
 
 const STATUS_VALUES = Object.keys(STATUS_LABEL) as [
   TripStatus,

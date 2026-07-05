@@ -226,4 +226,161 @@ test.describe("Trip Page", () => {
       await expect(page.getByText("Couldn't update dates")).toBeVisible();
     });
   });
+
+  test.describe("tasks", () => {
+    // A new trip is seeded with these default tasks (prepareDefaultTripTasks),
+    // none of which have a due date since this trip has no start date set.
+    const BEFORE_TASKS = [
+      "Share trip plan with emergency contact",
+      "Check weather forecast",
+      "Pack backpack",
+    ];
+
+    test("renders the default tasks grouped by phase", async ({ page }) => {
+      for (const name of BEFORE_TASKS) {
+        await expect(page.getByText(name, { exact: true })).toBeVisible();
+      }
+      await expect(
+        page.getByText("Leave copy of trip plan in vehicle", {
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("Post trip report", { exact: true }),
+      ).toBeVisible();
+      await expect(page.getByText("Unpack", { exact: true })).toBeVisible();
+    });
+
+    test("shows the completion count across all tasks", async ({ page }) => {
+      await expect(page.getByText("0/6 complete")).toBeVisible();
+    });
+
+    test.describe("completing a task", () => {
+      test("checking the box persists across a reload", async ({ page }) => {
+        await page.getByRole("checkbox", { name: "Pack backpack" }).click();
+        await expect(
+          page.getByRole("checkbox", { name: "Pack backpack" }),
+        ).toBeChecked();
+
+        await page.reload();
+        await expect(
+          page.getByRole("checkbox", { name: "Pack backpack" }),
+        ).toBeChecked();
+      });
+
+      test("moves the completed task above its incomplete siblings", async ({
+        page,
+      }) => {
+        await page.getByRole("checkbox", { name: "Pack backpack" }).click();
+        await expect(
+          page.getByRole("checkbox", { name: "Pack backpack" }),
+        ).toBeChecked();
+
+        // Tasks render one phase column at a time, so the first three
+        // checkboxes on the page are always the "before" phase's tasks.
+        const beforeOrder = (await page.getByRole("checkbox").all()).slice(
+          0,
+          3,
+        );
+        const names = await Promise.all(
+          beforeOrder.map((checkbox) => checkbox.getAttribute("aria-label")),
+        );
+        expect(names[0]).toBe("Pack backpack");
+      });
+
+      test("reverts the checkbox when the update fails", async ({ page }) => {
+        await page.route(`**/api/trips/${tripId}/tasks/**`, (route) => {
+          if (route.request().method() === "PATCH") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page.getByRole("checkbox", { name: "Pack backpack" }).click();
+        await expect(
+          page.getByRole("checkbox", { name: "Pack backpack" }),
+        ).not.toBeChecked();
+      });
+    });
+
+    test.describe("editing a task", () => {
+      test("editing name, phase, and due date persists across a reload", async ({
+        page,
+      }) => {
+        await page.getByText("Pack backpack", { exact: true }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit task" }),
+        ).toBeVisible();
+
+        await page
+          .getByRole("textbox", { name: "Name" })
+          .fill("Pack backpack and tent");
+        await page.getByRole("combobox", { name: "Phase" }).click();
+        await page.getByRole("option", { name: "During the Trip" }).click();
+        await page
+          .getByRole("textbox", { name: "Due date" })
+          .fill("August 20, 2026");
+        // Escape would close the whole Drawer (Mantine's default
+        // closeOnEscape), not just the date popover, so shift focus instead.
+        await page.getByRole("textbox", { name: "Name" }).click();
+
+        await page.getByRole("button", { name: "Save" }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit task" }),
+        ).not.toBeVisible();
+
+        await expect(
+          page.getByText("Pack backpack and tent", { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText("Due Aug 20")).toBeVisible();
+
+        await page.reload();
+        await expect(
+          page.getByText("Pack backpack and tent", { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText("Due Aug 20")).toBeVisible();
+      });
+    });
+
+    test.describe("deleting a task", () => {
+      test("removes the task and persists across a reload", async ({
+        page,
+      }) => {
+        await page.getByText("Unpack", { exact: true }).click();
+        await page.getByRole("button", { name: "Delete task" }).click();
+        await expect(
+          page.getByRole("heading", { name: "Delete task?" }),
+        ).toBeVisible();
+        await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+        await expect(
+          page.getByText("Unpack", { exact: true }),
+        ).not.toBeVisible();
+        await expect(page.getByText("0/5 complete")).toBeVisible();
+
+        await page.reload();
+        await expect(
+          page.getByText("Unpack", { exact: true }),
+        ).not.toBeVisible();
+        await expect(page.getByText("0/5 complete")).toBeVisible();
+      });
+    });
+
+    test.describe("phase progress", () => {
+      test("advances to During once every before-task is complete", async ({
+        page,
+      }) => {
+        for (const name of BEFORE_TASKS) {
+          await page.getByRole("checkbox", { name }).click();
+          await expect(page.getByRole("checkbox", { name })).toBeChecked();
+        }
+
+        await expect(
+          page
+            .getByRole("button", { name: /During the Trip/ })
+            .and(page.locator("[data-progress]")),
+        ).toBeVisible();
+      });
+    });
+  });
 });

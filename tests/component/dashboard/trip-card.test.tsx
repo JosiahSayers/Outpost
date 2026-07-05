@@ -1,11 +1,11 @@
 import TripCard from "$/frontend/dashboard/trip-card";
-import type { Trip } from "$/frontend/dashboard/types";
+import type { ClientTrip } from "$/transformers/trip";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "bun:test";
 
-const baseTrip: Trip = {
+const baseTrip: ClientTrip = {
   id: "1",
   name: "Olympic Peninsula Loop",
   trail: "Olympic National Park Loop",
@@ -16,7 +16,7 @@ const baseTrip: Trip = {
   status: "planning",
 };
 
-function renderCard(trip: Trip = baseTrip) {
+function renderCard(trip: ClientTrip = baseTrip) {
   render(
     <MantineProvider>
       <TripCard trip={trip} />

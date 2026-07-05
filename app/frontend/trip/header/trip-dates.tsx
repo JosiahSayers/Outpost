@@ -1,4 +1,5 @@
 import { formatDateRange } from "$/frontend/dashboard/trip-card";
+import { highlightSelectedDate } from "$/frontend/utils/highlight-selected-date";
 import { Group, Text } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { CalendarBlankIcon } from "@phosphor-icons/react";
@@ -9,18 +10,6 @@ interface Props {
   end: string | null;
   onSave: (range: { start?: string | null; end?: string | null }) => void;
 }
-
-// The calendar's built-in `selected` styling is easy to miss, so explicitly
-// call out the currently selected day with its own border.
-const highlightSelected = (selected: string | null) => (date: string) =>
-  date === selected
-    ? {
-        style: {
-          fontWeight: 700,
-          border: "2px solid var(--mantine-primary-color-filled)",
-        },
-      }
-    : {};
 
 export default function TripDates({ start, end, onSave }: Props) {
   const [editing, setEditing] = useState(false);
@@ -49,7 +38,7 @@ export default function TripDates({ start, end, onSave }: Props) {
           onChange={(value) => {
             if (value !== start) onSave({ start: value });
           }}
-          getDayProps={highlightSelected(start)}
+          getDayProps={highlightSelectedDate(start)}
           size="sm"
           w={140}
           autoFocus
@@ -65,7 +54,7 @@ export default function TripDates({ start, end, onSave }: Props) {
           onChange={(value) => {
             if (value !== end) onSave({ end: value });
           }}
-          getDayProps={highlightSelected(end)}
+          getDayProps={highlightSelectedDate(end)}
           size="sm"
           w={140}
           firstDayOfWeek={0}
