@@ -1,5 +1,6 @@
 import type { Trip } from "../../generated/prisma/browser";
 
+// TODO: Change start and end to strings since that's what they will serialize to
 export type ClientTrip = Pick<
   Trip,
   "id" | "name" | "trail" | "location" | "status" | "start" | "end"
