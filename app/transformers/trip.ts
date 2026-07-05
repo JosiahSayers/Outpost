@@ -1,4 +1,9 @@
-import type { Trip } from "../../generated/prisma/browser";
+import { toDateOnly } from "$/transformers/helpers";
+import {
+  transform as tripTaskTransform,
+  type ClientTripTask,
+} from "$/transformers/trip-task";
+import type { Trip, TripTask } from "../../generated/prisma/browser";
 
 export type ClientTrip = Omit<
   Pick<Trip, "id" | "name" | "trail" | "location" | "status" | "start" | "end">,
@@ -7,10 +12,6 @@ export type ClientTrip = Omit<
   start: string | null;
   end: string | null;
 };
-
-function toDateOnly(date: Date | null): string | null {
-  return date ? date.toISOString().slice(0, 10) : null;
-}
 
 export function transform(item: Trip): ClientTrip {
   return {
@@ -21,5 +22,20 @@ export function transform(item: Trip): ClientTrip {
     status: item.status,
     start: toDateOnly(item.start),
     end: toDateOnly(item.end),
+  };
+}
+
+export type ClientFullTrip = ClientTrip & {
+  tasks: Array<ClientTripTask>;
+};
+
+type FullTrip = Trip & {
+  tasks: TripTask[];
+};
+
+export function transformFull(item: FullTrip): ClientFullTrip {
+  return {
+    ...transform(item),
+    tasks: item.tasks.map(tripTaskTransform),
   };
 }

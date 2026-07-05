@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
-import { transform } from "$/transformers/trip";
+import { transform, transformFull } from "$/transformers/trip";
 
 describe("transform", () => {
   it("returns the expected shape", () => {
@@ -19,5 +19,40 @@ describe("transform", () => {
   it("serializes null dates as null", () => {
     const trip = { ...make("Trip"), start: null, end: null };
     expect(transform(trip)).toMatchObject({ start: null, end: null });
+  });
+});
+
+describe("transformFull", () => {
+  it("returns the trip fields plus the transformed tasks", () => {
+    const trip = make("Trip");
+    const task1 = make("TripTask", { tripId: trip.id, phase: "before" });
+    const task2 = make("TripTask", { tripId: trip.id, phase: "after" });
+
+    expect(transformFull({ ...trip, tasks: [task1, task2] })).toEqual({
+      ...transform(trip),
+      tasks: [
+        {
+          id: task1.id,
+          name: task1.name,
+          complete: task1.complete,
+          phase: task1.phase,
+          dueDate: task1.dueDate!.toISOString().slice(0, 10),
+        },
+        {
+          id: task2.id,
+          name: task2.name,
+          complete: task2.complete,
+          phase: task2.phase,
+          dueDate: task2.dueDate!.toISOString().slice(0, 10),
+        },
+      ],
+    });
+  });
+
+  it("returns an empty tasks array when the trip has no tasks", () => {
+    const trip = make("Trip");
+    expect(transformFull({ ...trip, tasks: [] })).toMatchObject({
+      tasks: [],
+    });
   });
 });

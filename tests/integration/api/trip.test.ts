@@ -282,6 +282,101 @@ describe("POST /", () => {
       ]
     `);
   });
+
+  it("creates the default set of trip tasks", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const tasks = await db.tripTask.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+
+    expect(tasks.map((task) => task.name).sort()).toEqual(
+      [
+        "Share trip plan with emergency contact",
+        "Check weather forecast",
+        "Pack backpack",
+        "Leave copy of trip plan in vehicle",
+        "Post trip report",
+        "Unpack",
+      ].sort(),
+    );
+  });
+
+  it("assigns the correct phase to each default task", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const tasks = await db.tripTask.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+    const phasesByName = Object.fromEntries(
+      tasks.map((task) => [task.name, task.phase]),
+    );
+
+    expect(phasesByName["Share trip plan with emergency contact"]).toBe(
+      "before",
+    );
+    expect(phasesByName["Check weather forecast"]).toBe("before");
+    expect(phasesByName["Pack backpack"]).toBe("before");
+    expect(phasesByName["Leave copy of trip plan in vehicle"]).toBe("during");
+    expect(phasesByName["Post trip report"]).toBe("after");
+    expect(phasesByName["Unpack"]).toBe("after");
+  });
+
+  it("sets before-phase task due dates relative to the provided start date", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail", start: "2026-06-10" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const tasks = await db.tripTask.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+    const dueDatesByName = Object.fromEntries(
+      tasks.map((task) => [
+        task.name,
+        task.dueDate?.toISOString().slice(0, 10),
+      ]),
+    );
+
+    expect(dueDatesByName["Share trip plan with emergency contact"]).toBe(
+      "2026-06-08",
+    );
+    expect(dueDatesByName["Check weather forecast"]).toBe("2026-06-08");
+    expect(dueDatesByName["Pack backpack"]).toBe("2026-06-09");
+  });
+
+  it("leaves before-phase task due dates unset when no start date is provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const tasks = await db.tripTask.findMany({
+      where: { tripId: response.body.trip.id, phase: "before" },
+    });
+
+    expect(tasks.every((task) => task.dueDate === null)).toBe(true);
+  });
+
+  it("does not include tasks in the create response body", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    expect(response.body.trip.tasks).toBeUndefined();
+  });
 });
 
 describe("GET /", () => {
@@ -498,6 +593,115 @@ describe("GET /", () => {
       .expect(200);
 
     expect(response.body.trips).toHaveLength(2);
+  });
+});
+
+describe("GET /:id", () => {
+  it("requires a valid session", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app).get(`/api/trips/${trip.id}`).expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .get("/api/trips/does-not-exist")
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns the trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", {
+        name: "Appalachian Trail",
+        status: "planning",
+        userId: user!.id,
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      trip: {
+        id: trip.id,
+        name: "Appalachian Trail",
+        status: "planning",
+      },
+    });
+  });
+
+  it("returns the trip's tasks", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: {
+        ...make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+        tasks: {
+          createMany: {
+            data: [
+              { name: "Share trip plan", phase: "before", complete: false },
+              { name: "Unpack", phase: "after", complete: true },
+            ],
+          },
+        },
+      },
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const tasks = response.body.trip.tasks.sort((a: any, b: any) =>
+      a.name.localeCompare(b.name),
+    );
+    expect(tasks).toMatchObject([
+      { name: "Share trip plan", phase: "before", complete: false },
+      { name: "Unpack", phase: "after", complete: true },
+    ]);
+  });
+
+  it("returns an empty tasks array when the trip has no tasks", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.tasks).toEqual([]);
   });
 });
 
