@@ -783,3 +783,71 @@ describe("PATCH /:id", () => {
     `);
   });
 });
+
+describe("DELETE /:id", () => {
+  it("requires a valid session", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app).delete(`/api/trips/${trip.id}`).expect(401);
+  });
+
+  it("deletes the trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip).toBeNull();
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .delete("/api/trips/does-not-exist")
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("does not delete the trip when the owning user check fails", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip).not.toBeNull();
+  });
+});

@@ -49,6 +49,16 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
   return res.status(201).json({ trip: transformers.trip(newTrip) });
 });
 
+tripRouter.delete(
+  "/:id",
+  userCanEditTrip,
+  validate({ params: idParam }),
+  async (req, res) => {
+    await db.trip.delete({ where: { id: req.params.id } });
+    return res.sendStatus(200);
+  },
+);
+
 tripRouter.patch(
   "/:id",
   userCanEditTrip,
