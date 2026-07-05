@@ -1,4 +1,4 @@
-import { numberQueryParam } from "$/validation/shared";
+import { isoDate, numberQueryParam } from "$/validation/shared";
 import z from "zod";
 import { TripStatus } from "../../generated/prisma/enums";
 
@@ -26,18 +26,10 @@ export const baseNewTrip = z.strictObject({
   location: z.string().trim().optional(),
 });
 
-// Prisma's own request validation rejects a bare "YYYY-MM-DD" string for a
-// DateTime field ("Expected ISO-8601 DateTime"), so the validated date string
-// is converted to a `Date` here rather than passed through as-is.
-const tripDate = z.iso
-  .date({ error: "Invalid date" })
-  .nullish()
-  .transform((value) => (value == null ? value : new Date(value)));
-
 export const newTrip = withTripDateRange(
-  baseNewTrip.extend({ start: tripDate, end: tripDate }),
+  baseNewTrip.extend({ start: isoDate, end: isoDate }),
 );
 
 export const editTrip = withTripDateRange(
-  baseNewTrip.partial().extend({ start: tripDate, end: tripDate }),
+  baseNewTrip.partial().extend({ start: isoDate, end: isoDate }),
 );
