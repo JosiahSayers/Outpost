@@ -12,4 +12,4 @@ export const moveToFinishedQueue = new Queue(TRIPS__MOVE_TO_FINISHED_WORKER, {
   connection: redisConnection,
 });
 
-export const allQueues = [moveToInProgressQueue];
+export const allQueues = [moveToInProgressQueue, moveToFinishedQueue];

@@ -79,6 +79,10 @@ configs:
               reverse_proxy app:3000
           }
 
+          handle /admin/* {
+            reverse_proxy app:3000
+          }
+
           handle {
               root * /srv/frontend
               encode gzip

@@ -2,7 +2,7 @@ import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
 import { Worker } from "bullmq";
 
-export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_completed";
+export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_finished";
 
 const BATCH_SIZE = 1000;
 
