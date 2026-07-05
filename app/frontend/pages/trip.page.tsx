@@ -256,7 +256,11 @@ export default function TripPage() {
               </Card>
             );
           })}
-          <Button variant="subtle" size="sm" style={{ alignSelf: "flex-start" }}>
+          <Button
+            variant="subtle"
+            size="sm"
+            style={{ alignSelf: "flex-start" }}
+          >
             Assign a packing list
           </Button>
         </Stack>
