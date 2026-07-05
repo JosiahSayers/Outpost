@@ -12,7 +12,15 @@ import { apiClient } from "./client";
 export const tripKeys = {
   all: ["trips"] as const,
   page: (skip: number, take: number) => ["trips", "page", skip, take] as const,
+  detail: (id: string) => ["trips", "detail", id] as const,
 };
+
+export function useTrip(id: string) {
+  return useQuery({
+    queryKey: tripKeys.detail(id),
+    queryFn: () => apiClient<{ trip: Trip }>(`/api/trips/${id}`),
+  });
+}
 
 export function useTrips() {
   return useQuery({

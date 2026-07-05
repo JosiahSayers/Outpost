@@ -1,8 +1,9 @@
 import type { Trip, TripStatus } from "$/frontend/dashboard/types";
 import { Badge, Button, Card, Group, Text, Title } from "@mantine/core";
 import { CalendarBlankIcon, MapPinIcon } from "@phosphor-icons/react";
+import { Link } from "wouter";
 
-const STATUS_COLOR: Record<TripStatus, string> = {
+export const STATUS_COLOR: Record<TripStatus, string> = {
   planning: "trail-dust",
   in_progress: "trail-green",
   postponed: "stone-gray",
@@ -18,7 +19,10 @@ export const STATUS_LABEL: Record<TripStatus, string> = {
   cancelled: "Cancelled",
 };
 
-function formatDateRange(start: string | null, end: string | null): string {
+export function formatDateRange(
+  start: string | null,
+  end: string | null,
+): string {
   if (!start && !end) return "Dates TBD";
 
   // Trip dates are calendar days, not instants, so they're always formatted
@@ -68,7 +72,14 @@ export default function TripCard({ trip }: { trip: Trip }) {
 
       <div style={{ flex: 1 }} />
 
-      <Button variant="light" fullWidth mt="md" size="sm">
+      <Button
+        component={Link}
+        href={`/trips/${trip.id}`}
+        variant="light"
+        fullWidth
+        mt="md"
+        size="sm"
+      >
         View Trip
       </Button>
     </Card>

@@ -33,6 +33,16 @@ tripRouter.get("/", validate({ query: tripSearch }), async (req, res, next) => {
   });
 });
 
+tripRouter.get(
+  "/:id",
+  userCanEditTrip,
+  validate({ params: idParam }),
+  async (req, res) => {
+    const trip = await db.trip.findUnique({ where: { id: req.params.id } });
+    return res.json({ trip: transformers.trip(trip!) });
+  },
+);
+
 tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
   const newTrip = await db.trip.create({
     data: {
