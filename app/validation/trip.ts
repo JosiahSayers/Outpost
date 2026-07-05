@@ -32,3 +32,10 @@ export const newTrip = withTripDateRange(
     end: z.coerce.date({ error: "Invalid date" }).optional(),
   }),
 );
+
+export const editTrip = withTripDateRange(
+  baseNewTrip.partial().extend({
+    start: z.coerce.date({ error: "Invalid date" }).optional(),
+    end: z.coerce.date({ error: "Invalid date" }).optional(),
+  }),
+);

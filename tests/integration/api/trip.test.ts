@@ -499,3 +499,355 @@ describe("GET /", () => {
     expect(response.body.trips).toHaveLength(2);
   });
 });
+
+describe("PATCH /:id", () => {
+  it("requires a valid session", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ name: "Pacific Crest Trail" })
+      .expect(401);
+  });
+
+  it("updates the provided fields", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({
+        name: "Pacific Crest Trail",
+        status: "in_progress",
+        trail: "PCT",
+        location: "Mexico to Canada",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-09-01T00:00:00.000Z",
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      trip: {
+        id: trip.id,
+        name: "Pacific Crest Trail",
+        status: "in_progress",
+        trail: "PCT",
+        location: "Mexico to Canada",
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-09-01T00:00:00.000Z",
+      },
+    });
+  });
+
+  it("persists the update to the database", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ name: "Pacific Crest Trail" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip?.name).toBe("Pacific Crest Trail");
+  });
+
+  it("allows a partial update, leaving other fields unchanged", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", {
+        name: "Appalachian Trail",
+        status: "planning",
+        trail: "AT",
+        userId: user!.id,
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ status: "in_progress" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      trip: {
+        name: "Appalachian Trail",
+        status: "in_progress",
+        trail: "AT",
+      },
+    });
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .patch("/api/trips/does-not-exist")
+      .send({ name: "Pacific Crest Trail" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ name: "Pacific Crest Trail" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("does not modify the trip when the owning user check fails", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ name: "Pacific Crest Trail" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip?.name).toBe("Appalachian Trail");
+  });
+
+  it("rejects an invalid status", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ status: "bogus" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_value",
+              "message": "Invalid option: expected one of "in_progress"|"planning"|"postponed"|"finished"|"cancelled"",
+              "path": [
+                "status",
+              ],
+              "values": [
+                "in_progress",
+                "planning",
+                "postponed",
+                "finished",
+                "cancelled",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an end date before the start date", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({
+        start: "2026-06-01T00:00:00.000Z",
+        end: "2026-05-01T00:00:00.000Z",
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "custom",
+              "message": "End date must be on or after the start date",
+              "path": [
+                "end",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an empty name", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ name: "   " })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "too_small",
+              "inclusive": true,
+              "message": "Name is required",
+              "minimum": 1,
+              "origin": "string",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ notAField: true })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+});
+
+describe("DELETE /:id", () => {
+  it("requires a valid session", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app).delete(`/api/trips/${trip.id}`).expect(401);
+  });
+
+  it("deletes the trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip).toBeNull();
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .delete("/api/trips/does-not-exist")
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("does not delete the trip when the owning user check fails", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${trip.id}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip).not.toBeNull();
+  });
+});

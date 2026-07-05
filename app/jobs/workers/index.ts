@@ -8,12 +8,10 @@ const workers: Worker[] = [moveToInProgressWorker, moveToFinishedWorker];
 
 await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {
   pattern: "1 0 * * *",
-  tz: "UTC",
 });
 
 await moveToFinishedQueue.upsertJobScheduler("move-to-finished-nightly", {
   pattern: "1 0 * * *",
-  tz: "UTC",
 });
 
 workers.forEach((worker) => worker.run());
