@@ -1,15 +1,15 @@
-import type { Trip } from "$/frontend/dashboard/types";
 import TripDates from "$/frontend/trip/header/trip-dates";
 import TripName from "$/frontend/trip/header/trip-name";
 import TripStatusBadge from "$/frontend/trip/header/trip-status";
 import TripTextField from "$/frontend/trip/header/trip-text-field";
 import { useUpdateTrip } from "$/frontend/utils/api/trip";
+import type { ClientTrip } from "$/transformers/trip";
 import { Group, Paper, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { CompassIcon, MapPinIcon } from "@phosphor-icons/react";
 
 interface Props {
-  trip: Trip;
+  trip: ClientTrip;
 }
 
 export default function Header({ trip }: Props) {

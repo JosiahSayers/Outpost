@@ -1,4 +1,5 @@
-import type { Trip } from "$/frontend/dashboard/types";
+import { sortTasks } from "$/frontend/utils/sort-tasks";
+import type { ClientFullTrip, ClientTrip } from "$/transformers/trip";
 import type { editTrip, newTrip } from "$/validation/trip";
 import {
   keepPreviousData,
@@ -15,10 +16,19 @@ export const tripKeys = {
   detail: (id: string) => ["trips", "detail", id] as const,
 };
 
+// The backend makes no ordering guarantees, so sorting lives here — the
+// single read path into the cache. Sorting in `select` (rather than the
+// queryFn) means the order is reapplied on every read, including after
+// optimistic cache writes, so consumers never have to sort again.
+function sortTrip(data: { trip: ClientFullTrip }): { trip: ClientFullTrip } {
+  return { trip: { ...data.trip, tasks: sortTasks(data.trip.tasks) } };
+}
+
 export function useTrip(id: string) {
   return useQuery({
     queryKey: tripKeys.detail(id),
-    queryFn: () => apiClient<{ trip: Trip }>(`/api/trips/${id}`),
+    queryFn: () => apiClient<{ trip: ClientFullTrip }>(`/api/trips/${id}`),
+    select: sortTrip,
   });
 }
 
@@ -26,7 +36,7 @@ export function useTrips() {
   return useQuery({
     queryKey: tripKeys.all,
     queryFn: () =>
-      apiClient<{ trips: Trip[]; total: number; pageSize: number }>(
+      apiClient<{ trips: ClientTrip[]; total: number; pageSize: number }>(
         "/api/trips",
       ),
   });
@@ -36,7 +46,7 @@ export function useTripsPage(skip: number, take: number, enabled = true) {
   return useQuery({
     queryKey: tripKeys.page(skip, take),
     queryFn: () =>
-      apiClient<{ trips: Trip[]; total: number; pageSize: number }>(
+      apiClient<{ trips: ClientTrip[]; total: number; pageSize: number }>(
         `/api/trips?skip=${skip}&take=${take}`,
       ),
     enabled,
@@ -49,7 +59,7 @@ export function useUpdateTrip(id: string) {
   const queryKey = tripKeys.detail(id);
   return useMutation({
     mutationFn: (data: z.input<typeof editTrip>) =>
-      apiClient<{ trip: Trip }>(`/api/trips/${id}`, {
+      apiClient<{ trip: ClientTrip }>(`/api/trips/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -58,8 +68,8 @@ export function useUpdateTrip(id: string) {
     // the request fails, then refetch to reconcile with the server.
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<{ trip: Trip }>(queryKey);
-      queryClient.setQueryData<{ trip: Trip }>(queryKey, (old) =>
+      const previous = queryClient.getQueryData<{ trip: ClientTrip }>(queryKey);
+      queryClient.setQueryData<{ trip: ClientTrip }>(queryKey, (old) =>
         old ? { trip: { ...old.trip, ...data } } : old,
       );
       return { previous };
@@ -79,7 +89,7 @@ export function useCreateTrip() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: z.input<typeof newTrip>) =>
-      apiClient<{ trip: Trip }>("/api/trips", {
+      apiClient<{ trip: ClientTrip }>("/api/trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

@@ -25,6 +25,14 @@ export function prepareDefaultTripTasks(
       phase: "before",
       dueDate: oneDayBeforeStart,
     },
+    {
+      name: "Create a meal plan",
+      phase: "before",
+    },
+    {
+      name: "Assign a packing list",
+      phase: "before",
+    },
 
     // during
     { name: "Leave copy of trip plan in vehicle", phase: "during" },

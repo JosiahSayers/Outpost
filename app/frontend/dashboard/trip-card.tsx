@@ -1,7 +1,8 @@
-import type { Trip, TripStatus } from "$/frontend/dashboard/types";
+import type { ClientTrip } from "$/transformers/trip";
 import { Badge, Button, Card, Group, Text, Title } from "@mantine/core";
 import { CalendarBlankIcon, MapPinIcon } from "@phosphor-icons/react";
 import { Link } from "wouter";
+import type { TripStatus } from "../../../generated/prisma/enums";
 
 export const STATUS_COLOR: Record<TripStatus, string> = {
   planning: "trail-dust",
@@ -45,7 +46,7 @@ export function formatDateRange(
   return `${fmt.format(startDate)} – ${fmt.format(endDate)}, ${endDate.getUTCFullYear()}`;
 }
 
-export default function TripCard({ trip }: { trip: Trip }) {
+export default function TripCard({ trip }: { trip: ClientTrip }) {
   return (
     <Card h="100%" style={{ display: "flex", flexDirection: "column" }}>
       <Group justify="space-between" mb="xs">

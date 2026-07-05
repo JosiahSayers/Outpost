@@ -1,10 +1,10 @@
 import TripStatusBadge from "$/frontend/trip/header/trip-status";
-import type { TripStatus } from "$/frontend/dashboard/types";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { useState } from "react";
+import type { TripStatus } from "../../../../generated/prisma/enums";
 
 // `TripStatusBadge` is controlled — the displayed status comes from its
 // `value` prop (the React Query cache in the real app). This wrapper stands

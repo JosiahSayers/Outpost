@@ -1,5 +1,4 @@
 import { STATUS_LABEL } from "$/frontend/dashboard/trip-card";
-import type { TripStatus } from "$/frontend/dashboard/types";
 import Error from "$/frontend/shared-components/error";
 import { useCreateTrip } from "$/frontend/utils/api/trip";
 import { newTrip } from "$/validation/trip";
@@ -14,6 +13,7 @@ import {
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { schemaResolver, useForm } from "@mantine/form";
+import type { TripStatus } from "../../../generated/prisma/enums";
 
 const STATUS_VALUES = Object.keys(STATUS_LABEL) as [
   TripStatus,

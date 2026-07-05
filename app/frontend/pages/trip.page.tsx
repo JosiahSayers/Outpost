@@ -2,7 +2,6 @@ import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
 import MealPlanSection from "$/frontend/trip/meal-plan";
 import PackingListSection from "$/frontend/trip/packing-lists";
-import { placeholderTasks } from "$/frontend/trip/placeholder-data";
 import Tasks from "$/frontend/trip/tasks";
 import { useTrip } from "$/frontend/utils/api/trip";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
@@ -38,7 +37,12 @@ export default function TripPage() {
     <Stack gap="xl" maw={1000} mx="auto" px={{ base: "md", md: "xl" }} py="xl">
       <Header trip={trip} />
 
-      <Tasks tripId={trip.id} tasks={placeholderTasks} />
+      <Tasks
+        tripId={trip.id}
+        tasks={trip.tasks}
+        tripStart={trip.start}
+        tripEnd={trip.end}
+      />
 
       <Divider />
 

@@ -1,6 +1,6 @@
 import UpcomingTrips from "$/frontend/dashboard/upcoming-trips";
-import type { Trip } from "$/frontend/dashboard/types";
 import { tripKeys } from "$/frontend/utils/api/trip";
+import type { ClientTrip } from "$/transformers/trip";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -8,7 +8,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
-function makeTrip(overrides: Partial<Trip> = {}): Trip {
+function makeTrip(overrides: Partial<ClientTrip> = {}): ClientTrip {
   return {
     id: "1",
     name: "Pacific Crest Trail Section",
@@ -21,7 +21,7 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
   };
 }
 
-function renderComponent(trips: Trip[], total = trips.length) {
+function renderComponent(trips: ClientTrip[], total = trips.length) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });

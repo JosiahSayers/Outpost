@@ -1,13 +1,18 @@
-import { placeholderTasks } from "$/frontend/trip/placeholder-data";
 import { PHASE_LABEL, PHASES } from "$/frontend/trip/tasks";
 import TaskListItem from "$/frontend/trip/tasks/task-list-item";
+import type { ClientTripTask } from "$/transformers/trip-task";
 import { Stack, Text } from "@mantine/core";
 
-export default function MobileTaskList() {
+interface Props {
+  tripId: string;
+  tasks: ClientTripTask[];
+}
+
+export default function MobileTaskList({ tripId, tasks }: Props) {
   return (
     <Stack gap="lg">
       {PHASES.map((phase) => {
-        const phaseTasks = placeholderTasks.filter((t) => t.phase === phase);
+        const phaseTasks = tasks.filter((t) => t.phase === phase);
         return (
           <Stack gap="xs" key={phase}>
             <Text size="xs" fw={700} tt="uppercase" c="dimmed">
@@ -15,7 +20,7 @@ export default function MobileTaskList() {
             </Text>
 
             {phaseTasks.map((task) => (
-              <TaskListItem task={task} />
+              <TaskListItem task={task} tripId={tripId} key={task.id} />
             ))}
           </Stack>
         );
