@@ -7,11 +7,13 @@ const retry = queryClient.getDefaultOptions().queries?.retry as (
 ) => boolean;
 
 describe("retry", () => {
-  it("does not retry on a 403 error", () => {
+  it("does not retry on a 4xx error", () => {
     expect(retry(0, { status: 403 })).toBe(false);
+    expect(retry(0, { status: 404 })).toBe(false);
+    expect(retry(0, { status: 400 })).toBe(false);
   });
 
-  it("retries on a non-403 error when under the failure limit", () => {
+  it("retries on a 5xx error when under the failure limit", () => {
     expect(retry(0, { status: 500 })).toBe(true);
     expect(retry(1, { status: 500 })).toBe(true);
     expect(retry(2, { status: 500 })).toBe(true);

@@ -19,7 +19,7 @@ describe("moveTripsToInProgress", () => {
       data: make("Trip", {
         userId,
         status: "planning",
-        start: new Date("2026-06-15T08:00:00.000Z"),
+        start: new Date("2026-06-15"),
       }),
     });
 
@@ -36,7 +36,7 @@ describe("moveTripsToInProgress", () => {
       data: make("Trip", {
         userId,
         status: "planning",
-        start: new Date("2026-06-14T23:59:59.999Z"),
+        start: new Date("2026-06-14"),
       }),
     });
 
@@ -52,7 +52,7 @@ describe("moveTripsToInProgress", () => {
       data: make("Trip", {
         userId,
         status: "planning",
-        start: new Date("2026-06-16T00:00:00.000Z"),
+        start: new Date("2026-06-16"),
       }),
     });
 
@@ -68,14 +68,14 @@ describe("moveTripsToInProgress", () => {
       data: make("Trip", {
         userId,
         status: "planning",
-        start: new Date("2026-06-15T00:00:00.000Z"),
+        start: new Date("2026-06-15"),
       }),
     });
     const startOfNextDay = await db.trip.create({
       data: make("Trip", {
         userId,
         status: "planning",
-        start: new Date("2026-06-16T00:00:00.000Z"),
+        start: new Date("2026-06-16"),
       }),
     });
 
@@ -91,7 +91,7 @@ describe("moveTripsToInProgress", () => {
       data: make("Trip", {
         userId,
         status: "postponed",
-        start: new Date("2026-06-15T08:00:00.000Z"),
+        start: new Date("2026-06-15"),
       }),
     });
 
@@ -108,14 +108,14 @@ describe("moveTripsToInProgress", () => {
         data: make("Trip", {
           userId,
           status: "planning",
-          start: new Date("2026-06-15T01:00:00.000Z"),
+          start: new Date("2026-06-15"),
         }),
       }),
       db.trip.create({
         data: make("Trip", {
           userId,
           status: "planning",
-          start: new Date("2026-06-15T02:00:00.000Z"),
+          start: new Date("2026-06-15"),
         }),
       }),
     ]);
@@ -137,7 +137,7 @@ describe("moveTripsToInProgress", () => {
           userId,
           name: `Batch trip ${i}`,
           status: "planning",
-          start: new Date("2026-06-15T06:00:00.000Z"),
+          start: new Date("2026-06-15"),
         }),
       ),
     });

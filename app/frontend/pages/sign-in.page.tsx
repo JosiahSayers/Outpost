@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useState } from "react";
-import { useLocation, useSearchParams } from "wouter";
+import { useSearchParams } from "wouter";
 import { z } from "zod/v4";
 
 const signInSchema = z.object({
@@ -30,7 +30,6 @@ export default function SignInPage() {
   useUnauthenticatedGuard(redirect ?? "/dashboard");
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [, navigate] = useLocation();
 
   const form = useForm<SignInValues>({
     initialValues: { email: "", password: "" },
@@ -52,7 +51,14 @@ export default function SignInPage() {
     if (error) {
       setServerError(error.message ?? "Sign in failed. Please try again.");
     } else {
-      navigate(redirect || "/dashboard");
+      // A full navigation (not wouter's client-side `navigate`) so the next
+      // page mounts with a fresh session atom. better-auth's client caches
+      // the pre-sign-in (logged-out) session and only invalidates it via a
+      // signal bump ~10ms after this promise resolves, so an immediate SPA
+      // navigation lands on the destination page while the cache still says
+      // "logged out" — bouncing back to /sign-in and immediately forward
+      // again once the cache catches up.
+      window.location.href = redirect || "/dashboard";
     }
   };
 

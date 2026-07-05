@@ -62,8 +62,8 @@ describe("POST /", () => {
         status: "in_progress",
         trail: "AT",
         location: "Georgia to Maine",
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-09-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-09-01",
       })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
@@ -75,8 +75,8 @@ describe("POST /", () => {
         status: "in_progress",
         trail: "AT",
         location: "Georgia to Maine",
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-09-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-09-01",
       },
     });
   });
@@ -210,13 +210,14 @@ describe("POST /", () => {
         {
           "errors": [
             {
-              "code": "invalid_type",
-              "expected": "date",
+              "code": "invalid_format",
+              "format": "date",
               "message": "Invalid date",
+              "origin": "string",
               "path": [
                 "start",
               ],
-              "received": "Invalid Date",
+              "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/",
             },
           ],
           "type": "body",
@@ -230,8 +231,8 @@ describe("POST /", () => {
       .post("/api/trips")
       .send({
         name: "Appalachian Trail",
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-05-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-05-01",
       })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
@@ -530,8 +531,8 @@ describe("PATCH /:id", () => {
         status: "in_progress",
         trail: "PCT",
         location: "Mexico to Canada",
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-09-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-09-01",
       })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
@@ -544,8 +545,8 @@ describe("PATCH /:id", () => {
         status: "in_progress",
         trail: "PCT",
         location: "Mexico to Canada",
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-09-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-09-01",
       },
     });
   });
@@ -594,6 +595,32 @@ describe("PATCH /:id", () => {
         trail: "AT",
       },
     });
+  });
+
+  it("clears the start and end dates when sent as null", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", {
+        name: "Appalachian Trail",
+        userId: user!.id,
+        start: new Date("2026-06-01"),
+        end: new Date("2026-09-01"),
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${trip.id}`)
+      .send({ start: null, end: null })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body).toMatchObject({ trip: { start: null, end: null } });
+
+    const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
+    expect(dbTrip?.start).toBeNull();
+    expect(dbTrip?.end).toBeNull();
   });
 
   it("returns 404 when the trip does not exist", async () => {
@@ -688,8 +715,8 @@ describe("PATCH /:id", () => {
     const response = await request(app)
       .patch(`/api/trips/${trip.id}`)
       .send({
-        start: "2026-06-01T00:00:00.000Z",
-        end: "2026-05-01T00:00:00.000Z",
+        start: "2026-06-01",
+        end: "2026-05-01",
       })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)

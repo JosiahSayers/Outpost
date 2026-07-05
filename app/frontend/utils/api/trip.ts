@@ -1,5 +1,5 @@
 import type { Trip } from "$/frontend/dashboard/types";
-import type { newTrip } from "$/validation/trip";
+import type { editTrip, newTrip } from "$/validation/trip";
 import {
   keepPreviousData,
   useMutation,
@@ -12,7 +12,15 @@ import { apiClient } from "./client";
 export const tripKeys = {
   all: ["trips"] as const,
   page: (skip: number, take: number) => ["trips", "page", skip, take] as const,
+  detail: (id: string) => ["trips", "detail", id] as const,
 };
+
+export function useTrip(id: string) {
+  return useQuery({
+    queryKey: tripKeys.detail(id),
+    queryFn: () => apiClient<{ trip: Trip }>(`/api/trips/${id}`),
+  });
+}
 
 export function useTrips() {
   return useQuery({
@@ -33,6 +41,37 @@ export function useTripsPage(skip: number, take: number, enabled = true) {
       ),
     enabled,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useUpdateTrip(id: string) {
+  const queryClient = useQueryClient();
+  const queryKey = tripKeys.detail(id);
+  return useMutation({
+    mutationFn: (data: z.input<typeof editTrip>) =>
+      apiClient<{ trip: Trip }>(`/api/trips/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    // Optimistically apply the edit so the UI updates instantly; roll back if
+    // the request fails, then refetch to reconcile with the server.
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ trip: Trip }>(queryKey);
+      queryClient.setQueryData<{ trip: Trip }>(queryKey, (old) =>
+        old ? { trip: { ...old.trip, ...data } } : old,
+      );
+      return { previous };
+    },
+    onError: (_error, _data, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
   });
 }
 

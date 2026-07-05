@@ -41,10 +41,10 @@ describe("trip details", () => {
     expect(screen.getByText("Jul 15 – Jul 22, 2026")).toBeInTheDocument();
   });
 
-  it("renders a 'View Trip' button", () => {
-    expect(
-      screen.getByRole("button", { name: "View Trip" }),
-    ).toBeInTheDocument();
+  it("renders a 'View Trip' link to the trip's page", () => {
+    const link = screen.getByRole("link", { name: "View Trip" });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/trips/1");
   });
 });
 
