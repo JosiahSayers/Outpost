@@ -36,7 +36,7 @@ export default function TripPage() {
 
   return (
     <Stack gap="xl" maw={1000} mx="auto" px={{ base: "md", md: "xl" }} py="xl">
-      <Header trip={trip as any} />
+      <Header trip={trip} />
 
       <Tasks tripId={trip.id} tasks={placeholderTasks} />
 
