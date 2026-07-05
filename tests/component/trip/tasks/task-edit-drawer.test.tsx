@@ -81,6 +81,58 @@ describe("rendering", () => {
   });
 });
 
+function renderCreateDrawer(opened = true) {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <TaskEditDrawer tripId="trip-1" opened={opened} onClose={onClose} />
+      </MantineProvider>
+    </QueryClientProvider>,
+  );
+}
+
+describe("creating a task", () => {
+  it("renders with empty fields and no delete button", async () => {
+    renderCreateDrawer();
+    expect(nameInput()).toHaveValue("");
+    expect(
+      screen.queryByRole("button", { name: "Delete task" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {});
+  });
+
+  it("calls the create API and closes the drawer", async () => {
+    renderCreateDrawer();
+
+    fireEvent.change(nameInput(), {
+      target: { value: "Reserve backcountry permit" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
+      .mock.calls[0]! as [string, RequestInit];
+    expect(url).toBe("/api/trips/trip-1/tasks");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      name: "Reserve backcountry permit",
+      phase: "before",
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a validation error and does not submit when the name is too short", async () => {
+    renderCreateDrawer();
+
+    fireEvent.change(nameInput(), { target: { value: "ab" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(nameInput()).toBeInvalid());
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
 describe("form submission", () => {
   it("calls the update API with the edited fields and closes the drawer", async () => {
     renderDrawer(task({ id: "task-42" }));

@@ -1,6 +1,7 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
 import { PHASE_LABEL, PHASES } from "$/frontend/trip/tasks";
 import {
+  useCreateTripTask,
   useDeleteTripTask,
   useUpdateTripTask,
 } from "$/frontend/utils/api/trip-tasks";
@@ -22,11 +23,17 @@ import { TrashIcon } from "@phosphor-icons/react";
 import { useEffect } from "react";
 
 interface Props {
-  task: ClientTripTask;
+  task?: ClientTripTask;
   tripId: string;
   opened: boolean;
   onClose: () => void;
 }
+
+const emptyValues = {
+  name: "",
+  phase: "before" as ClientTripTask["phase"],
+  dueDate: null as string | null,
+};
 
 export default function TaskEditDrawer({
   task,
@@ -35,15 +42,14 @@ export default function TaskEditDrawer({
   onClose,
 }: Props) {
   const [confirmOpened, confirm] = useDisclosure(false);
+  const createTask = useCreateTripTask(tripId);
   const updateTask = useUpdateTripTask(tripId);
   const deleteTask = useDeleteTripTask(tripId);
 
   const form = useForm({
-    initialValues: {
-      name: task.name,
-      phase: task.phase,
-      dueDate: task.dueDate,
-    },
+    initialValues: task
+      ? { name: task.name, phase: task.phase, dueDate: task.dueDate }
+      : emptyValues,
     validate: schemaResolver(editTask, { sync: true }),
   });
 
@@ -52,17 +58,21 @@ export default function TaskEditDrawer({
   // rather than relying on `initialValues`, which only apply once on mount.
   useEffect(() => {
     if (opened) {
-      form.setValues({
-        name: task.name,
-        phase: task.phase,
-        dueDate: task.dueDate,
-      });
+      form.setValues(
+        task
+          ? { name: task.name, phase: task.phase, dueDate: task.dueDate }
+          : emptyValues,
+      );
       form.resetDirty();
     }
   }, [opened]);
 
   const handleSubmit = form.onSubmit((values) => {
-    updateTask.mutate({ taskId: task.id, ...values });
+    if (task) {
+      updateTask.mutate({ taskId: task.id, ...values });
+    } else {
+      createTask.mutate(values);
+    }
     onClose();
   });
 
@@ -72,7 +82,7 @@ export default function TaskEditDrawer({
         opened={opened}
         onClose={onClose}
         position="right"
-        title="Edit task"
+        title={task ? "Edit task" : "New task"}
         size="xs"
       >
         <form onSubmit={handleSubmit} noValidate>
@@ -105,32 +115,36 @@ export default function TaskEditDrawer({
 
           <Divider mb="md" />
 
-          <Group justify="space-between">
-            <Button
-              color="red"
-              variant="subtle"
-              leftSection={<TrashIcon size={14} />}
-              onClick={confirm.open}
-            >
-              Delete task
-            </Button>
+          <Group justify={task ? "space-between" : "flex-end"}>
+            {task && (
+              <Button
+                color="red"
+                variant="subtle"
+                leftSection={<TrashIcon size={14} />}
+                onClick={confirm.open}
+              >
+                Delete task
+              </Button>
+            )}
             <Button type="submit">Save</Button>
           </Group>
         </form>
       </Drawer>
 
-      <ConfirmDeleteModal
-        opened={confirmOpened}
-        onClose={confirm.close}
-        onConfirm={() => {
-          deleteTask.mutate(task.id);
-          onClose();
-        }}
-        title="Delete task?"
-      >
-        Remove <strong>{task.name}</strong> from this trip? This can&apos;t be
-        undone.
-      </ConfirmDeleteModal>
+      {task && (
+        <ConfirmDeleteModal
+          opened={confirmOpened}
+          onClose={confirm.close}
+          onConfirm={() => {
+            deleteTask.mutate(task.id);
+            onClose();
+          }}
+          title="Delete task?"
+        >
+          Remove <strong>{task.name}</strong> from this trip? This can&apos;t be
+          undone.
+        </ConfirmDeleteModal>
+      )}
     </>
   );
 }

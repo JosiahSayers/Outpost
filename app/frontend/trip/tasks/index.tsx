@@ -1,9 +1,15 @@
 import TaskList from "$/frontend/trip/tasks/list";
 import MobileTaskList from "$/frontend/trip/tasks/mobile-list";
+import TaskEditDrawer from "$/frontend/trip/tasks/task-edit-drawer";
 import type { ClientTripTask } from "$/transformers/trip-task";
-import { Group, Stack, Stepper, Text, Title } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
-import { CompassIcon, FlagIcon, MountainsIcon } from "@phosphor-icons/react";
+import { Button, Group, Stack, Stepper, Text, Title } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import {
+  CompassIcon,
+  FlagIcon,
+  MountainsIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { type ReactNode, useMemo } from "react";
 import type { TripTaskPhase } from "../../../../generated/prisma/enums";
 
@@ -63,6 +69,7 @@ export default function Tasks({ tripId, tasks, tripStart, tripEnd }: Props) {
   const isNarrow = useMediaQuery("(max-width: 47.99em)", false, {
     getInitialValueInEffect: false,
   });
+  const [addOpened, add] = useDisclosure(false);
   const doneCount = tasks.filter((t) => t.complete).length;
   const activePhaseIndex = useMemo(
     () => getActivePhaseIndex(tasks, tripStart, tripEnd),
@@ -73,9 +80,19 @@ export default function Tasks({ tripId, tasks, tripStart, tripEnd }: Props) {
     <Stack gap="md">
       <Group justify="space-between" align="baseline">
         <Title order={3}>Trip Tasks</Title>
-        <Text size="sm" c="dimmed">
-          {doneCount}/{tasks.length} complete
-        </Text>
+        <Group gap="sm">
+          <Text size="sm" c="dimmed">
+            {doneCount}/{tasks.length} complete
+          </Text>
+          <Button
+            size="xs"
+            variant="default"
+            leftSection={<PlusIcon size={14} />}
+            onClick={add.open}
+          >
+            Add task
+          </Button>
+        </Group>
       </Group>
 
       <Stepper
@@ -103,6 +120,8 @@ export default function Tasks({ tripId, tasks, tripStart, tripEnd }: Props) {
       ) : (
         <TaskList tripId={tripId} tasks={tasks} />
       )}
+
+      <TaskEditDrawer tripId={tripId} opened={addOpened} onClose={add.close} />
     </Stack>
   );
 }
