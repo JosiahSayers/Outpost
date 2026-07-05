@@ -13,7 +13,7 @@ export default function PackingListSection() {
       <Title order={3}>Packing Lists</Title>
       <Stack gap="sm">
         {placeholderPackingLists.map((list) => (
-          <PackingList list={list} />
+          <PackingList list={list} key={list.id} />
         ))}
         <Button variant="subtle" size="sm" style={{ alignSelf: "flex-start" }}>
           Assign a packing list

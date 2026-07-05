@@ -17,7 +17,7 @@ export default function TaskList() {
             style={{ justifySelf: indexJustifications[index] }}
           >
             {phaseTasks.map((task) => (
-              <TaskListItem task={task} />
+              <TaskListItem task={task} key={task.id} />
             ))}
           </Stack>
         );
