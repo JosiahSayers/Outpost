@@ -192,11 +192,12 @@ model Trip {
   status   TripStatus @default(planning)
   trail    String?
   location String?
-  start    DateTime? @db.Date
-  end      DateTime? @db.Date
+  start    DateTime?  @db.Date
+  end      DateTime?  @db.Date
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User       @relation(fields: [userId], references: [id])
   userId String
+  tasks  TripTask[]
 
   // Covers status alone or status + start
   @@index([status, start])
@@ -212,4 +213,24 @@ enum TripStatus {
   postponed
   finished
   cancelled
+}
+
+model TripTask {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name     String
+  complete Boolean       @default(false)
+  phase    TripTaskPhase
+  dueDate  DateTime?     @db.Date
+
+  trip   Trip   @relation(fields: [tripId], references: [id])
+  tripId String
+}
+
+enum TripTaskPhase {
+  before
+  during
+  after
 }

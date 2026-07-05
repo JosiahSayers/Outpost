@@ -6,6 +6,7 @@ import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
 import makePackingListSection from "./generators/packing-list-section";
 import makeTrip from "./generators/trip";
+import makeTripTask from "./generators/trip-task";
 
 type SupportedModels = PickStringLiteral<
   ModelName,
@@ -15,6 +16,7 @@ type SupportedModels = PickStringLiteral<
   | "PackingListSection"
   | "PackingListItem"
   | "Trip"
+  | "TripTask"
 >;
 
 const generators = {
@@ -24,6 +26,7 @@ const generators = {
   PackingListSection: makePackingListSection,
   PackingListItem: makePackingListItem,
   Trip: makeTrip,
+  TripTask: makeTripTask,
 } as const;
 
 export function make<Model extends SupportedModels>(

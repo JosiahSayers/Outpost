@@ -1,5 +1,7 @@
+import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
@@ -38,8 +40,11 @@ tripRouter.get(
   userCanEditTrip,
   validate({ params: idParam }),
   async (req, res) => {
-    const trip = await db.trip.findUnique({ where: { id: req.params.id } });
-    return res.json({ trip: transformers.trip(trip!) });
+    const trip = await db.trip.findUnique({
+      where: { id: req.params.id },
+      include: { tasks: true },
+    });
+    return res.json({ trip: transformers.fullTrip(trip!) });
   },
 );
 
@@ -53,6 +58,11 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
       start: req.body.start,
       end: req.body.end,
       userId: req.session!.user.id,
+      tasks: {
+        createMany: {
+          data: prepareDefaultTripTasks(req.body),
+        },
+      },
     },
   });
 
@@ -89,3 +99,5 @@ tripRouter.patch(
     return res.json({ trip: transformers.trip(updatedTrip) });
   },
 );
+
+tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);

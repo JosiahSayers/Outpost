@@ -3,7 +3,11 @@ import { transform as gearInventoryItemTransform } from "$/transformers/gear-inv
 import { transform as packingListTransform } from "$/transformers/packing-list";
 import { transform as packingListItemTransform } from "$/transformers/packing-list-item";
 import { transform as packingListSectionTransform } from "$/transformers/packing-list-section";
-import { transform as tripTransform } from "$/transformers/trip";
+import {
+  transformFull as fullTripTransform,
+  transform as tripTransform,
+} from "$/transformers/trip";
+import { transform as tripTaskTransform } from "$/transformers/trip-task";
 
 export const transformers = {
   gearCategory: gearCategoryTransform,
@@ -12,4 +16,6 @@ export const transformers = {
   packingListSection: packingListSectionTransform,
   packingListItem: packingListItemTransform,
   trip: tripTransform,
+  fullTrip: fullTripTransform,
+  tripTask: tripTaskTransform,
 } as const;
