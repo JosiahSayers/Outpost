@@ -234,11 +234,15 @@ test.describe("Trip Page", () => {
       "Share trip plan with emergency contact",
       "Check weather forecast",
       "Pack backpack",
+      "Create a meal plan",
+      "Assign a packing list",
     ];
 
     test("renders the default tasks grouped by phase", async ({ page }) => {
       for (const name of BEFORE_TASKS) {
-        await expect(page.getByText(name, { exact: true })).toBeVisible();
+        // getByText would also match the unrelated "Assign a packing list"
+        // button elsewhere on the page, so scope to the task's checkbox.
+        await expect(page.getByRole("checkbox", { name })).toBeVisible();
       }
       await expect(
         page.getByText("Leave copy of trip plan in vehicle", {
@@ -252,7 +256,7 @@ test.describe("Trip Page", () => {
     });
 
     test("shows the completion count across all tasks", async ({ page }) => {
-      await expect(page.getByText("0/6 complete")).toBeVisible();
+      await expect(page.getByText("0/8 complete")).toBeVisible();
     });
 
     test.describe("completing a task", () => {
@@ -276,11 +280,11 @@ test.describe("Trip Page", () => {
           page.getByRole("checkbox", { name: "Pack backpack" }),
         ).toBeChecked();
 
-        // Tasks render one phase column at a time, so the first three
+        // Tasks render one phase column at a time, so the first five
         // checkboxes on the page are always the "before" phase's tasks.
         const beforeOrder = (await page.getByRole("checkbox").all()).slice(
           0,
-          3,
+          5,
         );
         const names = await Promise.all(
           beforeOrder.map((checkbox) => checkbox.getAttribute("aria-label")),
@@ -356,13 +360,13 @@ test.describe("Trip Page", () => {
         await expect(
           page.getByText("Unpack", { exact: true }),
         ).not.toBeVisible();
-        await expect(page.getByText("0/5 complete")).toBeVisible();
+        await expect(page.getByText("0/7 complete")).toBeVisible();
 
         await page.reload();
         await expect(
           page.getByText("Unpack", { exact: true }),
         ).not.toBeVisible();
-        await expect(page.getByText("0/5 complete")).toBeVisible();
+        await expect(page.getByText("0/7 complete")).toBeVisible();
       });
     });
 

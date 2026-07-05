@@ -299,6 +299,8 @@ describe("POST /", () => {
         "Share trip plan with emergency contact",
         "Check weather forecast",
         "Pack backpack",
+        "Create a meal plan",
+        "Assign a packing list",
         "Leave copy of trip plan in vehicle",
         "Post trip report",
         "Unpack",
@@ -325,6 +327,8 @@ describe("POST /", () => {
     );
     expect(phasesByName["Check weather forecast"]).toBe("before");
     expect(phasesByName["Pack backpack"]).toBe("before");
+    expect(phasesByName["Create a meal plan"]).toBe("before");
+    expect(phasesByName["Assign a packing list"]).toBe("before");
     expect(phasesByName["Leave copy of trip plan in vehicle"]).toBe("during");
     expect(phasesByName["Post trip report"]).toBe("after");
     expect(phasesByName["Unpack"]).toBe("after");

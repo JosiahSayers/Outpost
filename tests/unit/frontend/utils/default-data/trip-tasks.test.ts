@@ -14,6 +14,8 @@ describe("prepareDefaultTripTasks", () => {
       },
       { name: "Check weather forecast", phase: "before" },
       { name: "Pack backpack", phase: "before" },
+      { name: "Create a meal plan", phase: "before" },
+      { name: "Assign a packing list", phase: "before" },
       { name: "Leave copy of trip plan in vehicle", phase: "during" },
       { name: "Post trip report", phase: "after" },
       { name: "Unpack", phase: "after" },
