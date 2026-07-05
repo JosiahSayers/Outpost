@@ -19,7 +19,7 @@ describe("moveTripsToFinished", () => {
       data: make("Trip", {
         userId,
         status: "in_progress",
-        end: new Date("2026-06-14T08:00:00.000Z"),
+        end: new Date("2026-06-14"),
       }),
     });
 
@@ -36,7 +36,7 @@ describe("moveTripsToFinished", () => {
       data: make("Trip", {
         userId,
         status: "in_progress",
-        end: new Date("2026-06-15T08:00:00.000Z"),
+        end: new Date("2026-06-15"),
       }),
     });
 
@@ -52,7 +52,7 @@ describe("moveTripsToFinished", () => {
       data: make("Trip", {
         userId,
         status: "in_progress",
-        end: new Date("2026-06-13T23:59:59.999Z"),
+        end: new Date("2026-06-13"),
       }),
     });
 
@@ -68,14 +68,14 @@ describe("moveTripsToFinished", () => {
       data: make("Trip", {
         userId,
         status: "in_progress",
-        end: new Date("2026-06-14T00:00:00.000Z"),
+        end: new Date("2026-06-14"),
       }),
     });
     const startOfToday = await db.trip.create({
       data: make("Trip", {
         userId,
         status: "in_progress",
-        end: new Date("2026-06-15T00:00:00.000Z"),
+        end: new Date("2026-06-15"),
       }),
     });
 
@@ -91,7 +91,7 @@ describe("moveTripsToFinished", () => {
       data: make("Trip", {
         userId,
         status: "postponed",
-        end: new Date("2026-06-14T08:00:00.000Z"),
+        end: new Date("2026-06-14"),
       }),
     });
 
@@ -108,14 +108,14 @@ describe("moveTripsToFinished", () => {
         data: make("Trip", {
           userId,
           status: "in_progress",
-          end: new Date("2026-06-14T01:00:00.000Z"),
+          end: new Date("2026-06-14"),
         }),
       }),
       db.trip.create({
         data: make("Trip", {
           userId,
           status: "in_progress",
-          end: new Date("2026-06-14T02:00:00.000Z"),
+          end: new Date("2026-06-14"),
         }),
       }),
     ]);
@@ -137,7 +137,7 @@ describe("moveTripsToFinished", () => {
           userId,
           name: `Batch trip ${i}`,
           status: "in_progress",
-          end: new Date("2026-06-14T06:00:00.000Z"),
+          end: new Date("2026-06-14"),
         }),
       ),
     });

@@ -1,5 +1,5 @@
 import type { Trip } from "$/frontend/dashboard/types";
-import type { newTrip } from "$/validation/trip";
+import type { editTrip, newTrip } from "$/validation/trip";
 import {
   keepPreviousData,
   useMutation,
@@ -8,11 +8,6 @@ import {
 } from "@tanstack/react-query";
 import type { z } from "zod";
 import { apiClient } from "./client";
-
-// `editTrip`'s zod schema types `start`/`end` as `unknown` (an artifact of
-// `z.coerce.date()`), but the frontend only ever sends ISO date strings, so
-// this narrows to the shape our components actually produce.
-type UpdateTripData = Partial<Omit<Trip, "id">>;
 
 export const tripKeys = {
   all: ["trips"] as const,
@@ -53,7 +48,7 @@ export function useUpdateTrip(id: string) {
   const queryClient = useQueryClient();
   const queryKey = tripKeys.detail(id);
   return useMutation({
-    mutationFn: (data: UpdateTripData) =>
+    mutationFn: (data: z.input<typeof editTrip>) =>
       apiClient<{ trip: Trip }>(`/api/trips/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

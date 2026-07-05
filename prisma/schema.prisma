@@ -192,8 +192,8 @@ model Trip {
   status   TripStatus @default(planning)
   trail    String?
   location String?
-  start    DateTime?
-  end      DateTime?
+  start    DateTime? @db.Date
+  end      DateTime? @db.Date
 
   user   User   @relation(fields: [userId], references: [id])
   userId String

@@ -413,8 +413,8 @@ test.describe("Dashboard Page", () => {
           status: "in_progress",
           trail: "Wonderland Trail",
           location: "Mount Rainier National Park, WA",
-          start: "2026-06-01T00:00:00.000Z",
-          end: "2026-06-10T00:00:00.000Z",
+          start: "2026-06-01",
+          end: "2026-06-10",
         });
 
         await page.reload();
@@ -448,11 +448,11 @@ test.describe("Dashboard Page", () => {
       });
     });
 
-    // A trip's start/end are calendar dates, not instants, so the day shown
-    // must not shift depending on the viewer's local clock relative to the
-    // server. Honolulu (UTC-10, no DST) reproduces the bug class where a
-    // UTC-midnight timestamp rendered in local time rolls back to the
-    // previous day.
+    // A trip's start/end are bare "YYYY-MM-DD" dates end-to-end (DB column,
+    // API contract, and DTO type), with no time-of-day or timezone component
+    // to roll back a day for a viewer behind UTC. Honolulu (UTC-10, no DST)
+    // is a regression guard proving that class of bug is now structurally
+    // impossible, not just handled.
     test.describe("date handling across timezones", () => {
       test.use({ timezoneId: "Pacific/Honolulu" });
 

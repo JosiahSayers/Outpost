@@ -2,7 +2,7 @@ import { STATUS_LABEL } from "$/frontend/dashboard/trip-card";
 import type { TripStatus } from "$/frontend/dashboard/types";
 import Error from "$/frontend/shared-components/error";
 import { useCreateTrip } from "$/frontend/utils/api/trip";
-import { baseNewTrip, withTripDateRange } from "$/validation/trip";
+import { newTrip } from "$/validation/trip";
 import {
   Button,
   Drawer,
@@ -14,7 +14,6 @@ import {
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { schemaResolver, useForm } from "@mantine/form";
-import { z } from "zod/v4";
 
 const STATUS_VALUES = Object.keys(STATUS_LABEL) as [
   TripStatus,
@@ -24,13 +23,6 @@ const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({
   value,
   label: STATUS_LABEL[value],
 }));
-
-const formSchema = withTripDateRange(
-  baseNewTrip.extend({
-    start: z.iso.date({ error: "Invalid date" }).nullable(),
-    end: z.iso.date({ error: "Invalid date" }).nullable(),
-  }),
-);
 
 interface Props {
   opened: boolean;
@@ -49,7 +41,7 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
       start: null as string | null,
       end: null as string | null,
     },
-    validate: schemaResolver(formSchema, { sync: true }),
+    validate: schemaResolver(newTrip, { sync: true }),
   });
 
   const handleClose = () => {

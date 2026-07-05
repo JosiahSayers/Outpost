@@ -10,14 +10,6 @@ interface Props {
   onSave: (range: { start?: string | null; end?: string | null }) => void;
 }
 
-// Trip dates are stored as UTC-midnight instants and arrive here as full ISO
-// datetimes (e.g. "2026-07-05T00:00:00.000Z"). dayjs (which the date pickers
-// use internally) formats bare instants in the viewer's local timezone, which
-// rolls a UTC-midnight timestamp back to the previous day for anyone west of
-// UTC. Truncating to the bare "YYYY-MM-DD" date sidesteps that: with no time
-// component to convert, it's parsed as-is regardless of local timezone.
-const toDateOnly = (value: string | null) => value?.slice(0, 10) ?? null;
-
 // The calendar's built-in `selected` styling is easy to miss, so explicitly
 // call out the currently selected day with its own border.
 const highlightSelected = (selected: string | null) => (date: string) =>
@@ -32,8 +24,6 @@ const highlightSelected = (selected: string | null) => (date: string) =>
 
 export default function TripDates({ start, end, onSave }: Props) {
   const [editing, setEditing] = useState(false);
-  const startDate = toDateOnly(start);
-  const endDate = toDateOnly(end);
 
   if (editing) {
     return (
@@ -54,12 +44,12 @@ export default function TripDates({ start, end, onSave }: Props) {
       >
         <DateInput
           placeholder="Start date"
-          value={startDate}
-          defaultDate={startDate ?? undefined}
+          value={start}
+          defaultDate={start ?? undefined}
           onChange={(value) => {
-            if (value !== startDate) onSave({ start: value });
+            if (value !== start) onSave({ start: value });
           }}
-          getDayProps={highlightSelected(startDate)}
+          getDayProps={highlightSelected(start)}
           size="sm"
           w={140}
           autoFocus
@@ -70,12 +60,12 @@ export default function TripDates({ start, end, onSave }: Props) {
         </Text>
         <DateInput
           placeholder="End date"
-          value={endDate}
-          defaultDate={endDate ?? undefined}
+          value={end}
+          defaultDate={end ?? undefined}
           onChange={(value) => {
-            if (value !== endDate) onSave({ end: value });
+            if (value !== end) onSave({ end: value });
           }}
-          getDayProps={highlightSelected(endDate)}
+          getDayProps={highlightSelected(end)}
           size="sm"
           w={140}
           firstDayOfWeek={0}

@@ -67,13 +67,10 @@ export default function Header({ trip }: Props) {
           <TripDates
             start={trip.start}
             end={trip.end}
-            onSave={({ start, end }) =>
-              // The edit-trip schema coerces `null` into the epoch date rather
-              // than clearing it, so only ever send a real date or omit the key.
-              updateTrip.mutate(
-                { start: start ?? undefined, end: end ?? undefined },
-                { onError: notifyError("Couldn't update dates") },
-              )
+            onSave={(range) =>
+              updateTrip.mutate(range, {
+                onError: notifyError("Couldn't update dates"),
+              })
             }
           />
         </Group>

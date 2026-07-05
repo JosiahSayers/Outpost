@@ -2,7 +2,7 @@ import TripDates from "$/frontend/trip/header/trip-dates";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 
 function renderComponent(
   start: string | null,
@@ -97,53 +97,5 @@ describe("in edit mode", () => {
         screen.getByRole("button", { name: "6 July 2026" }),
       ).not.toHaveStyle({ fontWeight: "700" });
     });
-  });
-});
-
-describe("with a full ISO datetime value (the shape the API actually returns)", () => {
-  // Trip dates are UTC-midnight instants, e.g. "2026-07-05T00:00:00.000Z".
-  // dayjs formats those in the local timezone, which rolls the day back for
-  // any timezone west of UTC — this only reproduces under a non-UTC TZ.
-  const originalTz = process.env.TZ;
-
-  beforeEach(() => {
-    process.env.TZ = "America/Los_Angeles";
-  });
-
-  afterEach(() => {
-    process.env.TZ = originalTz;
-  });
-
-  it("displays and selects the correct calendar day, not the previous one", async () => {
-    renderComponent(
-      "2026-07-05T00:00:00.000Z",
-      "2026-07-20T00:00:00.000Z",
-      mock(),
-    );
-    fireEvent.click(screen.getByText("Jul 5 – Jul 20, 2026"));
-
-    expect(screen.getByPlaceholderText("Start date")).toHaveValue(
-      "July 5, 2026",
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: "5 July 2026" }),
-      ).toHaveAttribute("data-selected", "true");
-    });
-  });
-
-  it("reports the changed date without a timezone-shifted day", () => {
-    const onSave = mock();
-    renderComponent(
-      "2026-07-05T00:00:00.000Z",
-      "2026-07-20T00:00:00.000Z",
-      onSave,
-    );
-    fireEvent.click(screen.getByText("Jul 5 – Jul 20, 2026"));
-    fireEvent.change(screen.getByPlaceholderText("Start date"), {
-      target: { value: "July 10, 2026" },
-    });
-    expect(onSave).toHaveBeenCalledWith({ start: "2026-07-10" });
   });
 });

@@ -26,16 +26,18 @@ export const baseNewTrip = z.strictObject({
   location: z.string().trim().optional(),
 });
 
+// Prisma's own request validation rejects a bare "YYYY-MM-DD" string for a
+// DateTime field ("Expected ISO-8601 DateTime"), so the validated date string
+// is converted to a `Date` here rather than passed through as-is.
+const tripDate = z.iso
+  .date({ error: "Invalid date" })
+  .nullish()
+  .transform((value) => (value == null ? value : new Date(value)));
+
 export const newTrip = withTripDateRange(
-  baseNewTrip.extend({
-    start: z.coerce.date({ error: "Invalid date" }).optional(),
-    end: z.coerce.date({ error: "Invalid date" }).optional(),
-  }),
+  baseNewTrip.extend({ start: tripDate, end: tripDate }),
 );
 
 export const editTrip = withTripDateRange(
-  baseNewTrip.partial().extend({
-    start: z.coerce.date({ error: "Invalid date" }).optional(),
-    end: z.coerce.date({ error: "Invalid date" }).optional(),
-  }),
+  baseNewTrip.partial().extend({ start: tripDate, end: tripDate }),
 );
