@@ -1,8 +1,10 @@
+import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
-import { newTrip, tripSearch } from "$/validation/trip";
+import { idParam } from "$/validation/shared";
+import { editTrip, newTrip, tripSearch } from "$/validation/trip";
 import { Router } from "express";
 import validate from "express-zod-safe";
 
@@ -46,3 +48,24 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
 
   return res.status(201).json({ trip: transformers.trip(newTrip) });
 });
+
+tripRouter.patch(
+  "/:id",
+  userCanEditTrip,
+  validate({ body: editTrip, params: idParam }),
+  async (req, res) => {
+    const updatedTrip = await db.trip.update({
+      where: { id: req.params.id },
+      data: {
+        name: req.body.name,
+        status: req.body.status,
+        trail: req.body.trail,
+        location: req.body.location,
+        start: req.body.start,
+        end: req.body.end,
+      },
+    });
+
+    return res.json({ trip: transformers.trip(updatedTrip) });
+  },
+);
