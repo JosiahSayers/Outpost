@@ -16,6 +16,17 @@ function renderComponent(
   );
 }
 
+// The DateInputs' Popover/focus-trap schedule macrotasks (rAF/setTimeout)
+// that fire after this synchronous interaction returns. `await waitFor(() =>
+// {})` flushes them while Testing Library's asyncWrapper safely has
+// IS_REACT_ACT_ENVIRONMENT=false, avoiding act() warnings. It must run after
+// all interactions in a test complete, not in between them — flushing
+// mid-flow gives the focus trap a chance to run early and close a calendar
+// popover before the next interaction. See feedback_happy_dom_quirks memory.
+async function flushPendingMacrotasks() {
+  await waitFor(() => {});
+}
+
 describe("in view mode", () => {
   it("renders the formatted date range", () => {
     renderComponent("2026-07-05", "2026-07-20", mock());
@@ -27,11 +38,12 @@ describe("in view mode", () => {
     expect(screen.getByText("Dates TBD")).toBeInTheDocument();
   });
 
-  it("clicking enters edit mode with a start and end date input", () => {
+  it("clicking enters edit mode with a start and end date input", async () => {
     renderComponent("2026-07-05", "2026-07-20", mock());
     fireEvent.click(screen.getByText("Jul 5 – Jul 20, 2026"));
     expect(screen.getByPlaceholderText("Start date")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("End date")).toBeInTheDocument();
+    await flushPendingMacrotasks();
   });
 });
 
@@ -49,7 +61,7 @@ describe("in edit mode", () => {
     return start && end ? "Jul 5 – Jul 20, 2026" : "Dates TBD";
   }
 
-  it("shows inputs pre-filled with the current values", () => {
+  it("shows inputs pre-filled with the current values", async () => {
     enterEditMode("2026-07-05", "2026-07-20", mock());
     expect(screen.getByPlaceholderText("Start date")).toHaveValue(
       "July 5, 2026",
@@ -57,9 +69,10 @@ describe("in edit mode", () => {
     expect(screen.getByPlaceholderText("End date")).toHaveValue(
       "July 20, 2026",
     );
+    await flushPendingMacrotasks();
   });
 
-  it("changing the start date calls onSave with only the start key", () => {
+  it("changing the start date calls onSave with only the start key", async () => {
     const onSave = mock();
     enterEditMode("2026-07-05", "2026-07-20", onSave);
     fireEvent.change(screen.getByPlaceholderText("Start date"), {
@@ -67,9 +80,10 @@ describe("in edit mode", () => {
     });
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave.mock.calls[0]![0]).toEqual({ start: "2026-07-10" });
+    await flushPendingMacrotasks();
   });
 
-  it("changing the end date calls onSave with only the end key", () => {
+  it("changing the end date calls onSave with only the end key", async () => {
     const onSave = mock();
     enterEditMode("2026-07-05", "2026-07-20", onSave);
     fireEvent.change(screen.getByPlaceholderText("End date"), {
@@ -77,14 +91,16 @@ describe("in edit mode", () => {
     });
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave.mock.calls[0]![0]).toEqual({ end: "2026-07-25" });
+    await flushPendingMacrotasks();
   });
 
-  it("pressing Escape returns to view mode", () => {
+  it("pressing Escape returns to view mode", async () => {
     enterEditMode("2026-07-05", "2026-07-20", mock());
     fireEvent.keyDown(screen.getByPlaceholderText("Start date"), {
       key: "Escape",
     });
     expect(screen.getByText("Jul 5 – Jul 20, 2026")).toBeInTheDocument();
+    await flushPendingMacrotasks();
   });
 
   it("applies a distinct style to the selected day in each calendar", async () => {
