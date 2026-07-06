@@ -5,10 +5,10 @@ import TripName from "$/frontend/trip/header/trip-name";
 import TripStatusBadge from "$/frontend/trip/header/trip-status";
 import TripTextField from "$/frontend/trip/header/trip-text-field";
 import { useDeleteTrip, useUpdateTrip } from "$/frontend/utils/api/trip";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientTrip } from "$/transformers/trip";
 import { Group, Paper, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { notifications } from "@mantine/notifications";
 import { CompassIcon, MapPinIcon } from "@phosphor-icons/react";
 import { useLocation } from "wouter";
 
@@ -21,9 +21,6 @@ export default function Header({ trip }: Props) {
   const [confirmOpened, confirm] = useDisclosure(false);
   const updateTrip = useUpdateTrip(trip.id);
   const deleteTrip = useDeleteTrip(trip.id);
-
-  const notifyError = (title: string) => (error: Error) =>
-    notifications.show({ color: "red", title, message: error.message });
 
   function handleDelete() {
     deleteTrip.mutate(undefined, {

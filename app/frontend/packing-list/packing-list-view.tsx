@@ -14,10 +14,10 @@ import {
   useUpdateSection,
 } from "$/frontend/utils/api/packing-list";
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { Box, Divider, Flex, Group, Stack, Text } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -55,9 +55,6 @@ export default function PackingListView({ editable = false, list }: Props) {
   const createItem = useCreateItem(list.id);
   const updateItem = useUpdateItem(list.id);
   const deleteItem = useDeleteItem(list.id);
-
-  const notifyError = (title: string) => (error: Error) =>
-    notifications.show({ color: "red", title, message: error.message });
 
   // Scroll a newly added section into view once it has mounted.
   useEffect(() => {
