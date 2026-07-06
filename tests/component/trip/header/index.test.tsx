@@ -41,18 +41,6 @@ beforeEach(() => {
   ) as unknown as typeof fetch;
 });
 
-describe("the trip actions menu", () => {
-  it("opens with a Delete trip option", async () => {
-    renderHeader();
-    fireEvent.click(screen.getByRole("button", { name: "Trip actions" }));
-    await waitFor(() =>
-      expect(
-        screen.getByRole("menuitem", { name: "Delete trip" }),
-      ).toBeInTheDocument(),
-    );
-  });
-});
-
 describe("deleting the trip", () => {
   it("opens a confirmation modal naming the trip", async () => {
     renderHeader(trip({ name: "Wonderland Trail Loop" }));
@@ -70,7 +58,7 @@ describe("deleting the trip", () => {
       screen.getByText(
         (_, node) =>
           node?.textContent ===
-          "Remove Wonderland Trail Loop and all of its tasks and packing lists? This can't be undone.",
+          "Remove Wonderland Trail Loop? This can't be undone.",
       ),
     ).toBeInTheDocument();
   });

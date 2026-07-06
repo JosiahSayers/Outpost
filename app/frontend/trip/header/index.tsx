@@ -1,19 +1,15 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import TripActionsMenu from "$/frontend/trip/header/trip-actions-menu";
 import TripDates from "$/frontend/trip/header/trip-dates";
 import TripName from "$/frontend/trip/header/trip-name";
 import TripStatusBadge from "$/frontend/trip/header/trip-status";
 import TripTextField from "$/frontend/trip/header/trip-text-field";
 import { useDeleteTrip, useUpdateTrip } from "$/frontend/utils/api/trip";
 import type { ClientTrip } from "$/transformers/trip";
-import { ActionIcon, Group, Menu, Paper, Stack } from "@mantine/core";
+import { Group, Paper, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import {
-  CompassIcon,
-  DotsThreeVerticalIcon,
-  MapPinIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { CompassIcon, MapPinIcon } from "@phosphor-icons/react";
 import { useLocation } from "wouter";
 
 interface Props {
@@ -61,26 +57,7 @@ export default function Header({ trip }: Props) {
             />
           </Group>
 
-          <Menu position="bottom-end" withinPortal>
-            <Menu.Target>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                aria-label="Trip actions"
-              >
-                <DotsThreeVerticalIcon size={18} weight="bold" />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                color="red"
-                leftSection={<TrashIcon size={14} />}
-                onClick={confirm.open}
-              >
-                Delete trip
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <TripActionsMenu onDelete={confirm.open} />
         </Group>
         <Group gap="lg">
           <TripTextField
@@ -123,8 +100,7 @@ export default function Header({ trip }: Props) {
         onConfirm={handleDelete}
         title="Delete trip?"
       >
-        Remove <strong>{trip.name}</strong> and all of its tasks and packing
-        lists? This can&apos;t be undone.
+        Remove <strong>{trip.name}</strong>? This can&apos;t be undone.
       </ConfirmDeleteModal>
     </Paper>
   );
