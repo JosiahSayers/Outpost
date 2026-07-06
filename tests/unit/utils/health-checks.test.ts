@@ -1,8 +1,18 @@
-import { describe, it, expect, mock, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 describe("run", () => {
+  let priorVersion = Bun.env.VERSION;
+  let priorSha = Bun.env.COMMIT_SHA;
+
+  beforeEach(() => {
+    Bun.env.VERSION = "test-version";
+    Bun.env.COMMIT_SHA = "test-sha";
+  });
+
   afterEach(() => {
     mock.restore();
+    Bun.env.VERSION = priorVersion;
+    Bun.env.COMMIT_SHA = priorSha;
   });
 
   it("returns the expected result when successful", async () => {
@@ -11,8 +21,8 @@ describe("run", () => {
       {
         "database": "connected",
         "redis": "PONG",
-        "sha": undefined,
-        "version": undefined,
+        "sha": "test-sha",
+        "version": "test-version",
       }
     `);
   });
@@ -44,8 +54,8 @@ describe("run", () => {
           "database",
         ],
         "redis": "PONG",
-        "sha": undefined,
-        "version": undefined,
+        "sha": "test-sha",
+        "version": "test-version",
       }
     `);
   });

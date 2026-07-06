@@ -19,7 +19,7 @@ export class HealthChecks {
     },
     {
       name: "version",
-      runner: () => Bun.env.BUILD_VERSION,
+      runner: () => Bun.env.VERSION,
     },
     {
       name: "sha",
