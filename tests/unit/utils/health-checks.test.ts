@@ -11,6 +11,8 @@ describe("run", () => {
       {
         "database": "connected",
         "redis": "PONG",
+        "sha": undefined,
+        "version": undefined,
       }
     `);
   });
@@ -42,6 +44,8 @@ describe("run", () => {
           "database",
         ],
         "redis": "PONG",
+        "sha": undefined,
+        "version": undefined,
       }
     `);
   });

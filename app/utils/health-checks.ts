@@ -17,6 +17,14 @@ export class HealthChecks {
         return client.ping();
       },
     },
+    {
+      name: "version",
+      runner: () => Bun.env.BUILD_VERSION,
+    },
+    {
+      name: "sha",
+      runner: () => Bun.env.COMMIT_SHA,
+    },
   ] as const;
 
   static async run() {
