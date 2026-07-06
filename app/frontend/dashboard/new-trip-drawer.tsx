@@ -1,4 +1,5 @@
 import { STATUS_LABEL } from "$/frontend/dashboard/trip-card";
+import DateInput from "$/frontend/shared-components/date-input";
 import Error from "$/frontend/shared-components/error";
 import { useCreateTrip } from "$/frontend/utils/api/trip";
 import { newTrip } from "$/validation/trip";
@@ -11,7 +12,6 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
 import { schemaResolver, useForm } from "@mantine/form";
 import type { TripStatus } from "../../../generated/prisma/enums";
 
@@ -103,18 +103,8 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
             {...form.getInputProps("location")}
           />
           <Group grow>
-            <DateInput
-              label="Start date"
-              placeholder="Pick a date"
-              clearable
-              {...form.getInputProps("start")}
-            />
-            <DateInput
-              label="End date"
-              placeholder="Pick a date"
-              clearable
-              {...form.getInputProps("end")}
-            />
+            <DateInput label="Start date" {...form.getInputProps("start")} />
+            <DateInput label="End date" {...form.getInputProps("end")} />
           </Group>
           {createTrip.isError && <Error />}
           <Group justify="flex-end" mt="sm">
