@@ -111,6 +111,22 @@ export async function generatePackingListPdf(
     return boxSize / 2 + capHeight / 2 - ascender;
   };
 
+  // Same ascender-box quirk as above: returns how far the active font's
+  // cap-height sits below the nominal text-box top, so text set in a
+  // different font/size can have its cap-height aligned with a reference
+  // font's cap-height at the same nominal y.
+  const capHeightTopOffset = () => {
+    const internal = document as unknown as {
+      _font: { ascender: number; capHeight: number };
+      _fontSize: number;
+    };
+    const scale = internal._fontSize / 1000;
+    return (internal._font.ascender - internal._font.capHeight) * scale;
+  };
+
+  document.font("Playfair Display Bold").fontSize(12);
+  const sectionTitleCapHeightTopOffset = capHeightTopOffset();
+
   let checkboxX = document.x;
   const startingY = document.y;
   let column = 1;
@@ -177,38 +193,23 @@ export async function generatePackingListPdf(
       const sectionTitleOptions = {
         width: columnWidth,
       };
-      const titleHeight =
-        titleTopMargin +
-        document.heightOfString(section.name, sectionTitleOptions);
-      const optionalTitleHeight = section.items.find((item) => item.optional)
-        ? 12 +
-          document.heightOfString("Optional:", {
+
+      const drawContinuationLabel = () => {
+        document.fontSize(9).font("Source Sans 3 SemiBold");
+        const y =
+          document.y + sectionTitleCapHeightTopOffset - capHeightTopOffset();
+        document
+          .fillColor([130, 130, 130])
+          .text(`${section.name} (continued)`, checkboxX, y, {
             width: columnWidth,
-            lineGap: lineGap * 2,
-          })
-        : 0;
-      const itemHeights = section.items.reduce((totalHeight, item) => {
-        const itemHeight =
-          1 + document.heightOfString(item.name, { width: columnTextWidth });
-        return (totalHeight += itemHeight);
-      }, 0);
-      const sectionHeight = titleHeight + optionalTitleHeight + itemHeights;
-      const willOverflowColumn =
-        document.y + sectionHeight >
-        document.page.height - document.page.margins.bottom;
-      const freshColumnStartY =
-        currentPage === 1 ? startingY : document.page.margins.top;
-      const fitsInFreshColumn =
-        sectionHeight <=
-        document.page.height - document.page.margins.bottom - freshColumnStartY;
-      if (willOverflowColumn && fitsInFreshColumn) {
-        if (column < 3) {
-          moveToNextColumn();
-        } else {
-          moveToNextPage();
-        }
-        titleTopMargin = 0;
-      }
+          });
+        document.moveDown(0.5);
+        document
+          .fillColor("black")
+          .fontSize(8)
+          .font("Source Sans 3")
+          .lineGap(lineGap);
+      };
 
       const overflowed = columnCalculations(
         section.name,
@@ -245,6 +246,7 @@ export async function generatePackingListPdf(
         .forEach((item) => {
           if (item.optional && !lastItemWasOptional) {
             const didMove = columnCalculations("Optional:", columnWidth, 12);
+            if (didMove) drawContinuationLabel();
             document
               .font("Source Sans 3 SemiBold")
               .fontSize(10)
@@ -256,7 +258,8 @@ export async function generatePackingListPdf(
             document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
           }
 
-          columnCalculations(item.name, columnTextWidth, 1);
+          const didMove = columnCalculations(item.name, columnTextWidth, 1);
+          if (didMove) drawContinuationLabel();
 
           document
             .rect(checkboxX, document.y, checkboxSize, checkboxSize)
