@@ -46,8 +46,10 @@ COPY --from=prerelease /usr/src/app/dist/frontend ./dist/frontend
 COPY --from=prerelease /usr/src/app/assets ./assets
 
 ARG BUILD_VERSION
+ARG COMMIT_SHA
 
 ENV VERSION=$BUILD_VERSION
+ENV COMMIT_SHA=$COMMIT_SHA
 ENV NODE_ENV=production
 ENV LOG_FOLDER="/usr/src/log"
 ENV PORT=3000
