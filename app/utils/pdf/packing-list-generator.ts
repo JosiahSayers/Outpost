@@ -193,12 +193,21 @@ export async function generatePackingListPdf(
         return (totalHeight += itemHeight);
       }, 0);
       const sectionHeight = titleHeight + optionalTitleHeight + itemHeights;
-      const willOverflowPage =
-        column === 3 &&
+      const willOverflowColumn =
         document.y + sectionHeight >
-          document.page.height - document.page.margins.bottom;
-      if (willOverflowPage) {
-        moveToNextPage();
+        document.page.height - document.page.margins.bottom;
+      const freshColumnStartY =
+        currentPage === 1 ? startingY : document.page.margins.top;
+      const fitsInFreshColumn =
+        sectionHeight <=
+        document.page.height - document.page.margins.bottom - freshColumnStartY;
+      if (willOverflowColumn && fitsInFreshColumn) {
+        if (column < 3) {
+          moveToNextColumn();
+        } else {
+          moveToNextPage();
+        }
+        titleTopMargin = 0;
       }
 
       const overflowed = columnCalculations(
