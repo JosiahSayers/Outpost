@@ -1,7 +1,6 @@
 import { formatDateRange } from "$/frontend/dashboard/trip-card";
-import { highlightSelectedDate } from "$/frontend/utils/highlight-selected-date";
+import DateInput from "$/frontend/shared-components/date-input";
 import { Group, Text } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
 import { CalendarBlankIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -38,11 +37,9 @@ export default function TripDates({ start, end, onSave }: Props) {
           onChange={(value) => {
             if (value !== start) onSave({ start: value });
           }}
-          getDayProps={highlightSelectedDate(start)}
           size="sm"
           w={140}
           autoFocus
-          firstDayOfWeek={0}
         />
         <Text c="dimmed" size="sm">
           –
@@ -54,10 +51,8 @@ export default function TripDates({ start, end, onSave }: Props) {
           onChange={(value) => {
             if (value !== end) onSave({ end: value });
           }}
-          getDayProps={highlightSelectedDate(end)}
           size="sm"
           w={140}
-          firstDayOfWeek={0}
         />
       </Group>
     );

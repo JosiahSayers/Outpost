@@ -1,11 +1,11 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import DateInput from "$/frontend/shared-components/date-input";
 import { PHASE_LABEL, PHASES } from "$/frontend/trip/tasks";
 import {
   useCreateTripTask,
   useDeleteTripTask,
   useUpdateTripTask,
 } from "$/frontend/utils/api/trip-tasks";
-import { highlightSelectedDate } from "$/frontend/utils/highlight-selected-date";
 import type { ClientTripTask } from "$/transformers/trip-task";
 import { editTask } from "$/validation/trip/task";
 import {
@@ -16,7 +16,6 @@ import {
   Select,
   TextInput,
 } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { TrashIcon } from "@phosphor-icons/react";
@@ -106,9 +105,6 @@ export default function TaskEditDrawer({
 
           <DateInput
             label="Due date"
-            clearable
-            firstDayOfWeek={0}
-            getDayProps={highlightSelectedDate(form.values.dueDate)}
             {...form.getInputProps("dueDate")}
             mb="lg"
           />

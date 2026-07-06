@@ -3,7 +3,11 @@ import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-task
 
 describe("prepareDefaultTripTasks", () => {
   it("generates the expected set of tasks with phases", () => {
-    const tasks = prepareDefaultTripTasks({ name: "Appalachian Trail" });
+    const tasks = prepareDefaultTripTasks({
+      name: "Appalachian Trail",
+      start: null,
+      end: null,
+    });
 
     expect(
       tasks.map((task) => ({ name: task.name, phase: task.phase })),
@@ -26,6 +30,7 @@ describe("prepareDefaultTripTasks", () => {
     const tasks = prepareDefaultTripTasks({
       name: "Appalachian Trail",
       start: new Date("2026-06-10"),
+      end: null,
     });
 
     const dueDatesByName = Object.fromEntries(
@@ -42,7 +47,11 @@ describe("prepareDefaultTripTasks", () => {
   });
 
   it("leaves before-phase due dates unset when there is no start date", () => {
-    const tasks = prepareDefaultTripTasks({ name: "Appalachian Trail" });
+    const tasks = prepareDefaultTripTasks({
+      name: "Appalachian Trail",
+      start: null,
+      end: null,
+    });
 
     const beforeTasks = tasks.filter((task) => task.phase === "before");
     expect(beforeTasks.every((task) => !task.dueDate)).toBe(true);
@@ -52,6 +61,7 @@ describe("prepareDefaultTripTasks", () => {
     const tasks = prepareDefaultTripTasks({
       name: "Appalachian Trail",
       start: new Date("2026-06-10"),
+      end: null,
     });
 
     const nonBeforeTasks = tasks.filter((task) => task.phase !== "before");
