@@ -227,6 +227,50 @@ test.describe("Trip Page", () => {
     });
   });
 
+  test.describe("deleting a trip", () => {
+    test("deletes the trip and navigates to /dashboard", async ({ page }) => {
+      await page.getByRole("button", { name: "Trip actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete trip" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Delete trip?" }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      await page.waitForURL("/dashboard");
+      const response = await page.request.get(`/api/trips/${tripId}`);
+      expect(response.status()).toBe(404);
+    });
+
+    test("does not delete the trip when cancelled", async ({ page }) => {
+      await page.getByRole("button", { name: "Trip actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete trip" }).click();
+      await page.getByRole("button", { name: "Cancel" }).click();
+
+      await expect(
+        page.getByRole("heading", { level: 1, name: tripName }),
+      ).toBeVisible();
+      const response = await page.request.get(`/api/trips/${tripId}`);
+      expect(response.status()).toBe(200);
+    });
+
+    test("shows an error notification when the delete fails", async ({
+      page,
+    }) => {
+      await page.route(`**/api/trips/${tripId}`, (route) => {
+        if (route.request().method() === "DELETE") {
+          return route.fulfill({ status: 500 });
+        }
+        return route.continue();
+      });
+
+      await page.getByRole("button", { name: "Trip actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete trip" }).click();
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      await expect(page.getByText("Couldn't delete trip")).toBeVisible();
+    });
+  });
+
   test.describe("tasks", () => {
     // A new trip is seeded with these default tasks (prepareDefaultTripTasks),
     // none of which have a due date since this trip has no start date set.
