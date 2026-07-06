@@ -27,6 +27,7 @@ import {
   createTheme,
   rem,
 } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 
 // ---------------------------------------------------------------------------
 // Color palettes — 10 shades required by Mantine (index 0 = lightest, 9 = darkest)
@@ -264,6 +265,25 @@ export const trailTheme = createTheme({
     Notification: Notification.extend({
       defaultProps: {
         radius: "sm",
+      },
+    }),
+
+    DateInput: DateInput.extend({
+      // `styles` is also invoked for the calendar's per-day cells, whose
+      // weekend/outside/disabled state isn't part of DateInput's own public
+      // props type but is present on the object at runtime.
+      styles: (_theme, props) => {
+        const dayProps = props as unknown as {
+          weekend?: boolean;
+          disabled?: boolean;
+          outside?: boolean;
+        };
+        return {
+          day:
+            dayProps.weekend && !dayProps.disabled && !dayProps.outside
+              ? { color: "var(--mantine-color-bark-brown-6)" }
+              : {},
+        };
       },
     }),
   },
