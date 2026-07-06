@@ -15,7 +15,8 @@
     "start:workers": "bun run /usr/src/app/app/jobs/workers/index.ts",
     "test:e2e": "playwright test",
     "format": "prettier . --write",
-    "format:check": "prettier . -c"
+    "format:check": "prettier . -c",
+    "deploy:staging": "ssh outpost-staging 'docker compose up -d --pull always'"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
