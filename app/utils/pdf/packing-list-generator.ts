@@ -258,7 +258,13 @@ export async function generatePackingListPdf(
             document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
           }
 
-          const didMove = columnCalculations(item.name, columnTextWidth, 1);
+          const quantityLabel = item.quantity > 1 ? `  ×${item.quantity}` : "";
+
+          const didMove = columnCalculations(
+            item.name + quantityLabel,
+            columnTextWidth,
+            1,
+          );
           if (didMove) drawContinuationLabel();
 
           document
@@ -268,8 +274,14 @@ export async function generatePackingListPdf(
             item.name,
             checkboxX + checkboxGap,
             document.y + capHeightCenterOffset(checkboxSize),
-            { width: columnTextWidth },
+            { width: columnTextWidth, continued: !!quantityLabel },
           );
+          if (quantityLabel) {
+            document
+              .fillColor([130, 130, 130])
+              .text(quantityLabel)
+              .fillColor("black");
+          }
         });
     });
 
