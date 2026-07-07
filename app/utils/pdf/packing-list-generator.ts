@@ -258,8 +258,7 @@ export async function generatePackingListPdf(
             document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
           }
 
-          const quantityLabel =
-            item.quantity > 1 ? `  ×${item.quantity}` : "";
+          const quantityLabel = item.quantity > 1 ? `  ×${item.quantity}` : "";
 
           const didMove = columnCalculations(
             item.name + quantityLabel,
