@@ -1,6 +1,7 @@
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
@@ -101,3 +102,4 @@ tripRouter.patch(
 );
 
 tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);
+tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);
