@@ -28,13 +28,17 @@ describe("POST /", () => {
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(201);
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       item: {
-        category: {
-          name: "Backpacks",
-        },
+        id: expect.any(Number),
         name: "Snazzy Test Backpack",
         quantity: 1,
+        grams: null,
+        category: {
+          id: existingCategory!.id,
+          name: "Backpacks",
+          public: true,
+        },
       },
     });
   });
@@ -50,13 +54,17 @@ describe("POST /", () => {
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(201);
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       item: {
-        category: {
-          name: "Fancy New Category",
-        },
+        id: expect.any(Number),
         name: "Snazzy Test Backpack",
         quantity: 1,
+        grams: null,
+        category: {
+          id: expect.any(Number),
+          name: "Fancy New Category",
+          public: false,
+        },
       },
     });
   });
@@ -212,12 +220,17 @@ describe("PUT /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       item: {
+        id: user1ItemId,
         name: "Updated Name",
         quantity: 3,
         grams: 200,
-        category: { name: "Backpacks" },
+        category: {
+          id: backpacksCategoryId,
+          name: "Backpacks",
+          public: true,
+        },
       },
     });
 
@@ -247,8 +260,18 @@ describe("PUT /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
-      item: { category: { name: "Tents" } },
+    expect(response.body).toEqual({
+      item: {
+        id: user1ItemId,
+        name: "Original Name",
+        quantity: 1,
+        grams: 100,
+        category: {
+          id: tentsCategory!.id,
+          name: "Tents",
+          public: true,
+        },
+      },
     });
 
     const dbItem = await db.gearInventoryItem.findUnique({
@@ -270,8 +293,18 @@ describe("PUT /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
-      item: { category: { name: "My Custom Category" } },
+    expect(response.body).toEqual({
+      item: {
+        id: user1ItemId,
+        name: "Original Name",
+        quantity: 1,
+        grams: 100,
+        category: {
+          id: expect.any(Number),
+          name: "My Custom Category",
+          public: false,
+        },
+      },
     });
 
     const dbItem = await db.gearInventoryItem.findUnique({

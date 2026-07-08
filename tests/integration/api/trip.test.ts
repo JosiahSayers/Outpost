@@ -1,4 +1,5 @@
 import { app } from "$/server";
+import { toDateOnly } from "$/transformers/helpers";
 import { db } from "$/utils/db";
 import { beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
@@ -29,8 +30,9 @@ describe("POST /", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: expect.any(String),
         name: "Appalachian Trail",
         status: "planning",
         trail: null,
@@ -69,8 +71,9 @@ describe("POST /", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: expect.any(String),
         name: "Appalachian Trail",
         status: "in_progress",
         trail: "AT",
@@ -763,11 +766,17 @@ describe("GET /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
         id: trip.id,
         name: "Appalachian Trail",
         status: "planning",
+        trail: trip.trail,
+        location: trip.location,
+        start: toDateOnly(trip.start),
+        end: toDateOnly(trip.end),
+        tasks: [],
+        mealPlan: [],
       },
     });
   });
@@ -798,9 +807,21 @@ describe("GET /:id", () => {
     const tasks = response.body.trip.tasks.sort((a: any, b: any) =>
       a.name.localeCompare(b.name),
     );
-    expect(tasks).toMatchObject([
-      { name: "Share trip plan", phase: "before", complete: false },
-      { name: "Unpack", phase: "after", complete: true },
+    expect(tasks).toEqual([
+      {
+        id: expect.any(String),
+        name: "Share trip plan",
+        phase: "before",
+        complete: false,
+        dueDate: null,
+      },
+      {
+        id: expect.any(String),
+        name: "Unpack",
+        phase: "after",
+        complete: true,
+        dueDate: null,
+      },
     ]);
   });
 
@@ -907,7 +928,7 @@ describe("PATCH /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
         id: trip.id,
         name: "Pacific Crest Trail",
@@ -957,11 +978,15 @@ describe("PATCH /:id", () => {
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: trip.id,
         name: "Appalachian Trail",
         status: "in_progress",
         trail: "AT",
+        location: trip.location,
+        start: toDateOnly(trip.start),
+        end: toDateOnly(trip.end),
       },
     });
   });
@@ -985,7 +1010,17 @@ describe("PATCH /:id", () => {
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({ trip: { start: null, end: null } });
+    expect(response.body).toEqual({
+      trip: {
+        id: trip.id,
+        name: "Appalachian Trail",
+        status: "planning",
+        trail: trip.trail,
+        location: trip.location,
+        start: null,
+        end: null,
+      },
+    });
 
     const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
     expect(dbTrip?.start).toBeNull();
