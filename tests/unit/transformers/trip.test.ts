@@ -1,6 +1,17 @@
 import { describe, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 import { transform, transformFull } from "$/transformers/trip";
+import type { MealName } from "../../../generated/prisma/client";
+
+function makeMealPlanDay() {
+  const day = make("MealPlanDay");
+  return {
+    ...day,
+    meals: (["breakfast", "lunch", "dinner", "snacks"] as MealName[]).map(
+      (mealName) => make("MealPlanMeal", { mealPlanDayId: day.id, mealName }),
+    ),
+  };
+}
 
 describe("transform", () => {
   it("returns the expected shape", () => {
@@ -27,8 +38,11 @@ describe("transformFull", () => {
     const trip = make("Trip");
     const task1 = make("TripTask", { tripId: trip.id, phase: "before" });
     const task2 = make("TripTask", { tripId: trip.id, phase: "after" });
+    const day = makeMealPlanDay();
 
-    expect(transformFull({ ...trip, tasks: [task1, task2] })).toEqual({
+    expect(
+      transformFull({ ...trip, tasks: [task1, task2], mealPlanDays: [day] }),
+    ).toEqual({
       ...transform(trip),
       tasks: [
         {
@@ -46,12 +60,27 @@ describe("transformFull", () => {
           dueDate: task2.dueDate!.toISOString().slice(0, 10),
         },
       ],
+      mealPlan: [
+        {
+          id: day.id,
+          dayNumber: day.dayNumber,
+          date: day.date!.toISOString().slice(0, 10),
+          meals: {
+            breakfast: { id: day.meals[0]!.id, mealName: "breakfast" },
+            lunch: { id: day.meals[1]!.id, mealName: "lunch" },
+            dinner: { id: day.meals[2]!.id, mealName: "dinner" },
+            snacks: { id: day.meals[3]!.id, mealName: "snacks" },
+          },
+        },
+      ],
     });
   });
 
   it("returns an empty tasks array when the trip has no tasks", () => {
     const trip = make("Trip");
-    expect(transformFull({ ...trip, tasks: [] })).toMatchObject({
+    expect(
+      transformFull({ ...trip, tasks: [], mealPlanDays: [] }),
+    ).toMatchObject({
       tasks: [],
     });
   });

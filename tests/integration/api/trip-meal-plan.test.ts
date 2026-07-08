@@ -55,11 +55,11 @@ describe("POST /days", () => {
       .expect(201);
 
     const { meals } = response.body.mealPlanDay;
-    expect(meals.map((meal: any) => meal.mealName).sort()).toEqual(
+    expect(Object.keys(meals).sort()).toEqual(
       ["breakfast", "dinner", "lunch", "snacks"].sort(),
     );
-    for (const meal of meals) {
-      expect(meal).toEqual({ id: expect.any(String), mealName: meal.mealName });
+    for (const [mealName, meal] of Object.entries(meals)) {
+      expect(meal).toEqual({ id: expect.any(String), mealName });
     }
 
     expect(response.body).toEqual({
@@ -309,13 +309,23 @@ describe("DELETE /days/:day", () => {
 
 describe("PATCH /days/:day", () => {
   beforeEach(async () => {
-    await db.mealPlanDay.create({
+    const day = await db.mealPlanDay.create({
       data: make("MealPlanDay", {
         tripId,
         dayNumber: 1,
         date: new Date("2026-06-01"),
       }),
     });
+    for (const mealName of [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "snacks",
+    ] as const) {
+      await db.mealPlanMeal.create({
+        data: { mealPlanDayId: day.id, mealName },
+      });
+    }
   });
 
   it("requires a valid session", async () => {
@@ -377,7 +387,12 @@ describe("PATCH /days/:day", () => {
         id: expect.any(String),
         dayNumber: 1,
         date: "2026-06-05",
-        meals: [],
+        meals: {
+          breakfast: { id: expect.any(String), mealName: "breakfast" },
+          lunch: { id: expect.any(String), mealName: "lunch" },
+          dinner: { id: expect.any(String), mealName: "dinner" },
+          snacks: { id: expect.any(String), mealName: "snacks" },
+        },
       },
     });
   });

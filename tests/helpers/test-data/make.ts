@@ -3,6 +3,7 @@ import type { PickStringLiteral } from "../../../type-helpers";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeMealPlanDay from "./generators/meal-plan-day";
+import makeMealPlanMeal from "./generators/meal-plan-meal";
 import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
 import makePackingListSection from "./generators/packing-list-section";
@@ -19,6 +20,7 @@ type SupportedModels = PickStringLiteral<
   | "Trip"
   | "TripTask"
   | "MealPlanDay"
+  | "MealPlanMeal"
 >;
 
 const generators = {
@@ -30,6 +32,7 @@ const generators = {
   Trip: makeTrip,
   TripTask: makeTripTask,
   MealPlanDay: makeMealPlanDay,
+  MealPlanMeal: makeMealPlanMeal,
 } as const;
 
 export function make<Model extends SupportedModels>(

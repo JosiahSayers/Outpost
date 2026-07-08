@@ -855,9 +855,16 @@ describe("GET /:id", () => {
         date: new Date("2026-06-01"),
       }),
     });
-    await db.mealPlanMeal.create({
-      data: { mealPlanDayId: day.id, mealName: "breakfast" },
-    });
+    for (const mealName of [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "snacks",
+    ] as const) {
+      await db.mealPlanMeal.create({
+        data: { mealPlanDayId: day.id, mealName },
+      });
+    }
 
     const response = await request(app)
       .get(`/api/trips/${trip.id}`)
@@ -869,7 +876,12 @@ describe("GET /:id", () => {
         id: day.id,
         dayNumber: 1,
         date: "2026-06-01",
-        meals: [{ id: expect.any(String), mealName: "breakfast" }],
+        meals: {
+          breakfast: { id: expect.any(String), mealName: "breakfast" },
+          lunch: { id: expect.any(String), mealName: "lunch" },
+          dinner: { id: expect.any(String), mealName: "dinner" },
+          snacks: { id: expect.any(String), mealName: "snacks" },
+        },
       },
     ]);
   });
