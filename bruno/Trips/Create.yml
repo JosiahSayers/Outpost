@@ -1,0 +1,26 @@
+info:
+  name: Create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/trips"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Wonderland Trail",
+        "status": "planning",
+        "trail": "Wonderland Trail",
+        "location": "Mount Rainier National Park",
+        "start": "2026-08-10",
+        "end": "2026-08-15"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

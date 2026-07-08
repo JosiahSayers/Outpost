@@ -1,17 +1,16 @@
 info:
-  name: Edit
+  name: Update Day
   type: http
-  seq: 3
+  seq: 2
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/api/packing-lists/10/sections/55"
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/meal-plan/days/1"
   body:
     type: json
     data: |-
       {
-        "name": "Clothing",
-        "sortPosition": 1
+        "date": "2026-08-11"
       }
   auth: inherit
 

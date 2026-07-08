@@ -4,8 +4,15 @@ info:
   seq: 5
 
 http:
-  method: GET
+  method: PATCH
   url: "{{baseUrl}}/api/packing-lists/10"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Josiah's Packing List",
+        "description": "Three-season backpacking kit"
+      }
   auth: inherit
 
 settings:

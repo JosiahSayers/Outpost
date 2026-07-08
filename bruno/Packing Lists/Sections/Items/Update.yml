@@ -1,17 +1,18 @@
 info:
-  name: Edit
+  name: Update
   type: http
-  seq: 3
+  seq: 2
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/api/packing-lists/10/sections/55"
+  url: "{{baseUrl}}/api/packing-lists/10/sections/55/items/1"
   body:
     type: json
     data: |-
       {
-        "name": "Clothing",
-        "sortPosition": 1
+        "name": "Tent stakes",
+        "quantity": 8,
+        "optional": false
       }
   auth: inherit
 

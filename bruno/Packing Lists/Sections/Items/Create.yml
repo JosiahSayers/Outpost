@@ -1,0 +1,26 @@
+info:
+  name: Create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/packing-lists/10/sections/55/items"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Tent stakes",
+        "quantity": 6,
+        "optional": false
+      //   "sortPosition": 0,
+      //   "assignedGearId": 1,
+      //   "gearCategoryId": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
