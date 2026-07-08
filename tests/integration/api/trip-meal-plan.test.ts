@@ -54,10 +54,20 @@ describe("POST /days", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    const { meals } = response.body.mealPlanDay;
+    expect(meals.map((meal: any) => meal.mealName).sort()).toEqual(
+      ["breakfast", "dinner", "lunch", "snacks"].sort(),
+    );
+    for (const meal of meals) {
+      expect(meal).toEqual({ id: expect.any(String), mealName: meal.mealName });
+    }
+
+    expect(response.body).toEqual({
       mealPlanDay: {
+        id: expect.any(String),
         dayNumber: 1,
         date: "2026-06-01",
+        meals,
       },
     });
   });
@@ -227,7 +237,7 @@ describe("POST /days", () => {
 describe("DELETE /days/:day", () => {
   beforeEach(async () => {
     await db.mealPlanDay.create({
-      data: make("MealPlanDay", { tripId, dayNumber: 1, date: null }),
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
     });
   });
 
@@ -362,8 +372,13 @@ describe("PATCH /days/:day", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
-      mealPlanDay: { dayNumber: 1, date: "2026-06-05" },
+    expect(response.body).toEqual({
+      mealPlanDay: {
+        id: expect.any(String),
+        dayNumber: 1,
+        date: "2026-06-05",
+        meals: [],
+      },
     });
   });
 

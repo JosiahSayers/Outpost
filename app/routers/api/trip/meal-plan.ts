@@ -1,3 +1,4 @@
+import { prepareMealPlanDay } from "$/frontend/utils/default-data/meal-plan-day";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { idParam } from "$/validation/shared";
@@ -31,10 +32,13 @@ mealPlanRouter.post(
     }
 
     const newDay = await db.mealPlanDay.create({
-      data: {
-        tripId: req.params.id,
-        dayNumber: req.body.dayNumber,
-        date: req.body.date,
+      data: prepareMealPlanDay(
+        req.params.id,
+        req.body.dayNumber,
+        req.body.date,
+      ),
+      include: {
+        meals: true,
       },
     });
 
@@ -94,6 +98,9 @@ mealPlanRouter.patch(
       },
       data: {
         date: req.body.date,
+      },
+      include: {
+        meals: true,
       },
     });
 
