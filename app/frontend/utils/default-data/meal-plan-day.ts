@@ -28,7 +28,7 @@ function getNumberOfMealPlanDays(trip: Trip) {
     return 1;
   }
 
-  const start = DateTime.fromJSDate(trip.start);
-  const end = DateTime.fromJSDate(trip.end);
-  return Math.max(end.diff(start, "days").days, 1);
+  const start = DateTime.fromJSDate(trip.start).startOf("day");
+  const end = DateTime.fromJSDate(trip.end).startOf("day");
+  return Math.max(end.diff(start, "days").days + 1, 1);
 }

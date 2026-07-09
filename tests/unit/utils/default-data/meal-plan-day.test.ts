@@ -60,7 +60,7 @@ describe("createDefaultMealPlan", () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it("creates one day per night spanning the trip and increments each date", async () => {
+  it("creates one day per calendar day of the trip, including the end date", async () => {
     const trip = makeTrip({
       start: new Date("2026-06-10"),
       end: new Date("2026-06-13"),
@@ -69,11 +69,12 @@ describe("createDefaultMealPlan", () => {
 
     await createDefaultMealPlan(trip, transaction);
 
-    expect(create).toHaveBeenCalledTimes(3);
+    expect(create).toHaveBeenCalledTimes(4);
     expect(create.mock.calls.map((call) => call[0]?.data)).toEqual([
       { tripId: trip.id, dayNumber: 1, date: new Date("2026-06-10") },
       { tripId: trip.id, dayNumber: 2, date: new Date("2026-06-11") },
       { tripId: trip.id, dayNumber: 3, date: new Date("2026-06-12") },
+      { tripId: trip.id, dayNumber: 4, date: new Date("2026-06-13") },
     ]);
   });
 });
