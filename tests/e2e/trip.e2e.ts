@@ -56,6 +56,13 @@ test.describe("Trip Page", () => {
     ).toBeVisible();
   });
 
+  test.describe("navigation", () => {
+    test("the back link returns to the dashboard", async ({ page }) => {
+      await page.getByRole("link", { name: "Back to Dashboard" }).click();
+      await page.waitForURL("/dashboard");
+    });
+  });
+
   test.describe("access control", () => {
     test("shows an error for a trip that doesn't exist", async ({ page }) => {
       await page.goto("/trips/does-not-exist");
