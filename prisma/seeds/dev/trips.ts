@@ -1,3 +1,4 @@
+import { createDefaultMealPlan } from "$/frontend/utils/default-data/meal-plan-day";
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { db } from "$/utils/db";
 import { make } from "../../../tests/helpers/test-data/make";
@@ -26,5 +27,7 @@ export async function createTrips() {
         },
       },
     });
+
+    await createDefaultMealPlan(trip, db);
   }
 }

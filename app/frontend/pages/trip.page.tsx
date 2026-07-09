@@ -46,7 +46,11 @@ export default function TripPage() {
 
       <Divider />
 
-      <MealPlanSection />
+      <MealPlanSection
+        tripId={trip.id}
+        mealPlan={trip.mealPlan}
+        tripStart={trip.start}
+      />
 
       <Divider />
 

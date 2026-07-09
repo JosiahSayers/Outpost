@@ -820,6 +820,24 @@ describe("PATCH /days/:day/items/:itemId", () => {
     expect(dbItem?.name).toBe("Granola");
   });
 
+  it("allows clearing waterMl and dryWeightGrams with null", async () => {
+    await db.mealPlanItem.update({
+      where: { id: itemId },
+      data: { waterMl: 100, dryWeightGrams: 50 },
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ waterMl: null, dryWeightGrams: null })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.mealPlanItem).toMatchObject({
+      waterMl: null,
+      dryWeightGrams: null,
+    });
+  });
+
   it("rejects an invalid meal", async () => {
     const response = await request(app)
       .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
