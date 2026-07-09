@@ -28,4 +28,8 @@ export const createMealPlanItem = z.strictObject({
   dryWeightGrams: z.int().optional(),
 });
 
-export const editMealPlanItem = createMealPlanItem.partial();
+export const editMealPlanItem = createMealPlanItem.partial().extend({
+  // .partial() doesn't strip the .default(0) on calories, which would
+  // otherwise reset calories to 0 whenever a PATCH omits the field
+  calories: z.int().optional(),
+});

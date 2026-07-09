@@ -471,3 +471,511 @@ describe("PATCH /days/:day", () => {
     expect(dbDay?.date?.toISOString().slice(0, 10)).toBe("2026-06-01");
   });
 });
+
+describe("POST /days/:day/items", () => {
+  beforeEach(async () => {
+    await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
+    });
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .post("/api/trips/does-not-exist/meal-plan/days/1/items")
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the day does not exist", async () => {
+    await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/99/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the day belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .post(`/api/trips/${otherTrip.id}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("creates an item with the provided fields", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({
+        name: "Oatmeal",
+        meal: "breakfast",
+        calories: 350,
+        quantity: 2,
+        waterMl: 250,
+        dryWeightGrams: 100,
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(201);
+
+    expect(response.body).toEqual({
+      mealPlanItem: {
+        id: expect.any(String),
+        name: "Oatmeal",
+        meal: "breakfast",
+        calories: 350,
+        quantity: 2,
+        waterMl: 250,
+        dryWeightGrams: 100,
+      },
+    });
+  });
+
+  it("defaults calories to 0 and leaves optional fields unset", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    expect(response.body.mealPlanItem).toEqual({
+      id: expect.any(String),
+      name: "Oatmeal",
+      meal: "breakfast",
+      calories: 0,
+      quantity: 1,
+      waterMl: null,
+      dryWeightGrams: null,
+    });
+  });
+
+  it("persists the item to the database, scoped to the day", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const day = await db.mealPlanDay.findUnique({
+      where: { tripId_dayNumber: { tripId, dayNumber: 1 } },
+    });
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: response.body.mealPlanItem.id },
+    });
+    expect(dbItem?.mealPlanDayId).toBe(day!.id);
+  });
+
+  it("rejects a missing name", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ meal: "breakfast" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "message": "Invalid input: expected string, received undefined",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects an invalid meal", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "brunch" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [
+        expect.objectContaining({
+          path: ["meal"],
+        }),
+      ],
+      type: "body",
+    });
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast", notAField: true })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("does not create the item when the owning user check fails", async () => {
+    await request(app)
+      .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+      .send({ name: "Oatmeal", meal: "breakfast" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const day = await db.mealPlanDay.findUnique({
+      where: { tripId_dayNumber: { tripId, dayNumber: 1 } },
+      include: { items: true },
+    });
+    expect(day?.items).toEqual([]);
+  });
+});
+
+describe("PATCH /days/:day/items/:itemId", () => {
+  let itemId: string;
+
+  beforeEach(async () => {
+    const day = await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
+    });
+    const item = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Oatmeal",
+        meal: "breakfast",
+        calories: 350,
+        quantity: 1,
+      }),
+    });
+    itemId = item.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/does-not-exist/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the day does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/99/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/does-not-exist`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${otherTrip.id}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different day on the same trip", async () => {
+    await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 2 }), date: null },
+    });
+
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/2/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("updates the item with the provided fields", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({
+        name: "Granola",
+        meal: "snacks",
+        calories: 200,
+        quantity: 3,
+        waterMl: 100,
+        dryWeightGrams: 50,
+      })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      mealPlanItem: {
+        id: itemId,
+        name: "Granola",
+        meal: "snacks",
+        calories: 200,
+        quantity: 3,
+        waterMl: 100,
+        dryWeightGrams: 50,
+      },
+    });
+  });
+
+  it("allows a partial update, leaving other fields unchanged", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      mealPlanItem: {
+        id: itemId,
+        name: "Granola",
+        meal: "breakfast",
+        calories: 350,
+        quantity: 1,
+        waterMl: null,
+        dryWeightGrams: null,
+      },
+    });
+  });
+
+  it("persists the update to the database", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(dbItem?.name).toBe("Granola");
+  });
+
+  it("rejects an invalid meal", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ meal: "brunch" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [
+        expect.objectContaining({
+          path: ["meal"],
+        }),
+      ],
+      type: "body",
+    });
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ notAField: true })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("does not modify the item when the owning user check fails", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .send({ name: "Granola" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(dbItem?.name).toBe("Oatmeal");
+  });
+});
+
+describe("DELETE /days/:day/items/:itemId", () => {
+  let itemId: string;
+
+  beforeEach(async () => {
+    const day = await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
+    });
+    const item = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Oatmeal",
+        meal: "breakfast",
+      }),
+    });
+    itemId = item.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .delete(`/api/trips/does-not-exist/meal-plan/days/1/items/${itemId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the day does not exist", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/99/items/${itemId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item does not exist", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/1/items/does-not-exist`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${otherTrip.id}/meal-plan/days/1/items/${itemId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different day on the same trip", async () => {
+    await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 2 }), date: null },
+    });
+
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/2/items/${itemId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("deletes the item", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(dbItem).toBeNull();
+  });
+
+  it("does not delete the item when the owning user check fails", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(dbItem).not.toBeNull();
+  });
+});
