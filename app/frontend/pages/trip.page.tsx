@@ -46,7 +46,7 @@ export default function TripPage() {
 
       <Divider />
 
-      <MealPlanSection />
+      <MealPlanSection mealPlan={trip.mealPlan} />
 
       <Divider />
 

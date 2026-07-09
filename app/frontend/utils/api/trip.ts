@@ -1,3 +1,4 @@
+import { sortMealPlan } from "$/frontend/utils/sort-meal-plan";
 import { sortTasks } from "$/frontend/utils/sort-tasks";
 import type { ClientFullTrip, ClientTrip } from "$/transformers/trip";
 import type { editTrip, newTrip } from "$/validation/trip";
@@ -21,7 +22,13 @@ export const tripKeys = {
 // queryFn) means the order is reapplied on every read, including after
 // optimistic cache writes, so consumers never have to sort again.
 function sortTrip(data: { trip: ClientFullTrip }): { trip: ClientFullTrip } {
-  return { trip: { ...data.trip, tasks: sortTasks(data.trip.tasks) } };
+  return {
+    trip: {
+      ...data.trip,
+      tasks: sortTasks(data.trip.tasks),
+      mealPlan: sortMealPlan(data.trip.mealPlan),
+    },
+  };
 }
 
 export function useTrip(id: string) {

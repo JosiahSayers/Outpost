@@ -1,45 +1,45 @@
-import { placeholderMealPlan } from "$/frontend/trip/placeholder-data";
+import {
+  MEAL_LABEL,
+  MEAL_ORDER,
+  formatMealDate,
+  mealItemsSummary,
+} from "$/frontend/trip/meal-plan/helpers";
+import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Group, Paper, Stack, Text } from "@mantine/core";
 import { ForkKnifeIcon } from "@phosphor-icons/react";
 
-export default function MobileMealPlan() {
+export default function MobileMealPlan({
+  mealPlan,
+}: {
+  mealPlan: ClientMealPlanDay[];
+}) {
   return (
     <Stack gap="xs" hiddenFrom="sm">
-      {placeholderMealPlan.map((meal) => (
-        <Paper withBorder p="sm" key={meal.day}>
+      {mealPlan.map((day) => (
+        <Paper withBorder p="sm" key={day.id}>
           <Group justify="space-between" mb={6}>
             <Text fw={600} size="sm">
-              {meal.day}
+              Day {day.dayNumber}
             </Text>
-            <Text size="xs" c="dimmed">
-              {meal.date}
-            </Text>
+            {day.date && (
+              <Text size="xs" c="dimmed">
+                {formatMealDate(day.date)}
+              </Text>
+            )}
           </Group>
           <Stack gap={2}>
-            {meal.breakfast && (
-              <Group gap={6}>
-                <ForkKnifeIcon size={13} />
-                <Text size="sm" c="dimmed">
-                  Breakfast — {meal.breakfast}
-                </Text>
-              </Group>
-            )}
-            {meal.lunch && (
-              <Group gap={6}>
-                <ForkKnifeIcon size={13} />
-                <Text size="sm" c="dimmed">
-                  Lunch — {meal.lunch}
-                </Text>
-              </Group>
-            )}
-            {meal.dinner && (
-              <Group gap={6}>
-                <ForkKnifeIcon size={13} />
-                <Text size="sm" c="dimmed">
-                  Dinner — {meal.dinner}
-                </Text>
-              </Group>
-            )}
+            {MEAL_ORDER.map((meal) => {
+              const summary = mealItemsSummary(day.meals[meal]);
+              if (!summary) return null;
+              return (
+                <Group gap={6} key={meal}>
+                  <ForkKnifeIcon size={13} />
+                  <Text size="sm" c="dimmed">
+                    {MEAL_LABEL[meal]} — {summary}
+                  </Text>
+                </Group>
+              );
+            })}
           </Stack>
         </Paper>
       ))}

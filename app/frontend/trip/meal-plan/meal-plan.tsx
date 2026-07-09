@@ -1,32 +1,46 @@
-import { placeholderMealPlan } from "$/frontend/trip/placeholder-data";
+import {
+  MEAL_LABEL,
+  MEAL_ORDER,
+  formatMealDate,
+  mealItemsSummary,
+} from "$/frontend/trip/meal-plan/helpers";
+import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Box, Table, Text } from "@mantine/core";
 
-export default function MealPlan() {
+export default function MealPlan({
+  mealPlan,
+}: {
+  mealPlan: ClientMealPlanDay[];
+}) {
   return (
     <Box visibleFrom="sm">
       <Table verticalSpacing="sm" highlightOnHover>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Day</Table.Th>
-            <Table.Th>Breakfast</Table.Th>
-            <Table.Th>Lunch</Table.Th>
-            <Table.Th>Dinner</Table.Th>
+            {MEAL_ORDER.map((meal) => (
+              <Table.Th key={meal}>{MEAL_LABEL[meal]}</Table.Th>
+            ))}
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {placeholderMealPlan.map((meal) => (
-            <Table.Tr key={meal.day}>
+          {mealPlan.map((day) => (
+            <Table.Tr key={day.id}>
               <Table.Td>
                 <Text fw={600} size="sm">
-                  {meal.day}
+                  Day {day.dayNumber}
                 </Text>
-                <Text size="xs" c="dimmed">
-                  {meal.date}
-                </Text>
+                {day.date && (
+                  <Text size="xs" c="dimmed">
+                    {formatMealDate(day.date)}
+                  </Text>
+                )}
               </Table.Td>
-              <Table.Td>{meal.breakfast ?? "—"}</Table.Td>
-              <Table.Td>{meal.lunch ?? "—"}</Table.Td>
-              <Table.Td>{meal.dinner ?? "—"}</Table.Td>
+              {MEAL_ORDER.map((meal) => (
+                <Table.Td key={meal}>
+                  {mealItemsSummary(day.meals[meal]) ?? "—"}
+                </Table.Td>
+              ))}
             </Table.Tr>
           ))}
         </Table.Tbody>
