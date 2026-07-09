@@ -244,25 +244,11 @@ model MealPlanDay {
   dayNumber Int
   date      DateTime? @db.Date
 
-  trip   Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  tripId String
-  meals  MealPlanMeal[]
+  trip      Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    String
+  mealItems MealPlanMealItem[]
 
   @@unique([tripId, dayNumber])
-}
-
-model MealPlanMeal {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  mealName MealName
-
-  mealPlanDay   MealPlanDay        @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
-  mealPlanDayId String
-  items         MealPlanMealItem[]
-
-  @@unique([mealPlanDayId, mealName])
 }
 
 enum MealName {
@@ -277,9 +263,15 @@ model MealPlanMealItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name     String
-  calories Int
+  name           String
+  calories       Int
+  meal           MealName
+  quantity       Int      @default(1)
+  waterMl        Int?
+  dryWeightGrams Int?
 
-  meal   MealPlanMeal @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  mealId String
+  mealPlanDay   MealPlanDay @relation(fields: [mealPlanDayId], references: [id])
+  mealPlanDayId String
+
+  @@index([meal, mealPlanDayId])
 }

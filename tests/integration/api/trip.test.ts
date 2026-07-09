@@ -453,49 +453,6 @@ describe("POST /", () => {
 
     expect(response.body.trip.mealPlanDays).toBeUndefined();
   });
-
-  it("creates the default set of meals for a meal plan day", async () => {
-    const response = await request(app)
-      .post("/api/trips")
-      .send({ name: "Appalachian Trail" })
-      .set("Cookie", authCookies)
-      .expect(201);
-
-    const mealPlanDays = await db.mealPlanDay.findMany({
-      where: { tripId: response.body.trip.id },
-      include: { meals: true },
-    });
-
-    expect(mealPlanDays).toHaveLength(1);
-    expect(mealPlanDays[0]!.meals.map((meal) => meal.mealName).sort()).toEqual(
-      ["breakfast", "dinner", "lunch", "snacks"].sort(),
-    );
-  });
-
-  it("creates the default set of meals for every meal plan day of a multi-day trip", async () => {
-    const response = await request(app)
-      .post("/api/trips")
-      .send({
-        name: "Appalachian Trail",
-        start: "2026-06-01",
-        end: "2026-06-04",
-      })
-      .set("Cookie", authCookies)
-      .expect(201);
-
-    const mealPlanDays = await db.mealPlanDay.findMany({
-      where: { tripId: response.body.trip.id },
-      include: { meals: true },
-      orderBy: { dayNumber: "asc" },
-    });
-
-    expect(mealPlanDays).toHaveLength(3);
-    for (const day of mealPlanDays) {
-      expect(day.meals.map((meal) => meal.mealName).sort()).toEqual(
-        ["breakfast", "dinner", "lunch", "snacks"].sort(),
-      );
-    }
-  });
 });
 
 describe("GET /", () => {
@@ -855,16 +812,12 @@ describe("GET /:id", () => {
         date: new Date("2026-06-01"),
       }),
     });
-    for (const mealName of [
-      "breakfast",
-      "lunch",
-      "dinner",
-      "snacks",
-    ] as const) {
-      await db.mealPlanMeal.create({
-        data: { mealPlanDayId: day.id, mealName },
-      });
-    }
+    const breakfastItem = await db.mealPlanMealItem.create({
+      data: make("MealPlanMealItem", {
+        mealPlanDayId: day.id,
+        meal: "breakfast",
+      }),
+    });
 
     const response = await request(app)
       .get(`/api/trips/${trip.id}`)
@@ -877,10 +830,10 @@ describe("GET /:id", () => {
         dayNumber: 1,
         date: "2026-06-01",
         meals: {
-          breakfast: { id: expect.any(String), mealName: "breakfast" },
-          lunch: { id: expect.any(String), mealName: "lunch" },
-          dinner: { id: expect.any(String), mealName: "dinner" },
-          snacks: { id: expect.any(String), mealName: "snacks" },
+          breakfast: [expect.objectContaining({ id: breakfastItem.id })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
         },
       },
     ]);

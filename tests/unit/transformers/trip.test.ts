@@ -1,15 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 import { transform, transformFull } from "$/transformers/trip";
-import type { MealName } from "../../../generated/prisma/client";
 
 function makeMealPlanDay() {
   const day = make("MealPlanDay");
+  const breakfastItem = make("MealPlanMealItem", {
+    mealPlanDayId: day.id,
+    meal: "breakfast",
+  });
   return {
     ...day,
-    meals: (["breakfast", "lunch", "dinner", "snacks"] as MealName[]).map(
-      (mealName) => make("MealPlanMeal", { mealPlanDayId: day.id, mealName }),
-    ),
+    mealItems: [breakfastItem],
   };
 }
 
@@ -66,10 +67,10 @@ describe("transformFull", () => {
           dayNumber: day.dayNumber,
           date: day.date!.toISOString().slice(0, 10),
           meals: {
-            breakfast: { id: day.meals[0]!.id, mealName: "breakfast" },
-            lunch: { id: day.meals[1]!.id, mealName: "lunch" },
-            dinner: { id: day.meals[2]!.id, mealName: "dinner" },
-            snacks: { id: day.meals[3]!.id, mealName: "snacks" },
+            breakfast: [expect.objectContaining({ id: day.mealItems[0]!.id })],
+            lunch: [],
+            dinner: [],
+            snacks: [],
           },
         },
       ],

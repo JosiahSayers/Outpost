@@ -1,6 +1,6 @@
 import type { ITXClientDenyList } from "@prisma/client/runtime/client";
 import { DateTime } from "luxon";
-import type { MealName, Trip } from "../../../../generated/prisma/browser";
+import type { Trip } from "../../../../generated/prisma/browser";
 import type { PrismaClient } from "../../../../generated/prisma/client";
 
 export async function createDefaultMealPlan(
@@ -40,15 +40,5 @@ export function prepareMealPlanDay(
     tripId,
     dayNumber,
     date,
-    meals: {
-      createMany: {
-        data: [
-          { mealName: "breakfast" as MealName },
-          { mealName: "lunch" as MealName },
-          { mealName: "dinner" as MealName },
-          { mealName: "snacks" as MealName },
-        ],
-      },
-    },
   };
 }
