@@ -64,6 +64,37 @@ function addUtcDays(date: string, days: number): string {
   return result.toISOString().slice(0, 10);
 }
 
+export function itemTotalCalories(item: ClientMealPlanItem): number {
+  return item.calories * item.quantity;
+}
+
+export function mealCalories(items: ClientMealPlanItem[]): number {
+  return items.reduce((sum, item) => sum + itemTotalCalories(item), 0);
+}
+
+export function dayCalories(day: ClientMealPlanDay): number {
+  return MEAL_ORDER.reduce(
+    (sum, meal) => sum + mealCalories(day.meals[meal]),
+    0,
+  );
+}
+
+export function formatCalories(calories: number): string {
+  return `${calories.toLocaleString("en-US")} cal`;
+}
+
+// Calories of 0 are treated as "not tracked" and render nothing. For items
+// with a quantity, both the per-instance and total counts are shown.
+export function itemCaloriesSummary(item: ClientMealPlanItem): string | null {
+  if (item.calories === 0) return null;
+  if (item.quantity > 1) {
+    return `${item.calories.toLocaleString("en-US")} cal each · ${itemTotalCalories(
+      item,
+    ).toLocaleString("en-US")} total`;
+  }
+  return formatCalories(item.calories);
+}
+
 export function mealItemsSummary(items: ClientMealPlanItem[]): string | null {
   if (items.length === 0) return null;
   return items

@@ -32,4 +32,7 @@ export const editMealPlanItem = createMealPlanItem.partial().extend({
   // .partial() doesn't strip the .default(0) on calories, which would
   // otherwise reset calories to 0 whenever a PATCH omits the field
   calories: z.int().optional(),
+  // nullable so a PATCH can clear these — omitting them means "unchanged"
+  waterMl: z.int().nullable().optional(),
+  dryWeightGrams: z.int().nullable().optional(),
 });

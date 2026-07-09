@@ -9,8 +9,10 @@ import { Box, Table, Text } from "@mantine/core";
 
 export default function MealPlan({
   mealPlan,
+  onDayClick,
 }: {
   mealPlan: ClientMealPlanDay[];
+  onDayClick: (day: ClientMealPlanDay) => void;
 }) {
   return (
     <Box visibleFrom="sm">
@@ -25,7 +27,11 @@ export default function MealPlan({
         </Table.Thead>
         <Table.Tbody>
           {mealPlan.map((day) => (
-            <Table.Tr key={day.id}>
+            <Table.Tr
+              key={day.id}
+              onClick={() => onDayClick(day)}
+              style={{ cursor: "pointer" }}
+            >
               <Table.Td>
                 <Text fw={600} size="sm">
                   Day {day.dayNumber}

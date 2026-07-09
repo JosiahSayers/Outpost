@@ -10,13 +10,21 @@ import { ForkKnifeIcon } from "@phosphor-icons/react";
 
 export default function MobileMealPlan({
   mealPlan,
+  onDayClick,
 }: {
   mealPlan: ClientMealPlanDay[];
+  onDayClick: (day: ClientMealPlanDay) => void;
 }) {
   return (
     <Stack gap="xs" hiddenFrom="sm">
       {mealPlan.map((day) => (
-        <Paper withBorder p="sm" key={day.id}>
+        <Paper
+          withBorder
+          p="sm"
+          key={day.id}
+          onClick={() => onDayClick(day)}
+          style={{ cursor: "pointer" }}
+        >
           <Group justify="space-between" mb={6}>
             <Text fw={600} size="sm">
               Day {day.dayNumber}
