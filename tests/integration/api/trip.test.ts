@@ -1,4 +1,5 @@
 import { app } from "$/server";
+import { toDateOnly } from "$/transformers/helpers";
 import { db } from "$/utils/db";
 import { beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
@@ -29,8 +30,9 @@ describe("POST /", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: expect.any(String),
         name: "Appalachian Trail",
         status: "planning",
         trail: null,
@@ -69,8 +71,9 @@ describe("POST /", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: expect.any(String),
         name: "Appalachian Trail",
         status: "in_progress",
         trail: "AT",
@@ -381,6 +384,75 @@ describe("POST /", () => {
 
     expect(response.body.trip.tasks).toBeUndefined();
   });
+
+  it("creates a single meal plan day when no dates are provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const mealPlanDays = await db.mealPlanDay.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+
+    expect(mealPlanDays).toHaveLength(1);
+    expect(mealPlanDays[0]).toMatchObject({ dayNumber: 1, date: null });
+  });
+
+  it("creates a meal plan day for each day of the trip when start and end dates are provided", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({
+        name: "Appalachian Trail",
+        start: "2026-06-01",
+        end: "2026-06-04",
+      })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const mealPlanDays = await db.mealPlanDay.findMany({
+      where: { tripId: response.body.trip.id },
+      orderBy: { dayNumber: "asc" },
+    });
+
+    expect(mealPlanDays.map((day) => day.dayNumber)).toEqual([1, 2, 3]);
+    expect(
+      mealPlanDays.map((day) => day.date?.toISOString().slice(0, 10)),
+    ).toEqual(["2026-06-01", "2026-06-02", "2026-06-03"]);
+  });
+
+  it("creates a single meal plan day when start and end dates are the same", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({
+        name: "Appalachian Trail",
+        start: "2026-06-01",
+        end: "2026-06-01",
+      })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const mealPlanDays = await db.mealPlanDay.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+
+    expect(mealPlanDays).toHaveLength(1);
+    expect(mealPlanDays[0]).toMatchObject({
+      dayNumber: 1,
+      date: new Date("2026-06-01"),
+    });
+  });
+
+  it("does not include mealPlanDays in the create response body", async () => {
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    expect(response.body.trip.mealPlanDays).toBeUndefined();
+  });
 });
 
 describe("GET /", () => {
@@ -651,11 +723,17 @@ describe("GET /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
         id: trip.id,
         name: "Appalachian Trail",
         status: "planning",
+        trail: trip.trail,
+        location: trip.location,
+        start: toDateOnly(trip.start),
+        end: toDateOnly(trip.end),
+        tasks: [],
+        mealPlan: [],
       },
     });
   });
@@ -686,9 +764,21 @@ describe("GET /:id", () => {
     const tasks = response.body.trip.tasks.sort((a: any, b: any) =>
       a.name.localeCompare(b.name),
     );
-    expect(tasks).toMatchObject([
-      { name: "Share trip plan", phase: "before", complete: false },
-      { name: "Unpack", phase: "after", complete: true },
+    expect(tasks).toEqual([
+      {
+        id: expect.any(String),
+        name: "Share trip plan",
+        phase: "before",
+        complete: false,
+        dueDate: null,
+      },
+      {
+        id: expect.any(String),
+        name: "Unpack",
+        phase: "after",
+        complete: true,
+        dueDate: null,
+      },
     ]);
   });
 
@@ -706,6 +796,63 @@ describe("GET /:id", () => {
       .expect(200);
 
     expect(response.body.trip.tasks).toEqual([]);
+  });
+
+  it("returns the trip's meal plan", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+    const day = await db.mealPlanDay.create({
+      data: make("MealPlanDay", {
+        tripId: trip.id,
+        dayNumber: 1,
+        date: new Date("2026-06-01"),
+      }),
+    });
+    const breakfastItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        meal: "breakfast",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.mealPlan).toEqual([
+      {
+        id: day.id,
+        dayNumber: 1,
+        date: "2026-06-01",
+        meals: {
+          breakfast: [expect.objectContaining({ id: breakfastItem.id })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      },
+    ]);
+  });
+
+  it("returns an empty meal plan array when the trip has no meal plan days", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.mealPlan).toEqual([]);
   });
 });
 
@@ -746,7 +893,7 @@ describe("PATCH /:id", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
         id: trip.id,
         name: "Pacific Crest Trail",
@@ -796,11 +943,15 @@ describe("PATCH /:id", () => {
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       trip: {
+        id: trip.id,
         name: "Appalachian Trail",
         status: "in_progress",
         trail: "AT",
+        location: trip.location,
+        start: toDateOnly(trip.start),
+        end: toDateOnly(trip.end),
       },
     });
   });
@@ -824,7 +975,17 @@ describe("PATCH /:id", () => {
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({ trip: { start: null, end: null } });
+    expect(response.body).toEqual({
+      trip: {
+        id: trip.id,
+        name: "Appalachian Trail",
+        status: "planning",
+        trail: trip.trail,
+        location: trip.location,
+        start: null,
+        end: null,
+      },
+    });
 
     const dbTrip = await db.trip.findUnique({ where: { id: trip.id } });
     expect(dbTrip?.start).toBeNull();

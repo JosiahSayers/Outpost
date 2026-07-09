@@ -1,0 +1,24 @@
+info:
+  name: Create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/tasks"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Reserve permits",
+        "complete": false,
+        "phase": "before",
+        "dueDate": "2026-07-15"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

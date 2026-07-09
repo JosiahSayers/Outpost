@@ -4,6 +4,11 @@ import {
   type ClientTripTask,
 } from "$/transformers/trip-task";
 import type { Trip, TripTask } from "../../generated/prisma/browser";
+import {
+  transform as mealPlanDayTransform,
+  type ClientMealPlanDay,
+  type FullMealPlanDayInput,
+} from "./meal-plan/day";
 
 export type ClientTrip = Omit<
   Pick<Trip, "id" | "name" | "trail" | "location" | "status" | "start" | "end">,
@@ -27,15 +32,18 @@ export function transform(item: Trip): ClientTrip {
 
 export type ClientFullTrip = ClientTrip & {
   tasks: Array<ClientTripTask>;
+  mealPlan: ClientMealPlanDay[];
 };
 
 type FullTrip = Trip & {
   tasks: TripTask[];
+  mealPlanDays: FullMealPlanDayInput[];
 };
 
 export function transformFull(item: FullTrip): ClientFullTrip {
   return {
     ...transform(item),
     tasks: item.tasks.map(tripTaskTransform),
+    mealPlan: item.mealPlanDays.map(mealPlanDayTransform),
   };
 }

@@ -1,6 +1,8 @@
+import { createDefaultMealPlan } from "$/frontend/utils/default-data/meal-plan-day";
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
@@ -42,29 +44,53 @@ tripRouter.get(
   async (req, res) => {
     const trip = await db.trip.findUnique({
       where: { id: req.params.id },
-      include: { tasks: true },
+      include: { tasks: true, mealPlanDays: { include: { items: true } } },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });
   },
 );
 
 tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
-  const newTrip = await db.trip.create({
-    data: {
-      name: req.body.name,
-      status: req.body.status,
-      trail: req.body.trail,
-      location: req.body.location,
-      start: req.body.start,
-      end: req.body.end,
-      userId: req.session!.user.id,
-      tasks: {
-        createMany: {
-          data: prepareDefaultTripTasks(req.body),
+  let newId: string | undefined;
+
+  await db.$transaction(async (tx) => {
+    const newTrip = await tx.trip.create({
+      data: {
+        name: req.body.name,
+        status: req.body.status,
+        trail: req.body.trail,
+        location: req.body.location,
+        start: req.body.start,
+        end: req.body.end,
+        userId: req.session!.user.id,
+        tasks: {
+          createMany: {
+            data: prepareDefaultTripTasks(req.body),
+          },
+        },
+      },
+    });
+
+    await createDefaultMealPlan(newTrip, tx);
+
+    newId = newTrip.id;
+  });
+
+  const newTrip = await db.trip.findUnique({
+    where: { id: newId },
+    include: {
+      tasks: true,
+      mealPlanDays: {
+        include: {
+          items: true,
         },
       },
     },
   });
+
+  if (!newTrip) {
+    return res.sendStatus(500);
+  }
 
   return res.status(201).json({ trip: transformers.trip(newTrip) });
 });
@@ -101,3 +127,4 @@ tripRouter.patch(
 );
 
 tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);
+tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);

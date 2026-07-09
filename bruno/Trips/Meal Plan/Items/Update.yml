@@ -1,17 +1,18 @@
 info:
   name: Update
   type: http
-  seq: 5
+  seq: 2
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/api/packing-lists/10"
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/meal-plan/days/1/items/1"
   body:
     type: json
     data: |-
       {
-        "name": "Josiah's Packing List",
-        "description": "Three-season backpacking kit"
+        "name": "Oatmeal",
+        "calories": 400,
+        "meal": "breakfast"
       }
   auth: inherit
 

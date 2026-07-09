@@ -1,0 +1,26 @@
+info:
+  name: Create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/meal-plan/days/1/items"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Oatmeal",
+        "calories": 350,
+        "meal": "breakfast"
+      //   "quantity": 1,
+      //   "waterMl": 250,
+      //   "dryWeightGrams": 80
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

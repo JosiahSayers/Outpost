@@ -59,8 +59,9 @@ describe("POST /", () => {
       .expect("Content-Type", /json/)
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       task: {
+        id: expect.any(String),
         name: "Pack backpack",
         phase: "before",
         complete: true,
@@ -345,6 +346,7 @@ describe("PATCH /:taskId", () => {
         name: "Pack backpack",
         phase: "before",
         complete: false,
+        dueDate: new Date("2026-05-01"),
       }),
     });
     taskId = task.id;
@@ -409,7 +411,7 @@ describe("PATCH /:taskId", () => {
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
       task: {
         id: taskId,
         name: "Pack bear canister",
@@ -438,8 +440,14 @@ describe("PATCH /:taskId", () => {
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({
-      task: { name: "Pack backpack", phase: "before", complete: true },
+    expect(response.body).toEqual({
+      task: {
+        id: taskId,
+        name: "Pack backpack",
+        phase: "before",
+        complete: true,
+        dueDate: "2026-05-01",
+      },
     });
   });
 
