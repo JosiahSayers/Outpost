@@ -431,4 +431,147 @@ test.describe("Trip Page", () => {
       });
     });
   });
+
+  test.describe("meal plan", () => {
+    // A new trip is seeded with one meal plan day (createDefaultMealPlan),
+    // since this trip has no start/end date set.
+    // The mobile card view renders alongside the desktop table regardless of
+    // viewport (only hidden via a CSS media query), so scoping to the
+    // <table> element avoids matching the same day/item text twice.
+    function table(page: Page) {
+      return page.locator("table");
+    }
+
+    test("shows the default day in the table", async ({ page }) => {
+      await expect(table(page).getByText("Day 1")).toBeVisible();
+    });
+
+    test.describe("adding a day", () => {
+      test("adds a day and persists across a reload", async ({ page }) => {
+        await page.getByRole("button", { name: "Add day" }).click();
+        await expect(table(page).getByText("Day 2")).toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Day 2")).toBeVisible();
+      });
+    });
+
+    test.describe("opening a day", () => {
+      test("opens the day's drawer", async ({ page }) => {
+        await table(page).getByText("Day 1").click();
+        await expect(
+          page.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("quick-adding a meal item", () => {
+      test("adds the item and shows it in the table after a reload", async ({
+        page,
+      }) => {
+        await table(page).getByText("Day 1").click();
+        await expect(
+          page.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill("Granola");
+        await input.press("Enter");
+
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).toBeVisible();
+        await expect(input).toHaveValue("");
+
+        await page.reload();
+        await expect(table(page).getByText("Granola")).toBeVisible();
+      });
+    });
+
+    test.describe("editing a meal item", () => {
+      test("editing name, meal, and calories persists across a reload", async ({
+        page,
+      }) => {
+        await table(page).getByText("Day 1").click();
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill("Granola");
+        await input.press("Enter");
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).toBeVisible();
+
+        await page.getByRole("button", { name: /Granola/ }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+
+        await page.getByRole("textbox", { name: /^Name/ }).fill("Trail mix");
+        await page.getByRole("combobox", { name: "Meal" }).click();
+        await page.getByRole("option", { name: "Snacks" }).click();
+        await page.getByRole("textbox", { name: "Calories" }).fill("400");
+        await page.getByRole("button", { name: "Save" }).click();
+
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).not.toBeVisible();
+        await expect(
+          page.getByRole("button", { name: /Trail mix/ }),
+        ).toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Trail mix")).toBeVisible();
+      });
+    });
+
+    test.describe("deleting a meal item", () => {
+      async function addItem(page: Page) {
+        await table(page).getByText("Day 1").click();
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill("Granola");
+        await input.press("Enter");
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).toBeVisible();
+        await page.getByRole("button", { name: /Granola/ }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+      }
+
+      test("removes the item and persists across a reload", async ({
+        page,
+      }) => {
+        await addItem(page);
+
+        await page.getByRole("button", { name: "Remove item" }).click();
+        await expect(
+          page.getByRole("heading", { name: "Remove item?" }),
+        ).toBeVisible();
+        await page.getByRole("button", { name: "Remove", exact: true }).click();
+
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).not.toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Granola")).not.toBeVisible();
+      });
+
+      test("does not delete when cancelled", async ({ page }) => {
+        await addItem(page);
+
+        await page.getByRole("button", { name: "Remove item" }).click();
+        await page.getByRole("button", { name: "Cancel" }).click();
+
+        // Cancel only closes the confirmation modal; the item edit form
+        // underneath is still showing the item that would've been removed.
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+        await expect(page.getByRole("textbox", { name: /^Name/ })).toHaveValue(
+          "Granola",
+        );
+      });
+    });
+  });
 });
