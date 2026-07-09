@@ -2,22 +2,19 @@ import { toDateOnly } from "$/transformers/helpers";
 import type {
   MealName,
   MealPlanDay,
-  MealPlanMealItem,
+  MealPlanItem,
 } from "../../../generated/prisma/browser";
-import {
-  transform as itemTransform,
-  type ClientMealPlanMealItem,
-} from "./item";
+import { transform as itemTransform, type ClientMealPlanItem } from "./item";
 
 const MEAL_NAMES: MealName[] = ["breakfast", "lunch", "dinner", "snacks"];
 
 export type ClientMealPlanDay = Pick<MealPlanDay, "id" | "dayNumber"> & {
   date: string | null;
-  meals: Record<MealName, ClientMealPlanMealItem[]>;
+  meals: Record<MealName, ClientMealPlanItem[]>;
 };
 
 export type FullMealPlanDayInput = MealPlanDay & {
-  mealItems: MealPlanMealItem[];
+  items: MealPlanItem[];
 };
 
 export function transform(item: FullMealPlanDayInput): ClientMealPlanDay {
@@ -26,16 +23,13 @@ export function transform(item: FullMealPlanDayInput): ClientMealPlanDay {
     date: toDateOnly(item.date),
     dayNumber: item.dayNumber,
     meals: Object.fromEntries(
-      MEAL_NAMES.map((mealName) => [
-        mealName,
-        getItems(item.mealItems, mealName),
-      ]),
-    ) as Record<MealName, ClientMealPlanMealItem[]>,
+      MEAL_NAMES.map((mealName) => [mealName, getItems(item.items, mealName)]),
+    ) as Record<MealName, ClientMealPlanItem[]>,
   };
 }
 
-function getItems(mealItems: MealPlanMealItem[], mealName: MealName) {
-  return mealItems
-    .filter((mealItem) => mealItem.meal === mealName)
+function getItems(items: MealPlanItem[], mealName: MealName) {
+  return items
+    .filter((mealPlanItem) => mealPlanItem.meal === mealName)
     .map(itemTransform);
 }

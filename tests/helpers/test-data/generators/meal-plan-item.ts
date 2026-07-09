@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker";
-import type { MealPlanMealItem } from "../../../../generated/prisma/client";
+import type { MealPlanItem } from "../../../../generated/prisma/client";
 import type { OptionalPartial } from "../../../../type-helpers";
 
-export default function makeMealPlanMealItem(
-  overrides: OptionalPartial<MealPlanMealItem> = {},
-): MealPlanMealItem {
+export default function makeMealPlanItem(
+  overrides: OptionalPartial<MealPlanItem> = {},
+): MealPlanItem {
   return {
     id: faker.string.uuid(),
     createdAt: faker.date.past(),

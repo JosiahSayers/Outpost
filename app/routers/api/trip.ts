@@ -44,7 +44,7 @@ tripRouter.get(
   async (req, res) => {
     const trip = await db.trip.findUnique({
       where: { id: req.params.id },
-      include: { tasks: true, mealPlanDays: { include: { mealItems: true } } },
+      include: { tasks: true, mealPlanDays: { include: { items: true } } },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });
   },
@@ -82,7 +82,7 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
       tasks: true,
       mealPlanDays: {
         include: {
-          mealItems: true,
+          items: true,
         },
       },
     },

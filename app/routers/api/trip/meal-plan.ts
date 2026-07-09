@@ -38,7 +38,7 @@ mealPlanRouter.post(
         req.body.date,
       ),
       include: {
-        mealItems: true,
+        items: true,
       },
     });
 
@@ -100,7 +100,7 @@ mealPlanRouter.patch(
         date: req.body.date,
       },
       include: {
-        mealItems: true,
+        items: true,
       },
     });
 

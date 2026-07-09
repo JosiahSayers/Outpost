@@ -14,7 +14,7 @@ CREATE TABLE "MealPlanDay" (
 );
 
 -- CreateTable
-CREATE TABLE "MealPlanMealItem" (
+CREATE TABLE "MealPlanItem" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -26,17 +26,17 @@ CREATE TABLE "MealPlanMealItem" (
     "dryWeightGrams" INTEGER,
     "mealPlanDayId" TEXT NOT NULL,
 
-    CONSTRAINT "MealPlanMealItem_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "MealPlanItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MealPlanDay_tripId_dayNumber_key" ON "MealPlanDay"("tripId", "dayNumber");
 
 -- CreateIndex
-CREATE INDEX "MealPlanMealItem_meal_mealPlanDayId_idx" ON "MealPlanMealItem"("meal", "mealPlanDayId");
+CREATE INDEX "MealPlanItem_meal_mealPlanDayId_idx" ON "MealPlanItem"("meal", "mealPlanDayId");
 
 -- AddForeignKey
 ALTER TABLE "MealPlanDay" ADD CONSTRAINT "MealPlanDay_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MealPlanMealItem" ADD CONSTRAINT "MealPlanMealItem_mealPlanDayId_fkey" FOREIGN KEY ("mealPlanDayId") REFERENCES "MealPlanDay"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MealPlanItem" ADD CONSTRAINT "MealPlanItem_mealPlanDayId_fkey" FOREIGN KEY ("mealPlanDayId") REFERENCES "MealPlanDay"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

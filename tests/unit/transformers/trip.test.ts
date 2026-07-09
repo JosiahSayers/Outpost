@@ -4,13 +4,13 @@ import { transform, transformFull } from "$/transformers/trip";
 
 function makeMealPlanDay() {
   const day = make("MealPlanDay");
-  const breakfastItem = make("MealPlanMealItem", {
+  const breakfastItem = make("MealPlanItem", {
     mealPlanDayId: day.id,
     meal: "breakfast",
   });
   return {
     ...day,
-    mealItems: [breakfastItem],
+    items: [breakfastItem],
   };
 }
 
@@ -67,7 +67,7 @@ describe("transformFull", () => {
           dayNumber: day.dayNumber,
           date: day.date!.toISOString().slice(0, 10),
           meals: {
-            breakfast: [expect.objectContaining({ id: day.mealItems[0]!.id })],
+            breakfast: [expect.objectContaining({ id: day.items[0]!.id })],
             lunch: [],
             dinner: [],
             snacks: [],

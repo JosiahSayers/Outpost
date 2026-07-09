@@ -1,7 +1,7 @@
-import type { MealPlanMealItem } from "../../../generated/prisma/client";
+import type { MealPlanItem } from "../../../generated/prisma/client";
 
-export type ClientMealPlanMealItem = Pick<
-  MealPlanMealItem,
+export type ClientMealPlanItem = Pick<
+  MealPlanItem,
   | "id"
   | "name"
   | "calories"
@@ -11,7 +11,7 @@ export type ClientMealPlanMealItem = Pick<
   | "meal"
 >;
 
-export function transform(item: MealPlanMealItem): ClientMealPlanMealItem {
+export function transform(item: MealPlanItem): ClientMealPlanItem {
   return {
     id: item.id,
     name: item.name,

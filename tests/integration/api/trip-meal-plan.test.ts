@@ -314,8 +314,8 @@ describe("PATCH /days/:day", () => {
       }),
     });
     for (const meal of ["breakfast", "lunch", "dinner", "snacks"] as const) {
-      await db.mealPlanMealItem.create({
-        data: make("MealPlanMealItem", { mealPlanDayId: day.id, meal }),
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", { mealPlanDayId: day.id, meal }),
       });
     }
   });

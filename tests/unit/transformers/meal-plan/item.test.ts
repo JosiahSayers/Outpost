@@ -4,7 +4,7 @@ import { make } from "../../../helpers/test-data/make";
 
 describe("transform", () => {
   it("returns the expected shape", () => {
-    const item = make("MealPlanMealItem", {
+    const item = make("MealPlanItem", {
       meal: "dinner",
       name: "Dehydrated chili",
       calories: 650,
@@ -26,7 +26,7 @@ describe("transform", () => {
 
   it("passes through null waterMl and dryWeightGrams", () => {
     const item = {
-      ...make("MealPlanMealItem"),
+      ...make("MealPlanItem"),
       waterMl: null,
       dryWeightGrams: null,
     };
