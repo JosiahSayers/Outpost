@@ -1,0 +1,23 @@
+info:
+  name: Update
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/meal-plan/days/1/items/1"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Oatmeal",
+        "calories": 400,
+        "meal": "breakfast"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
