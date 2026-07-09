@@ -18,5 +18,6 @@ declare namespace Express {
     id: string;
     logger: import("winston").Logger;
     session?: import("$/utils/auth").Session;
+    mealPlanDayId?: string;
   }
 }
