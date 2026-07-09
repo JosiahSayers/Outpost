@@ -7,7 +7,7 @@ import TripTextField from "$/frontend/trip/header/trip-text-field";
 import { useDeleteTrip, useUpdateTrip } from "$/frontend/utils/api/trip";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientTrip } from "$/transformers/trip";
-import { Group, Paper, Stack } from "@mantine/core";
+import { Box, Group, Paper, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { CompassIcon, MapPinIcon } from "@phosphor-icons/react";
 import { useLocation } from "wouter";
@@ -32,29 +32,40 @@ export default function Header({ trip }: Props) {
   return (
     <Paper withBorder p="lg" bg="trail-green.0">
       <Stack gap={6}>
-        <Group gap="sm" justify="space-between">
-          <Group gap="sm">
-            <TripName
-              value={trip.name}
-              onSave={(name) =>
-                updateTrip.mutate(
-                  { name },
-                  { onError: notifyError("Couldn't rename trip") },
-                )
-              }
-            />
-            <TripStatusBadge
-              value={trip.status}
-              onSave={(status) =>
-                updateTrip.mutate(
-                  { status },
-                  { onError: notifyError("Couldn't update status") },
-                )
-              }
-            />
+        <Group
+          gap="sm"
+          justify="space-between"
+          wrap="nowrap"
+          align="flex-start"
+        >
+          <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              <TripName
+                value={trip.name}
+                onSave={(name) =>
+                  updateTrip.mutate(
+                    { name },
+                    { onError: notifyError("Couldn't rename trip") },
+                  )
+                }
+              />
+            </Box>
+            <Box style={{ flexShrink: 0 }}>
+              <TripStatusBadge
+                value={trip.status}
+                onSave={(status) =>
+                  updateTrip.mutate(
+                    { status },
+                    { onError: notifyError("Couldn't update status") },
+                  )
+                }
+              />
+            </Box>
           </Group>
 
-          <TripActionsMenu onDelete={confirm.open} />
+          <Box style={{ flexShrink: 0 }}>
+            <TripActionsMenu onDelete={confirm.open} />
+          </Box>
         </Group>
         <Group gap="lg">
           <TripTextField
