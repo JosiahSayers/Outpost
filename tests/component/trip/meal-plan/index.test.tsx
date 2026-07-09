@@ -69,7 +69,10 @@ describe("MealPlanSection", () => {
     expect(screen.getAllByText("Aug 14")).not.toHaveLength(0);
   });
 
-  it("renders item names under their meal", () => {
+  // Both the desktop table and mobile cards render in the test DOM (media
+  // queries never match), and both list items individually, so each item's
+  // details appear exactly twice.
+  it("lists item names individually under their meal in both views", () => {
     renderMealPlan([
       day({
         meals: {
@@ -84,12 +87,13 @@ describe("MealPlanSection", () => {
       }),
     ]);
 
-    expect(screen.getAllByText("Granola")).not.toHaveLength(0);
-    expect(screen.getAllByText("Pad Thai, Ramen")).not.toHaveLength(0);
-    expect(screen.getAllByText("Trail mix")).not.toHaveLength(0);
+    expect(screen.getAllByText("Granola")).toHaveLength(2);
+    expect(screen.getAllByText("Pad Thai")).toHaveLength(2);
+    expect(screen.getAllByText("Ramen")).toHaveLength(2);
+    expect(screen.getAllByText("Trail mix")).toHaveLength(2);
   });
 
-  it("shows the quantity when an item has more than one", () => {
+  it("shows the quantity next to an item's name in both views", () => {
     renderMealPlan([
       day({
         meals: {
@@ -101,6 +105,62 @@ describe("MealPlanSection", () => {
       }),
     ]);
 
-    expect(screen.getAllByText("Bars ×3")).not.toHaveLength(0);
+    expect(screen.getAllByText("Bars")).toHaveLength(2);
+    expect(screen.getAllByText("×3")).toHaveLength(2);
+  });
+
+  it("shows the day's total calories in both views", () => {
+    renderMealPlan([
+      day({
+        meals: {
+          breakfast: [item({ calories: 350 })],
+          lunch: [],
+          dinner: [item({ calories: 500, quantity: 2, meal: "dinner" })],
+          snacks: [],
+        },
+      }),
+    ]);
+
+    expect(screen.getAllByText("1,350 cal")).toHaveLength(2);
+  });
+
+  it("shows a calorie count for each meal that has items in both views", () => {
+    renderMealPlan([
+      day({
+        meals: {
+          breakfast: [item({ calories: 350 }), item({ calories: 10 })],
+          lunch: [],
+          dinner: [item({ calories: 700, meal: "dinner" })],
+          snacks: [],
+        },
+      }),
+    ]);
+
+    // 360 breakfast + 700 dinner; the day header shows the combined 1,060
+    expect(screen.getAllByText("360 cal")).toHaveLength(2);
+    expect(screen.getAllByText("700 cal")).toHaveLength(2);
+    expect(screen.getAllByText("1,060 cal")).toHaveLength(2);
+  });
+
+  it("shows 0 cal totals when items exist but calories are untracked", () => {
+    renderMealPlan([
+      day({
+        meals: {
+          breakfast: [item({ name: "Granola", calories: 0 })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+    ]);
+
+    // meal subtotal + day total, in each of the two views
+    expect(screen.getAllByText("0 cal")).toHaveLength(4);
+  });
+
+  it("shows every meal on the mobile card, even ones without items", () => {
+    renderMealPlan([day()]);
+
+    expect(screen.getAllByText("Nothing planned.")).toHaveLength(4);
   });
 });

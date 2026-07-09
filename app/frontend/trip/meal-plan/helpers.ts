@@ -94,12 +94,3 @@ export function itemCaloriesSummary(item: ClientMealPlanItem): string | null {
   }
   return formatCalories(item.calories);
 }
-
-export function mealItemsSummary(items: ClientMealPlanItem[]): string | null {
-  if (items.length === 0) return null;
-  return items
-    .map((item) =>
-      item.quantity > 1 ? `${item.name} ×${item.quantity}` : item.name,
-    )
-    .join(", ");
-}
