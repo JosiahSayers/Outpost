@@ -8,6 +8,7 @@ import {
 } from "$/frontend/trip/meal-plan/helpers";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Group, Paper, Stack, Text } from "@mantine/core";
+import { CaretRightIcon } from "@phosphor-icons/react";
 
 export default function MobileMealPlan({
   mealPlan,
@@ -39,11 +40,14 @@ export default function MobileMealPlan({
                   </Text>
                 )}
               </Group>
-              {hasItems && (
-                <Text size="xs" c="dimmed">
-                  {formatCalories(dayCalories(day))}
-                </Text>
-              )}
+              <Group gap={6}>
+                {hasItems && (
+                  <Text size="xs" c="dimmed">
+                    {formatCalories(dayCalories(day))}
+                  </Text>
+                )}
+                <CaretRightIcon size={12} color="var(--mantine-color-dimmed)" />
+              </Group>
             </Group>
 
             <Stack gap="sm">
