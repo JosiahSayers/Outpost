@@ -2,6 +2,7 @@ import MealPlanSection from "$/frontend/trip/meal-plan";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
@@ -31,9 +32,11 @@ function day(overrides: Partial<ClientMealPlanDay> = {}): ClientMealPlanDay {
 
 function renderMealPlan(mealPlan: ClientMealPlanDay[]) {
   render(
-    <MantineProvider>
-      <MealPlanSection mealPlan={mealPlan} />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <MealPlanSection tripId="trip-1" mealPlan={mealPlan} tripStart={null} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -41,6 +44,16 @@ describe("MealPlanSection", () => {
   it("shows an empty state when there are no days", () => {
     renderMealPlan([]);
     expect(screen.getByText("No meals planned yet.")).toBeInTheDocument();
+  });
+
+  it("shows the Add day button even when the plan is empty", () => {
+    renderMealPlan([]);
+    expect(screen.getByRole("button", { name: "Add day" })).toBeInTheDocument();
+  });
+
+  it("shows the Add day button when the plan has days", () => {
+    renderMealPlan([day()]);
+    expect(screen.getByRole("button", { name: "Add day" })).toBeInTheDocument();
   });
 
   it("renders a labeled row for each day", () => {

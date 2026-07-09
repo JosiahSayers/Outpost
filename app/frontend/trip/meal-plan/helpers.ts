@@ -1,3 +1,4 @@
+import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
 import type { MealName } from "../../../../generated/prisma/enums";
 
@@ -26,6 +27,41 @@ export function formatMealDate(date: string | null): string | null {
     day: "numeric",
     timeZone: "UTC",
   }).format(new Date(date));
+}
+
+// Values for a day appended to the end of the meal plan: one past the
+// highest existing day number, dated one day after that day. When the plan
+// is empty or the last day has no date, the date is derived from the trip
+// start instead (start + dayNumber - 1), and is null if the trip has no
+// start date either.
+export function nextMealPlanDay(
+  mealPlan: ClientMealPlanDay[],
+  tripStart: string | null,
+): { dayNumber: number; date: string | null } {
+  if (mealPlan.length === 0) {
+    return { dayNumber: 1, date: tripStart };
+  }
+
+  const lastDay = mealPlan.reduce((max, day) =>
+    day.dayNumber > max.dayNumber ? day : max,
+  );
+  const dayNumber = lastDay.dayNumber + 1;
+
+  let date: string | null = null;
+  if (lastDay.date) {
+    date = addUtcDays(lastDay.date, 1);
+  } else if (tripStart) {
+    date = addUtcDays(tripStart, dayNumber - 1);
+  }
+
+  return { dayNumber, date };
+}
+
+// Like formatMealDate, treats the date-only string as a UTC calendar day.
+function addUtcDays(date: string, days: number): string {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result.toISOString().slice(0, 10);
 }
 
 export function mealItemsSummary(items: ClientMealPlanItem[]): string | null {
