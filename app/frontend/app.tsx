@@ -1,3 +1,4 @@
+import "$/frontend/global.css";
 import AppShell from "$/frontend/layout/app-shell";
 import DashboardPage from "$/frontend/pages/dashboard.page";
 import GearInventoryPage from "$/frontend/pages/gear-inventory.page";
