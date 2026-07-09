@@ -1,4 +1,4 @@
-import BackToDashboardLink from "$/frontend/trip/back-to-dashboard-link";
+import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
 import MealPlanSection from "$/frontend/trip/meal-plan";

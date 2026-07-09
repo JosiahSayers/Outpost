@@ -1,4 +1,4 @@
-import BackToDashboardLink from "$/frontend/trip/back-to-dashboard-link";
+import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";

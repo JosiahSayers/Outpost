@@ -1,4 +1,5 @@
 import PackingListView from "$/frontend/packing-list/packing-list-view";
+import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { usePackingList } from "$/frontend/utils/api/packing-list";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { Alert, Center, Loader, Stack } from "@mantine/core";
@@ -28,7 +29,8 @@ export default function PackingListPage() {
   }
 
   return (
-    <Stack py="xl" px={{ base: "md", md: "xl" }}>
+    <Stack py="xl" px={{ base: "md", md: "xl" }} maw={1100} mx="auto">
+      <BackToDashboardLink />
       <PackingListView list={data} editable={data.editable} />
     </Stack>
   );
