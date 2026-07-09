@@ -45,3 +45,23 @@ it("does not call onAdd when the input is blank", () => {
 
   expect(onAdd).not.toHaveBeenCalled();
 });
+
+it("calls onAdd with the trimmed name on blur and clears the input", () => {
+  renderInput();
+  const input = screen.getByRole("textbox", { name: "Add to Dinner" });
+
+  fireEvent.change(input, { target: { value: "  Pad Thai  " } });
+  fireEvent.blur(input);
+
+  expect(onAdd).toHaveBeenCalledWith("Pad Thai");
+  expect(input).toHaveValue("");
+});
+
+it("does not call onAdd on blur when the input is blank", () => {
+  renderInput();
+  const input = screen.getByRole("textbox", { name: "Add to Dinner" });
+
+  fireEvent.blur(input);
+
+  expect(onAdd).not.toHaveBeenCalled();
+});
