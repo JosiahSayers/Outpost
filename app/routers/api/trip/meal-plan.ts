@@ -1,4 +1,3 @@
-import { prepareMealPlanDay } from "$/frontend/utils/default-data/meal-plan-day";
 import {
   mealPlanDayExists,
   mealPlanItemExists,
@@ -39,11 +38,11 @@ mealPlanRouter.post(
     }
 
     const newDay = await db.mealPlanDay.create({
-      data: prepareMealPlanDay(
-        req.params.id,
-        req.body.dayNumber,
-        req.body.date,
-      ),
+      data: {
+        tripId: req.params.id,
+        dayNumber: req.body.dayNumber,
+        date: req.body.date,
+      },
       include: {
         items: true,
       },

@@ -12,11 +12,13 @@ export async function createDefaultMealPlan(
 
   for (let day = 1; day < daysToCreate + 1; day++) {
     await transaction.mealPlanDay.create({
-      data: prepareMealPlanDay(
-        trip.id,
-        day,
-        firstDate ? firstDate.plus({ days: day - 1 }).toJSDate() : undefined,
-      ),
+      data: {
+        tripId: trip.id,
+        dayNumber: day,
+        date: firstDate
+          ? firstDate.plus({ days: day - 1 }).toJSDate()
+          : undefined,
+      },
     });
   }
 }
@@ -29,16 +31,4 @@ function getNumberOfMealPlanDays(trip: Trip) {
   const start = DateTime.fromJSDate(trip.start);
   const end = DateTime.fromJSDate(trip.end);
   return Math.max(end.diff(start, "days").days, 1);
-}
-
-export function prepareMealPlanDay(
-  tripId: string,
-  dayNumber: number,
-  date: Date | null | undefined,
-) {
-  return {
-    tripId,
-    dayNumber,
-    date,
-  };
 }
