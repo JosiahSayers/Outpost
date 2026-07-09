@@ -416,10 +416,10 @@ describe("POST /", () => {
       orderBy: { dayNumber: "asc" },
     });
 
-    expect(mealPlanDays.map((day) => day.dayNumber)).toEqual([1, 2, 3]);
+    expect(mealPlanDays.map((day) => day.dayNumber)).toEqual([1, 2, 3, 4]);
     expect(
       mealPlanDays.map((day) => day.date?.toISOString().slice(0, 10)),
-    ).toEqual(["2026-06-01", "2026-06-02", "2026-06-03"]);
+    ).toEqual(["2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04"]);
   });
 
   it("creates a single meal plan day when start and end dates are the same", async () => {
