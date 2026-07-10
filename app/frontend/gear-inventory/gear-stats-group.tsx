@@ -37,7 +37,7 @@ export default function GearStatsGroup({
   items: ClientGearInventoryItem[];
 }) {
   const { totalItems, totalGrams, categoryCount } = buildGearSummary(items);
-  const formatWeight = useWeightDisplay();
+  const formatWeight = useWeightDisplay({ rollUp: true });
   return (
     <Group gap="xl" wrap="wrap">
       <Stat

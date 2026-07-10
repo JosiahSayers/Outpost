@@ -10,6 +10,7 @@ import {
 import { useCallback } from "react";
 
 export interface UseWeightDisplayOptions {
+  decimalScale?: number;
   // When true, values that are large for the display unit are shown in the
   // next larger unit instead (e.g. 26 oz displays as "1.63 lb"). Off by
   // default so lists of individually-entered weights stay in a consistent
@@ -23,10 +24,10 @@ export interface UseWeightDisplayOptions {
 // formatter function rather than a formatted string so the hook can be
 // called once per component and the formatter reused across a list (e.g.
 // mapped table rows) without violating the rules of hooks.
-export function useWeightDisplay(
+export function useWeightDisplay({
   decimalScale = 2,
-  { rollUp = false }: UseWeightDisplayOptions = {},
-) {
+  rollUp = false,
+}: UseWeightDisplayOptions = {}) {
   const unit = useDefaultUnit(WEIGHT_REGION_DEFAULT_UNIT, WEIGHT_DEFAULT_UNIT);
 
   return useCallback(
