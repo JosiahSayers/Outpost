@@ -20,6 +20,10 @@ function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
   };
 }
 
+// useFluidDisplay and useWeightDisplay detect the locale-appropriate unit;
+// the happy-dom test environment reports en-US, which resolves to cups and
+// ounces respectively (see gear-stats-group.test.tsx for the weight case).
+
 function day(overrides: Partial<ClientMealPlanDay> = {}): ClientMealPlanDay {
   return {
     id: crypto.randomUUID(),
@@ -109,9 +113,10 @@ describe("MealPlanSection", () => {
     expect(screen.getAllByText("×3")).toHaveLength(2);
   });
 
-  it("shows the day's total calories in both views", () => {
+  it("shows each day's total calories, and the trip total, in both views", () => {
     renderMealPlan([
       day({
+        dayNumber: 1,
         meals: {
           breakfast: [item({ calories: 350 })],
           lunch: [],
@@ -119,27 +124,20 @@ describe("MealPlanSection", () => {
           snacks: [],
         },
       }),
-    ]);
-
-    expect(screen.getAllByText("1,350 cal")).toHaveLength(2);
-  });
-
-  it("shows a calorie count for each meal that has items in both views", () => {
-    renderMealPlan([
       day({
+        dayNumber: 2,
         meals: {
-          breakfast: [item({ calories: 350 }), item({ calories: 10 })],
+          breakfast: [item({ calories: 500 })],
           lunch: [],
-          dinner: [item({ calories: 700, meal: "dinner" })],
+          dinner: [],
           snacks: [],
         },
       }),
     ]);
 
-    // 360 breakfast + 700 dinner; the day header shows the combined 1,060
-    expect(screen.getAllByText("360 cal")).toHaveLength(2);
-    expect(screen.getAllByText("700 cal")).toHaveLength(2);
-    expect(screen.getAllByText("1,060 cal")).toHaveLength(2);
+    expect(screen.getAllByText("1,350 cal")).toHaveLength(2); // day 1
+    expect(screen.getAllByText("500 cal")).toHaveLength(2); // day 2
+    expect(screen.getAllByText("1,850 cal")).toHaveLength(2); // trip total
   });
 
   it("shows 0 cal totals when items exist but calories are untracked", () => {
@@ -154,8 +152,51 @@ describe("MealPlanSection", () => {
       }),
     ]);
 
-    // meal subtotal + day total, in each of the two views
+    // day total + trip total (which is the same single day), in each view
     expect(screen.getAllByText("0 cal")).toHaveLength(4);
+  });
+
+  it("rolls up the trip total weight to pounds while individual days stay in ounces, in both views", () => {
+    renderMealPlan([
+      day({
+        dayNumber: 1,
+        meals: {
+          breakfast: [item({ dryWeightGrams: 400 })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+      day({
+        dayNumber: 2,
+        meals: {
+          breakfast: [item({ dryWeightGrams: 400 })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+    ]);
+
+    expect(screen.getAllByText("14.11 oz")).toHaveLength(4); // both days, both views
+    expect(screen.getAllByText("1.76 lb")).toHaveLength(2); // trip total, both views
+  });
+
+  it("shows a water figure for each meal that needs it, and hides it for dry meals, in both views", () => {
+    renderMealPlan([
+      day({
+        meals: {
+          breakfast: [item({ waterMl: 180 }), item({ waterMl: 250 })],
+          lunch: [item({ waterMl: null, meal: "lunch" })],
+          dinner: [item({ waterMl: 350, meal: "dinner" })],
+          snacks: [],
+        },
+      }),
+    ]);
+
+    expect(screen.getAllByText("1.82 cups")).toHaveLength(2); // breakfast
+    expect(screen.getAllByText("1.48 cups")).toHaveLength(2); // dinner
+    expect(screen.queryAllByText("0 cups")).toHaveLength(0); // lunch (dry)
   });
 
   it("shows every meal on the mobile card, even ones without items", () => {

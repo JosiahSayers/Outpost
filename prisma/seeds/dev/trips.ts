@@ -2,6 +2,7 @@ import { createDefaultMealPlan } from "$/frontend/utils/default-data/meal-plan-d
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { db } from "$/utils/db";
 import { make } from "../../../tests/helpers/test-data/make";
+import { seedMealPlanItems } from "./meal-plan-items";
 
 export async function createTrips() {
   const user = await db.user.findUniqueOrThrow({
@@ -29,5 +30,14 @@ export async function createTrips() {
     });
 
     await createDefaultMealPlan(trip, db);
+
+    const mealPlanDays = await db.mealPlanDay.findMany({
+      where: { tripId: trip.id },
+      orderBy: { dayNumber: "asc" },
+    });
+
+    for (const day of mealPlanDays) {
+      await seedMealPlanItems(day);
+    }
   }
 }

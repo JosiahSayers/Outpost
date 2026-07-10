@@ -2,10 +2,15 @@ import {
   MEAL_LABEL,
   MEAL_ORDER,
   dayCalories,
+  dayWeightGrams,
   formatCalories,
   formatMealDate,
-  mealCalories,
+  mealWaterMl,
+  tripCalories,
+  tripWeightGrams,
 } from "$/frontend/trip/meal-plan/helpers";
+import { useFluidDisplay } from "$/frontend/utils/hooks/unit-conversion/use-fluid-display";
+import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Group, Paper, Stack, Text } from "@mantine/core";
 import { CaretRightIcon } from "@phosphor-icons/react";
@@ -17,6 +22,9 @@ export default function MobileMealPlan({
   mealPlan: ClientMealPlanDay[];
   onDayClick: (day: ClientMealPlanDay) => void;
 }) {
+  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWater = useFluidDisplay();
+
   return (
     <Stack gap="xs" hiddenFrom="sm">
       {mealPlan.map((day) => {
@@ -42,49 +50,78 @@ export default function MobileMealPlan({
               </Group>
               <Group gap={6}>
                 {hasItems && (
-                  <Text size="xs" c="dimmed">
-                    {formatCalories(dayCalories(day))}
-                  </Text>
+                  <Group gap={4} wrap="nowrap">
+                    <Text size="xs" c="dimmed">
+                      {formatCalories(dayCalories(day))}
+                    </Text>
+                    <Text size="xs" c="bark-brown.6" fw={600}>
+                      {formatWeight(dayWeightGrams(day))}
+                    </Text>
+                  </Group>
                 )}
                 <CaretRightIcon size={12} color="var(--mantine-color-dimmed)" />
               </Group>
             </Group>
 
             <Stack gap="sm">
-              {MEAL_ORDER.map((meal) => (
-                <Stack gap={2} key={meal}>
-                  <Group justify="space-between" align="baseline">
-                    <Text size="sm" fw={600}>
-                      {MEAL_LABEL[meal]}
-                    </Text>
-                    {day.meals[meal].length > 0 && (
-                      <Text size="xs" c="dimmed">
-                        {formatCalories(mealCalories(day.meals[meal]))}
+              {MEAL_ORDER.map((meal) => {
+                const waterMl = mealWaterMl(day.meals[meal]);
+                return (
+                  <Stack gap={2} key={meal}>
+                    <Group justify="space-between" align="baseline">
+                      <Text size="sm" fw={600}>
+                        {MEAL_LABEL[meal]}
                       </Text>
+                      {waterMl > 0 && (
+                        <Text size="xs" c="trail-green.7" fw={600}>
+                          {formatWater(waterMl)}
+                        </Text>
+                      )}
+                    </Group>
+                    {day.meals[meal].length === 0 ? (
+                      <Text size="sm" c="dimmed" pl="xs">
+                        Nothing planned.
+                      </Text>
+                    ) : (
+                      day.meals[meal].map((item) => (
+                        <Group gap={6} pl="xs" key={item.id}>
+                          <Text size="sm">{item.name}</Text>
+                          {item.quantity > 1 && (
+                            <Text size="sm" c="dimmed">
+                              ×{item.quantity}
+                            </Text>
+                          )}
+                        </Group>
+                      ))
                     )}
-                  </Group>
-                  {day.meals[meal].length === 0 ? (
-                    <Text size="sm" c="dimmed" pl="xs">
-                      Nothing planned.
-                    </Text>
-                  ) : (
-                    day.meals[meal].map((item) => (
-                      <Group gap={6} pl="xs" key={item.id}>
-                        <Text size="sm">{item.name}</Text>
-                        {item.quantity > 1 && (
-                          <Text size="sm" c="dimmed">
-                            ×{item.quantity}
-                          </Text>
-                        )}
-                      </Group>
-                    ))
-                  )}
-                </Stack>
-              ))}
+                  </Stack>
+                );
+              })}
             </Stack>
           </Paper>
         );
       })}
+
+      <Paper
+        withBorder
+        p="sm"
+        bg="trail-green.0"
+        style={{ borderColor: "var(--mantine-color-trail-green-2)" }}
+      >
+        <Group justify="space-between">
+          <Text size="xs" tt="uppercase" fw={600} c="dimmed">
+            Trip total
+          </Text>
+          <Group gap={6}>
+            <Text size="sm" fw={700}>
+              {formatCalories(tripCalories(mealPlan))}
+            </Text>
+            <Text size="sm" c="bark-brown.6" fw={700}>
+              {formatWeight(tripWeightGrams(mealPlan))}
+            </Text>
+          </Group>
+        </Group>
+      </Paper>
     </Stack>
   );
 }

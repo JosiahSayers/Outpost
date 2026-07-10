@@ -2,10 +2,15 @@ import {
   MEAL_LABEL,
   MEAL_ORDER,
   dayCalories,
+  dayWeightGrams,
   formatCalories,
   formatMealDate,
-  mealCalories,
+  mealWaterMl,
+  tripCalories,
+  tripWeightGrams,
 } from "$/frontend/trip/meal-plan/helpers";
+import { useFluidDisplay } from "$/frontend/utils/hooks/unit-conversion/use-fluid-display";
+import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Box, Group, Stack, Table, Text } from "@mantine/core";
 
@@ -16,6 +21,9 @@ export default function MealPlan({
   mealPlan: ClientMealPlanDay[];
   onDayClick: (day: ClientMealPlanDay) => void;
 }) {
+  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWater = useFluidDisplay();
+
   return (
     <Box visibleFrom="sm">
       <Table verticalSpacing="sm" highlightOnHover>
@@ -48,38 +56,72 @@ export default function MealPlan({
                     </Text>
                   )}
                   {hasItems && (
-                    <Text size="xs" c="dimmed">
-                      {formatCalories(dayCalories(day))}
-                    </Text>
+                    <Group gap={4} wrap="nowrap">
+                      <Text size="xs" c="dimmed">
+                        {formatCalories(dayCalories(day))}
+                      </Text>
+                      <Text size="xs" c="bark-brown.6" fw={600}>
+                        {formatWeight(dayWeightGrams(day))}
+                      </Text>
+                    </Group>
                   )}
                 </Table.Td>
-                {MEAL_ORDER.map((meal) => (
-                  <Table.Td key={meal} style={{ verticalAlign: "top" }}>
-                    {day.meals[meal].length === 0 ? (
-                      "—"
-                    ) : (
-                      <Stack gap={2}>
-                        {day.meals[meal].map((item) => (
-                          <Group gap={6} wrap="nowrap" key={item.id}>
-                            <Text size="sm">{item.name}</Text>
-                            {item.quantity > 1 && (
-                              <Text size="sm" c="dimmed">
-                                ×{item.quantity}
-                              </Text>
-                            )}
-                          </Group>
-                        ))}
-                        <Text size="xs" c="dimmed">
-                          {formatCalories(mealCalories(day.meals[meal]))}
-                        </Text>
-                      </Stack>
-                    )}
-                  </Table.Td>
-                ))}
+                {MEAL_ORDER.map((meal) => {
+                  const waterMl = mealWaterMl(day.meals[meal]);
+                  return (
+                    <Table.Td key={meal} style={{ verticalAlign: "top" }}>
+                      {day.meals[meal].length === 0 ? (
+                        "—"
+                      ) : (
+                        <Stack gap={2}>
+                          {day.meals[meal].map((item) => (
+                            <Group gap={6} wrap="nowrap" key={item.id}>
+                              <Text size="sm">{item.name}</Text>
+                              {item.quantity > 1 && (
+                                <Text size="sm" c="dimmed">
+                                  ×{item.quantity}
+                                </Text>
+                              )}
+                            </Group>
+                          ))}
+                          {waterMl > 0 && (
+                            <Text size="xs" c="trail-green.7" fw={600}>
+                              {formatWater(waterMl)}
+                            </Text>
+                          )}
+                        </Stack>
+                      )}
+                    </Table.Td>
+                  );
+                })}
               </Table.Tr>
             );
           })}
         </Table.Tbody>
+        <Table.Tfoot>
+          <Table.Tr style={{ borderBottom: "none" }}>
+            <Table.Td
+              colSpan={MEAL_ORDER.length + 1}
+              style={{
+                borderTop: "2px solid var(--mantine-color-stone-gray-3)",
+              }}
+            >
+              <Group justify="space-between">
+                <Text size="xs" tt="uppercase" fw={600} c="dimmed">
+                  Trip total
+                </Text>
+                <Group gap={6}>
+                  <Text size="sm" fw={700}>
+                    {formatCalories(tripCalories(mealPlan))}
+                  </Text>
+                  <Text size="sm" c="bark-brown.6" fw={700}>
+                    {formatWeight(tripWeightGrams(mealPlan))}
+                  </Text>
+                </Group>
+              </Group>
+            </Table.Td>
+          </Table.Tr>
+        </Table.Tfoot>
       </Table>
     </Box>
   );

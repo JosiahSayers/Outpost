@@ -1,10 +1,16 @@
 import {
   dayCalories,
+  dayWeightGrams,
   formatCalories,
   itemCaloriesSummary,
   itemTotalCalories,
+  itemTotalWaterMl,
+  itemTotalWeightGrams,
   mealCalories,
+  mealWaterMl,
   nextMealPlanDay,
+  tripCalories,
+  tripWeightGrams,
 } from "$/frontend/trip/meal-plan/helpers";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
@@ -125,9 +131,122 @@ describe("dayCalories", () => {
   });
 });
 
+describe("tripCalories", () => {
+  it("sums across every day", () => {
+    const plan = [
+      day({
+        meals: {
+          breakfast: [item({ calories: 350 })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+      day({
+        meals: {
+          breakfast: [],
+          lunch: [item({ calories: 540, meal: "lunch" })],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+    ];
+    expect(tripCalories(plan)).toBe(890);
+  });
+
+  it("is 0 for an empty plan", () => {
+    expect(tripCalories([])).toBe(0);
+  });
+});
+
 describe("formatCalories", () => {
   it("formats with a thousands separator and unit", () => {
     expect(formatCalories(2230)).toBe("2,230 cal");
+  });
+});
+
+describe("itemTotalWeightGrams", () => {
+  it("multiplies weight by quantity", () => {
+    expect(
+      itemTotalWeightGrams(item({ dryWeightGrams: 90, quantity: 3 })),
+    ).toBe(270);
+  });
+
+  it("is 0 when weight is untracked", () => {
+    expect(
+      itemTotalWeightGrams(item({ dryWeightGrams: null, quantity: 3 })),
+    ).toBe(0);
+  });
+});
+
+describe("dayWeightGrams", () => {
+  it("sums across every meal, accounting for quantity", () => {
+    const d = day({
+      meals: {
+        breakfast: [item({ dryWeightGrams: 90, quantity: 2 })],
+        lunch: [item({ dryWeightGrams: 150, meal: "lunch" })],
+        dinner: [item({ dryWeightGrams: null, meal: "dinner" })],
+        snacks: [],
+      },
+    });
+    expect(dayWeightGrams(d)).toBe(330);
+  });
+});
+
+describe("tripWeightGrams", () => {
+  it("sums across every day", () => {
+    const plan = [
+      day({
+        meals: {
+          breakfast: [item({ dryWeightGrams: 90, quantity: 2 })],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+      day({
+        meals: {
+          breakfast: [],
+          lunch: [item({ dryWeightGrams: 150, meal: "lunch" })],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+    ];
+    expect(tripWeightGrams(plan)).toBe(330);
+  });
+
+  it("is 0 for an empty plan", () => {
+    expect(tripWeightGrams([])).toBe(0);
+  });
+});
+
+describe("itemTotalWaterMl", () => {
+  it("multiplies water by quantity", () => {
+    expect(itemTotalWaterMl(item({ waterMl: 250, quantity: 2 }))).toBe(500);
+  });
+
+  it("is 0 when water is untracked", () => {
+    expect(itemTotalWaterMl(item({ waterMl: null, quantity: 2 }))).toBe(0);
+  });
+});
+
+describe("mealWaterMl", () => {
+  it("sums item totals, accounting for quantity", () => {
+    const items = [
+      item({ waterMl: 180, quantity: 2 }),
+      item({ waterMl: 250, quantity: 1 }),
+    ];
+    expect(mealWaterMl(items)).toBe(610);
+  });
+
+  it("is 0 for a meal with no water-tracked items", () => {
+    const items = [item({ waterMl: null }), item({ waterMl: 0 })];
+    expect(mealWaterMl(items)).toBe(0);
+  });
+
+  it("is 0 for an empty meal", () => {
+    expect(mealWaterMl([])).toBe(0);
   });
 });
 
