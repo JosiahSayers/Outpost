@@ -55,6 +55,27 @@ describe("displaying the value", () => {
     expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("");
     await waitFor(() => {});
   });
+
+  it("doesn't show trailing zeros from float noise when decimalScale is set", async () => {
+    // 1 cup rounded to the nearest ml (237) and converted back to cups isn't
+    // exactly 1 (1.0017404...) — decimalScale should collapse that back to a
+    // clean "1" rather than Mantine's raw "1.00".
+    render(
+      <MantineProvider>
+        <UnitConverterInput
+          label="Water"
+          decimalScale={2}
+          value={237}
+          onChange={onChange}
+          conversions={conversions}
+          unit="cupsUS"
+          onUnitChange={onUnitChange}
+        />
+      </MantineProvider>,
+    );
+    expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("1");
+    await waitFor(() => {});
+  });
 });
 
 describe("typing a number", () => {

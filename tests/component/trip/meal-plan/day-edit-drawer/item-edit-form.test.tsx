@@ -48,19 +48,20 @@ beforeEach(() => {
   ) as unknown as typeof fetch;
 });
 
-it("pre-fills the form with the item's fields", () => {
+it("pre-fills the form with the item's fields", async () => {
   renderForm();
   expect(screen.getByRole("textbox", { name: /^Name/ })).toHaveValue("Oatmeal");
   expect(screen.getByRole("textbox", { name: "Calories" })).toHaveValue("350");
-  expect(screen.getByRole("textbox", { name: "Water (ml)" })).toHaveValue(
-    "240",
-  );
+  // Default display unit is locale-detected (cupsUS in the "en-US" test
+  // environment), so the stored 240 ml renders as ~1.01 cups.
+  expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("1.01");
   expect(screen.getByRole("textbox", { name: "Dry weight (g)" })).toHaveValue(
     "90",
   );
   expect(screen.getByRole("combobox", { name: "Meal" })).toHaveValue(
     "Breakfast",
   );
+  await waitFor(() => {});
 });
 
 describe("saving", () => {
@@ -92,7 +93,7 @@ describe("saving", () => {
   it("sends null when a nullable field is cleared", async () => {
     renderForm();
 
-    fireEvent.change(screen.getByRole("textbox", { name: "Water (ml)" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
       target: { value: "" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -152,5 +153,6 @@ describe("removing", () => {
 
     expect(global.fetch).not.toHaveBeenCalled();
     expect(onDone).not.toHaveBeenCalled();
+    await waitFor(() => {});
   });
 });
