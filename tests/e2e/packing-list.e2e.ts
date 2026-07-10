@@ -130,6 +130,11 @@ test.describe("Packing List Page", () => {
       ).toBeVisible();
     });
 
+    test("the back link returns to the dashboard", async ({ page }) => {
+      await page.getByRole("link", { name: "Back to Dashboard" }).click();
+      await page.waitForURL("/dashboard");
+    });
+
     test("clicking the title enters edit mode", async ({ page }) => {
       await page.getByRole("heading", { level: 1, name: listName }).click();
       await expect(page.getByRole("textbox")).toHaveValue(listName);

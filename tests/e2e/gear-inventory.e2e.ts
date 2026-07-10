@@ -39,6 +39,11 @@ test.describe("Gear Inventory Page", () => {
     await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
   });
 
+  test("the back link returns to the dashboard", async ({ page }) => {
+    await page.getByRole("link", { name: "Back to Dashboard" }).click();
+    await page.waitForURL("/dashboard");
+  });
+
   test("renders the appropriate category sections based on the user's gear inventory items", async ({
     page,
   }) => {

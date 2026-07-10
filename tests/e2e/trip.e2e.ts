@@ -56,6 +56,13 @@ test.describe("Trip Page", () => {
     ).toBeVisible();
   });
 
+  test.describe("navigation", () => {
+    test("the back link returns to the dashboard", async ({ page }) => {
+      await page.getByRole("link", { name: "Back to Dashboard" }).click();
+      await page.waitForURL("/dashboard");
+    });
+  });
+
   test.describe("access control", () => {
     test("shows an error for a trip that doesn't exist", async ({ page }) => {
       await page.goto("/trips/does-not-exist");
@@ -485,6 +492,22 @@ test.describe("Trip Page", () => {
 
         await page.reload();
         await expect(table(page).getByText("Granola")).toBeVisible();
+      });
+
+      test("adds the item on blur without pressing Enter", async ({ page }) => {
+        await table(page).getByText("Day 1").click();
+        await expect(
+          page.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill("Granola");
+        await page.getByRole("heading", { name: "Day 1" }).click();
+
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).toBeVisible();
+        await expect(input).toHaveValue("");
       });
     });
 

@@ -1,0 +1,19 @@
+/*
+ * iOS Safari zooms the viewport in when a focused form input's computed
+ * font-size is under 16px, and that zoom can get stuck (no way to pinch back
+ * out) when the input sits inside a fixed-position Drawer. Mantine's default
+ * input font sizes in this theme are below 16px, so force 16px on mobile
+ * viewports to keep the zoom from triggering in the first place.
+ *
+ * Mantine sets its own font size via an inline `--input-fz` custom property
+ * on each input element, which always wins over anything inherited from a
+ * `:root` rule — so the actual `font-size` has to be overridden directly,
+ * with `!important`, to beat Mantine's (non-`!important`) compiled rule.
+ */
+@media (max-width: 48em) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

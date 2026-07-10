@@ -1,3 +1,4 @@
+import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
 import MealPlanSection from "$/frontend/trip/meal-plan";
@@ -35,7 +36,10 @@ export default function TripPage() {
 
   return (
     <Stack gap="xl" maw={1000} mx="auto" px={{ base: "md", md: "xl" }} py="xl">
-      <Header trip={trip} />
+      <Stack gap="md">
+        <BackToDashboardLink />
+        <Header trip={trip} />
+      </Stack>
 
       <Tasks
         tripId={trip.id}

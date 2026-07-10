@@ -12,6 +12,13 @@ interface Props {
 export default function QuickAddInput({ meal, onAdd }: Props) {
   const [name, setName] = useState("");
 
+  function commit() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onAdd(trimmed);
+    setName("");
+  }
+
   return (
     <TextInput
       size="xs"
@@ -21,13 +28,11 @@ export default function QuickAddInput({ meal, onAdd }: Props) {
       placeholder={`Add to ${MEAL_LABEL[meal].toLowerCase()}…`}
       leftSection={<PlusIcon size={12} />}
       onChange={(e) => setName(e.currentTarget.value)}
+      onBlur={commit}
       onKeyDown={(e) => {
         if (e.key !== "Enter") return;
         e.preventDefault();
-        const trimmed = name.trim();
-        if (!trimmed) return;
-        onAdd(trimmed);
-        setName("");
+        commit();
       }}
     />
   );
