@@ -46,6 +46,14 @@ export default function UnitConverterInput<Unit extends string>({
     typeof value === "number"
       ? roundToScale(value / multiplier, numberInputProps.decimalScale)
       : "";
+  // Falls back to "<field label> unit" so the unit Select has a distinct
+  // accessible name even when a page renders more than one of these inputs
+  // (e.g. Water and Dry weight side by side) — otherwise they're both
+  // unnamed comboboxes and impossible to target individually.
+  const defaultSelectLabel =
+    typeof numberInputProps.label === "string"
+      ? `${numberInputProps.label} unit`
+      : undefined;
 
   return (
     <Group grow align="flex-end" mb={mb} mt={mt}>
@@ -57,6 +65,7 @@ export default function UnitConverterInput<Unit extends string>({
         {...numberInputProps}
       />
       <Select
+        aria-label={defaultSelectLabel}
         data={conversions.order.map((u) => ({
           value: u,
           label: conversions.labels[u],
