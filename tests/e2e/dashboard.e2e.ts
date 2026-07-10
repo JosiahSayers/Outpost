@@ -97,9 +97,10 @@ test.describe("Dashboard Page", () => {
     test("shows the correct total weight, ignoring items without a weight", async ({
       page,
     }) => {
-      // 745 + 1615 + 82 = 2442g, displayed in the locale-detected unit
-      // (ounces for en-US, the default test locale): 2442 / 28.349523125 ≈ 86.14
-      await expect(page.getByText("86.14 oz")).toBeVisible();
+      // 745 + 1615 + 82 = 2442g. The stat bar rolls totals up to the next
+      // unit once they pass 1.5x it, so this displays in pounds rather than
+      // the locale-detected ounces: 2442 / 453.59237 ≈ 5.38.
+      await expect(page.getByText("5.38 lb")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {

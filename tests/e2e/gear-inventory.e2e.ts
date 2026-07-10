@@ -79,9 +79,10 @@ test.describe("Gear Inventory Page", () => {
     test("shows the correct total weight, ignoring items without a weight value", async ({
       page,
     }) => {
-      // 745 + 1615 + 82 = 2442g, displayed in the locale-detected unit
-      // (ounces for en-US, the default test locale): 2442 / 28.349523125 ≈ 86.14
-      await expect(page.getByText("86.14 oz")).toBeVisible();
+      // 745 + 1615 + 82 = 2442g. The stat bar rolls totals up to the next
+      // unit once they pass 1.5x it, so this displays in pounds rather than
+      // the locale-detected ounces: 2442 / 453.59237 ≈ 5.38.
+      await expect(page.getByText("5.38 lb")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
@@ -240,7 +241,7 @@ test.describe("Gear Inventory Page", () => {
 
       await page.getByRole("combobox", { name: "Weight unit" }).click();
       await page.getByRole("option", { name: "Pounds (lb)" }).click();
-      await page.getByLabel("Weight").fill("1");
+      await page.getByLabel("Weight", { exact: true }).fill("1");
 
       await page.getByRole("button", { name: "Add item", exact: true }).click();
       await expect(page.getByLabel("Item name")).not.toBeVisible();
@@ -272,15 +273,21 @@ test.describe("Gear Inventory Page", () => {
 
       await weightUnit.click();
       await page.getByRole("option", { name: "Kilograms (kg)" }).click();
-      await expect(page.getByLabel("Weight")).toHaveValue("0.75");
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "0.75",
+      );
 
       await weightUnit.click();
       await page.getByRole("option", { name: "Pounds (lb)" }).click();
-      await expect(page.getByLabel("Weight")).toHaveValue("1.64");
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "1.64",
+      );
 
       await weightUnit.click();
       await page.getByRole("option", { name: "Ounces (oz)" }).click();
-      await expect(page.getByLabel("Weight")).toHaveValue("26.28");
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "26.28",
+      );
 
       // Don't persist any of this — Durston X-Mid 1's weight backs other
       // tests' assumptions (e.g. the stat bar's total weight).
