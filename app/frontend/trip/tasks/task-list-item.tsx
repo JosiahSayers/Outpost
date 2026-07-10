@@ -12,7 +12,7 @@ interface Props {
 // Due dates are calendar days, not instants, so format in UTC (the timezone
 // they were stored in) rather than the viewer's local timezone.
 function formatDueDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(navigator.language, {
     month: "short",
     day: "numeric",
     timeZone: "UTC",

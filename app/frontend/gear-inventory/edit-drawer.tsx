@@ -1,9 +1,10 @@
+import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
+import Error from "$/frontend/shared-components/error";
 import { useGearCategorySearch } from "$/frontend/utils/api/gear-categories";
 import {
   useCreateGearInventoryItem,
   useUpdateGearInventoryItem,
 } from "$/frontend/utils/api/gear-inventory";
-import Error from "$/frontend/shared-components/error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import {
   Button,
@@ -26,7 +27,7 @@ const formSchema = z.object({
   categoryName: z.string().min(1, { error: "Category is required" }),
   categoryId: z.number().int().optional(),
   quantity: z.int().min(1),
-  grams: z.preprocess((v) => (v === "" ? undefined : v), z.int().optional()),
+  grams: z.preprocess((v) => (v === "" ? undefined : v), z.number().optional()),
 });
 
 interface Props {
@@ -54,6 +55,8 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
     validate: schemaResolver(formSchema, { sync: true }),
   });
 
+  const gramsInputProps = form.getInputProps("grams");
+
   const [debouncedCategory] = useDebouncedValue(form.values.categoryName, 200);
   const categorySearch = useGearCategorySearch(debouncedCategory);
   const categoryOptions = categorySearch.data?.categories ?? [];
@@ -79,7 +82,10 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
       quantity: values.quantity as number,
       existingCategoryId: values.categoryId,
       newCategoryName: values.categoryId ? undefined : values.categoryName,
-      grams: values.grams === "" ? undefined : (values.grams as number),
+      // grams is an Int on the backend; the display unit (e.g. ounces) can
+      // introduce fractional grams, so round at the submit boundary.
+      grams:
+        values.grams === "" ? undefined : Math.round(values.grams as number),
     };
     if (item === null) {
       createItem.mutate(data, {
@@ -151,19 +157,18 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>
-          <Group grow align="flex-end">
-            <NumberInput
-              label="Quantity"
-              min={1}
-              {...form.getInputProps("quantity")}
-            />
-            <NumberInput
-              label="Weight (grams)"
-              placeholder="e.g. 450"
-              description="Optional"
-              {...form.getInputProps("grams")}
-            />
-          </Group>
+          <NumberInput
+            label="Quantity"
+            min={1}
+            {...form.getInputProps("quantity")}
+          />
+          <WeightConverter
+            label="Weight"
+            placeholder="e.g. 450"
+            description="Optional"
+            {...gramsInputProps}
+            value={gramsInputProps.value}
+          />
           {isError && <Error />}
           <Group justify="flex-end" mt="sm">
             <Button variant="subtle" onClick={handleClose}>

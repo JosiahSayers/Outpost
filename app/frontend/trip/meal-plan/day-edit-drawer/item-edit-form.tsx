@@ -1,4 +1,6 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import FluidConverter from "$/frontend/shared-components/converter/fluid-converter";
+import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
 import { MEAL_LABEL, MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import {
   useDeleteMealPlanItem,
@@ -52,6 +54,9 @@ export default function ItemEditForm({
     },
   });
 
+  const waterMlInputProps = form.getInputProps("waterMl");
+  const dryWeightGramsInputProps = form.getInputProps("dryWeightGrams");
+
   const handleSubmit = form.onSubmit((values) => {
     updateItem.mutate({
       dayNumber,
@@ -60,10 +65,16 @@ export default function ItemEditForm({
       meal: values.meal as MealName,
       quantity: typeof values.quantity === "number" ? values.quantity : 1,
       calories: typeof values.calories === "number" ? values.calories : 0,
-      waterMl: typeof values.waterMl === "number" ? values.waterMl : null,
+      // waterMl is an Int on the backend; the display unit (e.g. cups) can
+      // introduce fractional ml, so round at the submit boundary.
+      waterMl:
+        typeof values.waterMl === "number" ? Math.round(values.waterMl) : null,
+      // dryWeightGrams is an Int on the backend; the display unit (e.g.
+      // ounces) can introduce fractional grams, so round at the submit
+      // boundary.
       dryWeightGrams:
         typeof values.dryWeightGrams === "number"
-          ? values.dryWeightGrams
+          ? Math.round(values.dryWeightGrams)
           : null,
     });
     onDone();
@@ -105,20 +116,19 @@ export default function ItemEditForm({
           />
         </Group>
 
-        <Group grow mb="lg">
-          <NumberInput
-            label="Water (ml)"
-            min={0}
-            allowDecimal={false}
-            {...form.getInputProps("waterMl")}
-          />
-          <NumberInput
-            label="Dry weight (g)"
-            min={0}
-            allowDecimal={false}
-            {...form.getInputProps("dryWeightGrams")}
-          />
-        </Group>
+        <FluidConverter
+          label="Water"
+          mb="sm"
+          {...waterMlInputProps}
+          value={waterMlInputProps.value}
+        />
+
+        <WeightConverter
+          label="Dry weight"
+          mb="lg"
+          {...dryWeightGramsInputProps}
+          value={dryWeightGramsInputProps.value}
+        />
 
         <Divider mb="md" />
 

@@ -22,7 +22,7 @@ export const MEAL_LABEL: Record<MealName, string> = {
 // previous day.
 export function formatMealDate(date: string | null): string | null {
   if (!date) return null;
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(navigator.language, {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
@@ -79,8 +79,42 @@ export function dayCalories(day: ClientMealPlanDay): number {
   );
 }
 
+export function tripCalories(mealPlan: ClientMealPlanDay[]): number {
+  return mealPlan.reduce((sum, day) => sum + dayCalories(day), 0);
+}
+
 export function formatCalories(calories: number): string {
-  return `${calories.toLocaleString("en-US")} cal`;
+  return `${calories.toLocaleString(navigator.language)} cal`;
+}
+
+export function itemTotalWeightGrams(item: ClientMealPlanItem): number {
+  return (item.dryWeightGrams ?? 0) * item.quantity;
+}
+
+export function dayWeightGrams(day: ClientMealPlanDay): number {
+  return MEAL_ORDER.reduce(
+    (sum, meal) =>
+      sum +
+      day.meals[meal].reduce(
+        (mealSum, item) => mealSum + itemTotalWeightGrams(item),
+        0,
+      ),
+    0,
+  );
+}
+
+export function tripWeightGrams(mealPlan: ClientMealPlanDay[]): number {
+  return mealPlan.reduce((sum, day) => sum + dayWeightGrams(day), 0);
+}
+
+export function itemTotalWaterMl(item: ClientMealPlanItem): number {
+  return (item.waterMl ?? 0) * item.quantity;
+}
+
+// The water a meal's items need to cook or rehydrate — the figure worth
+// checking against the map before the last water crossing before that meal.
+export function mealWaterMl(items: ClientMealPlanItem[]): number {
+  return items.reduce((sum, item) => sum + itemTotalWaterMl(item), 0);
 }
 
 // Calories of 0 are treated as "not tracked" and render nothing. For items
@@ -88,9 +122,9 @@ export function formatCalories(calories: number): string {
 export function itemCaloriesSummary(item: ClientMealPlanItem): string | null {
   if (item.calories === 0) return null;
   if (item.quantity > 1) {
-    return `${item.calories.toLocaleString("en-US")} cal each · ${itemTotalCalories(
+    return `${item.calories.toLocaleString(navigator.language)} cal each · ${itemTotalCalories(
       item,
-    ).toLocaleString("en-US")} total`;
+    ).toLocaleString(navigator.language)} total`;
   }
   return formatCalories(item.calories);
 }

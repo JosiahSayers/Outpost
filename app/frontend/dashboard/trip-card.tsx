@@ -30,7 +30,7 @@ export function formatDateRange(
   // in UTC (the timezone they were stored in) rather than the viewer's local
   // timezone, which could otherwise roll a UTC-midnight timestamp back to
   // the previous day.
-  const fmt = new Intl.DateTimeFormat("en-US", {
+  const fmt = new Intl.DateTimeFormat(navigator.language, {
     month: "short",
     day: "numeric",
     timeZone: "UTC",

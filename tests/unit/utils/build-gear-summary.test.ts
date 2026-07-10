@@ -20,20 +20,14 @@ it("sums quantities across all items for totalItems", () => {
   expect(buildGearSummary(items).totalItems).toBe(5);
 });
 
-it("calculates total weight as the sum of (grams * quantity) converted to kg", () => {
-  // (2*1000 + 1*800 + 3*200) / 1000 = 3400 / 1000 = 3.4
+it("calculates total weight as the sum of (grams * quantity)", () => {
+  // 2*1000 + 1*800 + 3*200 = 3400
   const items = [
     makeItem(1, 2, 1000),
     makeItem(1, 1, 800),
     makeItem(2, 3, 200),
   ];
-  expect(buildGearSummary(items).totalWeightKg).toBe(3.4);
-});
-
-it("rounds totalWeightKg to one decimal place", () => {
-  // (1*333 + 1*333 + 1*334) / 1000 = 1.000 → 1
-  const items = [makeItem(1, 1, 333), makeItem(1, 1, 333), makeItem(1, 1, 334)];
-  expect(buildGearSummary(items).totalWeightKg).toBe(1);
+  expect(buildGearSummary(items).totalGrams).toBe(3400);
 });
 
 it("counts unique category IDs for categoryCount", () => {
@@ -43,13 +37,13 @@ it("counts unique category IDs for categoryCount", () => {
 
 it("treats null grams as zero when calculating weight", () => {
   const items = [makeItem(1, 1, null), makeItem(1, 1, 500)];
-  expect(buildGearSummary(items).totalWeightKg).toBe(0.5);
+  expect(buildGearSummary(items).totalGrams).toBe(500);
 });
 
 it("returns zeros for an empty item list", () => {
   expect(buildGearSummary([])).toEqual({
     totalItems: 0,
-    totalWeightKg: 0,
+    totalGrams: 0,
     categoryCount: 0,
   });
 });

@@ -544,6 +544,71 @@ test.describe("Trip Page", () => {
         await page.reload();
         await expect(table(page).getByText("Trail mix")).toBeVisible();
       });
+
+      test("entering water and dry weight in non-default units persists the correct canonical values", async ({
+        page,
+      }) => {
+        await table(page).getByText("Day 1").click();
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill("Granola");
+        await input.press("Enter");
+        await expect(
+          page.getByRole("button", { name: /Granola/ }),
+        ).toBeVisible();
+
+        await page.getByRole("button", { name: /Granola/ }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+
+        await page.getByRole("combobox", { name: "Water unit" }).click();
+        await page.getByRole("option", { name: "Liters (L)" }).click();
+        await page.getByRole("textbox", { name: "Water" }).fill("0.5");
+
+        await page.getByRole("combobox", { name: "Dry weight unit" }).click();
+        await page.getByRole("option", { name: "Kilograms (kg)" }).click();
+        await page.getByRole("textbox", { name: "Dry weight" }).fill("0.1");
+
+        await page.getByRole("button", { name: "Save" }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).not.toBeVisible();
+
+        // Reopen and re-select the same units to confirm the canonical ml/g
+        // values round-tripped through the backend without drifting.
+        await page.getByRole("button", { name: /Granola/ }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+        await page.getByRole("combobox", { name: "Water unit" }).click();
+        await page.getByRole("option", { name: "Liters (L)" }).click();
+        await expect(page.getByRole("textbox", { name: "Water" })).toHaveValue(
+          "0.5",
+        );
+        await page.getByRole("combobox", { name: "Dry weight unit" }).click();
+        await page.getByRole("option", { name: "Kilograms (kg)" }).click();
+        await expect(
+          page.getByRole("textbox", { name: "Dry weight" }),
+        ).toHaveValue("0.1");
+        await page.getByRole("button", { name: "Save" }).click();
+
+        await page.reload();
+        await table(page).getByText("Day 1").click();
+        await page.getByRole("button", { name: /Granola/ }).click();
+        await expect(
+          page.getByRole("heading", { name: "Edit item" }),
+        ).toBeVisible();
+        await page.getByRole("combobox", { name: "Water unit" }).click();
+        await page.getByRole("option", { name: "Liters (L)" }).click();
+        await expect(page.getByRole("textbox", { name: "Water" })).toHaveValue(
+          "0.5",
+        );
+        await page.getByRole("combobox", { name: "Dry weight unit" }).click();
+        await page.getByRole("option", { name: "Kilograms (kg)" }).click();
+        await expect(
+          page.getByRole("textbox", { name: "Dry weight" }),
+        ).toHaveValue("0.1");
+      });
     });
 
     test.describe("deleting a meal item", () => {

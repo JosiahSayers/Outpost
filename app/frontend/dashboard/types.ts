@@ -7,6 +7,6 @@ export type StandaloneList = Pick<ClientPackingList, "id" | "name"> & {
 
 export interface GearSummary {
   totalItems: number;
-  totalWeightKg: number;
+  totalGrams: number;
   categoryCount: number;
 }

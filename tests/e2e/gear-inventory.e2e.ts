@@ -79,8 +79,10 @@ test.describe("Gear Inventory Page", () => {
     test("shows the correct total weight, ignoring items without a weight value", async ({
       page,
     }) => {
-      // (745 + 1615 + 82) / 1000 = 2.442, rounds to 2.4
-      await expect(page.getByText("2.4 kg")).toBeVisible();
+      // 745 + 1615 + 82 = 2442g. The stat bar rolls totals up to the next
+      // unit once they pass 1.5x it, so this displays in pounds rather than
+      // the locale-detected ounces: 2442 / 453.59237 ≈ 5.38.
+      await expect(page.getByText("5.38 lb")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
@@ -89,27 +91,26 @@ test.describe("Gear Inventory Page", () => {
   });
 
   test.describe("weight formatting", () => {
-    test("displays weight in grams for items under 1000g", async ({ page }) => {
+    test("displays weight in the locale-detected unit (ounces for en-US)", async ({
+      page,
+    }) => {
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Durston X-Mid 1" })
-          .getByText("745 g"),
+          .getByText("26.28 oz"),
+      ).toBeVisible();
+      await expect(
+        page
+          .getByRole("row")
+          .filter({ hasText: "Gergory Zulu 45" })
+          .getByText("56.97 oz"),
       ).toBeVisible();
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Platypus QuickDraw" })
-          .getByText("82 g"),
-      ).toBeVisible();
-    });
-
-    test("displays weight in kg for items 1000g or over", async ({ page }) => {
-      await expect(
-        page
-          .getByRole("row")
-          .filter({ hasText: "Gergory Zulu 45" })
-          .getByText(/\d+\.\d+ kg/),
+          .getByText("2.89 oz"),
       ).toBeVisible();
     });
   });
@@ -225,6 +226,72 @@ test.describe("Gear Inventory Page", () => {
       await expect(
         page.getByRole("heading", { name: "Add item" }),
       ).toBeVisible();
+    });
+  });
+
+  test.describe("the weight field", () => {
+    test("entering a weight in a non-default unit converts and persists the correct gram value", async ({
+      page,
+    }) => {
+      const itemName = `Weight Unit Test ${Date.now()}`;
+      await page.getByRole("button", { name: "Add Item" }).click();
+      await page.getByLabel("Item name").fill(itemName);
+      await page.getByLabel("Category").fill("Ten");
+      await page.getByRole("option", { name: "Tents" }).click();
+
+      await page.getByRole("combobox", { name: "Weight unit" }).click();
+      await page.getByRole("option", { name: "Pounds (lb)" }).click();
+      await page.getByLabel("Weight", { exact: true }).fill("1");
+
+      await page.getByRole("button", { name: "Add item", exact: true }).click();
+      await expect(page.getByLabel("Item name")).not.toBeVisible();
+
+      // 1 lb rounds to 454g at the submit boundary, displayed as 16.01 oz
+      // under the en-US default test locale.
+      await expect(
+        page
+          .getByRole("row")
+          .filter({ hasText: itemName })
+          .getByText("16.01 oz"),
+      ).toBeVisible();
+
+      await page.reload();
+      await expect(
+        page
+          .getByRole("row")
+          .filter({ hasText: itemName })
+          .getByText("16.01 oz"),
+      ).toBeVisible();
+    });
+
+    test("switching units converts the displayed value without altering the underlying weight", async ({
+      page,
+    }) => {
+      // Durston X-Mid 1 is seeded with a weight of 745g.
+      await page.getByRole("button", { name: "Edit Durston X-Mid 1" }).click();
+      const weightUnit = page.getByRole("combobox", { name: "Weight unit" });
+
+      await weightUnit.click();
+      await page.getByRole("option", { name: "Kilograms (kg)" }).click();
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "0.75",
+      );
+
+      await weightUnit.click();
+      await page.getByRole("option", { name: "Pounds (lb)" }).click();
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "1.64",
+      );
+
+      await weightUnit.click();
+      await page.getByRole("option", { name: "Ounces (oz)" }).click();
+      await expect(page.getByLabel("Weight", { exact: true })).toHaveValue(
+        "26.28",
+      );
+
+      // Don't persist any of this — Durston X-Mid 1's weight backs other
+      // tests' assumptions (e.g. the stat bar's total weight).
+      await page.getByRole("button", { name: "Cancel" }).click();
     });
   });
 

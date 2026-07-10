@@ -1,4 +1,5 @@
 import { buildGearSummary } from "$/frontend/utils/build-gear-summary";
+import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Group, Text } from "@mantine/core";
 import { BackpackIcon, ScalesIcon, TagIcon } from "@phosphor-icons/react";
@@ -35,7 +36,8 @@ export default function GearStatsGroup({
 }: {
   items: ClientGearInventoryItem[];
 }) {
-  const { totalItems, totalWeightKg, categoryCount } = buildGearSummary(items);
+  const { totalItems, totalGrams, categoryCount } = buildGearSummary(items);
+  const formatWeight = useWeightDisplay({ rollUp: true });
   return (
     <Group gap="xl" wrap="wrap">
       <Stat
@@ -46,7 +48,7 @@ export default function GearStatsGroup({
       <Stat
         icon={<ScalesIcon size={ICON_SIZE} color={ICON_COLOR} />}
         label="Weight"
-        value={`${totalWeightKg} kg`}
+        value={formatWeight(totalGrams)}
       />
       <Stat
         icon={<TagIcon size={ICON_SIZE} color={ICON_COLOR} />}
