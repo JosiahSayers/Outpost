@@ -89,6 +89,169 @@ describe("typing a number", () => {
   });
 });
 
+describe("typing a decimal", () => {
+  function Wrapper({ unit }: { unit: TestUnit }) {
+    const [value, setValue] = useState<number | string>("");
+    return (
+      <UnitConverterInput
+        label="Water"
+        value={value}
+        onChange={setValue}
+        conversions={conversions}
+        unit={unit}
+        onUnitChange={() => {}}
+      />
+    );
+  }
+
+  it("does not clear the input when a trailing decimal point is typed", async () => {
+    render(
+      <MantineProvider>
+        <Wrapper unit="ml" />
+      </MantineProvider>,
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Water",
+    }) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "1" } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1." } });
+    await waitFor(() => {});
+
+    expect(input).toHaveValue("1.");
+  });
+
+  it("builds up the full decimal value as typing continues", async () => {
+    render(
+      <MantineProvider>
+        <Wrapper unit="ml" />
+      </MantineProvider>,
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Water",
+    }) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "1" } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1." } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1.5" } });
+    await waitFor(() => {});
+
+    expect(input).toHaveValue("1.5");
+  });
+
+  it("calls onChange with the parsed decimal value converted to canonical units", async () => {
+    const spy = mock((value: number | string) => value);
+    function SpyWrapper() {
+      const [value, setValue] = useState<number | string>("");
+      return (
+        <UnitConverterInput
+          label="Water"
+          value={value}
+          onChange={(val) => {
+            spy(val);
+            setValue(val);
+          }}
+          conversions={conversions}
+          unit="cupsUS"
+          onUnitChange={() => {}}
+        />
+      );
+    }
+    render(
+      <MantineProvider>
+        <SpyWrapper />
+      </MantineProvider>,
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Water",
+    }) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "1" } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1." } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1.5" } });
+    await waitFor(() => {});
+
+    expect(spy).toHaveBeenLastCalledWith(354.88235475);
+  });
+
+  it("commits the value shown when backspacing down to a trailing decimal point, not a stale earlier value", async () => {
+    // Regression test: erasing "1.75" down to "1." must commit onChange(1),
+    // not leave the canonical value stuck at the last fully-parsed 1.7 —
+    // otherwise saving the form mid-edit persists the stale 1.7.
+    const spy = mock((value: number | string) => value);
+    function SpyWrapper() {
+      const [value, setValue] = useState<number | string>(1.75);
+      return (
+        <UnitConverterInput
+          label="Water"
+          value={value}
+          onChange={(val) => {
+            spy(val);
+            setValue(val);
+          }}
+          conversions={conversions}
+          unit="ml"
+          onUnitChange={() => {}}
+        />
+      );
+    }
+    render(
+      <MantineProvider>
+        <SpyWrapper />
+      </MantineProvider>,
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Water",
+    }) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "1.7" } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1." } });
+    await waitFor(() => {});
+
+    expect(input).toHaveValue("1.");
+    expect(spy).toHaveBeenLastCalledWith(1);
+  });
+
+  it("keeps the trailing decimal point on screen after backspacing so typing can continue", async () => {
+    function Wrapper2() {
+      const [value, setValue] = useState<number | string>(1.75);
+      return (
+        <UnitConverterInput
+          label="Water"
+          value={value}
+          onChange={setValue}
+          conversions={conversions}
+          unit="ml"
+          onUnitChange={() => {}}
+        />
+      );
+    }
+    render(
+      <MantineProvider>
+        <Wrapper2 />
+      </MantineProvider>,
+    );
+    const input = screen.getByRole("textbox", {
+      name: "Water",
+    }) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "1.7" } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1." } });
+    await waitFor(() => {});
+    fireEvent.change(input, { target: { value: "1.7" } });
+    await waitFor(() => {});
+
+    expect(input).toHaveValue("1.7");
+  });
+});
+
 describe("switching units", () => {
   it("calls onUnitChange with the newly selected unit", async () => {
     renderInput(473, "ml");

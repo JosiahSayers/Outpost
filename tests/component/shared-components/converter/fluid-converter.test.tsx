@@ -63,3 +63,32 @@ describe("prop overrides", () => {
     await waitFor(() => {});
   });
 });
+
+describe("fluid ounce unit", () => {
+  it("is selectable and displays the converted value", async () => {
+    renderConverter(29.5735295625);
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(
+      screen.getByRole("option", { name: "Fluid Ounce (fl oz)" }),
+    );
+
+    expect(screen.getByRole("combobox")).toHaveValue("Fluid Ounce (fl oz)");
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("1"),
+    );
+  });
+
+  it("calls onChange with the value converted to canonical ml", async () => {
+    renderConverter("");
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(
+      screen.getByRole("option", { name: "Fluid Ounce (fl oz)" }),
+    );
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
+      target: { value: "2" },
+    });
+    expect(onChange).toHaveBeenCalledWith(59.147059125);
+    await waitFor(() => {});
+  });
+});
