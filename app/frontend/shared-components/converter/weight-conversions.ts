@@ -42,3 +42,15 @@ export const WEIGHT_REGION_DEFAULT_UNIT: Partial<Record<string, WeightUnit>> = {
 };
 
 export const WEIGHT_DEFAULT_UNIT: WeightUnit = "grams";
+
+// Maps a small unit to the next larger unit in its system, for display
+// "roll-up" (e.g. showing 26 oz as 1.63 lb). Kilograms and pounds have no
+// entry since they're already the larger unit in their system.
+export const WEIGHT_ROLLUP_UNIT: Partial<Record<WeightUnit, WeightUnit>> = {
+  grams: "kilograms",
+  ounces: "pounds",
+};
+
+// A value rolls up to the next unit once it reaches 1.5x that unit (e.g.
+// 24 oz, being 1.5 lb, displays as "1.5 lb" rather than "24 oz").
+export const WEIGHT_ROLLUP_THRESHOLD = 1.5;
