@@ -13,7 +13,7 @@ import { useFluidDisplay } from "$/frontend/utils/hooks/unit-conversion/use-flui
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import { Group, Paper, Stack, Text } from "@mantine/core";
-import { CaretRightIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, DropIcon } from "@phosphor-icons/react";
 
 export default function MobileMealPlan({
   mealPlan,
@@ -73,9 +73,16 @@ export default function MobileMealPlan({
                         {MEAL_LABEL[meal]}
                       </Text>
                       {waterMl > 0 && (
-                        <Text size="xs" c="trail-green.7" fw={600}>
-                          {formatWater(waterMl)}
-                        </Text>
+                        <Group gap={2} wrap="nowrap">
+                          <DropIcon
+                            size={11}
+                            weight="fill"
+                            color="var(--mantine-color-trail-green-7)"
+                          />
+                          <Text size="xs" c="trail-green.7" fw={600}>
+                            {formatWater(waterMl)}
+                          </Text>
+                        </Group>
                       )}
                     </Group>
                     {day.meals[meal].length === 0 ? (
