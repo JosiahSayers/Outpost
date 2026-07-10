@@ -9,6 +9,13 @@ export const FLUID_UNIT_ORDER: FluidUnit[] = [
   "cupsImperial",
 ];
 
+export const FLUID_UNIT_ABBREVIATION: Record<FluidUnit, string> = {
+  ml: "mL",
+  liters: "L",
+  cupsUS: "cups",
+  cupsImperial: "cups (imp)",
+};
+
 export const FLUID_UNIT_LABEL: Record<FluidUnit, string> = {
   ml: "Milliliters (mL)",
   liters: "Liters (L)",

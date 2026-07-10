@@ -9,6 +9,13 @@ export const WEIGHT_UNIT_ORDER: WeightUnit[] = [
   "pounds",
 ];
 
+export const WEIGHT_UNIT_ABBREVIATION: Record<WeightUnit, string> = {
+  grams: "g",
+  kilograms: "kg",
+  ounces: "oz",
+  pounds: "lb",
+};
+
 export const WEIGHT_UNIT_LABEL: Record<WeightUnit, string> = {
   grams: "Grams (g)",
   kilograms: "Kilograms (kg)",
