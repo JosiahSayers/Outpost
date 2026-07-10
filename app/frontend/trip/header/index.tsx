@@ -8,7 +8,7 @@ import { useDeleteTrip, useUpdateTrip } from "$/frontend/utils/api/trip";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientTrip } from "$/transformers/trip";
 import { Box, Group, Paper, Stack } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { CompassIcon, MapPinIcon } from "@phosphor-icons/react";
 import { useLocation } from "wouter";
 
@@ -21,6 +21,14 @@ export default function Header({ trip }: Props) {
   const [confirmOpened, confirm] = useDisclosure(false);
   const updateTrip = useUpdateTrip(trip.id);
   const deleteTrip = useDeleteTrip(trip.id);
+  const isWideLayout = useMediaQuery("(min-width: 48em)");
+
+  function handleStatusSave(status: ClientTrip["status"]) {
+    updateTrip.mutate(
+      { status },
+      { onError: notifyError("Couldn't update status") },
+    );
+  }
 
   function handleDelete() {
     deleteTrip.mutate(undefined, {
@@ -50,23 +58,25 @@ export default function Header({ trip }: Props) {
                 }
               />
             </Box>
-            <Box style={{ flexShrink: 0 }}>
-              <TripStatusBadge
-                value={trip.status}
-                onSave={(status) =>
-                  updateTrip.mutate(
-                    { status },
-                    { onError: notifyError("Couldn't update status") },
-                  )
-                }
-              />
-            </Box>
+            {isWideLayout && (
+              <Box style={{ flexShrink: 0, alignSelf: "flex-start" }}>
+                <TripStatusBadge
+                  value={trip.status}
+                  onSave={handleStatusSave}
+                />
+              </Box>
+            )}
           </Group>
 
           <Box style={{ flexShrink: 0 }}>
             <TripActionsMenu onDelete={confirm.open} />
           </Box>
         </Group>
+        {isWideLayout === false && (
+          <Box>
+            <TripStatusBadge value={trip.status} onSave={handleStatusSave} />
+          </Box>
+        )}
         <Group gap="lg">
           <TripTextField
             icon={<CompassIcon size={15} />}

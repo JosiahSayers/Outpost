@@ -53,7 +53,7 @@ export default function TripName({ value, onSave }: Props) {
         setDraft(value);
         setEditing(true);
       }}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", overflowWrap: "break-word" }}
     >
       {value}
     </Title>
