@@ -1,12 +1,5 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
-import UnitConverterInput from "$/frontend/shared-components/converter/unit-converter-input";
-import { useDefaultUnit } from "$/frontend/shared-components/converter/use-default-unit";
-import {
-  WATER_CONVERSIONS,
-  WATER_DEFAULT_UNIT,
-  WATER_REGION_DEFAULT_UNIT,
-  type WaterUnit,
-} from "$/frontend/shared-components/converter/water-conversions";
+import FluidConverter from "$/frontend/shared-components/converter/fluid-converter";
 import { MEAL_LABEL, MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import {
   useDeleteMealPlanItem,
@@ -24,7 +17,6 @@ import {
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { TrashIcon } from "@phosphor-icons/react";
-import { useState } from "react";
 import type { MealName } from "../../../../../generated/prisma/enums";
 
 interface Props {
@@ -43,12 +35,6 @@ export default function ItemEditForm({
   const [confirmOpened, confirm] = useDisclosure(false);
   const updateItem = useUpdateMealPlanItem(tripId);
   const deleteItem = useDeleteMealPlanItem(tripId);
-
-  const detectedWaterUnit = useDefaultUnit(
-    WATER_REGION_DEFAULT_UNIT,
-    WATER_DEFAULT_UNIT,
-  );
-  const [waterUnit, setWaterUnit] = useState<WaterUnit>(detectedWaterUnit);
 
   // NumberInputs hold "" when empty; empty maps to "not tracked" on submit
   // (0 for calories, null for the nullable fields).
@@ -125,13 +111,8 @@ export default function ItemEditForm({
           />
         </Group>
 
-        <UnitConverterInput
+        <FluidConverter
           label="Water"
-          min={0}
-          decimalScale={2}
-          conversions={WATER_CONVERSIONS}
-          unit={waterUnit}
-          onUnitChange={setWaterUnit}
           mb="sm"
           {...waterMlInputProps}
           value={waterMlInputProps.value}
