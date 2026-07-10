@@ -1,11 +1,17 @@
 import type { ConversionConfig } from "$/frontend/shared-components/converter/types";
 
-export type FluidUnit = "ml" | "liters" | "cupsUS" | "cupsImperial";
+export type FluidUnit =
+  | "ml"
+  | "liters"
+  | "cupsUS"
+  | "cupsImperial"
+  | "fluidOunce";
 
 export const FLUID_UNIT_ORDER: FluidUnit[] = [
   "ml",
   "liters",
   "cupsUS",
+  "fluidOunce",
   "cupsImperial",
 ];
 
@@ -13,6 +19,7 @@ export const FLUID_UNIT_ABBREVIATION: Record<FluidUnit, string> = {
   ml: "mL",
   liters: "L",
   cupsUS: "cups",
+  fluidOunce: "fl oz",
   cupsImperial: "cups (imp)",
 };
 
@@ -20,6 +27,7 @@ export const FLUID_UNIT_LABEL: Record<FluidUnit, string> = {
   ml: "Milliliters (mL)",
   liters: "Liters (L)",
   cupsUS: "Cups (US)",
+  fluidOunce: "Fluid Ounce (fl oz)",
   cupsImperial: "Cups (Imperial)",
 };
 
@@ -30,6 +38,7 @@ export const FLUID_CONVERSIONS: ConversionConfig<FluidUnit> = {
     ml: 1,
     liters: 1000,
     cupsUS: 236.5882365,
+    fluidOunce: 29.5735295625,
     cupsImperial: 284.130625,
   },
 };
