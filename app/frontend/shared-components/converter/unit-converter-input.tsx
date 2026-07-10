@@ -59,9 +59,14 @@ export default function UnitConverterInput<Unit extends string>({
     <Group grow align="flex-end" mb={mb} mt={mt}>
       <NumberInput
         value={displayValue}
-        onChange={(val) =>
-          onChange(typeof val === "number" ? val * multiplier : "")
-        }
+        onChange={(val) => {
+          if (typeof val === "number") onChange(val * multiplier);
+          else if (val === "") onChange("");
+          // Otherwise Mantine is passing back an in-progress string (e.g. a
+          // trailing "1." while the user is still typing a decimal) rather
+          // than a parsed number. Leave the canonical value alone so the
+          // keystroke isn't discarded.
+        }}
         {...numberInputProps}
       />
       <Select
