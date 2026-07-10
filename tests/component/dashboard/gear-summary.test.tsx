@@ -21,7 +21,8 @@ function makeClientItem(categoryId: number, quantity: number, grams: number) {
   });
 }
 
-// 2 categories, 4 total items, 3000g total (105.82 oz under the en-US test locale)
+// 2 categories, 4 total items, 3000g total (6.61 lb under the en-US test
+// locale, rolled up from 105.82 oz)
 // cat 1: qty=1 @ 500g + qty=2 @ 1000g = 3 items, 2500g
 // cat 2: qty=1 @ 500g = 1 item, 500g
 const items = [
@@ -49,7 +50,7 @@ it("renders the total gear item count", () => {
 });
 
 it("renders the total weight in the locale-detected unit", () => {
-  expect(screen.getByText("105.82 oz")).toBeInTheDocument();
+  expect(screen.getByText("6.61 lb")).toBeInTheDocument();
 });
 
 it("renders the category count", () => {

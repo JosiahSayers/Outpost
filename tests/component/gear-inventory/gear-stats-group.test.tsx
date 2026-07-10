@@ -24,7 +24,8 @@ function makeClientItem(
 
 // cat 1: qty=2 @ 500g + qty=1 @ 1000g = 3 items, 2000g
 // cat 2: qty=1 @ 500g = 1 item, 500g
-// total: 4 items, 3 unique, 2500g (88.18 oz under the en-US test locale), 2 categories
+// total: 4 items, 3 unique, 2500g (5.51 lb under the en-US test locale,
+// rolled up from 88.18 oz), 2 categories
 const items = [
   makeClientItem(1, "Shelter", 2, 500),
   makeClientItem(1, "Shelter", 1, 1000),
@@ -45,7 +46,7 @@ describe("with items", () => {
   });
 
   it("renders total weight in the locale-detected unit", () => {
-    expect(screen.getByText("88.18 oz")).toBeInTheDocument();
+    expect(screen.getByText("5.51 lb")).toBeInTheDocument();
   });
 
   it("renders category count", () => {
