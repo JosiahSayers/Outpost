@@ -79,8 +79,9 @@ test.describe("Gear Inventory Page", () => {
     test("shows the correct total weight, ignoring items without a weight value", async ({
       page,
     }) => {
-      // (745 + 1615 + 82) / 1000 = 2.442, rounds to 2.4
-      await expect(page.getByText("2.4 kg")).toBeVisible();
+      // 745 + 1615 + 82 = 2442g, displayed in the locale-detected unit
+      // (ounces for en-US, the default test locale): 2442 / 28.349523125 ≈ 86.14
+      await expect(page.getByText("86.14 oz")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
@@ -89,27 +90,26 @@ test.describe("Gear Inventory Page", () => {
   });
 
   test.describe("weight formatting", () => {
-    test("displays weight in grams for items under 1000g", async ({ page }) => {
+    test("displays weight in the locale-detected unit (ounces for en-US)", async ({
+      page,
+    }) => {
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Durston X-Mid 1" })
-          .getByText("745 g"),
+          .getByText("26.28 oz"),
+      ).toBeVisible();
+      await expect(
+        page
+          .getByRole("row")
+          .filter({ hasText: "Gergory Zulu 45" })
+          .getByText("56.97 oz"),
       ).toBeVisible();
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Platypus QuickDraw" })
-          .getByText("82 g"),
-      ).toBeVisible();
-    });
-
-    test("displays weight in kg for items 1000g or over", async ({ page }) => {
-      await expect(
-        page
-          .getByRole("row")
-          .filter({ hasText: "Gergory Zulu 45" })
-          .getByText(/\d+\.\d+ kg/),
+          .getByText("2.89 oz"),
       ).toBeVisible();
     });
   });
@@ -245,14 +245,21 @@ test.describe("Gear Inventory Page", () => {
       await page.getByRole("button", { name: "Add item", exact: true }).click();
       await expect(page.getByLabel("Item name")).not.toBeVisible();
 
-      // 1 lb rounds to 454g at the submit boundary.
+      // 1 lb rounds to 454g at the submit boundary, displayed as 16.01 oz
+      // under the en-US default test locale.
       await expect(
-        page.getByRole("row").filter({ hasText: itemName }).getByText("454 g"),
+        page
+          .getByRole("row")
+          .filter({ hasText: itemName })
+          .getByText("16.01 oz"),
       ).toBeVisible();
 
       await page.reload();
       await expect(
-        page.getByRole("row").filter({ hasText: itemName }).getByText("454 g"),
+        page
+          .getByRole("row")
+          .filter({ hasText: itemName })
+          .getByText("16.01 oz"),
       ).toBeVisible();
     });
 

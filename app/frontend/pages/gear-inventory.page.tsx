@@ -5,25 +5,15 @@ import Header from "$/frontend/gear-inventory/header";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
+import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
-function formatWeight(grams: number | null): string {
-  if (!grams) {
-    return "";
-  }
-
-  if (grams >= 1000) {
-    return `${(grams / 1000).toFixed(2)} kg`;
-  }
-
-  return `${grams} g`;
-}
-
 export default function GearInventoryPage() {
   useAuthenticatedGuard();
+  const formatWeight = useWeightDisplay();
   // TODO: Loading and error states
   const { data, isLoading, isError } = useGearInventory();
   const [drawerOpen, { open: openDrawer, close: closeDrawer }] =

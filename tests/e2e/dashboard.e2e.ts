@@ -97,8 +97,9 @@ test.describe("Dashboard Page", () => {
     test("shows the correct total weight, ignoring items without a weight", async ({
       page,
     }) => {
-      // (745 + 1615 + 82) / 1000 = 2.442, rounds to 2.4
-      await expect(page.getByText("2.4 kg")).toBeVisible();
+      // 745 + 1615 + 82 = 2442g, displayed in the locale-detected unit
+      // (ounces for en-US, the default test locale): 2442 / 28.349523125 ≈ 86.14
+      await expect(page.getByText("86.14 oz")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {

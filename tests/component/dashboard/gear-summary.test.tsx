@@ -21,9 +21,9 @@ function makeClientItem(categoryId: number, quantity: number, grams: number) {
   });
 }
 
-// 2 categories, 4 total items, 3 kg total
-// cat 1: qty=1 @ 500g + qty=2 @ 1000g = 3 items, 2.5 kg
-// cat 2: qty=1 @ 500g = 1 item, 0.5 kg
+// 2 categories, 4 total items, 3000g total (105.82 oz under the en-US test locale)
+// cat 1: qty=1 @ 500g + qty=2 @ 1000g = 3 items, 2500g
+// cat 2: qty=1 @ 500g = 1 item, 500g
 const items = [
   makeClientItem(1, 1, 500),
   makeClientItem(1, 2, 1000),
@@ -48,8 +48,8 @@ it("renders the total gear item count", () => {
   expect(screen.getByText("4 (3 unique)")).toBeInTheDocument();
 });
 
-it("renders the total weight in kg", () => {
-  expect(screen.getByText("3 kg")).toBeInTheDocument();
+it("renders the total weight in the locale-detected unit", () => {
+  expect(screen.getByText("105.82 oz")).toBeInTheDocument();
 });
 
 it("renders the category count", () => {

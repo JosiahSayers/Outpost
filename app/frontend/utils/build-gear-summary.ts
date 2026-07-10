@@ -6,15 +6,10 @@ export function buildGearSummary(
 ): GearSummary {
   return {
     totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
-    totalWeightKg:
-      Math.round(
-        (items.reduce(
-          (sum, item) => sum + (item.grams ?? 0) * item.quantity,
-          0,
-        ) /
-          1000) *
-          10,
-      ) / 10,
+    totalGrams: items.reduce(
+      (sum, item) => sum + (item.grams ?? 0) * item.quantity,
+      0,
+    ),
     categoryCount: new Set(items.map((i) => i.category.id)).size,
   };
 }
