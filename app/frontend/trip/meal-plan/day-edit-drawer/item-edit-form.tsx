@@ -1,5 +1,6 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
 import FluidConverter from "$/frontend/shared-components/converter/fluid-converter";
+import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
 import { MEAL_LABEL, MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import {
   useDeleteMealPlanItem,
@@ -54,6 +55,7 @@ export default function ItemEditForm({
   });
 
   const waterMlInputProps = form.getInputProps("waterMl");
+  const dryWeightGramsInputProps = form.getInputProps("dryWeightGrams");
 
   const handleSubmit = form.onSubmit((values) => {
     updateItem.mutate({
@@ -67,9 +69,12 @@ export default function ItemEditForm({
       // introduce fractional ml, so round at the submit boundary.
       waterMl:
         typeof values.waterMl === "number" ? Math.round(values.waterMl) : null,
+      // dryWeightGrams is an Int on the backend; the display unit (e.g.
+      // ounces) can introduce fractional grams, so round at the submit
+      // boundary.
       dryWeightGrams:
         typeof values.dryWeightGrams === "number"
-          ? values.dryWeightGrams
+          ? Math.round(values.dryWeightGrams)
           : null,
     });
     onDone();
@@ -118,12 +123,11 @@ export default function ItemEditForm({
           value={waterMlInputProps.value}
         />
 
-        <NumberInput
-          label="Dry weight (g)"
-          min={0}
-          allowDecimal={false}
+        <WeightConverter
+          label="Dry weight"
           mb="lg"
-          {...form.getInputProps("dryWeightGrams")}
+          {...dryWeightGramsInputProps}
+          value={dryWeightGramsInputProps.value}
         />
 
         <Divider mb="md" />

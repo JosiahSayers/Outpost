@@ -30,9 +30,8 @@ export const WEIGHT_CONVERSIONS: ConversionConfig<WeightUnit> = {
 // Backpackers in the US weigh individual gear/food items in ounces far more
 // often than pounds, so ounces is the imperial default here (unlike
 // fluid-conversions, where cups is the everyday US unit).
-export const WEIGHT_REGION_DEFAULT_UNIT: Partial<Record<string, WeightUnit>> =
-  {
-    US: "ounces",
-  };
+export const WEIGHT_REGION_DEFAULT_UNIT: Partial<Record<string, WeightUnit>> = {
+  US: "ounces",
+};
 
 export const WEIGHT_DEFAULT_UNIT: WeightUnit = "grams";

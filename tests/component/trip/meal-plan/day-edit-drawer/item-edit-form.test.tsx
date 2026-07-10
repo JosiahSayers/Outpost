@@ -55,8 +55,10 @@ it("pre-fills the form with the item's fields", async () => {
   // Default display unit is locale-detected (cupsUS in the "en-US" test
   // environment), so the stored 240 ml renders as ~1.01 cups.
   expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("1.01");
-  expect(screen.getByRole("textbox", { name: "Dry weight (g)" })).toHaveValue(
-    "90",
+  // Default display unit is locale-detected (ounces in the "en-US" test
+  // environment), so the stored 90 g renders as ~3.17 oz.
+  expect(screen.getByRole("textbox", { name: "Dry weight" })).toHaveValue(
+    "3.17",
   );
   expect(screen.getByRole("combobox", { name: "Meal" })).toHaveValue(
     "Breakfast",
