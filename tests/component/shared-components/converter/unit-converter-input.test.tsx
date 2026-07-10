@@ -1,0 +1,111 @@
+import type { ConversionConfig } from "$/frontend/shared-components/converter/types";
+import UnitConverterInput from "$/frontend/shared-components/converter/unit-converter-input";
+import { MantineProvider } from "@mantine/core";
+import "@testing-library/jest-dom";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { useState } from "react";
+
+type TestUnit = "ml" | "cupsUS";
+
+const conversions: ConversionConfig<TestUnit> = {
+  order: ["ml", "cupsUS"],
+  labels: { ml: "Milliliters (mL)", cupsUS: "Cups (US)" },
+  multipliers: { ml: 1, cupsUS: 236.5882365 },
+};
+
+const onChange = mock(() => {});
+const onUnitChange = mock(() => {});
+
+function renderInput(value: number | string, unit: TestUnit) {
+  render(
+    <MantineProvider>
+      <UnitConverterInput
+        label="Water"
+        value={value}
+        onChange={onChange}
+        conversions={conversions}
+        unit={unit}
+        onUnitChange={onUnitChange}
+      />
+    </MantineProvider>,
+  );
+}
+
+beforeEach(() => {
+  onChange.mockReset();
+  onUnitChange.mockReset();
+});
+
+describe("displaying the value", () => {
+  it("shows the canonical value as-is when unit is ml", async () => {
+    renderInput(473, "ml");
+    expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("473");
+    await waitFor(() => {});
+  });
+
+  it("derives the displayed value from the canonical value and unit", async () => {
+    renderInput(473.176473, "cupsUS");
+    expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("2");
+    await waitFor(() => {});
+  });
+
+  it("stays empty when the canonical value is empty", async () => {
+    renderInput("", "cupsUS");
+    expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("");
+    await waitFor(() => {});
+  });
+});
+
+describe("typing a number", () => {
+  it("calls onChange with the value converted to canonical units", async () => {
+    renderInput("", "cupsUS");
+    fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
+      target: { value: "2" },
+    });
+    expect(onChange).toHaveBeenCalledWith(473.176473);
+    await waitFor(() => {});
+  });
+});
+
+describe("switching units", () => {
+  it("calls onUnitChange with the newly selected unit", async () => {
+    renderInput(473, "ml");
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "Cups (US)" }));
+    expect(onUnitChange).toHaveBeenCalledWith("cupsUS");
+    await waitFor(() => {});
+  });
+
+  it("re-derives the displayed number once the unit prop changes, preserving the real value", async () => {
+    function Wrapper() {
+      const [unit, setUnit] = useState<TestUnit>("cupsUS");
+      return (
+        <UnitConverterInput
+          label="Water"
+          value={473.176473}
+          onChange={() => {}}
+          conversions={conversions}
+          unit={unit}
+          onUnitChange={setUnit}
+        />
+      );
+    }
+    render(
+      <MantineProvider>
+        <Wrapper />
+      </MantineProvider>,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue("2");
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "Milliliters (mL)" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Water" })).toHaveValue(
+        "473.176473",
+      ),
+    );
+  });
+});
