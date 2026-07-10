@@ -50,7 +50,10 @@ export default function Header({ trip }: Props) {
                 }
               />
             </Box>
-            <Box style={{ flexShrink: 0 }}>
+            <Box
+              visibleFrom="sm"
+              style={{ flexShrink: 0, alignSelf: "flex-start" }}
+            >
               <TripStatusBadge
                 value={trip.status}
                 onSave={(status) =>
@@ -67,6 +70,17 @@ export default function Header({ trip }: Props) {
             <TripActionsMenu onDelete={confirm.open} />
           </Box>
         </Group>
+        <Box hiddenFrom="sm">
+          <TripStatusBadge
+            value={trip.status}
+            onSave={(status) =>
+              updateTrip.mutate(
+                { status },
+                { onError: notifyError("Couldn't update status") },
+              )
+            }
+          />
+        </Box>
         <Group gap="lg">
           <TripTextField
             icon={<CompassIcon size={15} />}
