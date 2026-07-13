@@ -4,6 +4,7 @@ import { useTrips, useTripsPage } from "$/frontend/utils/api/trip";
 import {
   Button,
   Card,
+  Collapse,
   Group,
   Pagination,
   SimpleGrid,
@@ -77,22 +78,32 @@ export default function UpcomingTrips() {
         </Text>
       ) : (
         <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-            {(showAll ? (pageData?.trips ?? []) : activeTrips).map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
-          </SimpleGrid>
+          <Collapse expanded={!showAll} keepMounted={false}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+              {activeTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </SimpleGrid>
+          </Collapse>
 
-          {showAll && totalPages > 1 && (
-            <Group justify="center" mt="md">
-              <Pagination
-                total={totalPages}
-                value={page}
-                onChange={setPage}
-                disabled={isFetchingPage}
-              />
-            </Group>
-          )}
+          <Collapse expanded={showAll} keepMounted={false}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+              {(pageData?.trips ?? []).map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </SimpleGrid>
+
+            {totalPages > 1 && (
+              <Group justify="center" mt="md">
+                <Pagination
+                  total={totalPages}
+                  value={page}
+                  onChange={setPage}
+                  disabled={isFetchingPage}
+                />
+              </Group>
+            )}
+          </Collapse>
 
           {hasMoreToShow && (
             <Group justify="flex-end" mt="sm">
