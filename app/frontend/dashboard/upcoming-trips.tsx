@@ -1,6 +1,6 @@
 import NewTripDrawer from "$/frontend/dashboard/new-trip-drawer";
 import TripCard from "$/frontend/dashboard/trip-card";
-import { useTrips, useTripsPage } from "$/frontend/utils/api/trip";
+import { useTripsPage } from "$/frontend/utils/api/trip";
 import {
   Button,
   Card,
@@ -16,32 +16,26 @@ import { useDisclosure } from "@mantine/hooks";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-const EXPANDED_PAGE_SIZE = 6;
+const PREVIEW_SIZE = 3;
+const PAGE_SIZE = 6;
 
 export default function UpcomingTrips() {
-  const { data, isFetching } = useTrips();
-  const trips = data?.trips ?? [];
-  const total = data?.total ?? 0;
-  const activeTrips = trips.filter(
-    (t) => t.status !== "finished" && t.status !== "cancelled",
-  );
-
   const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
   const [page, setPage] = useState(1);
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
-  // Anything not already visible in the preview above - whether more active
-  // trips beyond the first page, or finished/cancelled trips excluded from
-  // it - is reachable by expanding "View all trips".
-  const hasMoreToShow = total > activeTrips.length;
-  const totalPages = Math.max(Math.ceil(total / EXPANDED_PAGE_SIZE), 1);
+  // One query backs both views: collapsed fetches the top few trips of any
+  // status; expanded pages through the full list. Because `trips` and `total`
+  // always come from the same response, the preview and the expanded list can
+  // never disagree.
+  const skip = showAll ? (page - 1) * PAGE_SIZE : 0;
+  const { data, isFetching } = useTripsPage(skip, PAGE_SIZE);
+  const trips = data?.trips ?? [];
+  const total = data?.total ?? 0;
 
-  const { data: pageData, isFetching: isFetchingPage } = useTripsPage(
-    (page - 1) * EXPANDED_PAGE_SIZE,
-    EXPANDED_PAGE_SIZE,
-    showAll,
-  );
+  const hasMoreToShow = total > PREVIEW_SIZE;
+  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
 
   function handleToggle() {
     setPage(1);
@@ -66,11 +60,13 @@ export default function UpcomingTrips() {
 
       {isFetching ? (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          <Card>
-            <Skeleton height={16} width="60%" mb="xs" />
-            <Skeleton height={12} width="30%" mb="md" />
-            <Skeleton height={28} width={90} />
-          </Card>
+          {Array.from({ length: showAll ? 6 : 3 }).map((_, i) => (
+            <Card key={i}>
+              <Skeleton height={24} width="60%" mb="xs" />
+              <Skeleton height={24} width="30%" mb="md" />
+              <Skeleton height={28} width={90} />
+            </Card>
+          ))}
         </SimpleGrid>
       ) : total === 0 ? (
         <Text c="dimmed">
@@ -78,23 +74,15 @@ export default function UpcomingTrips() {
         </Text>
       ) : (
         <>
-          <Collapse expanded={!showAll} keepMounted={false}>
-            {activeTrips.length === 0 ? (
-              <Text c="dimmed">
-                No upcoming trips. Start planning your next adventure!
-              </Text>
-            ) : (
-              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                {activeTrips.map((trip) => (
-                  <TripCard key={trip.id} trip={trip} />
-                ))}
-              </SimpleGrid>
-            )}
-          </Collapse>
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            {trips.slice(0, PREVIEW_SIZE).map((trip) => (
+              <TripCard key={trip.id} trip={trip} />
+            ))}
+          </SimpleGrid>
 
-          <Collapse expanded={showAll} keepMounted={false}>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-              {(pageData?.trips ?? []).map((trip) => (
+          <Collapse expanded={showAll}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="md">
+              {trips.slice(PREVIEW_SIZE).map((trip) => (
                 <TripCard key={trip.id} trip={trip} />
               ))}
             </SimpleGrid>
@@ -105,7 +93,7 @@ export default function UpcomingTrips() {
                   total={totalPages}
                   value={page}
                   onChange={setPage}
-                  disabled={isFetchingPage}
+                  disabled={isFetching}
                 />
               </Group>
             )}

@@ -39,16 +39,6 @@ export function useTrip(id: string) {
   });
 }
 
-export function useTrips() {
-  return useQuery({
-    queryKey: tripKeys.all,
-    queryFn: () =>
-      apiClient<{ trips: ClientTrip[]; total: number; pageSize: number }>(
-        "/api/trips",
-      ),
-  });
-}
-
 export function useTripsPage(skip: number, take: number, enabled = true) {
   return useQuery({
     queryKey: tripKeys.page(skip, take),
