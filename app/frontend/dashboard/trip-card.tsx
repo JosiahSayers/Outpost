@@ -59,12 +59,10 @@ export default function TripCard({ trip }: { trip: ClientTrip }) {
         {trip.name}
       </Title>
 
-      {trip.location && (
-        <Group gap="xs" c="dimmed" mb={4}>
-          <MapPinIcon size={14} />
-          <Text size="sm">{trip.location}</Text>
-        </Group>
-      )}
+      <Group gap="xs" c="dimmed" mb={4}>
+        <MapPinIcon size={14} />
+        <Text size="sm">{trip.location || "Location TBD"}</Text>
+      </Group>
 
       <Group gap="xs" c="dimmed" mb="md">
         <CalendarBlankIcon size={14} />

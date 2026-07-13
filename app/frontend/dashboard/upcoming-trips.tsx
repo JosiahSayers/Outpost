@@ -31,16 +31,14 @@ export default function UpcomingTrips() {
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
-  // Trips beyond the initial preview batch, browsable in the expanded,
-  // paginated section below.
-  const remainingCount = Math.max(total - trips.length, 0);
-  const totalPages = Math.max(
-    Math.ceil(remainingCount / EXPANDED_PAGE_SIZE),
-    1,
-  );
+  // Anything not already visible in the preview above - whether more active
+  // trips beyond the first page, or finished/cancelled trips excluded from
+  // it - is reachable by expanding "View all trips".
+  const hasMoreToShow = total > activeTrips.length;
+  const totalPages = Math.max(Math.ceil(total / EXPANDED_PAGE_SIZE), 1);
 
   const { data: pageData, isFetching: isFetchingPage } = useTripsPage(
-    trips.length + (page - 1) * EXPANDED_PAGE_SIZE,
+    (page - 1) * EXPANDED_PAGE_SIZE,
     EXPANDED_PAGE_SIZE,
     showAll,
   );
@@ -74,51 +72,51 @@ export default function UpcomingTrips() {
             <Skeleton height={28} width={90} />
           </Card>
         </SimpleGrid>
-      ) : activeTrips.length === 0 && remainingCount === 0 ? (
+      ) : total === 0 ? (
         <Text c="dimmed">
           No upcoming trips. Start planning your next adventure!
         </Text>
       ) : (
         <>
-          {activeTrips.length > 0 && (
+          <Collapse expanded={!showAll} keepMounted={false}>
+            {activeTrips.length === 0 ? (
+              <Text c="dimmed">
+                No upcoming trips. Start planning your next adventure!
+              </Text>
+            ) : (
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {activeTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </SimpleGrid>
+            )}
+          </Collapse>
+
+          <Collapse expanded={showAll} keepMounted={false}>
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-              {activeTrips.map((trip) => (
+              {(pageData?.trips ?? []).map((trip) => (
                 <TripCard key={trip.id} trip={trip} />
               ))}
             </SimpleGrid>
-          )}
 
-          {remainingCount > 0 && (
-            <>
-              <Collapse expanded={showAll}>
-                <SimpleGrid
-                  cols={{ base: 1, sm: 2, md: 3 }}
-                  spacing="md"
-                  mt="md"
-                >
-                  {(pageData?.trips ?? []).map((trip) => (
-                    <TripCard key={trip.id} trip={trip} />
-                  ))}
-                </SimpleGrid>
-
-                {totalPages > 1 && (
-                  <Group justify="center" mt="md">
-                    <Pagination
-                      total={totalPages}
-                      value={page}
-                      onChange={setPage}
-                      disabled={isFetchingPage}
-                    />
-                  </Group>
-                )}
-              </Collapse>
-
-              <Group justify="flex-end" mt="sm">
-                <Button variant="subtle" onClick={handleToggle}>
-                  {showAll ? "View less" : "View all trips"}
-                </Button>
+            {totalPages > 1 && (
+              <Group justify="center" mt="md">
+                <Pagination
+                  total={totalPages}
+                  value={page}
+                  onChange={setPage}
+                  disabled={isFetchingPage}
+                />
               </Group>
-            </>
+            )}
+          </Collapse>
+
+          {hasMoreToShow && (
+            <Group justify="flex-end" mt="sm">
+              <Button variant="subtle" onClick={handleToggle}>
+                {showAll ? "View less" : "View all trips"}
+              </Button>
+            </Group>
           )}
         </>
       )}

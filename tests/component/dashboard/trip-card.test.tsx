@@ -49,11 +49,12 @@ describe("trip details", () => {
 });
 
 describe("missing optional fields", () => {
-  it("omits the location line when the trip has no location", () => {
+  it("shows a fallback when the trip has no location", () => {
     renderCard({ ...baseTrip, location: null });
     expect(
       screen.queryByText("Olympic National Park, WA"),
     ).not.toBeInTheDocument();
+    expect(screen.getByText("Location TBD")).toBeInTheDocument();
   });
 
   it("shows a fallback when the trip has no dates", () => {
