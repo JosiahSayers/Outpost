@@ -5,10 +5,10 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
-const EXPANDED_PAGE_SIZE = 6;
+const PAGE_SIZE = 6;
 
 function makeTrip(overrides: Partial<ClientTrip> = {}): ClientTrip {
   return {
@@ -23,27 +23,20 @@ function makeTrip(overrides: Partial<ClientTrip> = {}): ClientTrip {
   };
 }
 
-// `showAll` fully replaces the preview grid with a paginated fetch of the
-// unfiltered trip list, so most tests need that page-1 query pre-seeded too
-// (it's the same small trip set, since it all fits on one page). The
-// dedicated pagination describe block below opts out, since it drives that
-// fetch itself via a mocked `global.fetch`.
-function renderComponent(
-  trips: ClientTrip[],
-  total = trips.length,
-  { seedPage = true }: { seedPage?: boolean } = {},
-) {
+// A single paged query backs both the collapsed preview and the expanded
+// list, keyed on `skip`/`take`. The first page (`skip: 0`) is what the
+// component reads while collapsed and on page 1 once expanded, so seeding it
+// is all most tests need. The pagination describe block below drives the
+// `skip: 6` fetch itself via a mocked `global.fetch`.
+function renderComponent(trips: ClientTrip[], total = trips.length) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  queryClient.setQueryData(tripKeys.all, { trips, total, pageSize: 3 });
-  if (seedPage) {
-    queryClient.setQueryData(tripKeys.page(0, EXPANDED_PAGE_SIZE), {
-      trips,
-      total,
-      pageSize: EXPANDED_PAGE_SIZE,
-    });
-  }
+  queryClient.setQueryData(tripKeys.page(0, PAGE_SIZE), {
+    trips,
+    total,
+    pageSize: PAGE_SIZE,
+  });
   render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
@@ -56,12 +49,12 @@ function renderComponent(
   return queryClient;
 }
 
-describe("when there are no active trips", () => {
+describe("when there are no trips", () => {
   beforeEach(() => renderComponent([], 0));
 
   it("renders the section heading", () => {
     expect(
-      screen.getByRole("heading", { level: 2, name: "Upcoming Trips" }),
+      screen.getByRole("heading", { level: 2, name: "My Trips" }),
     ).toBeInTheDocument();
   });
 
@@ -80,25 +73,67 @@ describe("when there are no active trips", () => {
   });
 });
 
-describe("when all trips are finished or cancelled", () => {
+describe("when the trips fit within the preview", () => {
+  // The preview is no longer filtered by status: finished and cancelled trips
+  // appear in the main grid alongside active ones, up to the preview size.
   const trips = [
-    makeTrip({ id: "1", name: "Old Hike", status: "finished" }),
-    makeTrip({ id: "2", name: "Scrapped Hike", status: "cancelled" }),
+    makeTrip({ id: "1", name: "John Muir Trail", status: "in_progress" }),
+    makeTrip({ id: "2", name: "Finished Hike", status: "finished" }),
+    makeTrip({ id: "3", name: "Scrapped Hike", status: "cancelled" }),
   ];
 
   beforeEach(() => renderComponent(trips));
 
-  it("shows the empty state, since no trips are visible above the fold", () => {
+  it("renders a card for every trip regardless of status", () => {
     expect(
-      screen.getByText(
-        "No upcoming trips. Start planning your next adventure!",
-      ),
+      screen.getByRole("heading", { name: "John Muir Trail" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Finished Hike" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Scrapped Hike" }),
     ).toBeInTheDocument();
   });
 
-  it("does not render a card for them in the main grid", () => {
-    expect(screen.queryByText("Old Hike")).not.toBeInTheDocument();
-    expect(screen.queryByText("Scrapped Hike")).not.toBeInTheDocument();
+  it("does not show the empty state", () => {
+    expect(
+      screen.queryByText(
+        "No upcoming trips. Start planning your next adventure!",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render a 'View all trips' button when everything already fits", () => {
+    expect(
+      screen.queryByRole("button", { name: "View all trips" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("when there are more trips than fit in the preview", () => {
+  const trips = [
+    makeTrip({ id: "1", name: "John Muir Trail", status: "in_progress" }),
+    makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
+    makeTrip({ id: "3", name: "Teton Crest Trail", status: "planning" }),
+    makeTrip({ id: "4", name: "Finished Hike", status: "finished" }),
+  ];
+
+  beforeEach(() => renderComponent(trips));
+
+  it("renders only the first three trips in the preview", () => {
+    expect(
+      screen.getByRole("heading", { name: "John Muir Trail" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Wonderland Trail" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Teton Crest Trail" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Finished Hike" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders a 'View all trips' button", () => {
@@ -107,41 +142,40 @@ describe("when all trips are finished or cancelled", () => {
     ).toBeInTheDocument();
   });
 
-  it("reveals them after clicking 'View all trips'", async () => {
+  it("reveals the remaining trips after clicking 'View all trips'", async () => {
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
-    await waitFor(() => {
-      expect(screen.getByText("Old Hike")).toBeInTheDocument();
-      expect(screen.getByText("Scrapped Hike")).toBeInTheDocument();
-    });
-  });
-});
-
-describe("when there are active and finished trips", () => {
-  const trips = [
-    makeTrip({ id: "1", name: "John Muir Trail", status: "in_progress" }),
-    makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
-    makeTrip({ id: "3", name: "Finished Hike", status: "finished" }),
-    makeTrip({ id: "4", name: "Scrapped Hike", status: "cancelled" }),
-  ];
-
-  beforeEach(() => renderComponent(trips));
-
-  it("renders a card for each active trip", () => {
-    expect(screen.getByText("John Muir Trail")).toBeInTheDocument();
-    expect(screen.getByText("Wonderland Trail")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Finished Hike" }),
+      ).toBeInTheDocument(),
+    );
   });
 
-  it("does not render a card for finished or cancelled trips in the main grid", () => {
-    expect(screen.queryByText("Finished Hike")).not.toBeInTheDocument();
-    expect(screen.queryByText("Scrapped Hike")).not.toBeInTheDocument();
-  });
-
-  it("reveals the finished and cancelled trips after clicking 'View all trips'", async () => {
+  it("changes the button text to 'View less' after expanding", () => {
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
-    await waitFor(() => {
-      expect(screen.getByText("Finished Hike")).toBeInTheDocument();
-      expect(screen.getByText("Scrapped Hike")).toBeInTheDocument();
-    });
+    expect(
+      screen.getByRole("button", { name: "View less" }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses the extra trips again after clicking 'View less'", async () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Finished Hike" }),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View less" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Finished Hike" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("does not render pagination controls when everything fits on one page", () => {
+    fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
+    expect(screen.queryByRole("button", { name: "2" })).not.toBeInTheDocument();
   });
 });
 
@@ -155,11 +189,14 @@ describe("navigation", () => {
   });
 });
 
-describe("when there are more trips beyond the initial preview", () => {
-  const previewTrips = [
+describe("when there are multiple pages of trips", () => {
+  const firstPage = [
     makeTrip({ id: "1", name: "John Muir Trail", status: "planning" }),
     makeTrip({ id: "2", name: "Wonderland Trail", status: "planning" }),
     makeTrip({ id: "3", name: "Teton Crest Trail", status: "planning" }),
+    makeTrip({ id: "4", name: "Long Trail", status: "planning" }),
+    makeTrip({ id: "5", name: "Superior Hiking Trail", status: "planning" }),
+    makeTrip({ id: "6", name: "Continental Divide Trail", status: "planning" }),
   ];
 
   function jsonResponse(body: unknown) {
@@ -171,45 +208,34 @@ describe("when there are more trips beyond the initial preview", () => {
     );
   }
 
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   beforeEach(() => {
-    // Clicking "View all trips" replaces the preview with a single,
-    // continuously paginated listing (skip 0, then skip 6, ...), rather than
-    // appending a separate section below the static preview.
+    // The first page is seeded via `renderComponent`; only the second page
+    // (skip 6) is fetched, when a pagination control is clicked.
     global.fetch = mock((url: string) => {
-      const parsed = new URL(url, "http://localhost");
-      const skip = Number(parsed.searchParams.get("skip"));
-      if (skip === 0) {
+      const skip = Number(
+        new URL(url, "http://localhost").searchParams.get("skip"),
+      );
+      if (skip === 6) {
         return jsonResponse({
           trips: [
-            ...previewTrips,
-            makeTrip({ id: "4", name: "Long Trail", status: "planning" }),
-            makeTrip({
-              id: "5",
-              name: "Superior Hiking Trail",
-              status: "planning",
-            }),
-            makeTrip({
-              id: "6",
-              name: "Continental Divide Trail",
-              status: "planning",
-            }),
+            makeTrip({ id: "10", name: "Colorado Trail", status: "planning" }),
           ],
           total: 12,
           pageSize: 6,
         });
       }
-      return jsonResponse({
-        trips: [
-          makeTrip({ id: "10", name: "Colorado Trail", status: "planning" }),
-        ],
-        total: 12,
-        pageSize: 6,
-      });
+      return jsonResponse({ trips: firstPage, total: 12, pageSize: 6 });
     }) as unknown as typeof fetch;
+
+    renderComponent(firstPage, 12);
   });
 
-  it("renders only the initial preview trips before expanding", () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
+  it("renders only the first-page preview trips before expanding", () => {
     expect(
       screen.getByRole("heading", { name: "John Muir Trail" }),
     ).toBeInTheDocument();
@@ -219,14 +245,12 @@ describe("when there are more trips beyond the initial preview", () => {
   });
 
   it("renders the 'View all trips' button", () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
     expect(
       screen.getByRole("button", { name: "View all trips" }),
     ).toBeInTheDocument();
   });
 
-  it("fetches and shows the next page of trips after clicking 'View all trips'", async () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
+  it("reveals the rest of the first page after clicking 'View all trips'", async () => {
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
     await waitFor(() =>
       expect(
@@ -236,7 +260,6 @@ describe("when there are more trips beyond the initial preview", () => {
   });
 
   it("changes button text to 'View less' after clicking 'View all trips'", () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
     expect(
       screen.getByRole("button", { name: "View less" }),
@@ -244,7 +267,6 @@ describe("when there are more trips beyond the initial preview", () => {
   });
 
   it("collapses back after clicking 'View less'", async () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
     await waitFor(() =>
       expect(
@@ -252,13 +274,14 @@ describe("when there are more trips beyond the initial preview", () => {
       ).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole("button", { name: "View less" }));
-    expect(
-      screen.queryByRole("heading", { name: "Long Trail" }),
-    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Long Trail" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("renders pagination controls to browse additional pages", async () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
     await waitFor(() =>
       expect(
@@ -269,7 +292,6 @@ describe("when there are more trips beyond the initial preview", () => {
   });
 
   it("fetches the next page of trips when a pagination control is clicked", async () => {
-    renderComponent(previewTrips, 12, { seedPage: false });
     fireEvent.click(screen.getByRole("button", { name: "View all trips" }));
     await waitFor(() =>
       expect(

@@ -450,16 +450,14 @@ test.describe("Dashboard Page", () => {
       });
     });
 
-    // Regression test for BTP-46: a completed trip is excluded from the main
-    // "Upcoming Trips" preview grid by design, but must still be reachable via
-    // "View all trips" (a full, unfiltered, paginated listing) rather than
-    // disappearing from the dashboard entirely. A fresh user is used (rather
-    // than the shared test user, who accumulates many trips across the
-    // suite) so this trip is guaranteed to be the only one.
+    // Regression test for BTP-46: a completed trip must still appear on the
+    // dashboard rather than disappearing from it. The preview grid is no
+    // longer filtered by status, so a completed trip shows in the main grid
+    // right alongside upcoming ones. A fresh user is used (rather than the
+    // shared test user, who accumulates many trips across the suite) so this
+    // trip is guaranteed to be the only one, and therefore in the preview.
     test.describe("finished trips", () => {
-      test("keeps a completed trip out of the main grid but reachable via 'View all trips'", async ({
-        page,
-      }) => {
+      test("shows a completed trip in the main grid", async ({ page }) => {
         const email = `e2e-finished-${Date.now()}@test.com`;
         await page.context().clearCookies();
         await page.goto("/register");
@@ -481,20 +479,13 @@ test.describe("Dashboard Page", () => {
         await page.getByRole("option", { name: "Completed" }).click();
         await page.getByRole("button", { name: "Create trip" }).click();
 
-        // Not shown as a bare empty state, and not in the main grid, since
-        // it's a completed trip rather than an upcoming one.
+        // Not shown as a bare empty state, and — because the preview is no
+        // longer filtered by status — visible directly in the main grid.
         await expect(
           page.getByText(
             "No upcoming trips. Start planning your next adventure!",
           ),
         ).not.toBeVisible();
-        await expect(
-          page.getByRole("heading", { level: 4, name: tripName }),
-        ).not.toBeVisible();
-
-        // But it's still reachable, rather than hidden from the dashboard
-        // entirely.
-        await page.getByRole("button", { name: "View all trips" }).click();
         const card = page
           .locator(".mantine-Card-root")
           .filter({ hasText: tripName });
@@ -503,8 +494,13 @@ test.describe("Dashboard Page", () => {
         ).toBeVisible();
         await expect(card.getByText("Completed")).toBeVisible();
 
+        // A single trip fits in the preview, so there is nothing more to
+        // reveal behind "View all trips".
+        await expect(
+          page.getByRole("button", { name: "View all trips" }),
+        ).not.toBeVisible();
+
         await page.reload();
-        await page.getByRole("button", { name: "View all trips" }).click();
         await expect(
           page.getByRole("heading", { level: 4, name: tripName }),
         ).toBeVisible();
