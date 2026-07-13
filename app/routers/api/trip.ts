@@ -23,7 +23,7 @@ tripRouter.get("/", validate({ query: tripSearch }), async (req, res, next) => {
       where,
       take: req.query.take,
       skip: req.query.skip,
-      orderBy: [{ status: "asc" }, { start: "asc" }],
+      orderBy: [{ status: "asc" }, { start: "asc" }, { id: "asc" }],
     }),
     db.trip.count({ where }),
   ]);

@@ -450,6 +450,67 @@ test.describe("Dashboard Page", () => {
       });
     });
 
+    // Regression test for BTP-46: a completed trip is excluded from the main
+    // "Upcoming Trips" preview grid by design, but must still be reachable via
+    // "View all trips" (a full, unfiltered, paginated listing) rather than
+    // disappearing from the dashboard entirely. A fresh user is used (rather
+    // than the shared test user, who accumulates many trips across the
+    // suite) so this trip is guaranteed to be the only one.
+    test.describe("finished trips", () => {
+      test("keeps a completed trip out of the main grid but reachable via 'View all trips'", async ({
+        page,
+      }) => {
+        const email = `e2e-finished-${Date.now()}@test.com`;
+        await page.context().clearCookies();
+        await page.goto("/register");
+        await page.getByLabel("Name").fill("E2E Finished Trip User");
+        await page.getByLabel("Email").fill(email);
+        await page
+          .getByRole("textbox", { name: "Password", exact: true })
+          .fill("test-password");
+        await page
+          .getByRole("textbox", { name: "Confirm password" })
+          .fill("test-password");
+        await page.getByRole("button", { name: "Create account" }).click();
+        await page.waitForURL("/dashboard");
+
+        const tripName = `E2E Finished Trip ${Date.now()}`;
+        await page.getByRole("button", { name: "New Trip" }).click();
+        await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
+        await page.getByRole("combobox", { name: "Status" }).click();
+        await page.getByRole("option", { name: "Completed" }).click();
+        await page.getByRole("button", { name: "Create trip" }).click();
+
+        // Not shown as a bare empty state, and not in the main grid, since
+        // it's a completed trip rather than an upcoming one.
+        await expect(
+          page.getByText(
+            "No upcoming trips. Start planning your next adventure!",
+          ),
+        ).not.toBeVisible();
+        await expect(
+          page.getByRole("heading", { level: 4, name: tripName }),
+        ).not.toBeVisible();
+
+        // But it's still reachable, rather than hidden from the dashboard
+        // entirely.
+        await page.getByRole("button", { name: "View all trips" }).click();
+        const card = page
+          .locator(".mantine-Card-root")
+          .filter({ hasText: tripName });
+        await expect(
+          card.getByRole("heading", { level: 4, name: tripName }),
+        ).toBeVisible();
+        await expect(card.getByText("Completed")).toBeVisible();
+
+        await page.reload();
+        await page.getByRole("button", { name: "View all trips" }).click();
+        await expect(
+          page.getByRole("heading", { level: 4, name: tripName }),
+        ).toBeVisible();
+      });
+    });
+
     // A trip's start/end are bare "YYYY-MM-DD" dates end-to-end (DB column,
     // API contract, and DTO type), with no time-of-day or timezone component
     // to roll back a day for a viewer behind UTC. Honolulu (UTC-10, no DST)
