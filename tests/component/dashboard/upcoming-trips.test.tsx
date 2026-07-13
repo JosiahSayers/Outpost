@@ -54,7 +54,7 @@ describe("when there are no trips", () => {
 
   it("renders the section heading", () => {
     expect(
-      screen.getByRole("heading", { level: 2, name: "Upcoming Trips" }),
+      screen.getByRole("heading", { level: 2, name: "My Trips" }),
     ).toBeInTheDocument();
   });
 

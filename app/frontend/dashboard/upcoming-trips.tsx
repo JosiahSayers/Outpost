@@ -46,9 +46,9 @@ export default function UpcomingTrips() {
     <section>
       <Group justify="space-between" mb="md" align="flex-end">
         <div>
-          <Title order={2}>Upcoming Trips</Title>
+          <Title order={2}>My Trips</Title>
           <Text c="dimmed" size="sm">
-            Your planned and upcoming adventures
+            Your upcoming and recent adventures
           </Text>
         </div>
         <Button leftSection={<PlusIcon size={16} />} onClick={openDrawer}>
