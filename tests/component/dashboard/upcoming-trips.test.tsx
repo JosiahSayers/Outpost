@@ -88,12 +88,12 @@ describe("when all trips are finished or cancelled", () => {
 
   beforeEach(() => renderComponent(trips));
 
-  it("does not show the empty state, since the trips are reachable via 'View all trips'", () => {
+  it("shows the empty state, since no trips are visible above the fold", () => {
     expect(
-      screen.queryByText(
+      screen.getByText(
         "No upcoming trips. Start planning your next adventure!",
       ),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
   });
 
   it("does not render a card for them in the main grid", () => {

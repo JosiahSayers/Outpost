@@ -79,11 +79,17 @@ export default function UpcomingTrips() {
       ) : (
         <>
           <Collapse expanded={!showAll} keepMounted={false}>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-              {activeTrips.map((trip) => (
-                <TripCard key={trip.id} trip={trip} />
-              ))}
-            </SimpleGrid>
+            {activeTrips.length === 0 ? (
+              <Text c="dimmed">
+                No upcoming trips. Start planning your next adventure!
+              </Text>
+            ) : (
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {activeTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </SimpleGrid>
+            )}
           </Collapse>
 
           <Collapse expanded={showAll} keepMounted={false}>
