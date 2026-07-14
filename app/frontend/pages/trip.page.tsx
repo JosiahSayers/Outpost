@@ -1,3 +1,4 @@
+import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
@@ -24,18 +25,18 @@ export default function TripPage() {
 
   if (isError || !data) {
     return (
-      <Stack py="xl" px={{ base: "md", md: "xl" }} maw={1000} mx="auto">
+      <PageContainer>
         <Alert color="red" title="Couldn't load this trip">
           The trip may not exist or you may not have access to it.
         </Alert>
-      </Stack>
+      </PageContainer>
     );
   }
 
   const trip = data.trip;
 
   return (
-    <Stack gap="xl" maw={1000} mx="auto" px={{ base: "md", md: "xl" }} py="xl">
+    <PageContainer gap="xl">
       <Stack gap="md">
         <BackToDashboardLink />
         <Header trip={trip} />
@@ -63,6 +64,6 @@ export default function TripPage() {
       <Divider />
 
       <Links />
-    </Stack>
+    </PageContainer>
   );
 }

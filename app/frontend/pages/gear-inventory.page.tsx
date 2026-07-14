@@ -2,6 +2,7 @@ import CategorySection from "$/frontend/gear-inventory/category-section";
 import DeleteModal from "$/frontend/gear-inventory/delete-modal";
 import EditDrawer from "$/frontend/gear-inventory/edit-drawer";
 import Header from "$/frontend/gear-inventory/header";
+import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
@@ -78,7 +79,7 @@ export default function GearInventoryPage() {
   };
 
   return (
-    <Stack gap="xl" py="xl" px={{ base: "md", md: "xl" }} maw={1400} mx="auto">
+    <PageContainer gap="xl">
       <BackToDashboardLink />
       <Header items={data?.items ?? []} onAdd={handleAdd} />
 
@@ -105,6 +106,6 @@ export default function GearInventoryPage() {
         onClose={() => handleClose("modal")}
         item={deleteItem}
       />
-    </Stack>
+    </PageContainer>
   );
 }

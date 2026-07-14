@@ -1,6 +1,7 @@
 import SettingsShell from "$/frontend/account/settings-shell";
+import PageContainer from "$/frontend/layout/page-container";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { Center, Loader, Stack, Text, Title } from "@mantine/core";
+import { Center, Loader, Text, Title } from "@mantine/core";
 
 export default function AccountPage() {
   const session = useAuthenticatedGuard();
@@ -14,7 +15,7 @@ export default function AccountPage() {
   }
 
   return (
-    <Stack gap="xl" py="xl" px={{ base: "md", md: "xl" }} maw={1000} mx="auto">
+    <PageContainer gap="xl">
       <div>
         <Title order={1}>Account Settings</Title>
         <Text c="dimmed">Manage the details tied to your account.</Text>
@@ -24,6 +25,6 @@ export default function AccountPage() {
         name={session.data?.user.name ?? ""}
         email={session.data?.user.email ?? ""}
       />
-    </Stack>
+    </PageContainer>
   );
 }
