@@ -276,6 +276,32 @@ test.describe("Trip Page", () => {
 
       await expect(page.getByText("Couldn't delete trip")).toBeVisible();
     });
+
+    test("deletes a trip with a meal plan item", async ({ page }) => {
+      await page.locator("table").getByText("Day 1").click();
+      await expect(page.getByRole("heading", { name: "Day 1" })).toBeVisible();
+
+      const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+      await input.fill("Granola");
+      await input.press("Enter");
+      await expect(page.getByRole("button", { name: /Granola/ })).toBeVisible();
+
+      await page.keyboard.press("Escape");
+      await expect(
+        page.getByRole("heading", { name: "Day 1" }),
+      ).not.toBeVisible();
+
+      await page.getByRole("button", { name: "Trip actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete trip" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Delete trip?" }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      await page.waitForURL("/dashboard");
+      const response = await page.request.get(`/api/trips/${tripId}`);
+      expect(response.status()).toBe(404);
+    });
   });
 
   test.describe("tasks", () => {
