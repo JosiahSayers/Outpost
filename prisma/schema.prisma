@@ -115,9 +115,9 @@ model AccountSettingValue {
 
   value String
 
-  accountSetting   AccountSetting @relation(fields: [accountSettingId], references: [id])
+  accountSetting   AccountSetting @relation(fields: [accountSettingId], references: [id], onDelete: Cascade)
   accountSettingId String
-  user             User           @relation(fields: [userId], references: [id])
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           String
 
   @@unique([accountSettingId, userId])
