@@ -1,5 +1,6 @@
 import "$/frontend/global.css";
 import AppShell from "$/frontend/layout/app-shell";
+import AccountPage from "$/frontend/pages/account.page";
 import DashboardPage from "$/frontend/pages/dashboard.page";
 import GearInventoryPage from "$/frontend/pages/gear-inventory.page";
 import MarketingPage from "$/frontend/pages/marketing.page";
@@ -28,6 +29,7 @@ export default function App() {
           <AppShell>
             <Switch>
               <Route path="/" component={MarketingPage} />
+              <Route path="/account" component={AccountPage} />
               <Route path="/dashboard" component={DashboardPage} />
               <Route path="/gear-inventory" component={GearInventoryPage} />
               <Route path="/packing-lists/:id" component={PackingListPage} />

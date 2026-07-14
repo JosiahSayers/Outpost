@@ -12,7 +12,14 @@ async function signIn(page: Page, user = USER) {
 }
 
 async function signOut(page: Page) {
-  await page.getByText("Sign Out").click();
+  await page
+    .locator("header")
+    .getByRole("button", { name: "Account menu" })
+    .click();
+  await page
+    .getByRole("menu")
+    .getByRole("menuitem", { name: "Sign Out" })
+    .click();
   await expect(page.getByText("Welcome back")).toBeVisible();
 }
 
