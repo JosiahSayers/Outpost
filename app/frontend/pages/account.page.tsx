@@ -2,9 +2,11 @@ import SettingsShell from "$/frontend/account/settings-shell";
 import PageContainer from "$/frontend/layout/page-container";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { Center, Loader, Text, Title } from "@mantine/core";
+import { useParams } from "wouter";
 
 export default function AccountPage() {
   const session = useAuthenticatedGuard();
+  const { tab } = useParams<{ tab?: string }>();
 
   if (session.isPending) {
     return (
@@ -24,6 +26,7 @@ export default function AccountPage() {
       <SettingsShell
         name={session.data?.user.name ?? ""}
         email={session.data?.user.email ?? ""}
+        tab={tab}
       />
     </PageContainer>
   );

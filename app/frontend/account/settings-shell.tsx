@@ -1,5 +1,5 @@
-import ProfilePanel from "$/frontend/account/profile-panel";
 import PreferencesPanel from "$/frontend/account/preferences-panel";
+import ProfilePanel from "$/frontend/account/profile-panel";
 import { Badge, Box, Divider, Group, NavLink, Paper } from "@mantine/core";
 import {
   BellIcon,
@@ -7,35 +7,54 @@ import {
   SlidersHorizontalIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import type { ReactNode } from "react";
+import { Link } from "wouter";
 
 type SettingsTab = "profile" | "preferences";
+
+const SETTINGS_TABS: SettingsTab[] = ["profile", "preferences"];
+
+function isSettingsTab(value: string | undefined): value is SettingsTab {
+  return SETTINGS_TABS.includes(value as SettingsTab);
+}
 
 interface SettingsShellProps {
   name: string;
   email: string;
+  tab?: string;
 }
 
-export default function SettingsShell({ name, email }: SettingsShellProps) {
-  const [tab, setTab] = useState<SettingsTab>("profile");
+export default function SettingsShell({
+  name,
+  email,
+  tab,
+}: SettingsShellProps) {
+  const activeTab: SettingsTab = isSettingsTab(tab) ? tab : "profile";
+  const tabContent: Record<SettingsTab, ReactNode> = {
+    profile: <ProfilePanel name={name} email={email} />,
+    preferences: <PreferencesPanel />,
+  } as const;
 
   return (
     <Paper withBorder>
       <Group align="stretch" gap={0} wrap="nowrap">
         <Box w={190} p="xs" flex="none">
           <NavLink
+            component={Link}
             label="Profile"
             leftSection={<UserIcon size={16} />}
-            active={tab === "profile"}
-            onClick={() => setTab("profile")}
+            active={activeTab === "profile"}
+            to="/account/profile"
           />
           <NavLink
+            component={Link}
             label="Preferences"
             leftSection={<SlidersHorizontalIcon size={16} />}
-            active={tab === "preferences"}
-            onClick={() => setTab("preferences")}
+            active={activeTab === "preferences"}
+            to="/account/preferences"
           />
           <NavLink
+            component={Link}
             label="Notifications"
             leftSection={<BellIcon size={16} />}
             rightSection={
@@ -44,8 +63,10 @@ export default function SettingsShell({ name, email }: SettingsShellProps) {
               </Badge>
             }
             disabled
+            to="/account/notifications"
           />
           <NavLink
+            component={Link}
             label="Privacy"
             leftSection={<ShieldIcon size={16} />}
             rightSection={
@@ -54,15 +75,12 @@ export default function SettingsShell({ name, email }: SettingsShellProps) {
               </Badge>
             }
             disabled
+            to="/account/privacy"
           />
         </Box>
         <Divider orientation="vertical" />
         <Box flex={1} p="xl" style={{ minWidth: 0 }}>
-          {tab === "profile" ? (
-            <ProfilePanel name={name} email={email} />
-          ) : (
-            <PreferencesPanel />
-          )}
+          {tabContent[activeTab]}
         </Box>
       </Group>
     </Paper>

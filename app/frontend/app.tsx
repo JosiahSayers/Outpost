@@ -29,7 +29,7 @@ export default function App() {
           <AppShell>
             <Switch>
               <Route path="/" component={MarketingPage} />
-              <Route path="/account" component={AccountPage} />
+              <Route path="/account/:tab?" component={AccountPage} />
               <Route path="/dashboard" component={DashboardPage} />
               <Route path="/gear-inventory" component={GearInventoryPage} />
               <Route path="/packing-lists/:id" component={PackingListPage} />
