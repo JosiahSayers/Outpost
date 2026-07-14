@@ -6,8 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
+import { Route, Router } from "wouter";
+import { memoryLocation } from "wouter/memory-location";
 
-function renderShell() {
+function renderShell(initialPath = "/account/profile") {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -15,10 +17,21 @@ function renderShell() {
     accountSettingsKeys.all,
     [],
   );
+  const { hook } = memoryLocation({ path: initialPath });
   return render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
-        <SettingsShell name="Josiah Sayers" email="josiah.sayers@me.com" />
+        <Router hook={hook}>
+          <Route path="/account/:tab?">
+            {(params: { tab?: string }) => (
+              <SettingsShell
+                name="Josiah Sayers"
+                email="josiah.sayers@me.com"
+                tab={params.tab}
+              />
+            )}
+          </Route>
+        </Router>
       </MantineProvider>
     </QueryClientProvider>,
   );

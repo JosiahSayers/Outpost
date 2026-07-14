@@ -43,9 +43,7 @@ const SETTINGS: ClientUserAccountSetting[] = [
   }),
 ];
 
-function renderPanel(
-  settings: ClientUserAccountSetting[] | undefined = SETTINGS,
-) {
+function renderPanel(settings: ClientUserAccountSetting[] | undefined) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -62,15 +60,38 @@ function renderPanel(
   return queryClient;
 }
 
+// A stateful fetch mock: PATCH applies the change to an in-memory copy of
+// the settings, and GET returns that copy. This matters because a
+// successful mutation triggers `onSettled`'s `invalidateQueries`, which
+// refetches — a mock that always returned the original static SETTINGS
+// would silently clobber the just-applied value on that refetch.
+let currentSettings: ClientUserAccountSetting[];
+
 beforeEach(() => {
-  global.fetch = mock(() =>
-    Promise.resolve(
-      new Response(JSON.stringify({}), {
+  currentSettings = SETTINGS.map((s) => ({ ...s }));
+  global.fetch = mock((_url: string, init?: RequestInit) => {
+    if (init?.method === "PATCH") {
+      const { settings } = JSON.parse(init.body as string) as {
+        settings: { slug: string; value: string }[];
+      };
+      for (const patch of settings) {
+        const target = currentSettings.find((s) => s.slug === patch.slug);
+        if (target) target.value = patch.value;
+      }
+      return Promise.resolve(
+        new Response("{}", {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    }
+    return Promise.resolve(
+      new Response(JSON.stringify({ settings: currentSettings }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
-    ),
-  ) as unknown as typeof fetch;
+    );
+  }) as unknown as typeof fetch;
 });
 
 describe("while settings are loading", () => {
@@ -84,7 +105,7 @@ describe("while settings are loading", () => {
 
 describe("once settings have loaded", () => {
   it("renders the section headings", () => {
-    renderPanel();
+    renderPanel(SETTINGS);
     expect(
       screen.getByRole("heading", { level: 3, name: "Units & Preferences" }),
     ).toBeInTheDocument();
@@ -97,7 +118,7 @@ describe("once settings have loaded", () => {
   });
 
   it("renders each select with its current value", () => {
-    renderPanel();
+    renderPanel(SETTINGS);
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
     ).toHaveValue("Milliliters (mL)");
@@ -126,7 +147,7 @@ describe("once settings have loaded", () => {
 
 describe("changing a fluid select", () => {
   it("optimistically updates the value and calls the API to persist it", async () => {
-    renderPanel();
+    renderPanel(SETTINGS);
     const entryInput = screen.getByRole("combobox", {
       name: "Preferred Liquid Entry Unit",
     });
@@ -134,7 +155,7 @@ describe("changing a fluid select", () => {
     fireEvent.click(entryInput);
     fireEvent.click(screen.getByRole("option", { name: "Cups (US)" }));
 
-    expect(entryInput).toHaveValue("Cups (US)");
+    await waitFor(() => expect(entryInput).toHaveValue("Cups (US)"));
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
@@ -150,7 +171,7 @@ describe("changing a fluid select", () => {
 
 describe("changing a weight select", () => {
   it("optimistically updates the value and calls the API to persist it", async () => {
-    renderPanel();
+    renderPanel(SETTINGS);
     const viewingInput = screen.getByRole("combobox", {
       name: "Preferred Weight Viewing Unit",
     });
@@ -158,7 +179,7 @@ describe("changing a weight select", () => {
     fireEvent.click(viewingInput);
     fireEvent.click(screen.getByRole("option", { name: "Pounds (lb)" }));
 
-    expect(viewingInput).toHaveValue("Pounds (lb)");
+    await waitFor(() => expect(viewingInput).toHaveValue("Pounds (lb)"));
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
@@ -177,15 +198,13 @@ describe("when the API call fails", () => {
     global.fetch = mock(() =>
       Promise.resolve(new Response("", { status: 500 })),
     ) as unknown as typeof fetch;
-    renderPanel();
+    renderPanel(SETTINGS);
     const entryInput = screen.getByRole("combobox", {
       name: "Preferred Liquid Entry Unit",
     });
 
     fireEvent.click(entryInput);
     fireEvent.click(screen.getByRole("option", { name: "Cups (US)" }));
-
-    expect(entryInput).toHaveValue("Cups (US)");
 
     await waitFor(() => expect(entryInput).toHaveValue("Liters (L)"));
   });

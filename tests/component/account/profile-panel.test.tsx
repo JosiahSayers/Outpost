@@ -4,7 +4,9 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 
-function renderPanel(props: Partial<React.ComponentProps<typeof ProfilePanel>> = {}) {
+function renderPanel(
+  props: Partial<React.ComponentProps<typeof ProfilePanel>> = {},
+) {
   return render(
     <MantineProvider>
       <ProfilePanel
