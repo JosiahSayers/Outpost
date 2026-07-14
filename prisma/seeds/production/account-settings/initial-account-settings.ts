@@ -5,7 +5,7 @@ async function run() {
   await db.accountSetting.createMany({
     data: [
       {
-        slug: "liguid_viewing_unit",
+        slug: "liquid_viewing_unit",
         name: "Liquid viewing unit",
         description:
           "The unit liquid measurements are shown in, such as water needed per meal in a meal plan.",

@@ -29,6 +29,6 @@ export const accountSettings = z.discriminatedUnion("slug", [
   weightEntryUnit,
 ]);
 
-export const editSettingsInput = z.strictObject({
+export const editAccountSettings = z.strictObject({
   settings: z.array(accountSettings),
 });
