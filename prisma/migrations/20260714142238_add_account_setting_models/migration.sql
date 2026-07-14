@@ -3,6 +3,7 @@ CREATE TABLE "AccountSetting" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "defaultValue" TEXT,
@@ -21,6 +22,9 @@ CREATE TABLE "AccountSettingValue" (
 
     CONSTRAINT "AccountSettingValue_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AccountSetting_slug_key" ON "AccountSetting"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AccountSetting_name_key" ON "AccountSetting"("name");

@@ -1,15 +1,20 @@
 import type { ConversionConfig } from "$/frontend/shared-components/converter/types";
 
-export type FluidUnit =
-  "ml" | "liters" | "cupsUS" | "cupsImperial" | "fluidOunce";
+export enum FluidUnit {
+  ml = "ml",
+  liters = "liters",
+  cupsUS = "cupsUS",
+  cupsImperial = "cupsImperial",
+  fluidOunce = "fluidOunce",
+}
 
 export const FLUID_UNIT_ORDER: FluidUnit[] = [
-  "ml",
-  "liters",
-  "cupsUS",
-  "fluidOunce",
-  "cupsImperial",
-];
+  FluidUnit.ml,
+  FluidUnit.liters,
+  FluidUnit.cupsUS,
+  FluidUnit.fluidOunce,
+  FluidUnit.cupsImperial,
+] as const;
 
 export const FLUID_UNIT_ABBREVIATION: Record<FluidUnit, string> = {
   ml: "mL",
@@ -43,7 +48,7 @@ export const FLUID_CONVERSIONS: ConversionConfig<FluidUnit> = {
 // else defaults to ml. cupsImperial is selectable but never auto-defaulted —
 // there's no reliable modern regional signal for it.
 export const FLUID_REGION_DEFAULT_UNIT: Partial<Record<string, FluidUnit>> = {
-  US: "cupsUS",
+  US: FluidUnit.cupsUS,
 };
 
-export const FLUID_DEFAULT_UNIT: FluidUnit = "ml";
+export const FLUID_DEFAULT_UNIT: FluidUnit = FluidUnit.ml;
