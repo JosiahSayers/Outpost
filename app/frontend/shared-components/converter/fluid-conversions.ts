@@ -1,11 +1,7 @@
 import type { ConversionConfig } from "$/frontend/shared-components/converter/types";
 
 export type FluidUnit =
-  | "ml"
-  | "liters"
-  | "cupsUS"
-  | "cupsImperial"
-  | "fluidOunce";
+  "ml" | "liters" | "cupsUS" | "cupsImperial" | "fluidOunce";
 
 export const FLUID_UNIT_ORDER: FluidUnit[] = [
   "ml",
