@@ -4,7 +4,8 @@ CREATE TABLE "AccountSetting" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "name" TEXT NOT NULL,
-    "defaultValue" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "defaultValue" TEXT,
 
     CONSTRAINT "AccountSetting_pkey" PRIMARY KEY ("id")
 );
