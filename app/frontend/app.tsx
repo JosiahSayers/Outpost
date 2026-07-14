@@ -1,4 +1,5 @@
 import "$/frontend/global.css";
+import { AccountSettingsProvider } from "$/frontend/account/account-settings-context";
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import DashboardPage from "$/frontend/pages/dashboard.page";
@@ -26,19 +27,21 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={trailTheme}>
           <Notifications />
-          <AppShell>
-            <Switch>
-              <Route path="/" component={MarketingPage} />
-              <Route path="/account/:tab?" component={AccountPage} />
-              <Route path="/dashboard" component={DashboardPage} />
-              <Route path="/gear-inventory" component={GearInventoryPage} />
-              <Route path="/packing-lists/:id" component={PackingListPage} />
-              <Route path="/trips/:id" component={TripPage} />
-              <Route path="/sign-in" component={SignInPage} />
-              <Route path="/register" component={RegisterPage} />
-              <Route component={NotFoundPage} />
-            </Switch>
-          </AppShell>
+          <AccountSettingsProvider>
+            <AppShell>
+              <Switch>
+                <Route path="/" component={MarketingPage} />
+                <Route path="/account/:tab?" component={AccountPage} />
+                <Route path="/dashboard" component={DashboardPage} />
+                <Route path="/gear-inventory" component={GearInventoryPage} />
+                <Route path="/packing-lists/:id" component={PackingListPage} />
+                <Route path="/trips/:id" component={TripPage} />
+                <Route path="/sign-in" component={SignInPage} />
+                <Route path="/register" component={RegisterPage} />
+                <Route component={NotFoundPage} />
+              </Switch>
+            </AppShell>
+          </AccountSettingsProvider>
         </MantineProvider>
       </QueryClientProvider>
     </>

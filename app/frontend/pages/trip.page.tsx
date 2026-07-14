@@ -1,3 +1,4 @@
+import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import Header from "$/frontend/trip/header";
@@ -14,8 +15,9 @@ export default function TripPage() {
   useAuthenticatedGuard();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError } = useTrip(id);
+  const { isPending: settingsPending } = useAccountSettingsContext();
 
-  if (isLoading) {
+  if (isLoading || settingsPending) {
     return (
       <Center py="xl">
         <Loader />

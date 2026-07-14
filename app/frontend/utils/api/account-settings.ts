@@ -8,13 +8,19 @@ export const accountSettingsKeys = {
   all: ["account-settings"] as const,
 };
 
-export function useAccountSettings() {
+export function useAccountSettings(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: accountSettingsKeys.all,
     queryFn: () =>
       apiClient<{ settings: ClientUserAccountSetting[] }>(
         "/api/account/settings",
       ).then((res) => res.settings),
+    // Settings only change via useUpdateAccountSetting, which already
+    // invalidates this key on settle, so there's no benefit to time-based
+    // revalidation and it would just cause unwanted refetches/flicker for
+    // AccountSettingsProvider's consumers.
+    staleTime: Infinity,
+    enabled: options?.enabled,
   });
 }
 

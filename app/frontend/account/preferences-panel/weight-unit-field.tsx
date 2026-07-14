@@ -1,23 +1,35 @@
 import type { WeightSettingSlug } from "$/frontend/account/preferences-panel";
+import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
+import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import {
   type WeightUnit,
   WEIGHT_CONVERSIONS,
   WEIGHT_DEFAULT_UNIT,
+  WEIGHT_REGION_DEFAULT_UNIT,
 } from "$/frontend/shared-components/converter/weight-conversions";
-import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { Select } from "@mantine/core";
 
 interface WeightUnitFieldProps {
   slug: WeightSettingSlug;
-  setting: ClientUserAccountSetting | undefined;
   onSave: (input: { slug: WeightSettingSlug; value: WeightUnit }) => void;
 }
 
 export default function WeightUnitField({
   slug,
-  setting,
   onSave,
 }: WeightUnitFieldProps) {
+  const { settings } = useAccountSettingsContext();
+  const setting = settings?.find((s) => s.slug === slug);
+  // Same resolution the trip/gear-inventory pages use for this setting: the
+  // stored value if the user has set one, otherwise the region-detected
+  // default — so this select and those pages always agree on what "unset"
+  // means.
+  const selectedUnit = usePreferredUnit(
+    slug,
+    WEIGHT_REGION_DEFAULT_UNIT,
+    WEIGHT_DEFAULT_UNIT,
+  );
+
   return (
     <Select
       label={setting?.name}
@@ -27,7 +39,7 @@ export default function WeightUnitField({
         value: unit,
         label: WEIGHT_CONVERSIONS.labels[unit],
       }))}
-      value={(setting?.value as WeightUnit | undefined) ?? WEIGHT_DEFAULT_UNIT}
+      value={selectedUnit}
       onChange={(next) => next && onSave({ slug, value: next as WeightUnit })}
       allowDeselect={false}
     />

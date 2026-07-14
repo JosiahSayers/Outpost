@@ -43,6 +43,16 @@ test.describe("Gear Inventory Page", () => {
       );
     });
     await signIn(page);
+    // The weight-format assertions below assume the en-US region default
+    // (ounces). weight_viewing_unit is a real, persisted account setting
+    // shared with account.e2e.ts's "persists across reload" tests, which
+    // run against this same seeded user — so it can't be left to whatever
+    // value a previous test file happened to save. Reset it explicitly and
+    // reload so the page picks up the fresh value.
+    await page.request.patch("/api/account/settings", {
+      data: { settings: [{ slug: "weight_viewing_unit", value: "ounces" }] },
+    });
+    await page.reload();
     await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
   });
 

@@ -126,21 +126,24 @@ test.describe("Account Settings page", () => {
       ).toBeVisible();
     });
 
-    test("defaults each select to the app-wide default unit", async ({
+    test("defaults each select to the region-detected unit (en-US)", async ({
       page,
     }) => {
+      // Unset settings fall back to the same region-detected default the
+      // trip/gear-inventory pages use, not a hardcoded first option — cupsUS
+      // and ounces are the en-US defaults.
       await expect(
         page.getByRole("combobox", { name: "Liquid viewing unit" }),
-      ).toHaveValue("Milliliters (mL)");
+      ).toHaveValue("Cups (US)");
       await expect(
         page.getByRole("combobox", { name: "Liquid entry unit" }),
-      ).toHaveValue("Milliliters (mL)");
+      ).toHaveValue("Cups (US)");
       await expect(
         page.getByRole("combobox", { name: "Weight viewing unit" }),
-      ).toHaveValue("Grams (g)");
+      ).toHaveValue("Ounces (oz)");
       await expect(
         page.getByRole("combobox", { name: "Weight entry unit" }),
-      ).toHaveValue("Grams (g)");
+      ).toHaveValue("Ounces (oz)");
     });
 
     test("changing the liquid viewing unit persists across a reload", async ({

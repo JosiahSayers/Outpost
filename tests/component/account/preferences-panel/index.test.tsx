@@ -1,3 +1,4 @@
+import { AccountSettingsProviderBase } from "$/frontend/account/account-settings-context";
 import PreferencesPanel from "$/frontend/account/preferences-panel";
 import { accountSettingsKeys } from "$/frontend/utils/api/account-settings";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
@@ -53,7 +54,9 @@ function renderPanel(settings: ClientUserAccountSetting[] | undefined) {
   render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
-        <PreferencesPanel />
+        <AccountSettingsProviderBase isAuthenticated>
+          <PreferencesPanel />
+        </AccountSettingsProviderBase>
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -135,7 +138,7 @@ describe("once settings have loaded", () => {
     await waitFor(() => {});
   });
 
-  it("falls back to the default unit when a setting has no value", async () => {
+  it("falls back to the region-detected unit (cupsUS in en-US) when a setting has no value", async () => {
     renderPanel(
       SETTINGS.map((s) =>
         s.slug === "liquid_viewing_unit" ? { ...s, value: null } : s,
@@ -143,7 +146,7 @@ describe("once settings have loaded", () => {
     );
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
-    ).toHaveValue("Milliliters (mL)");
+    ).toHaveValue("Cups (US)");
     await waitFor(() => {});
   });
 });

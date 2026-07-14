@@ -1,3 +1,4 @@
+import { AccountSettingsProviderBase } from "$/frontend/account/account-settings-context";
 import SettingsShell from "$/frontend/account/settings-shell";
 import { accountSettingsKeys } from "$/frontend/utils/api/account-settings";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
@@ -21,17 +22,19 @@ function renderShell(initialPath = "/account/profile") {
   return render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
-        <Router hook={hook}>
-          <Route path="/account/:tab?">
-            {(params: { tab?: string }) => (
-              <SettingsShell
-                name="Josiah Sayers"
-                email="josiah.sayers@me.com"
-                tab={params.tab}
-              />
-            )}
-          </Route>
-        </Router>
+        <AccountSettingsProviderBase isAuthenticated>
+          <Router hook={hook}>
+            <Route path="/account/:tab?">
+              {(params: { tab?: string }) => (
+                <SettingsShell
+                  name="Josiah Sayers"
+                  email="josiah.sayers@me.com"
+                  tab={params.tab}
+                />
+              )}
+            </Route>
+          </Router>
+        </AccountSettingsProviderBase>
       </MantineProvider>
     </QueryClientProvider>,
   );

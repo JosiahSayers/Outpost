@@ -1,9 +1,12 @@
+import { AccountSettingsProviderBase } from "$/frontend/account/account-settings-context";
 import WeightUnitField from "$/frontend/account/preferences-panel/weight-unit-field";
+import { accountSettingsKeys } from "$/frontend/utils/api/account-settings";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 function setting(
   overrides: Partial<ClientUserAccountSetting> = {},
@@ -18,28 +21,31 @@ function setting(
   };
 }
 
-function renderField(
-  props: Partial<{
-    setting: ClientUserAccountSetting | undefined;
-    onSave: (input: { slug: string; value: string }) => void;
-  }> = {},
-) {
-  const onSave = props.onSave ?? mock();
+const onSave = mock(() => {});
+
+function renderField(settings: ClientUserAccountSetting[]) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  queryClient.setQueryData(accountSettingsKeys.all, settings);
   render(
-    <MantineProvider>
-      <WeightUnitField
-        slug="weight_viewing_unit"
-        setting={"setting" in props ? props.setting : setting()}
-        onSave={onSave}
-      />
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <AccountSettingsProviderBase isAuthenticated>
+          <WeightUnitField slug="weight_viewing_unit" onSave={onSave} />
+        </AccountSettingsProviderBase>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
-  return onSave;
 }
+
+beforeEach(() => {
+  onSave.mockReset();
+});
 
 describe("with a setting", () => {
   it("renders the label and description", async () => {
-    renderField();
+    renderField([setting()]);
     expect(
       screen.getByText("Preferred Weight Viewing Unit"),
     ).toBeInTheDocument();
@@ -50,23 +56,23 @@ describe("with a setting", () => {
   });
 
   it("renders the setting's current value", async () => {
-    renderField({ setting: setting({ value: "pounds" }) });
+    renderField([setting({ value: "pounds" })]);
     expect(
       screen.getByRole("combobox", { name: "Preferred Weight Viewing Unit" }),
     ).toHaveValue("Pounds (lb)");
     await waitFor(() => {});
   });
 
-  it("falls back to the default unit when the value is null", async () => {
-    renderField({ setting: setting({ value: null }) });
+  it("falls back to the region-detected unit (ounces in en-US) when the value is null", async () => {
+    renderField([setting({ value: null })]);
     expect(
       screen.getByRole("combobox", { name: "Preferred Weight Viewing Unit" }),
-    ).toHaveValue("Grams (g)");
+    ).toHaveValue("Ounces (oz)");
     await waitFor(() => {});
   });
 
   it("lists all weight units as options", async () => {
-    renderField();
+    renderField([setting()]);
     fireEvent.click(
       screen.getByRole("combobox", { name: "Preferred Weight Viewing Unit" }),
     );
@@ -83,7 +89,7 @@ describe("with a setting", () => {
 
   describe("selecting an option", () => {
     it("calls onSave with the field's slug and the selected unit", async () => {
-      const onSave = renderField();
+      renderField([setting()]);
       fireEvent.click(
         screen.getByRole("combobox", {
           name: "Preferred Weight Viewing Unit",
@@ -101,18 +107,18 @@ describe("with a setting", () => {
   });
 });
 
-describe("with no setting", () => {
+describe("with no matching setting in the loaded list", () => {
   it("renders without a label or description", async () => {
-    renderField({ setting: undefined });
+    renderField([]);
     expect(
       screen.queryByText("Preferred Weight Viewing Unit"),
     ).not.toBeInTheDocument();
     await waitFor(() => {});
   });
 
-  it("falls back to the default unit", async () => {
-    renderField({ setting: undefined });
-    expect(screen.getByRole("combobox")).toHaveValue("Grams (g)");
+  it("falls back to the region-detected unit (ounces in en-US)", async () => {
+    renderField([]);
+    expect(screen.getByRole("combobox")).toHaveValue("Ounces (oz)");
     await waitFor(() => {});
   });
 });
