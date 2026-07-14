@@ -47,7 +47,7 @@ export default function Header() {
               aria-label="Toggle menu"
               style={{ borderRadius: "50%", cursor: "pointer" }}
             >
-              <MarmotAvatar size={36} />
+              <MarmotAvatar size={36} winking={opened} />
             </UnstyledButton>
           ) : (
             <Burger

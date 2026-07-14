@@ -14,6 +14,7 @@ import {
   useMantineColorScheme,
 } from "@mantine/core";
 import { GearIcon, SignOutIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 import { Link } from "wouter";
 
 interface AccountMenuProps {
@@ -38,6 +39,7 @@ export default function AccountMenu({
   onSignOut,
 }: AccountMenuProps) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const [menuOpened, setMenuOpened] = useState(false);
 
   const identity = (
     <Group gap="sm" wrap="nowrap">
@@ -99,13 +101,19 @@ export default function AccountMenu({
   }
 
   return (
-    <Menu shadow="md" width={240} position="bottom-end">
+    <Menu
+      shadow="md"
+      width={240}
+      position="bottom-end"
+      opened={menuOpened}
+      onChange={setMenuOpened}
+    >
       <Menu.Target>
         <UnstyledButton
           aria-label="Account menu"
           style={{ borderRadius: "50%", cursor: "pointer" }}
         >
-          <MarmotAvatar />
+          <MarmotAvatar winking={menuOpened} />
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
