@@ -270,7 +270,7 @@ model MealPlanItem {
   waterMl        Int?
   dryWeightGrams Int?
 
-  mealPlanDay   MealPlanDay @relation(fields: [mealPlanDayId], references: [id])
+  mealPlanDay   MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
   mealPlanDayId String
 
   @@index([meal, mealPlanDayId])
