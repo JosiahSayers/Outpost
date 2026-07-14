@@ -1,3 +1,4 @@
+import { accountRouter } from "$/routers/api/account";
 import { gearCategoriesRouter } from "$/routers/api/gear-categories";
 import { gearInventoryRouter } from "$/routers/api/gear-inventory";
 import { packingListRouter } from "$/routers/api/packing-list";
@@ -10,3 +11,4 @@ apiRouter.use("/gear-inventory", gearInventoryRouter);
 apiRouter.use("/gear-categories", gearCategoriesRouter);
 apiRouter.use("/packing-lists", packingListRouter);
 apiRouter.use("/trips", tripRouter);
+apiRouter.use("/account", accountRouter);

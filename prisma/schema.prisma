@@ -36,10 +36,11 @@ model User {
   packingLists       PackingList[]
   trips              Trip[]
 
-  role       String?
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  role                 String?
+  banned               Boolean?              @default(false)
+  banReason            String?
+  banExpires           DateTime?
+  accountSettingValues AccountSettingValue[]
 
   @@unique([email])
   @@map("user")
@@ -93,6 +94,33 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model AccountSetting {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slug                 String                @unique
+  name                 String                @unique
+  description          String
+  defaultValue         String?
+  accountSettingValues AccountSettingValue[]
+}
+
+model AccountSettingValue {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  value String
+
+  accountSetting   AccountSetting @relation(fields: [accountSettingId], references: [id], onDelete: Cascade)
+  accountSettingId String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+
+  @@unique([accountSettingId, userId])
 }
 
 model GearCategory {

@@ -1,4 +1,5 @@
 import { db } from "$/utils/db";
+import { initialAccountSettings } from "./account-settings/initial-account-settings";
 import { publicGearCategories } from "./gear-categories";
 import { reiPackingList } from "./packing-lists/rei-packing-list";
 import { reiWinterBackcountryCampingChecklist } from "./packing-lists/rei-winter-backcountry-camping-checklist";
@@ -7,6 +8,7 @@ const productionSeeds = [
   publicGearCategories,
   reiPackingList,
   reiWinterBackcountryCampingChecklist,
+  initialAccountSettings,
 ];
 
 export default async function applyProductionSeeds() {

@@ -1,0 +1,26 @@
+info:
+  name: Update Settings
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/account/settings"
+  body:
+    type: json
+    data: |-
+      {
+        "settings": [
+          {
+            "slug": "liquid_viewing_unit",
+            "value": "liters"
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
