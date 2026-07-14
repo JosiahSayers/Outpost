@@ -1,8 +1,12 @@
+import SettingsShell from "$/frontend/account/settings-shell";
+import PageContainer from "$/frontend/layout/page-container";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { Center, Loader, Stack, Text, Title } from "@mantine/core";
+import { Center, Loader, Text, Title } from "@mantine/core";
+import { useParams } from "wouter";
 
 export default function AccountPage() {
   const session = useAuthenticatedGuard();
+  const { tab } = useParams<{ tab?: string }>();
 
   if (session.isPending) {
     return (
@@ -13,26 +17,17 @@ export default function AccountPage() {
   }
 
   return (
-    <Stack gap="xl" py="xl" px={{ base: "md", md: "xl" }} maw={640} mx="auto">
+    <PageContainer gap="xl">
       <div>
         <Title order={1}>Account Settings</Title>
         <Text c="dimmed">Manage the details tied to your account.</Text>
       </div>
 
-      <Stack gap="md">
-        <div>
-          <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-            Name
-          </Text>
-          <Text>{session.data?.user.name}</Text>
-        </div>
-        <div>
-          <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-            Email
-          </Text>
-          <Text>{session.data?.user.email}</Text>
-        </div>
-      </Stack>
-    </Stack>
+      <SettingsShell
+        name={session.data?.user.name ?? ""}
+        email={session.data?.user.email ?? ""}
+        tab={tab}
+      />
+    </PageContainer>
   );
 }

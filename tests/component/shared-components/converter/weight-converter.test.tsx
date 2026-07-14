@@ -1,5 +1,9 @@
+import { AccountSettingsProviderBase } from "$/frontend/account/account-settings-context";
 import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
+import { accountSettingsKeys } from "$/frontend/utils/api/account-settings";
+import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -22,6 +26,25 @@ function renderConverter(
   );
 }
 
+function renderConverterWithSetting(
+  value: number | string,
+  setting: ClientUserAccountSetting,
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  queryClient.setQueryData(accountSettingsKeys.all, [setting]);
+  render(
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <AccountSettingsProviderBase isAuthenticated>
+          <WeightConverter label="Weight" value={value} onChange={onChange} />
+        </AccountSettingsProviderBase>
+      </MantineProvider>
+    </QueryClientProvider>,
+  );
+}
+
 beforeEach(() => {
   onChange.mockReset();
 });
@@ -30,6 +53,18 @@ describe("default unit detection", () => {
   it("defaults to Ounces (oz) in the en-US test environment", async () => {
     renderConverter(28.349523125);
     expect(screen.getByRole("combobox")).toHaveValue("Ounces (oz)");
+    await waitFor(() => {});
+  });
+
+  it("uses the stored weight_entry_unit account setting instead of the locale default", async () => {
+    renderConverterWithSetting(1000, {
+      slug: "weight_entry_unit",
+      name: "Preferred Weight Entry Unit",
+      description: "Unit used when entering weight measurements.",
+      defaultValue: null,
+      value: "kilograms",
+    });
+    expect(screen.getByRole("combobox")).toHaveValue("Kilograms (kg)");
     await waitFor(() => {});
   });
 });

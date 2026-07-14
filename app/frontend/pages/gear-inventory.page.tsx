@@ -1,13 +1,15 @@
+import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import CategorySection from "$/frontend/gear-inventory/category-section";
 import DeleteModal from "$/frontend/gear-inventory/delete-modal";
 import EditDrawer from "$/frontend/gear-inventory/edit-drawer";
 import Header from "$/frontend/gear-inventory/header";
+import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Stack } from "@mantine/core";
+import { Center, Loader, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
@@ -16,6 +18,7 @@ export default function GearInventoryPage() {
   const formatWeight = useWeightDisplay();
   // TODO: Loading and error states
   const { data, isLoading, isError } = useGearInventory();
+  const { isPending: settingsPending } = useAccountSettingsContext();
   const [drawerOpen, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const [deleteOpen, { open: openDelete, close: closeDelete }] =
@@ -52,6 +55,14 @@ export default function GearInventoryPage() {
     );
   }, [data?.items]);
 
+  if (settingsPending) {
+    return (
+      <Center py="xl">
+        <Loader />
+      </Center>
+    );
+  }
+
   const handleAdd = () => {
     setEditItem(null);
     openDrawer();
@@ -78,7 +89,7 @@ export default function GearInventoryPage() {
   };
 
   return (
-    <Stack gap="xl" py="xl" px={{ base: "md", md: "xl" }} maw={1400} mx="auto">
+    <PageContainer gap="xl">
       <BackToDashboardLink />
       <Header items={data?.items ?? []} onAdd={handleAdd} />
 
@@ -105,6 +116,6 @@ export default function GearInventoryPage() {
         onClose={() => handleClose("modal")}
         item={deleteItem}
       />
-    </Stack>
+    </PageContainer>
   );
 }

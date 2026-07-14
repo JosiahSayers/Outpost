@@ -1,5 +1,5 @@
+import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import UnitConverterInput from "$/frontend/shared-components/converter/unit-converter-input";
-import { useDefaultUnit } from "$/frontend/shared-components/converter/use-default-unit";
 import {
   WEIGHT_CONVERSIONS,
   WEIGHT_DEFAULT_UNIT,
@@ -17,9 +17,10 @@ interface Props extends Omit<NumberInputProps, "value" | "onChange"> {
 
 // Pre-configured UnitConverterInput for weight fields (grams canonical):
 // wires up the grams/kilograms/ounces/pounds conversion table, a sane
-// decimal display, and a locale-detected starting unit, so consumers just
-// plug in a canonical-grams value/onChange (e.g. straight off
-// form.getInputProps("grams")).
+// decimal display, and a starting unit taken from the user's
+// weight_entry_unit account setting (falling back to locale detection if
+// unset), so consumers just plug in a canonical-grams value/onChange (e.g.
+// straight off form.getInputProps("grams")).
 export default function WeightConverter({
   value,
   onChange,
@@ -27,11 +28,12 @@ export default function WeightConverter({
   decimalScale = 2,
   ...numberInputProps
 }: Props) {
-  const detectedUnit = useDefaultUnit(
+  const preferredUnit = usePreferredUnit(
+    "weight_entry_unit",
     WEIGHT_REGION_DEFAULT_UNIT,
     WEIGHT_DEFAULT_UNIT,
   );
-  const [unit, setUnit] = useState<WeightUnit>(detectedUnit);
+  const [unit, setUnit] = useState<WeightUnit>(preferredUnit);
 
   return (
     <UnitConverterInput

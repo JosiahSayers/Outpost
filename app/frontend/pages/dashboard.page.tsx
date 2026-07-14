@@ -1,8 +1,9 @@
 import GearSummaryBar from "$/frontend/dashboard/gear-summary";
 import PackingLists from "$/frontend/dashboard/packing-lists";
 import UpcomingTrips from "$/frontend/dashboard/upcoming-trips";
+import PageContainer from "$/frontend/layout/page-container";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { Center, Loader, Stack, Text, Title } from "@mantine/core";
+import { Center, Loader, Text, Title } from "@mantine/core";
 
 export default function DashboardPage() {
   const session = useAuthenticatedGuard();
@@ -18,7 +19,7 @@ export default function DashboardPage() {
   const firstName = (session.data?.user.name ?? "").split(" ")[0];
 
   return (
-    <Stack gap="xl" py="xl" px={{ base: "md", md: "xl" }} maw={1200} mx="auto">
+    <PageContainer gap="xl">
       <div>
         <Title order={1}>
           Welcome back{firstName ? `, ${firstName}!` : "!"}
@@ -31,6 +32,6 @@ export default function DashboardPage() {
       <PackingLists />
 
       <GearSummaryBar />
-    </Stack>
+    </PageContainer>
   );
 }

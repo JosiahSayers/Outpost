@@ -1,4 +1,4 @@
-import { useDefaultUnit } from "$/frontend/shared-components/converter/use-default-unit";
+import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import {
   WEIGHT_CONVERSIONS,
   WEIGHT_DEFAULT_UNIT,
@@ -19,8 +19,8 @@ export interface UseWeightDisplayOptions {
 }
 
 // Formats a canonical-grams value for read-only display (e.g. "450 g" or
-// "1.2 lb"), using the same locale-detected unit as WeightConverter so a
-// displayed value matches what an adjacent input would show. Returns a
+// "1.2 lb"), using the user's weight_viewing_unit account setting (falling
+// back to locale detection if unset). Returns a
 // formatter function rather than a formatted string so the hook can be
 // called once per component and the formatter reused across a list (e.g.
 // mapped table rows) without violating the rules of hooks.
@@ -28,7 +28,11 @@ export function useWeightDisplay({
   decimalScale = 2,
   rollUp = false,
 }: UseWeightDisplayOptions = {}) {
-  const unit = useDefaultUnit(WEIGHT_REGION_DEFAULT_UNIT, WEIGHT_DEFAULT_UNIT);
+  const unit = usePreferredUnit(
+    "weight_viewing_unit",
+    WEIGHT_REGION_DEFAULT_UNIT,
+    WEIGHT_DEFAULT_UNIT,
+  );
 
   return useCallback(
     (grams: number | null): string => {

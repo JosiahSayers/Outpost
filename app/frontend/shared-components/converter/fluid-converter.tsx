@@ -1,3 +1,4 @@
+import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import {
   FLUID_CONVERSIONS,
   FLUID_DEFAULT_UNIT,
@@ -5,7 +6,6 @@ import {
   type FluidUnit,
 } from "$/frontend/shared-components/converter/fluid-conversions";
 import UnitConverterInput from "$/frontend/shared-components/converter/unit-converter-input";
-import { useDefaultUnit } from "$/frontend/shared-components/converter/use-default-unit";
 import type { NumberInputProps, SelectProps } from "@mantine/core";
 import { useState } from "react";
 
@@ -17,9 +17,10 @@ interface Props extends Omit<NumberInputProps, "value" | "onChange"> {
 
 // Pre-configured UnitConverterInput for fluid-volume fields (ml canonical):
 // wires up the ml/liters/US-cups/Imperial-cups conversion table, a sane
-// decimal display, and a locale-detected starting unit, so consumers just
-// plug in a canonical-ml value/onChange (e.g. straight off
-// form.getInputProps("waterMl")).
+// decimal display, and a starting unit taken from the user's
+// liquid_entry_unit account setting (falling back to locale detection if
+// unset), so consumers just plug in a canonical-ml value/onChange (e.g.
+// straight off form.getInputProps("waterMl")).
 export default function FluidConverter({
   value,
   onChange,
@@ -27,11 +28,12 @@ export default function FluidConverter({
   decimalScale = 2,
   ...numberInputProps
 }: Props) {
-  const detectedUnit = useDefaultUnit(
+  const preferredUnit = usePreferredUnit(
+    "liquid_entry_unit",
     FLUID_REGION_DEFAULT_UNIT,
     FLUID_DEFAULT_UNIT,
   );
-  const [unit, setUnit] = useState<FluidUnit>(detectedUnit);
+  const [unit, setUnit] = useState<FluidUnit>(preferredUnit);
 
   return (
     <UnitConverterInput
