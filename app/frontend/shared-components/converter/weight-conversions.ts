@@ -7,8 +7,6 @@ export enum WeightUnit {
   pounds = "pounds",
 }
 
-// export type WeightUnit = "grams" | "kilograms" | "ounces" | "pounds";
-
 export const WEIGHT_UNIT_ORDER: WeightUnit[] = [
   WeightUnit.grams,
   WeightUnit.kilograms,
