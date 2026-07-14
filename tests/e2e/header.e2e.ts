@@ -30,10 +30,9 @@ test.describe("Header - unauthenticated", () => {
     ).toBeVisible();
   });
 
-  test("does not show a greeting or Sign Out button", async ({ page }) => {
-    await expect(page.locator("header").getByText(/Hello/)).not.toBeVisible();
+  test("does not show the account menu trigger", async ({ page }) => {
     await expect(
-      page.locator("header").getByRole("button", { name: "Sign Out" }),
+      page.locator("header").getByRole("button", { name: "Account menu" }),
     ).not.toBeVisible();
   });
 
@@ -68,13 +67,9 @@ test.describe("Header - authenticated", () => {
     await expect(page).toHaveURL("/dashboard");
   });
 
-  test("shows a greeting with the user's name", async ({ page }) => {
-    await expect(page.locator("header").getByText(/^Hello .+/)).toBeVisible();
-  });
-
-  test("shows a Sign Out button", async ({ page }) => {
+  test("shows the account menu trigger", async ({ page }) => {
     await expect(
-      page.locator("header").getByRole("button", { name: "Sign Out" }),
+      page.locator("header").getByRole("button", { name: "Account menu" }),
     ).toBeVisible();
   });
 
@@ -87,10 +82,51 @@ test.describe("Header - authenticated", () => {
     ).not.toBeVisible();
   });
 
+  test("opening the account menu shows the signed-in user's name and email", async ({
+    page,
+  }) => {
+    await page
+      .locator("header")
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    const menu = page.getByRole("menu");
+    await expect(menu.getByText(USER.email)).toBeVisible();
+  });
+
+  test("the account menu links to Account Settings", async ({ page }) => {
+    await page
+      .locator("header")
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    await page
+      .getByRole("menu")
+      .getByRole("menuitem", { name: "Account Settings" })
+      .click();
+    await expect(page).toHaveURL("/account");
+  });
+
+  test("switching appearance to Dark updates the color scheme", async ({
+    page,
+  }) => {
+    await page
+      .locator("header")
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    await page.getByRole("menu").getByRole("radio", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-mantine-color-scheme",
+      "dark",
+    );
+  });
+
   test("Sign Out ends the session and shows auth links", async ({ page }) => {
     await page
       .locator("header")
-      .getByRole("button", { name: "Sign Out" })
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    await page
+      .getByRole("menu")
+      .getByRole("menuitem", { name: "Sign Out" })
       .click();
     await expect(
       page.locator("header").getByRole("link", { name: "Sign In" }),
@@ -152,15 +188,40 @@ test.describe("Header - mobile nav", () => {
       await signIn(page, "/gear-inventory");
     });
 
-    test("opening the burger menu shows greeting and Sign Out", async ({
+    test("opening the burger menu shows identity, settings, appearance, and sign out inline", async ({
       page,
     }) => {
       await page.getByRole("button", { name: "Toggle menu" }).click();
       const drawer = page.getByRole("dialog");
-      await expect(drawer.getByText(/^Hello .+/)).toBeVisible();
+      await expect(drawer.getByText(USER.email)).toBeVisible();
       await expect(
-        drawer.getByRole("button", { name: "Sign Out" }),
+        drawer.getByRole("link", { name: "Account Settings" }),
       ).toBeVisible();
+      await expect(drawer.getByRole("radio", { name: "Light" })).toBeVisible();
+      await expect(drawer.getByText("Sign Out")).toBeVisible();
+    });
+
+    test("clicking Account Settings in the drawer closes it and navigates", async ({
+      page,
+    }) => {
+      await page.getByRole("button", { name: "Toggle menu" }).click();
+      await page
+        .getByRole("dialog")
+        .getByRole("link", { name: "Account Settings" })
+        .click();
+      await expect(page).toHaveURL("/account");
+      await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+
+    test("clicking Sign Out in the drawer closes it and ends the session", async ({
+      page,
+    }) => {
+      await page.getByRole("button", { name: "Toggle menu" }).click();
+      await page.getByRole("dialog").getByText("Sign Out").click();
+      await expect(
+        page.locator("header").getByRole("link", { name: "Sign In" }),
+      ).toBeVisible();
+      await expect(page.getByRole("dialog")).not.toBeVisible();
     });
   });
 });

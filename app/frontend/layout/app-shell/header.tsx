@@ -1,5 +1,6 @@
 import logoSrc from "$/../assets/images/outpost-logo-no-tagline.svg";
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
+import MarmotAvatar from "$/frontend/layout/app-shell/marmot-avatar";
 import { authClient } from "$/frontend/utils/auth-client";
 import {
   AppShellHeader,
@@ -8,6 +9,7 @@ import {
   Group,
   Image,
   Stack,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link } from "wouter";
@@ -38,13 +40,24 @@ export default function Header() {
           <Group visibleFrom="sm">
             <HeaderLinks />
           </Group>
-          <Burger
-            opened={opened}
-            onClick={toggle}
-            hiddenFrom="sm"
-            size="sm"
-            aria-label="Toggle menu"
-          />
+          {session.data ? (
+            <UnstyledButton
+              onClick={toggle}
+              hiddenFrom="sm"
+              aria-label="Toggle menu"
+              style={{ borderRadius: "50%", cursor: "pointer" }}
+            >
+              <MarmotAvatar size={36} />
+            </UnstyledButton>
+          ) : (
+            <Burger
+              opened={opened}
+              onClick={toggle}
+              hiddenFrom="sm"
+              size="sm"
+              aria-label="Toggle menu"
+            />
+          )}
         </Group>
       </AppShellHeader>
       <Drawer opened={opened} onClose={close} title="Menu" size="xs">
