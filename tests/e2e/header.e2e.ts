@@ -112,7 +112,7 @@ test.describe("Header - authenticated", () => {
       .locator("header")
       .getByRole("button", { name: "Account menu" })
       .click();
-    await page.getByRole("menu").getByRole("radio", { name: "Dark" }).click();
+    await page.getByRole("menu").getByText("Dark", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute(
       "data-mantine-color-scheme",
       "dark",
@@ -197,7 +197,7 @@ test.describe("Header - mobile nav", () => {
       await expect(
         drawer.getByRole("link", { name: "Account Settings" }),
       ).toBeVisible();
-      await expect(drawer.getByRole("radio", { name: "Light" })).toBeVisible();
+      await expect(drawer.getByText("Light", { exact: true })).toBeVisible();
       await expect(drawer.getByText("Sign Out")).toBeVisible();
     });
 
@@ -218,10 +218,16 @@ test.describe("Header - mobile nav", () => {
     }) => {
       await page.getByRole("button", { name: "Toggle menu" }).click();
       await page.getByRole("dialog").getByText("Sign Out").click();
-      await expect(
-        page.locator("header").getByRole("link", { name: "Sign In" }),
-      ).toBeVisible();
       await expect(page.getByRole("dialog")).not.toBeVisible();
+
+      // The header nav links live in a desktop-only group, so on mobile we
+      // reopen the drawer to confirm the session actually ended.
+      await page.getByRole("button", { name: "Toggle menu" }).click();
+      const drawer = page.getByRole("dialog");
+      await expect(drawer.getByRole("link", { name: "Sign In" })).toBeVisible();
+      await expect(
+        drawer.getByRole("link", { name: "Register" }),
+      ).toBeVisible();
     });
   });
 });
