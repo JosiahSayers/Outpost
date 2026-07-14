@@ -48,6 +48,7 @@ function FluidUnitField({ slug, setting, onSave }: FluidUnitFieldProps) {
     <Select
       label={setting?.name}
       description={setting?.description}
+      styles={{ description: { minHeight: "2.6em" } }}
       data={FLUID_CONVERSIONS.order.map((unit) => ({
         value: unit,
         label: FLUID_CONVERSIONS.labels[unit],
@@ -70,6 +71,7 @@ function WeightUnitField({ slug, setting, onSave }: WeightUnitFieldProps) {
     <Select
       label={setting?.name}
       description={setting?.description}
+      styles={{ description: { minHeight: "2.6em" } }}
       data={WEIGHT_CONVERSIONS.order.map((unit) => ({
         value: unit,
         label: WEIGHT_CONVERSIONS.labels[unit],
