@@ -2,7 +2,7 @@ import FluidUnitField from "$/frontend/account/preferences-panel/fluid-unit-fiel
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
 
 function setting(
@@ -38,7 +38,7 @@ function renderField(
 }
 
 describe("with a setting", () => {
-  it("renders the label and description", () => {
+  it("renders the label and description", async () => {
     renderField();
     expect(
       screen.getByText("Preferred Liquid Viewing Unit"),
@@ -46,23 +46,26 @@ describe("with a setting", () => {
     expect(
       screen.getByText("Unit used to display liquid measurements."),
     ).toBeInTheDocument();
+    await waitFor(() => {});
   });
 
-  it("renders the setting's current value", () => {
+  it("renders the setting's current value", async () => {
     renderField({ setting: setting({ value: "cupsUS" }) });
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
     ).toHaveValue("Cups (US)");
+    await waitFor(() => {});
   });
 
-  it("falls back to the default unit when the value is null", () => {
+  it("falls back to the default unit when the value is null", async () => {
     renderField({ setting: setting({ value: null }) });
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
     ).toHaveValue("Milliliters (mL)");
+    await waitFor(() => {});
   });
 
-  it("lists all fluid units as options", () => {
+  it("lists all fluid units as options", async () => {
     renderField();
     fireEvent.click(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
@@ -76,10 +79,11 @@ describe("with a setting", () => {
     ]) {
       expect(screen.getByRole("option", { name: label })).toBeInTheDocument();
     }
+    await waitFor(() => {});
   });
 
   describe("selecting an option", () => {
-    it("calls onSave with the field's slug and the selected unit", () => {
+    it("calls onSave with the field's slug and the selected unit", async () => {
       const onSave = renderField();
       fireEvent.click(
         screen.getByRole("combobox", {
@@ -93,20 +97,23 @@ describe("with a setting", () => {
         slug: "liquid_viewing_unit",
         value: "cupsUS",
       });
+      await waitFor(() => {});
     });
   });
 });
 
 describe("with no setting", () => {
-  it("renders without a label or description", () => {
+  it("renders without a label or description", async () => {
     renderField({ setting: undefined });
     expect(
       screen.queryByText("Preferred Liquid Viewing Unit"),
     ).not.toBeInTheDocument();
+    await waitFor(() => {});
   });
 
-  it("falls back to the default unit", () => {
+  it("falls back to the default unit", async () => {
     renderField({ setting: undefined });
     expect(screen.getByRole("combobox")).toHaveValue("Milliliters (mL)");
+    await waitFor(() => {});
   });
 });

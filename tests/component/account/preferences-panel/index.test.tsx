@@ -104,7 +104,7 @@ describe("while settings are loading", () => {
 });
 
 describe("once settings have loaded", () => {
-  it("renders the section headings", () => {
+  it("renders the section headings", async () => {
     renderPanel(SETTINGS);
     expect(
       screen.getByRole("heading", { level: 3, name: "Units & Preferences" }),
@@ -115,9 +115,10 @@ describe("once settings have loaded", () => {
     expect(
       screen.getByRole("heading", { level: 4, name: "Weight Measurements" }),
     ).toBeInTheDocument();
+    await waitFor(() => {});
   });
 
-  it("renders each select with its current value", () => {
+  it("renders each select with its current value", async () => {
     renderPanel(SETTINGS);
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
@@ -131,9 +132,10 @@ describe("once settings have loaded", () => {
     expect(
       screen.getByRole("combobox", { name: "Preferred Weight Entry Unit" }),
     ).toHaveValue("Kilograms (kg)");
+    await waitFor(() => {});
   });
 
-  it("falls back to the default unit when a setting has no value", () => {
+  it("falls back to the default unit when a setting has no value", async () => {
     renderPanel(
       SETTINGS.map((s) =>
         s.slug === "liquid_viewing_unit" ? { ...s, value: null } : s,
@@ -142,6 +144,7 @@ describe("once settings have loaded", () => {
     expect(
       screen.getByRole("combobox", { name: "Preferred Liquid Viewing Unit" }),
     ).toHaveValue("Milliliters (mL)");
+    await waitFor(() => {});
   });
 });
 

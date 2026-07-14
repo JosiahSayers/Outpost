@@ -4,7 +4,7 @@ import type { ClientUserAccountSetting } from "$/transformers/account-settings/u
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 import { Route, Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -46,7 +46,7 @@ describe("SettingsShell", () => {
     expect(screen.getByText("Josiah Sayers")).toBeInTheDocument();
   });
 
-  it("switches to the Preferences panel when clicked", () => {
+  it("switches to the Preferences panel when clicked", async () => {
     renderShell();
 
     fireEvent.click(screen.getByText("Preferences"));
@@ -57,9 +57,10 @@ describe("SettingsShell", () => {
     expect(
       screen.queryByRole("heading", { level: 3, name: "Profile" }),
     ).not.toBeInTheDocument();
+    await waitFor(() => {});
   });
 
-  it("switches back to the Profile panel when clicked", () => {
+  it("switches back to the Profile panel when clicked", async () => {
     renderShell();
 
     fireEvent.click(screen.getByText("Preferences"));
@@ -68,6 +69,7 @@ describe("SettingsShell", () => {
     expect(
       screen.getByRole("heading", { level: 3, name: "Profile" }),
     ).toBeInTheDocument();
+    await waitFor(() => {});
   });
 
   it("renders Notifications and Privacy as disabled with a Soon badge", () => {
