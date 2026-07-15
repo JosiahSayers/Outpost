@@ -13,13 +13,14 @@ import {
   UnstyledButton,
   useMantineColorScheme,
 } from "@mantine/core";
-import { GearIcon, SignOutIcon } from "@phosphor-icons/react";
+import { GearIcon, ShieldIcon, SignOutIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Link } from "wouter";
 
 interface AccountMenuProps {
   name: string;
   email: string;
+  isAdmin?: boolean;
   stacked?: boolean;
   onNavigate?: () => void;
   onSignOut: () => void;
@@ -34,6 +35,7 @@ const appearanceData = [
 export default function AccountMenu({
   name,
   email,
+  isAdmin,
   stacked,
   onNavigate,
   onSignOut,
@@ -83,6 +85,14 @@ export default function AccountMenu({
             <AppLink href="/account">Account Settings</AppLink>
           </Group>
         </Box>
+        {isAdmin && (
+          <Box onClick={onNavigate}>
+            <Group gap="xs">
+              <ShieldIcon size={16} />
+              <AppLink href="/console">Admin</AppLink>
+            </Group>
+          </Box>
+        )}
         {appearance}
         <Divider />
         <UnstyledButton
@@ -128,6 +138,15 @@ export default function AccountMenu({
         >
           Account Settings
         </Menu.Item>
+        {isAdmin && (
+          <Menu.Item
+            component={Link}
+            href="/console"
+            leftSection={<ShieldIcon size={16} />}
+          >
+            Admin
+          </Menu.Item>
+        )}
         <Box px="sm" pt={4} pb={2}>
           {appearance}
         </Box>
