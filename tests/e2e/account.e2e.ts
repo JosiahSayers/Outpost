@@ -231,3 +231,34 @@ test.describe("Account Settings page", () => {
     });
   });
 });
+
+test.describe("Account Settings page - mobile nav", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+  });
+
+  test("nav links are visible without horizontal overflow", async ({
+    page,
+  }) => {
+    await expect(page.getByRole("link", { name: "Profile" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Preferences" })).toBeVisible();
+
+    const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+  });
+
+  test("switching to the Preferences tab updates the content", async ({
+    page,
+  }) => {
+    await page.getByRole("link", { name: "Preferences" }).click();
+    await expect(page).toHaveURL("/account/preferences");
+    await expect(
+      page.getByRole("heading", { level: 3, name: "Units & Preferences" }),
+    ).toBeVisible();
+  });
+});
