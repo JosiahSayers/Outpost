@@ -1,6 +1,7 @@
 import PreferencesPanel from "$/frontend/account/preferences-panel";
 import ProfilePanel from "$/frontend/account/profile-panel";
-import { Badge, Box, Divider, Group, NavLink, Paper } from "@mantine/core";
+import { Badge, Box, Divider, Flex, NavLink, Paper } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   BellIcon,
   ShieldIcon,
@@ -30,6 +31,7 @@ export default function SettingsShell({
   tab,
 }: SettingsShellProps) {
   const activeTab: SettingsTab = isSettingsTab(tab) ? tab : "profile";
+  const isWideLayout = useMediaQuery("(min-width: 48em)");
   const tabContent: Record<SettingsTab, ReactNode> = {
     profile: <ProfilePanel name={name} email={email} />,
     preferences: <PreferencesPanel />,
@@ -37,8 +39,8 @@ export default function SettingsShell({
 
   return (
     <Paper withBorder>
-      <Group align="stretch" gap={0} wrap="nowrap">
-        <Box w={190} p="xs" flex="none">
+      <Flex direction={{ base: "column", sm: "row" }} gap={0} align="stretch">
+        <Box w={{ base: "100%", sm: 190 }} p="xs" flex="none">
           <NavLink
             component={Link}
             label="Profile"
@@ -78,11 +80,11 @@ export default function SettingsShell({
             to="/account/privacy"
           />
         </Box>
-        <Divider orientation="vertical" />
+        <Divider orientation={isWideLayout ? "vertical" : "horizontal"} />
         <Box flex={1} p="xl" style={{ minWidth: 0 }}>
           {tabContent[activeTab]}
         </Box>
-      </Group>
+      </Flex>
     </Paper>
   );
 }

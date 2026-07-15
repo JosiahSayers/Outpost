@@ -1,4 +1,7 @@
-import { redisConnection } from "$/jobs/workers/default-options";
+import {
+  defaultJobOptions,
+  redisConnection,
+} from "$/jobs/workers/default-options";
 import {
   EMAILS__RESET_PASSWORD_WORKER,
   type SendResetPasswordEmailData,
@@ -9,16 +12,18 @@ import { Queue } from "bullmq";
 
 export const moveToInProgressQueue = new Queue(
   TRIPS__MOVE_TO_IN_PROGRESS_WORKER,
-  { connection: redisConnection },
+  { connection: redisConnection, defaultJobOptions },
 );
 
 export const moveToFinishedQueue = new Queue(TRIPS__MOVE_TO_FINISHED_WORKER, {
   connection: redisConnection,
+  defaultJobOptions,
 });
 
 export const sendResetPasswordEmailQueue =
   new Queue<SendResetPasswordEmailData>(EMAILS__RESET_PASSWORD_WORKER, {
     connection: redisConnection,
+    defaultJobOptions,
   });
 
 export const allQueues = [
