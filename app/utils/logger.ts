@@ -2,18 +2,35 @@ import winston, { type transport } from "winston";
 
 export const logger = winston.createLogger({
   level: "info",
-  format: winston.format.combine(
-    winston.format.errors({ stack: true }),
-    winston.format.timestamp(),
-    winston.format.json(),
-  ),
-  defaultMeta: { version: (await Bun.file("./version").text())?.trim() },
+  format: getFormat(),
+  defaultMeta: await getDefaultMeta(),
   exitOnError: false,
-  transports: getTransports(),
+  transports: getTransports("application"),
   silent: Bun.env.NODE_ENV === "test",
 });
 
-function getTransports() {
+export const jobLogger = winston.createLogger({
+  level: "info",
+  format: getFormat(),
+  defaultMeta: await getDefaultMeta(),
+  exitOnError: false,
+  transports: getTransports("job"),
+  silent: Bun.env.NODE_ENV === "test",
+});
+
+function getFormat() {
+  return winston.format.combine(
+    winston.format.errors({ stack: true }),
+    winston.format.timestamp(),
+    winston.format.json(),
+  );
+}
+
+async function getDefaultMeta() {
+  return { version: (await Bun.file("./version").text())?.trim() };
+}
+
+function getTransports(loggerName: string) {
   const transports: transport[] = [];
 
   if (Bun.env.SKIP_LOG_WRITE !== "true") {
@@ -23,7 +40,7 @@ function getTransports() {
     //
     transports.push(
       new winston.transports.File({
-        filename: `${Bun.env.LOG_FOLDER}/error.log`,
+        filename: `${Bun.env.LOG_FOLDER}/${loggerName}.error.log`,
         level: "error",
         handleExceptions: true,
       }),
@@ -34,12 +51,12 @@ function getTransports() {
     //
     transports.push(
       new winston.transports.File({
-        filename: `${Bun.env.LOG_FOLDER}/combined.log`,
+        filename: `${Bun.env.LOG_FOLDER}/${loggerName}.combined.log`,
       }),
     );
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (Bun.env.NODE_ENV !== "production") {
     transports.push(
       new winston.transports.Console({
         format: winston.format.simple(),
