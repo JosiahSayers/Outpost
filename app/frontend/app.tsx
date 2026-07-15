@@ -3,11 +3,13 @@ import { AccountSettingsProvider } from "$/frontend/account/account-settings-con
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import DashboardPage from "$/frontend/pages/dashboard.page";
+import ForgotPasswordPage from "$/frontend/pages/forgot-password.page";
 import GearInventoryPage from "$/frontend/pages/gear-inventory.page";
 import MarketingPage from "$/frontend/pages/marketing.page";
 import NotFoundPage from "$/frontend/pages/not-found.page";
 import PackingListPage from "$/frontend/pages/packing-list.page";
 import RegisterPage from "$/frontend/pages/register.page";
+import ResetPasswordPage from "$/frontend/pages/reset-password.page";
 import SignInPage from "$/frontend/pages/sign-in.page";
 import TripPage from "$/frontend/pages/trip.page";
 import { trailTheme } from "$/frontend/theme";
@@ -38,6 +40,8 @@ export default function App() {
                 <Route path="/trips/:id" component={TripPage} />
                 <Route path="/sign-in" component={SignInPage} />
                 <Route path="/register" component={RegisterPage} />
+                <Route path="/forgot-password" component={ForgotPasswordPage} />
+                <Route path="/reset-password" component={ResetPasswordPage} />
                 <Route component={NotFoundPage} />
               </Switch>
             </AppShell>

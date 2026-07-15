@@ -1,3 +1,4 @@
+import { sendResetPasswordEmailQueue } from "$/jobs/queues";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
@@ -9,6 +10,10 @@ export const baseAuthConfig = {
   }),
   emailAndPassword: {
     enabled: true,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }, request) => {
+      sendResetPasswordEmailQueue.add(user.email, { user, url });
+    },
   },
   plugins: [admin()],
 } satisfies BetterAuthOptions;

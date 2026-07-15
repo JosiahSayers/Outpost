@@ -12,16 +12,17 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - frontend_assets:/srv/frontend:ro
+      - email_assets:/srv/email-assets:ro
     depends_on:
       app:
         condition: service_started
       static-assets:
         condition: service_completed_successfully
 
-  # One-off container that copies the frontend build out of the app image
-  # into a shared volume on every `up`, so caddy always serves assets that
-  # match the currently pulled app image (a plain volume mount only
-  # auto-populates once, on first creation).
+  # One-off container that copies the frontend build and email brand
+  # assets out of the app image into shared volumes on every `up`, so
+  # caddy always serves files that match the currently pulled app image
+  # (a plain volume mount only auto-populates once, on first creation).
   static-assets:
     image: josiahsayers15/outpost:latest
     user: root
@@ -29,10 +30,11 @@ services:
       [
         "sh",
         "-c",
-        "rm -rf /shared/* && cp -r /usr/src/app/dist/frontend/. /shared/",
+        "rm -rf /shared/* && cp -r /usr/src/app/dist/frontend/. /shared/ && rm -rf /email-shared/* && cp -r /usr/src/app/assets/images/. /email-shared/",
       ]
     volumes:
       - frontend_assets:/shared
+      - email_assets:/email-shared
 
   app:
     image: josiahsayers15/outpost:latest
@@ -83,6 +85,12 @@ configs:
             reverse_proxy app:3000
           }
 
+          handle /email-assets/* {
+              uri strip_prefix /email-assets
+              root * /srv/email-assets
+              file_server
+          }
+
           handle {
               root * /srv/frontend
               encode gzip
@@ -95,3 +103,4 @@ volumes:
   caddy_data:
   caddy_config:
   frontend_assets:
+  email_assets:

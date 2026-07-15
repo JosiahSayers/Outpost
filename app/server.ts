@@ -6,6 +6,7 @@ import { stashRequestMetadata } from "$/middleware/stash-request-meta";
 import { stashSession } from "$/middleware/stash-session";
 import { apiRouter } from "$/routers/api";
 import { bullBoardRouter } from "$/routers/bull-board";
+import { emailAssetsRouter } from "$/routers/email-assets";
 import { frontendRouter } from "$/routers/frontend";
 import { healthRouter } from "$/routers/health";
 import { auth } from "$/utils/auth";
@@ -30,5 +31,8 @@ app.use(
 );
 
 if (process.env.NODE_ENV !== "production") {
+  // In production Caddy serves /email-assets directly from a shared
+  // volume (docker-compose.staging.yml); this stands in for that locally.
+  app.use("/email-assets", emailAssetsRouter);
   app.use(frontendRouter); // Needs to be the final router
 }

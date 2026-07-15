@@ -38,6 +38,7 @@ jobs:
       SKIP_LOG_WRITE: "true"
       BETTER_AUTH_SECRET: really-bad-secret
       BETTER_AUTH_URL: http://localhost:3000
+      RESEND_API_KEY: not-a-real-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
