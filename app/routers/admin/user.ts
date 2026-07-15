@@ -38,10 +38,6 @@ adminUserRouter.get(
       db.user.count({ where }),
     ]);
 
-    if (userList.length === 0) {
-      return res.sendStatus(404);
-    }
-
     const page = paginate(
       userList,
       transformers.admin.user,
@@ -49,7 +45,7 @@ adminUserRouter.get(
       req.query.take,
     );
 
-    return res.json({
+    return res.status(userList.length === 0 ? 404 : 200).json({
       users: page.items,
       total: page.total,
       pageSize: page.pageSize,
