@@ -1,11 +1,9 @@
 import { attachLogger } from "$/middleware/attach-logger";
-import { requireAdminRole } from "$/middleware/authorization/require-admin-role";
 import { requestLogger } from "$/middleware/request-logger";
-import { requireValidSession } from "$/middleware/require-valid-session";
 import { stashRequestMetadata } from "$/middleware/stash-request-meta";
 import { stashSession } from "$/middleware/stash-session";
+import { adminRouter } from "$/routers/admin";
 import { apiRouter } from "$/routers/api";
-import { bullBoardRouter } from "$/routers/bull-board";
 import { emailAssetsRouter } from "$/routers/email-assets";
 import { frontendRouter } from "$/routers/frontend";
 import { healthRouter } from "$/routers/health";
@@ -23,12 +21,7 @@ app.use(express.json());
 
 app.use(healthRouter);
 app.use("/api", apiRouter);
-app.use(
-  "/admin/queues",
-  requireValidSession,
-  requireAdminRole,
-  bullBoardRouter,
-);
+app.use("/admin", adminRouter);
 
 if (process.env.NODE_ENV !== "production") {
   // In production Caddy serves /email-assets directly from a shared

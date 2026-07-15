@@ -6,3 +6,7 @@ variables:
     value: user@test.com
   - name: userPassword
     value: user-password
+  - name: adminEmail
+    value: admin@test.com
+  - name: adminPassword
+    value: admin-password
