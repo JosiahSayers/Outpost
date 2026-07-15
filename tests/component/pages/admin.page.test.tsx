@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
@@ -18,12 +19,15 @@ mock.module("$/frontend/utils/auth-client", () => ({
 import AdminPage from "$/frontend/pages/admin.page";
 
 function renderPage(navigate: (to: string) => void = () => {}) {
+  const queryClient = new QueryClient();
   return render(
-    <MantineProvider>
-      <Router hook={() => ["/console", navigate]}>
-        <AdminPage />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Router hook={() => ["/console", navigate]}>
+          <AdminPage />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

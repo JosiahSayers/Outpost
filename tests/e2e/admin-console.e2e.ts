@@ -51,3 +51,34 @@ test.describe("Admin console access", () => {
     await expect(page).toHaveURL("/dashboard");
   });
 });
+
+test.describe("Admin dashboard stat strip", () => {
+  test("renders every stat returned by the API with its live value", async ({
+    page,
+  }) => {
+    await signIn(page, ADMIN);
+    await page.goto("/console");
+
+    const statsResponse = await page.request.get("/admin/dashboard/stats");
+    expect(statsResponse.ok()).toBe(true);
+    const { statsWithSortPosition } = await statsResponse.json();
+    const statNames = Object.keys(statsWithSortPosition);
+    expect(statNames.length).toBeGreaterThan(0);
+
+    for (const statName of statNames) {
+      const statResponse = await page.request.get(
+        `/admin/dashboard/stats/${statName}`,
+      );
+      expect(statResponse.ok()).toBe(true);
+      const { stat } = await statResponse.json();
+
+      const card = page
+        .locator(".mantine-Card-root")
+        .filter({ hasText: stat.label });
+      await expect(card.getByText(stat.value, { exact: true })).toBeVisible();
+      if (stat.delta) {
+        await expect(card.getByText(stat.delta)).toBeVisible();
+      }
+    }
+  });
+});
