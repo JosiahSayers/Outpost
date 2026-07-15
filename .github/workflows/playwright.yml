@@ -18,6 +18,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: bunx --bun prisma generate
+
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps chromium
 
@@ -36,6 +39,10 @@ jobs:
         run: bun test:e2e
         env:
           BASE_URL: http://localhost:3000
+          # Playwright runs on the host runner, not inside the app container,
+          # so it needs its own DB connection string. The db service's port
+          # is published to the host by docker-compose.dev.yml.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/outpost
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
