@@ -7,6 +7,7 @@
     "predev": "[ \"$NODE_ENV\" != \"ci\" ] && docker compose -f docker-compose.dev.yml up -d || echo \"skipped predev\"",
     "dev": "VERSION=$(cat version) NODE_ENV=development bun --watch index.ts",
     "dev:workers": "NODE_ENV=development bun --watch app/jobs/workers/index.ts",
+    "email:dev": "email dev --dir app/emails",
     "db:reset": "bunx --bun prisma migrate reset && bun db:migrate && bun db:seed",
     "db:migrate": "bunx --bun prisma migrate dev && bunx --bun prisma generate",
     "db:seed": "bun prisma/seeds",
@@ -22,6 +23,7 @@
     "@faker-js/faker": "^10.5.0",
     "@happy-dom/global-registrator": "^20.10.6",
     "@playwright/test": "^1.61.1",
+    "@react-email/ui": "^6.8.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/bun": "latest",
@@ -36,6 +38,7 @@
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.9.5",
     "prisma": "^7.8.0",
+    "react-email": "^6.8.1",
     "supertest": "^7.2.2"
   },
   "peerDependencies": {
@@ -55,6 +58,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@react-email/components": "^1.0.12",
     "@tanstack/react-query": "^5.101.2",
     "@types/express": "^5.0.6",
     "better-auth": "^1.6.23",
