@@ -1,3 +1,8 @@
+// Playwright's CLI runs under plain Node (not Bun), so it doesn't get Bun's
+// automatic .env loading — tests that talk to the DB directly need it loaded
+// here instead.
+import "dotenv/config";
+
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({

@@ -18,6 +18,14 @@ export const sendResetPasswordEmailWorker =
     EMAILS__RESET_PASSWORD_WORKER,
     async (job) => {
       const logger = getLogger(job);
+
+      if (Bun.env.NODE_ENV !== "production") {
+        logger.info("Skipping email send in lower environment", {
+          jobData: job.data,
+        });
+        return { resendEmailId: "JOB_SKIPPED_IN_LOWER_ENVIRONMENT" };
+      }
+
       const { data, error } = await resend.emails.send({
         from: FROM_ADDRESSES.NO_REPLY,
         to: [job.data.user.email],

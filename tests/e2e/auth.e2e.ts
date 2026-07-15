@@ -1,3 +1,4 @@
+import { db } from "$/utils/db";
 import { test, expect } from "@playwright/test";
 
 test.describe("Sign in", () => {
@@ -67,5 +68,78 @@ test.describe("Registration", () => {
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page.getByText("Passwords do not match")).toBeVisible();
     await expect(page).not.toHaveURL("/dashboard");
+  });
+});
+
+test.describe("Password reset", () => {
+  test("resets a forgotten password and signs in with the new one", async ({
+    page,
+  }) => {
+    // Create a throwaway account so this test doesn't touch shared seeded users.
+    const email = `playwright-reset-${Date.now()}@example.com`;
+    const originalPassword = "original-password123";
+    const newPassword = "new-password456";
+
+    await page.goto("/register");
+    await page.getByLabel("Name").fill("Playwright Resetter");
+    await page.getByLabel("Email").fill(email);
+    await page
+      .getByRole("textbox", { name: "Password", exact: true })
+      .fill(originalPassword);
+    await page
+      .getByRole("textbox", { name: "Confirm password" })
+      .fill(originalPassword);
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/dashboard");
+
+    await page
+      .locator("header")
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    await page
+      .getByRole("menu")
+      .getByRole("menuitem", { name: "Sign Out" })
+      .click();
+    await expect(page.getByText("Welcome back")).toBeVisible();
+
+    // Emails are skipped outside production (see
+    // app/jobs/workers/email/reset-password.ts), so pull the token straight
+    // out of the verification table instead of reading an inbox.
+    await page.goto("/forgot-password");
+    await page.getByLabel("Email").fill(email);
+    await page.getByRole("button", { name: "Send reset link" }).click();
+    await expect(page.getByText(/we've sent a link/i)).toBeVisible();
+
+    const user = await db.user.findUniqueOrThrow({ where: { email } });
+    const verification = await db.verification.findFirstOrThrow({
+      where: {
+        value: user.id,
+        identifier: { startsWith: "reset-password:" },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const token = verification.identifier.replace("reset-password:", "");
+
+    await page.goto(`/reset-password?token=${token}`);
+    await page.getByRole("textbox", { name: "New password" }).fill(newPassword);
+    await page
+      .getByRole("textbox", { name: "Confirm password" })
+      .fill(newPassword);
+    await page.getByRole("button", { name: "Reset password" }).click();
+    await expect(page.getByText("Your password has been reset.")).toBeVisible();
+
+    await page.getByRole("link", { name: "Back to sign in" }).click();
+    await expect(page).toHaveURL("/sign-in");
+    await page.getByLabel("Email").fill(email);
+    await page.getByRole("textbox", { name: "Password" }).fill(newPassword);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page).toHaveURL("/dashboard");
+  });
+
+  test("shows an error for an invalid or missing token", async ({ page }) => {
+    await page.goto("/reset-password");
+    await expect(
+      page.getByText("This password reset link is invalid or has expired."),
+    ).toBeVisible();
   });
 });
