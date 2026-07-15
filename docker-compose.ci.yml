@@ -16,3 +16,4 @@ services:
       - BETTER_AUTH_SECRET=really-bad-secret
       - BETTER_AUTH_URL=http://localhost:3000
       - REDIS_URL=valkey://redis:6379
+      - RESEND_API_KEY=not-a-real-key
