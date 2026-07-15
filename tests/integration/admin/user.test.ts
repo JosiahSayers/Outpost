@@ -34,6 +34,25 @@ describe("GET /", () => {
       .expect(403);
   });
 
+  it("returns all users when no search param is provided", async () => {
+    const totalUsers = await db.user.count();
+
+    const response = await request(app)
+      .get("/admin/users")
+      .set("Cookie", adminAuthCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body.total).toBe(totalUsers);
+    expect(response.body.users.map((user: any) => user.email)).toEqual(
+      expect.arrayContaining([
+        "user@test.com",
+        "user2@test.com",
+        "admin@test.com",
+      ]),
+    );
+  });
+
   it("returns users matching the search term by name", async () => {
     const match = await db.user.create({
       data: make("User", { name: "Zzyzx Name Search Target" }),
