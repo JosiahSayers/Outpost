@@ -27,12 +27,7 @@ export default function Topbar() {
 
       <Group gap="md" wrap="nowrap">
         <Link href="/dashboard">
-          <Text
-            size="sm"
-            c="dimmed"
-            visibleFrom="xs"
-            style={{ cursor: "pointer" }}
-          >
+          <Text size="sm" c="dimmed" style={{ cursor: "pointer" }}>
             ← Back to app
           </Text>
         </Link>
