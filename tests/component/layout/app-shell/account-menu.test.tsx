@@ -85,4 +85,29 @@ describe("mobile (stacked)", () => {
     expect(onSignOut).toHaveBeenCalledTimes(1);
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
+
+  it("does not show an Admin link when isAdmin is not set", () => {
+    renderMenu({ stacked: true });
+
+    expect(
+      screen.queryByRole("link", { name: "Admin" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows an Admin link to /console when isAdmin is true", () => {
+    renderMenu({ stacked: true, isAdmin: true });
+
+    expect(screen.getByRole("link", { name: "Admin" })).toHaveAttribute(
+      "href",
+      "/console",
+    );
+  });
+
+  it("calls onNavigate when the Admin link is clicked", () => {
+    renderMenu({ stacked: true, isAdmin: true });
+
+    fireEvent.click(screen.getByRole("link", { name: "Admin" }));
+
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
 });

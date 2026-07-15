@@ -1,5 +1,6 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
 import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
+import { transform as adminUserTransform } from "$/transformers/admin/user";
 import { transform as gearCategoryTransform } from "$/transformers/gear-category";
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
 import { transform as mealPlanDayTransform } from "$/transformers/meal-plan/day";
@@ -26,4 +27,7 @@ export const transformers = {
   mealPlanItem: mealPlanItemTransform,
   accountSetting: accountSettingTransform,
   userAccountSettings: userAccountSettingsTransform,
+  admin: {
+    user: adminUserTransform,
+  },
 } as const;

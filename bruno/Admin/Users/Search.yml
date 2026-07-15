@@ -1,0 +1,25 @@
+info:
+  name: Search
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/users?search=&take=10&skip=0"
+  params:
+    - name: search
+      value: ""
+      type: query
+    - name: take
+      value: "10"
+      type: query
+    - name: skip
+      value: "0"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

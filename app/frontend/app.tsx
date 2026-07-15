@@ -2,6 +2,7 @@ import "$/frontend/global.css";
 import { AccountSettingsProvider } from "$/frontend/account/account-settings-context";
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
+import AdminPage from "$/frontend/pages/admin.page";
 import DashboardPage from "$/frontend/pages/dashboard.page";
 import ForgotPasswordPage from "$/frontend/pages/forgot-password.page";
 import GearInventoryPage from "$/frontend/pages/gear-inventory.page";
@@ -30,21 +31,38 @@ export default function App() {
         <MantineProvider theme={trailTheme}>
           <Notifications />
           <AccountSettingsProvider>
-            <AppShell>
-              <Switch>
-                <Route path="/" component={MarketingPage} />
-                <Route path="/account/:tab?" component={AccountPage} />
-                <Route path="/dashboard" component={DashboardPage} />
-                <Route path="/gear-inventory" component={GearInventoryPage} />
-                <Route path="/packing-lists/:id" component={PackingListPage} />
-                <Route path="/trips/:id" component={TripPage} />
-                <Route path="/sign-in" component={SignInPage} />
-                <Route path="/register" component={RegisterPage} />
-                <Route path="/forgot-password" component={ForgotPasswordPage} />
-                <Route path="/reset-password" component={ResetPasswordPage} />
-                <Route component={NotFoundPage} />
-              </Switch>
-            </AppShell>
+            <Switch>
+              <Route path="/console" component={AdminPage} />
+              <Route>
+                <AppShell>
+                  <Switch>
+                    <Route path="/" component={MarketingPage} />
+                    <Route path="/account/:tab?" component={AccountPage} />
+                    <Route path="/dashboard" component={DashboardPage} />
+                    <Route
+                      path="/gear-inventory"
+                      component={GearInventoryPage}
+                    />
+                    <Route
+                      path="/packing-lists/:id"
+                      component={PackingListPage}
+                    />
+                    <Route path="/trips/:id" component={TripPage} />
+                    <Route path="/sign-in" component={SignInPage} />
+                    <Route path="/register" component={RegisterPage} />
+                    <Route
+                      path="/forgot-password"
+                      component={ForgotPasswordPage}
+                    />
+                    <Route
+                      path="/reset-password"
+                      component={ResetPasswordPage}
+                    />
+                    <Route component={NotFoundPage} />
+                  </Switch>
+                </AppShell>
+              </Route>
+            </Switch>
           </AccountSettingsProvider>
         </MantineProvider>
       </QueryClientProvider>

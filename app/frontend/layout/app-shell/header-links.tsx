@@ -17,6 +17,7 @@ export default function HeaderLinks({ stacked, onNavigate }: HeaderLinksProps) {
       <AccountMenu
         name={session.data.user.name}
         email={session.data.user.email}
+        isAdmin={session.data.user.role === "admin"}
         stacked={stacked}
         onNavigate={onNavigate}
         onSignOut={() => authClient.signOut()}
