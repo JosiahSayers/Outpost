@@ -5,6 +5,7 @@ import {
   Anchor,
   Button,
   Center,
+  Group,
   Paper,
   PasswordInput,
   Stack,
@@ -88,7 +89,16 @@ export default function SignInPage() {
             />
 
             <PasswordInput
-              label="Password"
+              label={
+                <Group justify="space-between" w="100%">
+                  <Text size="sm" fw={500} component="span">
+                    Password
+                  </Text>
+                  <Anchor href="/forgot-password" size="sm">
+                    Forgot password?
+                  </Anchor>
+                </Group>
+              }
               placeholder="Your password"
               autoComplete="current-password"
               {...form.getInputProps("password")}

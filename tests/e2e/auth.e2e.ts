@@ -21,6 +21,17 @@ test.describe("Sign in", () => {
     await expect(page.getByText(/sign in failed|invalid/i)).toBeVisible();
     await expect(page).not.toHaveURL("/dashboard");
   });
+
+  test("forgot password link navigates to the reset request page", async ({
+    page,
+  }) => {
+    await page.goto("/sign-in");
+    await page.getByRole("link", { name: "Forgot password?" }).click();
+    await expect(page).toHaveURL("/forgot-password");
+    await expect(
+      page.getByRole("heading", { name: "Reset your password" }),
+    ).toBeVisible();
+  });
 });
 
 test.describe("Registration", () => {
