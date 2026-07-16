@@ -69,8 +69,36 @@ describe("sendResetPasswordEmail", () => {
     expect(result).toEqual({ resendEmailId: "resend-email-id" });
     expect(send).toHaveBeenCalledTimes(1);
     const payload = send.mock.calls[0]?.[0];
-    expect(payload?.to).toEqual([user.email]);
+    expect(payload?.to).toBe(user.email);
     expect(payload?.subject).toBe("Outpost Password Reset");
+  });
+
+  it("creates a communication audit log and updates it with the resend email id in production", async () => {
+    Bun.env.NODE_ENV = "production";
+    const send = mock(
+      async (_payload: Parameters<Resend["emails"]["send"]>[0]) => ({
+        data: { id: "resend-email-id" },
+        error: null,
+      }),
+    );
+    const job = makeJob({
+      user,
+      url: "https://outpost.sayerscloud.com/reset-password?token=abc123",
+    });
+
+    await sendResetPasswordEmail(job, makeResendClient(send));
+
+    const auditLog = await db.communicationAuditLog.findFirstOrThrow({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(auditLog).toMatchObject({
+      communicationType: "email",
+      to: user.email,
+      subject: "Outpost Password Reset",
+      thirdPartyId: "resend-email-id",
+      userId: user.id,
+    });
   });
 
   it("throws when the resend client returns an error in production", async () => {
@@ -89,5 +117,28 @@ describe("sendResetPasswordEmail", () => {
     await expect(
       sendResetPasswordEmail(job, makeResendClient(send)),
     ).rejects.toEqual(resendError);
+  });
+
+  it("deletes the communication audit log when the email fails to send", async () => {
+    Bun.env.NODE_ENV = "production";
+    const resendError = {
+      name: "application_error",
+      message: "Something went wrong",
+      statusCode: 500,
+    };
+    const send = mock(async () => ({ data: null, error: resendError }));
+    const job = makeJob({
+      user,
+      url: "https://outpost.sayerscloud.com/reset-password?token=abc123",
+    });
+
+    await expect(
+      sendResetPasswordEmail(job, makeResendClient(send)),
+    ).rejects.toEqual(resendError);
+
+    const auditLog = await db.communicationAuditLog.findFirst({
+      where: { userId: user.id },
+    });
+    expect(auditLog).toBeNull();
   });
 });
