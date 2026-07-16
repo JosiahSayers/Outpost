@@ -13,8 +13,8 @@ function NavItemLink({ item }: { item: AdminNavItem }) {
 
   return (
     <NavLink
-      component={Link}
-      to={item.href}
+      component={item.external ? undefined : Link}
+      href={item.href}
       label={item.label}
       leftSection={<Icon size={16} />}
       active={isActive}

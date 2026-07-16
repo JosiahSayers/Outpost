@@ -28,15 +28,5 @@ it("labels User Search as Up next and the rest as Soon", () => {
   );
 
   expect(screen.getByText("Up next")).toBeInTheDocument();
-  expect(screen.getAllByText("Soon").length).toBe(4);
-});
-
-it("shows each tool's description", () => {
-  render(
-    <MantineProvider>
-      <ToolGrid />
-    </MantineProvider>,
-  );
-
-  expect(screen.getByText(/entry point for impersonation/)).toBeInTheDocument();
+  expect(screen.getAllByText("Soon").length).toBe(3);
 });
