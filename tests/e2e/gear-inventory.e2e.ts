@@ -1,58 +1,12 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-const USER2 = { email: "user2@test.com", password: "user2-password" };
-
-async function signIn(page: Page, user = USER) {
-  await page.goto("/sign-in?redirect=/gear-inventory");
-  await page.getByLabel("Email").fill(user.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(user.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("/gear-inventory");
-}
-
-async function signOut(page: Page) {
-  await page
-    .locator("header")
-    .getByRole("button", { name: "Account menu" })
-    .click();
-  await page
-    .getByRole("menu")
-    .getByRole("menuitem", { name: "Sign Out" })
-    .click();
-  await expect(page.getByText("Welcome back")).toBeVisible();
-}
+import { test, expect, seedGearInventory } from "./support/fixtures";
 
 test.describe("Gear Inventory Page", () => {
-  test.beforeEach(async ({ page }) => {
-    // Suppress benign ResizeObserver errors that trigger Bun's dev-server error
-    // overlay, which intercepts pointer events and causes test failures.
-    await page.addInitScript(() => {
-      window.addEventListener(
-        "error",
-        (event) => {
-          if (
-            event.message ===
-            "ResizeObserver loop completed with undelivered notifications."
-          ) {
-            event.stopImmediatePropagation();
-            event.preventDefault();
-          }
-        },
-        true,
-      );
-    });
-    await signIn(page);
-    // The weight-format assertions below assume the en-US region default
-    // (ounces). weight_viewing_unit is a real, persisted account setting
-    // shared with account.e2e.ts's "persists across reload" tests, which
-    // run against this same seeded user — so it can't be left to whatever
-    // value a previous test file happened to save. Reset it explicitly and
-    // reload so the page picks up the fresh value.
-    await page.request.patch("/api/account/settings", {
-      data: { settings: [{ slug: "weight_viewing_unit", value: "ounces" }] },
-    });
-    await page.reload();
+  test.beforeEach(async ({ page, user }) => {
+    // Each test gets its own user seeded with exactly the canonical gear, so
+    // the weight-format assertions get the en-US default (ounces) with no
+    // cross-test setting to reset — this user's weight_viewing_unit is unset.
+    await seedGearInventory(user.id);
+    await page.goto("/gear-inventory");
     await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
   });
 
@@ -77,9 +31,13 @@ test.describe("Gear Inventory Page", () => {
 
   test("renders no category sections when the user has no gear items", async ({
     page,
+    makeUser,
+    signInAs,
   }) => {
-    await signOut(page);
-    await signIn(page, USER2);
+    // Switch to a fresh user who has no gear seeded.
+    await page.context().clearCookies();
+    await signInAs(await makeUser());
+    await page.goto("/gear-inventory");
     await expect(
       page.getByRole("heading", { name: "Gear Inventory" }),
     ).toBeVisible();

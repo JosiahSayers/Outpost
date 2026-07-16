@@ -1,15 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-const OTHER_USER = { email: "user2@test.com", password: "user2-password" };
-
-async function signIn(page: Page, user = USER) {
-  await page.goto("/sign-in?redirect=/dashboard");
-  await page.getByLabel("Email").fill(user.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(user.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("/dashboard");
-}
+import { test, expect } from "./support/fixtures";
+import type { Page } from "@playwright/test";
 
 async function createTripViaApi(
   page: Page,
@@ -21,33 +11,12 @@ async function createTripViaApi(
   return trip.id;
 }
 
-test.beforeEach(async ({ page }) => {
-  // Suppress benign ResizeObserver errors that trigger Bun's dev-server error
-  // overlay, which intercepts pointer events and causes test failures. Date
-  // picker popovers on this page can trigger it.
-  await page.addInitScript(() => {
-    window.addEventListener(
-      "error",
-      (event) => {
-        if (
-          event.message ===
-          "ResizeObserver loop completed with undelivered notifications."
-        ) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-        }
-      },
-      true,
-    );
-  });
-});
-
 test.describe("Trip Page", () => {
   let tripName: string;
   let tripId: string;
 
-  test.beforeEach(async ({ page }) => {
-    await signIn(page);
+  test.beforeEach(async ({ page, user }) => {
+    void user;
     tripName = `E2E Trip ${Date.now()}`;
     tripId = await createTripViaApi(page, { name: tripName });
     await page.goto(`/trips/${tripId}`);
@@ -71,15 +40,13 @@ test.describe("Trip Page", () => {
 
     test("shows an error for a trip owned by another user", async ({
       page,
+      makeUser,
+      signInAs,
     }) => {
+      // Switch the page's session to a different fresh user who doesn't own
+      // the trip created in beforeEach.
       await page.context().clearCookies();
-      await signIn(page, OTHER_USER);
-      // Signing in redirects to /dashboard, which itself briefly bounces
-      // through /sign-in while the session settles; wait for real dashboard
-      // content so the next navigation isn't interrupted by that bounce.
-      await expect(
-        page.getByRole("heading", { name: /Welcome back/ }),
-      ).toBeVisible();
+      await signInAs(await makeUser());
       await page.goto(`/trips/${tripId}`);
       await expect(page.getByText("Couldn't load this trip")).toBeVisible();
     });

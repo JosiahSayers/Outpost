@@ -1,14 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-
-async function signIn(page: Page, user = USER) {
-  await page.goto("/sign-in?redirect=/dashboard");
-  await page.getByLabel("Email").fill(user.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(user.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("/dashboard");
-}
+import { test, expect } from "./support/fixtures";
+import type { Page } from "@playwright/test";
 
 // There is no create-list UI yet, so seed an owned (editable) list straight
 // through the API. `page.request` shares the signed-in browser cookies.
@@ -73,11 +64,16 @@ async function itemY(page: Page, name: string): Promise<number> {
 }
 
 // Drive a dnd-kit pointer drag of one item's handle onto another item. dnd-kit's
-// PointerSensor needs an initial movement to activate, then intermediate moves
-// to track the drag, so a plain dragTo won't do.
+// PointerSensor activates on the first move after pointerdown, then tracks the
+// drop target on a requestAnimationFrame loop — so a plain dragTo won't do, and
+// bursting every move in a single tick can release the pointer before dnd-kit
+// has entered the dragging state or resolved the drag-over target. The nudge,
+// extra steps, overshoot past the target's center, and short settles below keep
+// that from happening.
 async function dragItemOnto(page: Page, fromName: string, toName: string) {
   await page.getByText(fromName).hover();
   const handle = page.getByRole("button", { name: `Reorder ${fromName}` });
+  await expect(handle).toBeVisible();
   const handleBox = await handle.boundingBox();
   const targetBox = await page.getByText(toName).boundingBox();
   if (!handleBox || !targetBox) throw new Error("Missing drag geometry");
@@ -86,42 +82,31 @@ async function dragItemOnto(page: Page, fromName: string, toName: string) {
   const startY = handleBox.y + handleBox.height / 2;
   const endX = targetBox.x + targetBox.width / 2;
   const endY = targetBox.y + targetBox.height / 2;
+  const draggingUp = endY < startY;
+  // Overshoot just past the target's center in the drag direction so
+  // closestCenter unambiguously resolves it as the drop position.
+  const overshootY = endY + (draggingUp ? -8 : 8);
 
   await page.mouse.move(startX, startY);
   await page.mouse.down();
-  await page.mouse.move(startX, startY - 8, { steps: 5 });
-  await page.mouse.move(endX, endY, { steps: 15 });
-  await page.mouse.move(endX, endY, { steps: 5 });
+  // Nudge to satisfy the activation constraint, then let dnd-kit's rAF loop
+  // enter the dragging state before we travel.
+  await page.mouse.move(startX, startY + (draggingUp ? -6 : 6), { steps: 5 });
+  await page.waitForTimeout(50);
+  await page.mouse.move(endX, endY, { steps: 20 });
+  await page.mouse.move(endX, overshootY, { steps: 5 });
+  // Give dnd-kit a beat to record the drag-over target before releasing.
+  await page.waitForTimeout(100);
   await page.mouse.up();
 }
-
-test.beforeEach(async ({ page }) => {
-  // Suppress benign ResizeObserver errors that trigger Bun's dev-server error
-  // overlay, which intercepts pointer events and causes test failures.
-  await page.addInitScript(() => {
-    window.addEventListener(
-      "error",
-      (event) => {
-        if (
-          event.message ===
-          "ResizeObserver loop completed with undelivered notifications."
-        ) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-        }
-      },
-      true,
-    );
-  });
-});
 
 test.describe("Packing List Page", () => {
   test.describe("an editable list (owned by the user)", () => {
     let listName: string;
     let listId: number;
 
-    test.beforeEach(async ({ page }) => {
-      await signIn(page);
+    test.beforeEach(async ({ page, user }) => {
+      void user;
       listName = `E2E Editable ${Date.now()}`;
       listId = await createOwnedList(page, listName);
       await page.goto(`/packing-lists/${listId}`);
@@ -441,8 +426,8 @@ test.describe("Packing List Page", () => {
   test.describe("a non-editable list (public, not owned)", () => {
     const REI_LIST = "REI Backpacking Checklist";
 
-    test.beforeEach(async ({ page }) => {
-      await signIn(page);
+    test.beforeEach(async ({ page, user }) => {
+      void user;
       const listId = await findListIdByName(page, REI_LIST);
       await page.goto(`/packing-lists/${listId}`);
       await expect(

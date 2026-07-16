@@ -1,30 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-
-const RESIZE_OBSERVER_INIT_SCRIPT = () => {
-  window.addEventListener(
-    "error",
-    (event) => {
-      if (
-        event.message ===
-        "ResizeObserver loop completed with undelivered notifications."
-      ) {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-      }
-    },
-    true,
-  );
-};
-
-async function signIn(page: Page, user = USER) {
-  await page.goto("/sign-in?redirect=/dashboard");
-  await page.getByLabel("Email").fill(user.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(user.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("/dashboard");
-}
+import { test, expect, seedGearInventory } from "./support/fixtures";
+import type { Page } from "@playwright/test";
 
 async function createListViaApi(page: Page, name: string): Promise<number> {
   const response = await page.request.post("/api/packing-lists", {
@@ -48,28 +23,16 @@ async function expandAllLists(page: Page) {
   }
 }
 
-// The empty-state test needs a fresh user with no lists, so it lives in its
-// own describe that does not inherit the signed-in beforeEach below.
+// A fresh fixture user has no packing lists, so the empty state is testable
+// without seeding anything. It lives in its own describe so it doesn't inherit
+// the gear-seeding beforeEach below.
 test.describe("Dashboard Page - empty packing lists state", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(RESIZE_OBSERVER_INIT_SCRIPT);
-  });
-
   test("shows an empty state message when the user has no packing lists", async ({
     page,
+    user,
   }) => {
-    const email = `e2e-empty-${Date.now()}@test.com`;
-    await page.goto("/register");
-    await page.getByLabel("Name").fill("E2E Empty User");
-    await page.getByLabel("Email").fill(email);
-    await page
-      .getByRole("textbox", { name: "Password", exact: true })
-      .fill("test-password");
-    await page
-      .getByRole("textbox", { name: "Confirm password" })
-      .fill("test-password");
-    await page.getByRole("button", { name: "Create account" }).click();
-    await page.waitForURL("/dashboard");
+    void user;
+    await page.goto("/dashboard");
     await expect(
       page.getByText(
         "No Packing lists yet. Create one to get started planning.",
@@ -79,9 +42,11 @@ test.describe("Dashboard Page - empty packing lists state", () => {
 });
 
 test.describe("Dashboard Page", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(RESIZE_OBSERVER_INIT_SCRIPT);
-    await signIn(page);
+  test.beforeEach(async ({ page, user }) => {
+    // Seed the canonical gear so the gear-summary assertions below have exactly
+    // three items across three categories to total up.
+    await seedGearInventory(user.id);
+    await page.goto("/dashboard");
     await expect(
       page.getByRole("heading", { name: /Welcome back/ }),
     ).toBeVisible();
@@ -453,25 +418,11 @@ test.describe("Dashboard Page", () => {
     // Regression test for BTP-46: a completed trip must still appear on the
     // dashboard rather than disappearing from it. The preview grid is no
     // longer filtered by status, so a completed trip shows in the main grid
-    // right alongside upcoming ones. A fresh user is used (rather than the
-    // shared test user, who accumulates many trips across the suite) so this
-    // trip is guaranteed to be the only one, and therefore in the preview.
+    // right alongside upcoming ones. The per-test fixture user starts with no
+    // trips, so the one created here is guaranteed to be the only one, and
+    // therefore in the preview.
     test.describe("finished trips", () => {
       test("shows a completed trip in the main grid", async ({ page }) => {
-        const email = `e2e-finished-${Date.now()}@test.com`;
-        await page.context().clearCookies();
-        await page.goto("/register");
-        await page.getByLabel("Name").fill("E2E Finished Trip User");
-        await page.getByLabel("Email").fill(email);
-        await page
-          .getByRole("textbox", { name: "Password", exact: true })
-          .fill("test-password");
-        await page
-          .getByRole("textbox", { name: "Confirm password" })
-          .fill("test-password");
-        await page.getByRole("button", { name: "Create account" }).click();
-        await page.waitForURL("/dashboard");
-
         const tripName = `E2E Finished Trip ${Date.now()}`;
         await page.getByRole("button", { name: "New Trip" }).click();
         await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
@@ -518,28 +469,10 @@ test.describe("Dashboard Page", () => {
       test("shows the trip's dates exactly as entered, even when the viewer is behind UTC", async ({
         page,
       }) => {
-        // A fresh user has no trips yet, so the one we create here is
-        // guaranteed to be the only entry in the dashboard's preview,
-        // regardless of how many other trips exist in the shared dev
-        // database or how they sort. This keeps the test end-to-end (real
-        // create request, real refetch, real render) without mocking any
-        // part of the client-server round trip.
-        const email = `e2e-tz-${Date.now()}@test.com`;
-        // The parent beforeEach signs in as the shared test user; clear that
-        // session first so /register doesn't redirect away immediately.
-        await page.context().clearCookies();
-        await page.goto("/register");
-        await page.getByLabel("Name").fill("E2E Timezone User");
-        await page.getByLabel("Email").fill(email);
-        await page
-          .getByRole("textbox", { name: "Password", exact: true })
-          .fill("test-password");
-        await page
-          .getByRole("textbox", { name: "Confirm password" })
-          .fill("test-password");
-        await page.getByRole("button", { name: "Create account" }).click();
-        await page.waitForURL("/dashboard");
-
+        // The per-test fixture user has no trips yet, so the one created here
+        // is guaranteed to be the only entry in the dashboard's preview. This
+        // keeps the test end-to-end (real create request, real refetch, real
+        // render) without mocking any part of the client-server round trip.
         await page.getByRole("button", { name: "New Trip" }).click();
         await page
           .getByRole("textbox", { name: "Trip name" })
