@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "format": "prettier . --write",
     "format:check": "prettier . -c",
-    "deploy:staging": "ssh outpost-staging 'docker compose up -d --pull always'"
+    "deploy:staging": "ssh outpost-staging 'docker compose up -d --pull always'",
+    "typecheck": "bun tsc --noEmit"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
