@@ -1,14 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-
-async function signIn(page: Page, redirect = "/dashboard") {
-  await page.goto(`/sign-in?redirect=${encodeURIComponent(redirect)}`);
-  await page.getByLabel("Email").fill(USER.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(USER.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL(redirect);
-}
+import { test, expect } from "./support/fixtures";
 
 test.describe("Header - unauthenticated", () => {
   test.beforeEach(async ({ page }) => {
@@ -50,10 +40,11 @@ test.describe("Header - unauthenticated", () => {
   });
 });
 
-// Sign in to gear-inventory so the logo navigation test can click through to dashboard
+// Land on gear-inventory so the logo navigation test can click through to dashboard
 test.describe("Header - authenticated", () => {
-  test.beforeEach(async ({ page }) => {
-    await signIn(page, "/gear-inventory");
+  test.beforeEach(async ({ page, user }) => {
+    void user;
+    await page.goto("/gear-inventory");
   });
 
   test("logo links to the dashboard", async ({ page }) => {
@@ -84,13 +75,14 @@ test.describe("Header - authenticated", () => {
 
   test("opening the account menu shows the signed-in user's name and email", async ({
     page,
+    user,
   }) => {
     await page
       .locator("header")
       .getByRole("button", { name: "Account menu" })
       .click();
     const menu = page.getByRole("menu");
-    await expect(menu.getByText(USER.email)).toBeVisible();
+    await expect(menu.getByText(user.email)).toBeVisible();
   });
 
   test("the account menu links to Account Settings", async ({ page }) => {
@@ -184,16 +176,18 @@ test.describe("Header - mobile nav", () => {
   });
 
   test.describe("authenticated", () => {
-    test.beforeEach(async ({ page }) => {
-      await signIn(page, "/gear-inventory");
+    test.beforeEach(async ({ page, user }) => {
+      void user;
+      await page.goto("/gear-inventory");
     });
 
     test("opening the burger menu shows identity, settings, appearance, and sign out inline", async ({
       page,
+      user,
     }) => {
       await page.getByRole("button", { name: "Toggle menu" }).click();
       const drawer = page.getByRole("dialog");
-      await expect(drawer.getByText(USER.email)).toBeVisible();
+      await expect(drawer.getByText(user.email)).toBeVisible();
       await expect(
         drawer.getByRole("link", { name: "Account Settings" }),
       ).toBeVisible();

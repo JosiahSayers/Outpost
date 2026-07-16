@@ -1,26 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
-
-const USER = { email: "user@test.com", password: "user-password" };
-
-async function signIn(page: Page, redirect = "/account") {
-  await page.goto(`/sign-in?redirect=${encodeURIComponent(redirect)}`);
-  await page.getByLabel("Email").fill(USER.email);
-  await page.getByRole("textbox", { name: "Password" }).fill(USER.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL(redirect);
-}
-
-// The seeded user's name is randomly generated (faker), so tests read it
-// back from the session rather than hardcoding it.
-async function signedInName(page: Page) {
-  const res = await page.request.get("/api/auth/get-session");
-  const session = await res.json();
-  return session.user.name as string;
-}
+import { test, expect } from "./support/fixtures";
 
 test.describe("Account Settings page", () => {
-  test.beforeEach(async ({ page }) => {
-    await signIn(page);
+  test.beforeEach(async ({ page, user }) => {
+    void user;
+    await page.goto("/account");
   });
 
   test("shows the page heading and description", async ({ page }) => {
@@ -101,11 +84,12 @@ test.describe("Account Settings page", () => {
   });
 
   test.describe("Profile panel", () => {
-    test("shows the signed-in user's name and email", async ({ page }) => {
-      const name = await signedInName(page);
-
-      await expect(page.getByText(name, { exact: true })).toBeVisible();
-      await expect(page.getByText(USER.email)).toBeVisible();
+    test("shows the signed-in user's name and email", async ({
+      page,
+      user,
+    }) => {
+      await expect(page.getByText(user.name, { exact: true })).toBeVisible();
+      await expect(page.getByText(user.email)).toBeVisible();
     });
   });
 
@@ -219,15 +203,13 @@ test.describe("Account Settings page", () => {
       const select = page.getByRole("combobox", {
         name: "Liquid viewing unit",
       });
-      // Pick whichever option isn't already selected, since other tests in
-      // this suite persist real changes to this field against the dev DB.
-      const before = await select.inputValue();
-      const target = before === "Cups (US)" ? "Liters (L)" : "Cups (US)";
+      // This fresh user's preference is unset, so it defaults to the en-US
+      // "Cups (US)"; changing it to a different option is what should roll back.
       await select.click();
-      await page.getByRole("option", { name: target }).click();
+      await page.getByRole("option", { name: "Liters (L)" }).click();
 
       await expect(page.getByText("Couldn't update preference")).toBeVisible();
-      await expect(select).toHaveValue(before);
+      await expect(select).toHaveValue("Cups (US)");
     });
   });
 });
@@ -235,8 +217,9 @@ test.describe("Account Settings page", () => {
 test.describe("Account Settings page - mobile nav", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test.beforeEach(async ({ page }) => {
-    await signIn(page);
+  test.beforeEach(async ({ page, user }) => {
+    void user;
+    await page.goto("/account");
   });
 
   test("nav links are visible without horizontal overflow", async ({

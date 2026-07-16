@@ -1,7 +1,5 @@
-import {
-  ADMIN_NAV_ITEMS,
-  type AdminNavItem,
-} from "$/frontend/admin/shell/nav-items";
+import BottomNavLink from "$/frontend/admin/shell/bottom-nav-link";
+import { ADMIN_NAV_ITEMS } from "$/frontend/admin/shell/nav-items";
 import {
   Badge,
   Drawer,
@@ -12,7 +10,6 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react";
-import { Link, useRoute } from "wouter";
 
 // The bottom bar only has room for a handful of icons — the rest live behind
 // "More" so mobile doesn't need a different information architecture than
@@ -21,37 +18,8 @@ const PRIMARY_HREFS = [
   "/console",
   "/console/users",
   "/console/audit-log",
-  "/console/queues",
+  "/admin/queues",
 ];
-
-function BottomNavLink({ item }: { item: AdminNavItem }) {
-  const [isActive] = useRoute(item.href);
-  const Icon = item.icon;
-  const color = item.comingSoon
-    ? "stone-gray.4"
-    : isActive
-      ? "trail-green.7"
-      : "stone-gray.6";
-
-  const content = (
-    <Stack gap={2} align="center" py={4} px={6} c={color}>
-      <Icon size={20} weight={isActive ? "fill" : "regular"} />
-      <Text size="10px" fw={600}>
-        {item.label === "Overview" ? "Home" : item.label}
-      </Text>
-    </Stack>
-  );
-
-  if (item.comingSoon) {
-    return content;
-  }
-
-  return (
-    <UnstyledButton component={Link} href={item.href}>
-      {content}
-    </UnstyledButton>
-  );
-}
 
 export default function BottomNav() {
   const [moreOpened, { open: openMore, close: closeMore }] =

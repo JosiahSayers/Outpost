@@ -1,20 +1,23 @@
 import { db } from "$/utils/db";
-import { test, expect } from "@playwright/test";
+import { test, expect, uniqueEmail } from "./support/fixtures";
 
 test.describe("Sign in", () => {
   test("signs in with valid credentials and redirects to dashboard", async ({
     page,
+    makeUser,
   }) => {
+    const user = await makeUser();
     await page.goto("/sign-in");
-    await page.getByLabel("Email").fill("user@test.com");
-    await page.getByRole("textbox", { name: "Password" }).fill("user-password");
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByRole("textbox", { name: "Password" }).fill(user.password);
     await page.getByRole("button", { name: "Sign in" }).click();
     await expect(page).toHaveURL("/dashboard");
   });
 
-  test("shows an error for invalid credentials", async ({ page }) => {
+  test("shows an error for invalid credentials", async ({ page, makeUser }) => {
+    const user = await makeUser();
     await page.goto("/sign-in");
-    await page.getByLabel("Email").fill("user@test.com");
+    await page.getByLabel("Email").fill(user.email);
     await page
       .getByRole("textbox", { name: "Password" })
       .fill("wrong-password");
@@ -39,7 +42,7 @@ test.describe("Registration", () => {
   test("registers a new account and redirects to dashboard", async ({
     page,
   }) => {
-    const email = `playwright-${Date.now()}@example.com`;
+    const email = uniqueEmail("playwright");
     await page.goto("/register");
     await page.getByLabel("Name").fill("Playwright Tester");
     await page.getByLabel("Email").fill(email);
@@ -58,7 +61,7 @@ test.describe("Registration", () => {
   }) => {
     await page.goto("/register");
     await page.getByLabel("Name").fill("Playwright Tester");
-    await page.getByLabel("Email").fill("mismatch@example.com");
+    await page.getByLabel("Email").fill(uniqueEmail("mismatch"));
     await page
       .getByRole("textbox", { name: "Password", exact: true })
       .fill("securepassword123");
@@ -75,8 +78,8 @@ test.describe("Password reset", () => {
   test("resets a forgotten password and signs in with the new one", async ({
     page,
   }) => {
-    // Create a throwaway account so this test doesn't touch shared seeded users.
-    const email = `playwright-reset-${Date.now()}@example.com`;
+    // Register a throwaway account so this test doesn't touch shared users.
+    const email = uniqueEmail("playwright-reset");
     const originalPassword = "original-password123";
     const newPassword = "new-password456";
 
