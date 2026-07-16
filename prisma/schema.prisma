@@ -36,11 +36,13 @@ model User {
   packingLists       PackingList[]
   trips              Trip[]
 
-  role                 String?
-  banned               Boolean?              @default(false)
-  banReason            String?
-  banExpires           DateTime?
-  accountSettingValues AccountSettingValue[]
+  role                            String?
+  banned                          Boolean?                @default(false)
+  banReason                       String?
+  banExpires                      DateTime?
+  accountSettingValues            AccountSettingValue[]
+  communicationAuditLogsInitiated CommunicationAuditLog[] @relation("initiatedBy")
+  communicationAuditLogsReceived  CommunicationAuditLog[] @relation("recipient")
 
   @@unique([email])
   @@map("user")
@@ -121,6 +123,36 @@ model AccountSettingValue {
   userId           String
 
   @@unique([accountSettingId, userId])
+}
+
+model CommunicationAuditLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  communicationType CommunicationType
+  from              String? // email address, phone number, etc
+  to                String // email address, phone number, etc
+  thirdPartyId      String? // resend email id, etc
+  subject           String?
+  content           String?
+
+  // Assigned when this communicated was initiated by an admin
+  initiatedBy       User?   @relation("initiatedBy", fields: [initiatedByUserId], references: [id])
+  initiatedByUserId String?
+
+  user   User   @relation("recipient", fields: [userId], references: [id])
+  userId String
+
+  @@index([userId, createdAt])
+  @@index([initiatedByUserId, createdAt])
+  @@index([communicationType, createdAt])
+  @@index([subject, createdAt])
+  @@index([createdAt])
+}
+
+enum CommunicationType {
+  email
 }
 
 model GearCategory {
