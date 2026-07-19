@@ -26,7 +26,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "User Search",
     href: "/console/users",
     icon: MagnifyingGlassIcon,
-    comingSoon: true,
     description:
       "Look up any account by name or email — the entry point for impersonation, resets, and sessions.",
   },

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
 import { getAuthCookies } from "../../helpers/auth";
 import { make } from "../../helpers/test-data/make";
+import { seedGearInventory } from "../../helpers/test-data/seed-gear";
 
 let authCookies: Array<string>;
 let adminAuthCookies: Array<string>;
@@ -79,6 +80,12 @@ describe("GET /", () => {
         name: match.name,
         role: match.role,
         updatedAt: match.updatedAt.toISOString(),
+        counts: {
+          trips: 0,
+          gearInventoryItems: 0,
+          packingLists: 0,
+          activeSessions: 0,
+        },
       },
     ]);
     expect(response.body.total).toBe(1);
@@ -152,5 +159,88 @@ describe("GET /", () => {
     expect(response.body.users).toHaveLength(2);
     expect(response.body.total).toBe(3);
     expect(response.body.pageSize).toBe(2);
+  });
+
+  it("includes trip, gear, and packing-list counts for the matched user", async () => {
+    const match = await db.user.create({
+      data: make("User", { name: "Zzyzx Counts Target" }),
+    });
+    createdUserIds.push(match.id);
+
+    await db.trip.createMany({
+      data: [
+        make("Trip", { userId: match.id }),
+        make("Trip", { userId: match.id }),
+      ],
+    });
+    await db.packingList.create({
+      // Let Postgres autoincrement the id — the generator's faker-derived
+      // default can exceed Postgres' int4 range.
+      data: make("PackingList", { id: undefined, userId: match.id }),
+    });
+    await seedGearInventory(match.id);
+
+    try {
+      const response = await request(app)
+        .get("/admin/users")
+        .query({ search: "zzyzx counts target" })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      expect(response.body.users).toEqual([
+        expect.objectContaining({
+          id: match.id,
+          counts: {
+            trips: 2,
+            gearInventoryItems: 3,
+            packingLists: 1,
+            activeSessions: 0,
+          },
+        }),
+      ]);
+    } finally {
+      // These relations use a RESTRICT delete rule, so they must be cleared
+      // before the top-level `afterEach` can delete the user.
+      await db.trip.deleteMany({ where: { userId: match.id } });
+      await db.packingList.deleteMany({ where: { userId: match.id } });
+      await db.gearInventoryItem.deleteMany({ where: { userId: match.id } });
+    }
+  });
+
+  it("only counts sessions that haven't expired yet", async () => {
+    const match = await db.user.create({
+      data: make("User", { name: "Zzyzx Session Count Target" }),
+    });
+    createdUserIds.push(match.id);
+
+    await db.session.createMany({
+      data: [
+        {
+          id: crypto.randomUUID(),
+          token: crypto.randomUUID(),
+          userId: match.id,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+        },
+        {
+          id: crypto.randomUUID(),
+          token: crypto.randomUUID(),
+          userId: match.id,
+          expiresAt: new Date(Date.now() - 60 * 60 * 1000),
+        },
+      ],
+    });
+
+    const response = await request(app)
+      .get("/admin/users")
+      .query({ search: "zzyzx session count target" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.users).toEqual([
+      expect.objectContaining({
+        id: match.id,
+        counts: expect.objectContaining({ activeSessions: 1 }),
+      }),
+    ]);
   });
 });
