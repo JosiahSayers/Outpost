@@ -56,7 +56,10 @@ services:
   redis:
     image: redis:8
     restart: unless-stopped
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server /usr/local/etc/redis/redis.conf
+    configs:
+      - source: redis_conf
+        target: /usr/local/etc/redis/redis.conf
     volumes:
       - ./container_files/redis:/data
 
@@ -69,6 +72,13 @@ services:
       - .env.staging
 
 configs:
+  redis_conf:
+    content: |
+      save ""
+      appendonly yes
+      appendfsync everysec
+      loglevel warning
+
   caddyfile:
     content: |
       outpost.sayerscloud.com {
