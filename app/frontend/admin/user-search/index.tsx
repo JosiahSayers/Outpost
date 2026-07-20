@@ -83,7 +83,7 @@ export default function UserSearch() {
                 results={results}
                 selectedUserId={selectedUserId}
                 onSelect={setSelectedUserId}
-                isWideLayout={!!isWideLayout}
+                isWideLayout={!!isWideLayout && !selectedUser}
               />
             </Box>
           )}
