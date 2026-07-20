@@ -49,10 +49,9 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     label: "Queues",
-    href: "/admin/queues",
+    href: "/console/queues",
     icon: StackIcon,
     section: "System",
-    external: true,
     description:
       "BullMQ dashboard — 3 queues, 16 waiting, 1 failed job needing attention.",
   },

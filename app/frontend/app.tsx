@@ -3,6 +3,7 @@ import { AccountSettingsProvider } from "$/frontend/account/account-settings-con
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import AdminPage from "$/frontend/pages/admin.page";
+import AdminQueuesPage from "$/frontend/pages/admin-queues.page";
 import AdminUsersPage from "$/frontend/pages/admin-users.page";
 import DashboardPage from "$/frontend/pages/dashboard.page";
 import ForgotPasswordPage from "$/frontend/pages/forgot-password.page";
@@ -35,6 +36,7 @@ export default function App() {
             <Switch>
               <Route path="/console" component={AdminPage} />
               <Route path="/console/users" component={AdminUsersPage} />
+              <Route path="/console/queues" component={AdminQueuesPage} />
               <Route>
                 <AppShell>
                   <Switch>

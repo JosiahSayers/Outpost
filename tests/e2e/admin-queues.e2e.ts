@@ -25,3 +25,28 @@ test.describe("Admin queues page authorization", () => {
     expect(response?.ok()).toBe(true);
   });
 });
+
+test.describe("Queues console page", () => {
+  test("a non-admin cannot load the /console/queues route", async ({
+    page,
+    user,
+  }) => {
+    void user;
+    await page.goto("/console/queues");
+    await expect(page).toHaveURL("/dashboard");
+  });
+
+  test("an admin sees the bull board rendered inside the iframe", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    await signInAs(await makeUser({ admin: true }));
+    await page.goto("/console/queues");
+
+    const queuesFrame = page.frameLocator('iframe[title="Queues"]');
+    await expect(
+      queuesFrame.getByText("trips__move_to_in_progress"),
+    ).toBeVisible();
+  });
+});

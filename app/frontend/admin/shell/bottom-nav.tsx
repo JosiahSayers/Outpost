@@ -18,7 +18,7 @@ const PRIMARY_HREFS = [
   "/console",
   "/console/users",
   "/console/audit-log",
-  "/admin/queues",
+  "/console/queues",
 ];
 
 export default function BottomNav() {
