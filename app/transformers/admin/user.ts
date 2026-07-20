@@ -1,5 +1,12 @@
 import type { User } from "../../../generated/prisma/browser";
 
+export interface AdminUserCounts {
+  trips: number;
+  gearInventoryItems: number;
+  packingLists: number;
+  activeSessions: number;
+}
+
 export type ClientAdminUser = Pick<
   User,
   | "id"
@@ -13,9 +20,18 @@ export type ClientAdminUser = Pick<
   | "role"
   | "updatedAt"
   | "image"
->;
+> & { counts: AdminUserCounts };
 
-export function transform(item: User): ClientAdminUser {
+interface UserWithCounts extends User {
+  _count: {
+    trips: number;
+    gearInventoryItems: number;
+    packingLists: number;
+    sessions: number;
+  };
+}
+
+export function transform(item: UserWithCounts): ClientAdminUser {
   return {
     id: item.id,
     banExpires: item.banExpires,
@@ -28,5 +44,11 @@ export function transform(item: User): ClientAdminUser {
     name: item.name,
     role: item.role,
     updatedAt: item.updatedAt,
+    counts: {
+      trips: item._count.trips,
+      gearInventoryItems: item._count.gearInventoryItems,
+      packingLists: item._count.packingLists,
+      activeSessions: item._count.sessions,
+    },
   };
 }

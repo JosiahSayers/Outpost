@@ -20,13 +20,13 @@ it("renders a card for every tool except Overview", () => {
   expect(screen.getByText("Feature Flags")).toBeInTheDocument();
 });
 
-it("labels User Search as Up next and the rest as Soon", () => {
+it("labels the not-yet-built tools as Soon and leaves shipped tools unbadged", () => {
   render(
     <MantineProvider>
       <ToolGrid />
     </MantineProvider>,
   );
 
-  expect(screen.getByText("Up next")).toBeInTheDocument();
+  expect(screen.queryByText("Up next")).not.toBeInTheDocument();
   expect(screen.getAllByText("Soon").length).toBe(3);
 });

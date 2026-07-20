@@ -189,6 +189,8 @@ model GearInventoryItem {
   owner            User              @relation(fields: [userId], references: [id])
   userId           String
   packingListItems PackingListItem[]
+
+  @@index([userId])
 }
 
 model PackingList {
@@ -206,6 +208,8 @@ model PackingList {
   owner               User?                @relation(fields: [userId], references: [id])
   userId              String?
   packingListSections PackingListSection[]
+
+  @@index([userId])
 }
 
 model PackingListSection {
@@ -266,6 +270,7 @@ model Trip {
   @@index([start])
   // Covers planned composite search of these three fields
   @@index([name, trail, location])
+  @@index([userId])
 }
 
 enum TripStatus {

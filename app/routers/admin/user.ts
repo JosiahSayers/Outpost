@@ -34,6 +34,16 @@ adminUserRouter.get(
         where,
         take: req.query.take,
         skip: req.query.skip,
+        include: {
+          _count: {
+            select: {
+              trips: true,
+              gearInventoryItems: true,
+              packingLists: true,
+              sessions: { where: { expiresAt: { gt: new Date() } } },
+            },
+          },
+        },
       }),
       db.user.count({ where }),
     ]);
