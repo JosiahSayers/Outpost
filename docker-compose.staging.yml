@@ -58,7 +58,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres
+    image: postgres:18
     restart: unless-stopped
     volumes:
       - ./container_files/db:/var/lib/postgresql
