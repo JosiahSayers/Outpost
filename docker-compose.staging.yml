@@ -56,6 +56,9 @@ services:
   redis:
     image: redis:8
     restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./container_files/redis:/data
 
   db:
     image: postgres:18
