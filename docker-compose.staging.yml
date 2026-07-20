@@ -54,7 +54,7 @@ services:
       - .env.staging
 
   redis:
-    image: redis
+    image: redis:8
     restart: unless-stopped
 
   db:
