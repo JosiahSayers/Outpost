@@ -1,3 +1,4 @@
+import { userSessionsRouter } from "$/routers/admin/user/sessions";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
@@ -62,3 +63,5 @@ adminUserRouter.get(
     });
   },
 );
+
+adminUserRouter.use("/:id/sessions", userSessionsRouter);
