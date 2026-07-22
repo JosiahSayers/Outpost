@@ -71,6 +71,10 @@ async function search(term: string) {
 
 beforeEach(() => {
   isWide = false;
+  // Search term and selection live in the URL now, so each test needs a
+  // clean starting location — otherwise state leaks in from whatever the
+  // previous test navigated to.
+  window.history.pushState({}, "", "/console/users");
 });
 
 describe("before a search is entered", () => {
@@ -204,5 +208,42 @@ describe("on a wide (desktop) layout", () => {
 
     await waitFor(() => screen.getByText("Trips"));
     expect(screen.queryByText("Back to results")).not.toBeInTheDocument();
+  });
+});
+
+describe("restoring state via the URL", () => {
+  it("writes the search term and selection into the URL as they change", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes"), {
+      users: [makeUser()],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await search("reyes");
+    await waitFor(() => screen.getByText("Tomás Reyes"));
+
+    expect(window.location.search).toBe("?search=reyes");
+
+    fireEvent.click(screen.getByText("Tomás Reyes"));
+
+    await waitFor(() =>
+      expect(window.location.search).toBe("?search=reyes&user=user-1"),
+    );
+  });
+
+  it("restores the search term and selection from the URL on mount", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes"), {
+      users: [makeUser()],
+      total: 1,
+      pageSize: 10,
+    });
+    window.history.pushState({}, "", "/console/users?search=reyes&user=user-1");
+
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Trips"));
+    expect(screen.getByDisplayValue("reyes")).toBeInTheDocument();
   });
 });

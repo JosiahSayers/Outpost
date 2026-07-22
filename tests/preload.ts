@@ -2,7 +2,11 @@ import { db } from "$/utils/db";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { afterAll, afterEach, beforeAll } from "bun:test";
 
-GlobalRegistrator.register();
+// A concrete url (rather than the default "about:blank") is required for
+// history.pushState/replaceState to actually update window.location —
+// against about:blank they silently no-op instead of navigating, which
+// breaks tests of components that drive routing (e.g. wouter) via history.
+GlobalRegistrator.register({ url: "http://localhost/" });
 
 // Imported after register() so @testing-library/react sees a live DOM on init,
 // and its internal beforeAll() runs at module load time (not inside a test).

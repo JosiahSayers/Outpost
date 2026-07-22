@@ -17,19 +17,53 @@ import {
 import { useDebouncedValue, useMediaQuery } from "@mantine/hooks";
 import { ArrowLeftIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { useLocation, useSearch } from "wouter";
+
+interface SearchState {
+  searchInput: string;
+  selectedUserId: string | null;
+}
+
+function parseSearchState(search: string): SearchState {
+  const params = new URLSearchParams(search);
+  return {
+    searchInput: params.get("search") ?? "",
+    selectedUserId: params.get("user"),
+  };
+}
+
+function buildSearchUrl(state: SearchState): string {
+  const params = new URLSearchParams();
+  if (state.searchInput) params.set("search", state.searchInput);
+  if (state.selectedUserId) params.set("user", state.selectedUserId);
+  const query = params.toString();
+  return query ? `/console/users?${query}` : "/console/users";
+}
 
 export default function UserSearch() {
-  const [searchInput, setSearchInput] = useState("");
+  const [, navigate] = useLocation();
+  // Read only as the seed for the initial state below — after mount, the
+  // URL is kept in sync FROM this state (one-way), not read back reactively,
+  // so typing stays instantly responsive rather than round-tripping through
+  // the router on every keystroke.
+  const initialSearch = useSearch();
+  const [state, setState] = useState<SearchState>(() =>
+    parseSearchState(initialSearch),
+  );
+  const { searchInput, selectedUserId } = state;
+
+  // Search term and selection live in the URL (rather than only in this
+  // state) so that navigating away to view a user's sessions and back
+  // restores the page exactly as it was, instead of resetting to blank.
+  useEffect(() => {
+    navigate(buildSearchUrl(state), { replace: true });
+  }, [state, navigate]);
+
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const isWideLayout = useMediaQuery("(min-width: 48em)");
 
   const { data, isPending, isFetching, isError, error } =
     useAdminUserSearch(debouncedSearch);
-
-  useEffect(() => {
-    setSelectedUserId(null);
-  }, [debouncedSearch]);
 
   const results = data?.users ?? [];
   const selectedUser =
@@ -53,7 +87,14 @@ export default function UserSearch() {
         placeholder="Search by name or email…"
         leftSection={<MagnifyingGlassIcon size={16} />}
         value={searchInput}
-        onChange={(event) => setSearchInput(event.currentTarget.value)}
+        onChange={(event) =>
+          // Changing the search term always clears the selection, matching
+          // the previous behavior.
+          setState({
+            searchInput: event.currentTarget.value,
+            selectedUserId: null,
+          })
+        }
       />
 
       {!hasSearched && <PreSearchState />}
@@ -82,7 +123,9 @@ export default function UserSearch() {
               <SearchResults
                 results={results}
                 selectedUserId={selectedUserId}
-                onSelect={setSelectedUserId}
+                onSelect={(userId) =>
+                  setState({ searchInput, selectedUserId: userId })
+                }
                 isWideLayout={!!isWideLayout && !selectedUser}
               />
             </Box>
@@ -94,7 +137,9 @@ export default function UserSearch() {
                 <Anchor
                   component="button"
                   type="button"
-                  onClick={() => setSelectedUserId(null)}
+                  onClick={() =>
+                    setState({ searchInput, selectedUserId: null })
+                  }
                   underline="never"
                   c="dimmed"
                   fw={600}

@@ -1,8 +1,12 @@
-import { numberQueryParam } from "$/validation/shared";
+import { idParam, numberQueryParam } from "$/validation/shared";
 import z from "zod";
 
 export const adminSessionSearchQuery = z.strictObject({
   status: z.enum(["expired", "active"]).optional(),
   take: numberQueryParam(10),
   skip: numberQueryParam(0),
+});
+
+export const adminSessionParam = idParam.extend({
+  sessionId: z.string(),
 });

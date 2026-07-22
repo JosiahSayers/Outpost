@@ -26,7 +26,6 @@ export function adminActions(userId: string): AdminNavItem[] {
       label: "Manage sessions",
       href: `/console/users/${userId}/sessions`,
       icon: ShieldCheckIcon,
-      comingSoon: true,
       description: "View and revoke active sessions for this account.",
     },
     {

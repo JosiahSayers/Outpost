@@ -34,7 +34,7 @@ describe("GET /:id/sessions", () => {
       .expect(403);
   });
 
-  it("returns a 404 with an empty pagination response when the user has no sessions", async () => {
+  it("returns a 200 with an empty pagination response when the user has no sessions", async () => {
     const target = await db.user.create({ data: make("User") });
     createdUserIds.push(target.id);
 
@@ -42,7 +42,7 @@ describe("GET /:id/sessions", () => {
       .get(`/admin/users/${target.id}/sessions`)
       .set("Cookie", adminAuthCookies)
       .expect("Content-Type", /json/)
-      .expect(404);
+      .expect(200);
 
     expect(response.body).toEqual({
       sessions: [],
@@ -52,16 +52,10 @@ describe("GET /:id/sessions", () => {
   });
 
   it("returns a 404 for a user id that doesn't exist", async () => {
-    const response = await request(app)
+    await request(app)
       .get("/admin/users/does-not-exist/sessions")
       .set("Cookie", adminAuthCookies)
       .expect(404);
-
-    expect(response.body).toEqual({
-      sessions: [],
-      total: 0,
-      pageSize: 10,
-    });
   });
 
   it("returns the sessions belonging to the requested user", async () => {
@@ -105,7 +99,7 @@ describe("GET /:id/sessions", () => {
     const response = await request(app)
       .get(`/admin/users/${target.id}/sessions`)
       .set("Cookie", adminAuthCookies)
-      .expect(404);
+      .expect(200);
 
     expect(response.body.sessions).toEqual([]);
   });
@@ -210,5 +204,67 @@ describe("GET /:id/sessions", () => {
         ],
       }),
     ]);
+  });
+});
+
+describe("DELETE /:sessionId", () => {
+  it("requires a valid session", async () => {
+    await request(app)
+      .delete("/admin/users/some-id/sessions/some-session-id")
+      .expect(401);
+  });
+
+  it("requires an admin role", async () => {
+    await request(app)
+      .delete("/admin/users/some-id/sessions/some-session-id")
+      .set("Cookie", authCookies)
+      .expect(403);
+  });
+
+  it("returns a 404 for a session id that doesn't exist", async () => {
+    const target = await db.user.create({ data: make("User") });
+    createdUserIds.push(target.id);
+
+    await request(app)
+      .delete(`/admin/users/${target.id}/sessions/does-not-exist`)
+      .set("Cookie", adminAuthCookies)
+      .expect(404);
+  });
+
+  it("does not revoke a session belonging to another user", async () => {
+    const target = await db.user.create({ data: make("User") });
+    const other = await db.user.create({ data: make("User") });
+    createdUserIds.push(target.id, other.id);
+
+    const session = await db.session.create({
+      data: make("Session", { userId: other.id }),
+    });
+
+    await request(app)
+      .delete(`/admin/users/${target.id}/sessions/${session.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(404);
+
+    expect(
+      await db.session.findUnique({ where: { id: session.id } }),
+    ).not.toBeNull();
+  });
+
+  it("revokes the session", async () => {
+    const target = await db.user.create({ data: make("User") });
+    createdUserIds.push(target.id);
+
+    const session = await db.session.create({
+      data: make("Session", { userId: target.id }),
+    });
+
+    await request(app)
+      .delete(`/admin/users/${target.id}/sessions/${session.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(
+      await db.session.findUnique({ where: { id: session.id } }),
+    ).toBeNull();
   });
 });
