@@ -66,3 +66,7 @@ API hooks live in `app/frontend/utils/api/`. Each hook uses `useQuery`/`useMutat
 **Do not use `mock.module()`** — Bun has a bug where module mocks persist for the entire test run and `mock.restore()` does not restore them. This causes tests to bleed into each other in unpredictable ways.
 
 Instead, mock at the hook/function level using `mock()` from `bun:test`, or structure components so their dependencies can be controlled via props or context.
+
+## GDAL
+
+`ogr2ogr`/`ogrinfo` are required (dev, CI, and the worker image) for the PAD-US ingest job, which shells out to real GDAL against fixtures in tests. Install locally with `brew install gdal`.
