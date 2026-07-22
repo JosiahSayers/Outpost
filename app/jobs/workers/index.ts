@@ -1,5 +1,6 @@
 import { moveToFinishedQueue, moveToInProgressQueue } from "$/jobs/queues";
 import { sendResetPasswordEmailWorker } from "$/jobs/workers/email/reset-password";
+import { ingestPadUsWorker } from "$/jobs/workers/protected-areas/ingest-padus";
 import { moveToFinishedWorker } from "$/jobs/workers/trip-status/move-to-finished";
 import { moveToInProgressWorker } from "$/jobs/workers/trip-status/move-to-in-progress";
 import { logger } from "$/utils/logger";
@@ -9,6 +10,7 @@ const workers: Worker[] = [
   moveToInProgressWorker,
   moveToFinishedWorker,
   sendResetPasswordEmailWorker,
+  ingestPadUsWorker,
 ];
 
 await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {

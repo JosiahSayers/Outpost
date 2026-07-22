@@ -1,0 +1,6 @@
+sourceUniqueId,unitName,localName,category,managerType,managerName,ownerType,ownerName,designationType,localDesignation,gapStatus,iucnCategory,publicAccess,dateEstablished,acres,aggregatorSource,wdpaCode,state,longitude,latitude
+1000001,Test National Forest,Test Ranger District,Fee,FED,USFS,FED,USFS,NF,,2,VI,OA,1908,123456.7,PADUS4_1,1234,CO,-105.5,39.5
+1000002,Test Wilderness,,Designation,FED,USFS,FED,USFS,WILD,,1,Ib,OA,1964,45678.2,PADUS4_1,,CO,-105.6,39.6
+1000003,Test Conservation Easement,,Easement,NGO,Test Land Trust,PRIV,Private Landowner,EASE,,3,,XA,2005,320.5,PADUS4_1,,MT,-110.1,46.2
+1000004,Test National Monument,,Proclamation,FED,BLM,FED,BLM,NM,,2,III,OA,1996,987654.3,PADUS4_1,5678,UT,-111.2,37.9
+1000005,Test Marine Sanctuary,,Marine,FED,NOAA,FED,NOAA,NMS,,2,IV,OA,1992,5678.9,PADUS4_1,9012,CA,-119.7,34.4

@@ -49,6 +49,7 @@ model User {
   accountSettingValues            AccountSettingValue[]
   communicationAuditLogsInitiated CommunicationAuditLog[] @relation("initiatedBy")
   communicationAuditLogsReceived  CommunicationAuditLog[] @relation("recipient")
+  protectedAreaIngestRuns         ProtectedAreaIngestRun[]
 
   @@unique([email])
   @@map("user")
@@ -354,4 +355,87 @@ model MealPlanItem {
   mealPlanDayId String
 
   @@index([meal, mealPlanDayId])
+}
+
+//
+// Protected area inventory (PAD-US ingest)
+//
+enum ProtectedAreaCategory {
+  fee
+  designation
+  easement
+  proclamation
+  marine
+  other
+  unknown
+}
+
+model ProtectedArea {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The GDB's OBJECTID (ESRI FID) for this record, used as the upsert key.
+  // PAD-US has no field that is both populated and unique across all rows
+  // (Source_PAID is blank on ~36% of rows and not unique on the rest) --
+  // OBJECTID is unique within a given export but not guaranteed stable
+  // across a future PAD-US release, so re-ingesting a new release may
+  // produce duplicate rows rather than clean updates. True cross-release/
+  // cross-source identity resolution is BTP-68's job.
+  sourceUniqueId String @unique
+
+  unitName  String // Unit_Nm
+  localName String? // Loc_Nm
+  category  ProtectedAreaCategory // Category
+
+  managerType      String? // Mang_Type
+  managerName      String? // Mang_Name
+  ownerType        String? // Own_Type
+  ownerName        String? // Own_Name
+  designationType  String? // Des_Tp
+  localDesignation String? // Loc_Ds
+
+  gapStatus       String? // GAP_Sts
+  iucnCategory    String? // IUCN_Cat
+  publicAccess    String? // Pub_Access
+  dateEstablished Int? // Date_Est (year)
+  acres           Float? // GIS_Acres
+
+  aggregatorSource String // Agg_Src, e.g. "PADUS4_1" -- which release this row came from
+  wdpaCode         String? // WDPA_Cd -- future international join key, kept for provenance even though unused now
+
+  state     String? // 2-letter USPS code
+  latitude  Float? // computed centroid, not the source boundary
+  longitude Float?
+
+  @@index([unitName])
+  @@index([state])
+}
+
+enum ProtectedAreaIngestStatus {
+  running
+  succeeded
+  failed
+}
+
+model ProtectedAreaIngestRun {
+  id    String  @id @default(uuid())
+  jobId String? // BullMQ job id, for cross-referencing Bull Board
+
+  source String // e.g. "PAD-US 4.1 Combined" -- what was ingested
+  status ProtectedAreaIngestStatus @default(running)
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  itemsProcessed Int @default(0)
+  itemsCreated   Int @default(0)
+  itemsUpdated   Int @default(0)
+
+  errorMessage String? // populated on failure, mirrors what's logged to winston
+
+  initiatedBy       User?   @relation(fields: [initiatedByUserId], references: [id])
+  initiatedByUserId String?
+
+  @@index([status, startedAt])
 }
