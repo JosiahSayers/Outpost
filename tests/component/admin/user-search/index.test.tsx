@@ -71,6 +71,10 @@ async function search(term: string) {
 
 beforeEach(() => {
   isWide = false;
+  // Search term and selection live in the URL now, so each test needs a
+  // clean starting location — otherwise state leaks in from whatever the
+  // previous test navigated to.
+  window.history.pushState({}, "", "/console/users");
 });
 
 describe("before a search is entered", () => {
@@ -109,7 +113,7 @@ describe("typing a search term", () => {
 describe("when no accounts match", () => {
   it("shows a no-matches message", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminUserKeys.search("zzqxlt"), {
+    queryClient.setQueryData(adminUserKeys.search("zzqxlt", 0, 10), {
       users: [],
       total: 0,
       pageSize: 10,
@@ -127,7 +131,7 @@ describe("when no accounts match", () => {
 describe("on a narrow (mobile) layout", () => {
   function seedAndSearch() {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminUserKeys.search("reyes"), {
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
       users: [makeUser()],
       total: 1,
       pageSize: 10,
@@ -177,7 +181,7 @@ describe("on a wide (desktop) layout", () => {
 
   it("shows only the full-width list before anything is selected", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminUserKeys.search("reyes"), {
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
       users: [makeUser()],
       total: 1,
       pageSize: 10,
@@ -191,7 +195,7 @@ describe("on a wide (desktop) layout", () => {
 
   it("shows the list alongside the detail panel once a result is selected, without a back link", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminUserKeys.search("reyes"), {
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
       users: [makeUser()],
       total: 1,
       pageSize: 10,
@@ -204,5 +208,105 @@ describe("on a wide (desktop) layout", () => {
 
     await waitFor(() => screen.getByText("Trips"));
     expect(screen.queryByText("Back to results")).not.toBeInTheDocument();
+  });
+});
+
+describe("restoring state via the URL", () => {
+  it("writes the search term and selection into the URL as they change", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
+      users: [makeUser()],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await search("reyes");
+    await waitFor(() => screen.getByText("Tomás Reyes"));
+
+    expect(window.location.search).toBe("?search=reyes");
+
+    fireEvent.click(screen.getByText("Tomás Reyes"));
+
+    await waitFor(() =>
+      expect(window.location.search).toBe("?search=reyes&user=user-1"),
+    );
+  });
+
+  it("restores the search term and selection from the URL on mount", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
+      users: [makeUser()],
+      total: 1,
+      pageSize: 10,
+    });
+    window.history.pushState({}, "", "/console/users?search=reyes&user=user-1");
+
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Trips"));
+    expect(screen.getByDisplayValue("reyes")).toBeInTheDocument();
+  });
+
+  it("restores the page from the URL on mount", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes", 10, 10), {
+      users: [makeUser({ id: "user-2", name: "Page Two User" })],
+      total: 15,
+      pageSize: 10,
+    });
+    window.history.pushState({}, "", "/console/users?search=reyes&page=2");
+
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Page Two User"));
+  });
+});
+
+describe("paginating through results", () => {
+  it("requests the next page and writes it into the URL", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
+      users: [makeUser({ name: "Page One User" })],
+      total: 15,
+      pageSize: 10,
+    });
+    queryClient.setQueryData(adminUserKeys.search("reyes", 10, 10), {
+      users: [makeUser({ id: "user-2", name: "Page Two User" })],
+      total: 15,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await search("reyes");
+    await waitFor(() => screen.getByText("Page One User"));
+
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+
+    await waitFor(() => screen.getByText("Page Two User"));
+    expect(window.location.search).toBe("?search=reyes&page=2");
+  });
+
+  it("resets back to page 1 when the search term changes", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminUserKeys.search("reyes", 0, 10), {
+      users: [makeUser({ name: "Page One User" })],
+      total: 15,
+      pageSize: 10,
+    });
+    queryClient.setQueryData(adminUserKeys.search("reyes", 10, 10), {
+      users: [makeUser({ id: "user-2", name: "Page Two User" })],
+      total: 15,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await search("reyes");
+    await waitFor(() => screen.getByText("Page One User"));
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    await waitFor(() => screen.getByText("Page Two User"));
+
+    await search("reyes updated");
+
+    await waitFor(() =>
+      expect(window.location.search).toBe("?search=reyes+updated"),
+    );
   });
 });

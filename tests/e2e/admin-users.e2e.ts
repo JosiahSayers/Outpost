@@ -114,6 +114,38 @@ test.describe("Searching for a user", () => {
   });
 });
 
+test.describe("Paginating search results", () => {
+  test("moves to the second page of results and keeps it across a reload", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    // A shared, unique substring lets one search match a whole batch of
+    // users without picking up leftovers from other tests' data.
+    const term = `Pager ${crypto.randomUUID().slice(0, 8)}`;
+    await Promise.all(
+      Array.from({ length: 11 }, (_, i) =>
+        makeUser({ name: `${term} ${String(i).padStart(2, "0")}` }),
+      ),
+    );
+    await signInAs(await makeUser({ admin: true }));
+    await page.goto("/console/users");
+    await search(page, term);
+
+    const matches = page.getByRole("row").filter({ hasText: term });
+    await expect(matches).toHaveCount(10);
+
+    await page.getByRole("button", { name: "2" }).click();
+
+    await expect(matches).toHaveCount(1);
+    expect(new URL(page.url()).searchParams.get("page")).toBe("2");
+
+    await page.reload();
+
+    await expect(matches).toHaveCount(1);
+  });
+});
+
 test.describe("User detail panel", () => {
   test("selecting a result opens the detail panel with the user's stats", async ({
     page,
@@ -150,6 +182,35 @@ test.describe("User detail panel", () => {
   });
 });
 
+test.describe("The 'Manage sessions' admin action", () => {
+  test("appears on the user detail panel", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    const target = await makeUser({ name: uniqueName() });
+    await signInAs(await makeUser({ admin: true }));
+    await openUserDetailPanel(page, target);
+
+    await expect(adminActionCard(page, "Manage sessions")).toBeVisible();
+  });
+
+  test("navigates to the sessions page when clicked", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    const target = await makeUser({ name: uniqueName() });
+    await signInAs(await makeUser({ admin: true }));
+    await openUserDetailPanel(page, target);
+
+    await adminActionCard(page, "Manage sessions").click();
+
+    await expect(page).toHaveURL(`/console/users/${target.id}/sessions`);
+    await expect(page.getByRole("heading", { name: "Sessions" })).toBeVisible();
+  });
+});
+
 // These admin actions are wired up as navigation targets but not implemented
 // yet — for now they just need to exist on the page marked as coming soon.
 // Replace each with a real test once its page is built.
@@ -178,20 +239,6 @@ test.describe("Admin actions (not yet implemented)", () => {
     await openUserDetailPanel(page, target);
 
     const card = adminActionCard(page, "Reset password");
-    await expect(card).toBeVisible();
-    await expect(card.getByText("Soon")).toBeVisible();
-  });
-
-  test("shows a 'Manage sessions' action marked as coming soon", async ({
-    page,
-    makeUser,
-    signInAs,
-  }) => {
-    const target = await makeUser({ name: uniqueName() });
-    await signInAs(await makeUser({ admin: true }));
-    await openUserDetailPanel(page, target);
-
-    const card = adminActionCard(page, "Manage sessions");
     await expect(card).toBeVisible();
     await expect(card.getByText("Soon")).toBeVisible();
   });

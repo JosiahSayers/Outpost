@@ -9,6 +9,7 @@ import makeMealPlanItem from "./generators/meal-plan-item";
 import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
 import makePackingListSection from "./generators/packing-list-section";
+import makeSession from "./generators/session";
 import makeTrip from "./generators/trip";
 import makeTripTask from "./generators/trip-task";
 import makeUser from "./generators/user";
@@ -22,6 +23,7 @@ type SupportedModels = PickStringLiteral<
   | "PackingList"
   | "PackingListSection"
   | "PackingListItem"
+  | "Session"
   | "Trip"
   | "TripTask"
   | "MealPlanDay"
@@ -37,6 +39,7 @@ const generators = {
   PackingList: makePackingList,
   PackingListSection: makePackingListSection,
   PackingListItem: makePackingListItem,
+  Session: makeSession,
   Trip: makeTrip,
   TripTask: makeTripTask,
   MealPlanDay: makeMealPlanDay,

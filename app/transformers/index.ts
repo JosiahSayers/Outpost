@@ -1,5 +1,6 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
 import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
+import { transform as adminSessionTransform } from "$/transformers/admin/session";
 import { transform as adminUserTransform } from "$/transformers/admin/user";
 import { transform as gearCategoryTransform } from "$/transformers/gear-category";
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
@@ -29,5 +30,6 @@ export const transformers = {
   userAccountSettings: userAccountSettingsTransform,
   admin: {
     user: adminUserTransform,
+    session: adminSessionTransform,
   },
 } as const;

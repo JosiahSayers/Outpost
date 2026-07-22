@@ -94,13 +94,13 @@ describe("account stats", () => {
 });
 
 describe("admin actions", () => {
-  it("lists each action, all disabled as coming soon", () => {
+  it("lists each action, with Manage sessions live and the rest coming soon", () => {
     renderPanel(makeUser());
 
     expect(screen.getByText("Impersonate user")).toBeInTheDocument();
     expect(screen.getByText("Reset password")).toBeInTheDocument();
     expect(screen.getByText("Manage sessions")).toBeInTheDocument();
     expect(screen.getByText("View audit log")).toBeInTheDocument();
-    expect(screen.getAllByText("Soon").length).toBe(4);
+    expect(screen.getAllByText("Soon").length).toBe(3);
   });
 });
