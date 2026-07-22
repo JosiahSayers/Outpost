@@ -1,5 +1,10 @@
 import type { ClientSession } from "$/transformers/admin/session";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { apiClient } from "./client";
 
 export type SessionStatusFilter = "active" | "expired" | "all";
@@ -11,18 +16,27 @@ export interface AdminUserSessionsResult {
 }
 
 export const adminSessionKeys = {
-  list: (userId: string, status: SessionStatusFilter) =>
-    ["admin", "users", userId, "sessions", status] as const,
+  list: (
+    userId: string,
+    status: SessionStatusFilter,
+    skip: number,
+    take: number,
+  ) => ["admin", "users", userId, "sessions", status, skip, take] as const,
 };
 
 export function useAdminUserSessions(
   userId: string,
   status: SessionStatusFilter,
+  skip: number,
+  take: number,
 ) {
   return useQuery({
-    queryKey: adminSessionKeys.list(userId, status),
+    queryKey: adminSessionKeys.list(userId, status, skip, take),
     queryFn: () => {
-      const params = new URLSearchParams({ take: "50" });
+      const params = new URLSearchParams({
+        skip: String(skip),
+        take: String(take),
+      });
       if (status !== "all") {
         params.set("status", status);
       }
@@ -33,6 +47,7 @@ export function useAdminUserSessions(
         `/admin/users/${userId}/sessions?${params}`,
       );
     },
+    placeholderData: keepPreviousData,
   });
 }
 

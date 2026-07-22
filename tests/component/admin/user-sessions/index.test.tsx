@@ -61,7 +61,7 @@ function renderPage(queryClient: QueryClient = makeQueryClient()) {
 describe("on initial load", () => {
   it("defaults to the Active filter and shows active sessions", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
       sessions: [makeSession()],
       total: 1,
       pageSize: 10,
@@ -76,7 +76,7 @@ describe("on initial load", () => {
 describe("when there are no matching sessions", () => {
   it("shows an empty state", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
       sessions: [],
       total: 0,
       pageSize: 10,
@@ -117,12 +117,12 @@ describe("when the user doesn't exist", () => {
 describe("switching the status filter", () => {
   it("requests expired sessions when the Expired pill is selected", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
       sessions: [makeSession()],
       total: 1,
       pageSize: 10,
     });
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "expired"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "expired", 0, 10), {
       sessions: [
         makeSession({
           id: "session-2",
@@ -147,7 +147,7 @@ describe("switching the status filter", () => {
 describe("an impersonated session", () => {
   it("shows the Impersonated badge", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
       sessions: [makeSession({ impersonatedBy: "admin-user-id" })],
       total: 1,
       pageSize: 10,
@@ -160,6 +160,59 @@ describe("an impersonated session", () => {
   });
 });
 
+describe("paginating through sessions", () => {
+  it("requests the next page when a page control is clicked", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [makeSession({ id: "session-1", ipAddress: "73.24.118.6" })],
+      total: 15,
+      pageSize: 10,
+    });
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 10, 10), {
+      sessions: [makeSession({ id: "session-2", ipAddress: "10.0.0.5" })],
+      total: 15,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await waitFor(() => screen.getByText("73.24.118.6"));
+
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("10.0.0.5")).toBeInTheDocument(),
+    );
+  });
+
+  it("resets back to page 1 when the status filter changes", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [makeSession({ id: "session-1", ipAddress: "73.24.118.6" })],
+      total: 15,
+      pageSize: 10,
+    });
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 10, 10), {
+      sessions: [makeSession({ id: "session-2", ipAddress: "10.0.0.5" })],
+      total: 15,
+      pageSize: 10,
+    });
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "expired", 0, 10), {
+      sessions: [makeSession({ id: "session-3", ipAddress: "192.168.0.1" })],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+    await waitFor(() => screen.getByText("73.24.118.6"));
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    await waitFor(() => screen.getByText("10.0.0.5"));
+
+    fireEvent.click(screen.getByRole("radio", { name: "Expired" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("192.168.0.1")).toBeInTheDocument(),
+    );
+  });
+});
+
 describe("revoking a session", () => {
   const originalFetch = global.fetch;
   afterEach(() => {
@@ -168,7 +221,7 @@ describe("revoking a session", () => {
 
   it("calls the revoke endpoint and removes the session after confirming", async () => {
     const queryClient = makeQueryClient();
-    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active"), {
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
       sessions: [makeSession()],
       total: 1,
       pageSize: 10,

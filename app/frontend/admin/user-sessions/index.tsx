@@ -1,3 +1,4 @@
+import AdminPagination from "$/frontend/admin/shared/pagination";
 import DeviceCell from "$/frontend/admin/user-sessions/device-cell";
 import { formatSessionDate } from "$/frontend/admin/user-sessions/format-date";
 import SessionRowMenu from "$/frontend/admin/user-sessions/session-row-menu";
@@ -28,6 +29,8 @@ interface UserSessionsProps {
   userId: string;
 }
 
+const PAGE_SIZE = 10;
+
 function isActive(expiresAt: Date | string): boolean {
   return new Date(expiresAt).getTime() > Date.now();
 }
@@ -35,13 +38,17 @@ function isActive(expiresAt: Date | string): boolean {
 export default function UserSessions({ userId }: UserSessionsProps) {
   const [, navigate] = useLocation();
   const [status, setStatus] = useState<SessionStatusFilter>("active");
-  const { data, isPending, isError, error } = useAdminUserSessions(
+  const [page, setPage] = useState(1);
+  const { data, isPending, isFetching, isError, error } = useAdminUserSessions(
     userId,
     status,
+    (page - 1) * PAGE_SIZE,
+    PAGE_SIZE,
   );
   const notFound = error instanceof ApiError && error.status === 404;
 
   const sessions = data?.sessions ?? [];
+  const total = data?.total ?? 0;
 
   function goBackToSearch() {
     // Prefer a real back-navigation so the search page restores exactly the
@@ -91,7 +98,10 @@ export default function UserSessions({ userId }: UserSessionsProps) {
         <>
           <SegmentedControl
             value={status}
-            onChange={(value) => setStatus(value as SessionStatusFilter)}
+            onChange={(value) => {
+              setStatus(value as SessionStatusFilter);
+              setPage(1);
+            }}
             data={[
               { label: "Active", value: "active" },
               { label: "Expired", value: "expired" },
@@ -197,6 +207,16 @@ export default function UserSessions({ userId }: UserSessionsProps) {
                 </Table>
               </Table.ScrollContainer>
             </Paper>
+          )}
+
+          {!isPending && !isError && sessions.length > 0 && (
+            <AdminPagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              onPageChange={setPage}
+              disabled={isFetching}
+            />
           )}
         </>
       )}
