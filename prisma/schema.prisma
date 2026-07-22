@@ -15,12 +15,18 @@ datasource db {
   provider = "postgresql"
 }
 
+//
+// Production Seed Data
+//
 model AppliedSeeds {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   appliedAt DateTime @default(now())
 }
 
+//
+// User and auth
+//
 model User {
   id                 String              @id
   name               String
@@ -98,6 +104,9 @@ model Verification {
   @@map("verification")
 }
 
+//
+// User-customizable app settings
+//
 model AccountSetting {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -125,6 +134,9 @@ model AccountSettingValue {
   @@unique([accountSettingId, userId])
 }
 
+//
+// Audit Logs
+//
 model CommunicationAuditLog {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -155,6 +167,9 @@ enum CommunicationType {
   email
 }
 
+//
+// Core models
+//
 model GearCategory {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
