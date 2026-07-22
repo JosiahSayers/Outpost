@@ -82,3 +82,4 @@ export { expect };
 export type { TestUser } from "./auth";
 export { uniqueEmail } from "./auth";
 export { seedGearInventory } from "../../helpers/test-data/seed-gear";
+export { seedActiveSessions } from "../../helpers/test-data/seed-sessions";
