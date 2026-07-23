@@ -6,6 +6,11 @@ import {
   EMAILS__RESET_PASSWORD_WORKER,
   type SendResetPasswordEmailData,
 } from "$/jobs/workers/email/reset-password";
+import { PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
+import {
+  PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
+  type IngestPadUsChunkData,
+} from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import {
   PROTECTED_AREAS__INGEST_PADUS_WORKER,
   type IngestPadUsData,
@@ -35,9 +40,21 @@ export const protectedAreasIngestQueue = new Queue<IngestPadUsData>(
   { connection: redisConnection, defaultJobOptions: { attempts: 1 } }, // override shared default -- no auto-retry
 );
 
+export const protectedAreasIngestChunkQueue = new Queue<IngestPadUsChunkData>(
+  PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
+  { connection: redisConnection },
+);
+
+export const protectedAreasFinalizeIngestQueue = new Queue(
+  PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
+  { connection: redisConnection },
+);
+
 export const allQueues = [
   moveToInProgressQueue,
   moveToFinishedQueue,
   sendResetPasswordEmailQueue,
   protectedAreasIngestQueue,
+  protectedAreasIngestChunkQueue,
+  protectedAreasFinalizeIngestQueue,
 ];

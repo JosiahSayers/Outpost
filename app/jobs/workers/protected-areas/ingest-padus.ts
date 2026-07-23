@@ -1,16 +1,19 @@
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import {
+  defaultWorkerOptions,
+  redisConnection,
+} from "$/jobs/workers/default-options";
+import { PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
+import { PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { db } from "$/utils/db";
+import { FlowProducer, Worker, type Job } from "bullmq";
 import { parse } from "csv-parse";
-import { Worker, type Job } from "bullmq";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import readline from "node:readline";
 import { Readable } from "node:stream";
 import { finished } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
-import type { ProtectedAreaCategory } from "../../../../generated/prisma/enums";
 
 export const PROTECTED_AREAS__INGEST_PADUS_WORKER =
   "protected_areas__ingest_padus";
@@ -26,7 +29,14 @@ export interface IngestPadUsData {
   initiatedByUserId?: string;
 }
 
-const BATCH_SIZE = 1000;
+// Dedicated parent directory (rather than raw os.tmpdir()) so a boot-time
+// sweep for orphaned runs (see workers/index.ts) has an unambiguous target
+// to clear, instead of guessing at prefixes in a shared temp directory.
+export const PADUS_TEMP_ROOT = path.join(os.tmpdir(), "padus-ingest-runs");
+
+const ROWS_PER_CHUNK = 20_000;
+
+const flowProducer = new FlowProducer({ connection: redisConnection });
 
 // Only network-dependent piece. `fetchImpl` defaults to global fetch and is
 // overridable per-argument (not mock.module()) so tests can inject a fake
@@ -146,135 +156,87 @@ export async function convertGdbToCsv(
   const csvPath = path.join(destDir, "padus.csv");
   const sql = `SELECT ${PADUS_SELECT_COLUMNS} FROM "${layerName}"`;
 
-  await Bun.$`ogr2ogr -f CSV ${csvPath} ${gdbPath} -dialect sqlite -sql ${sql}`;
+  // We only ever keep the centroid (see PADUS_SELECT_COLUMNS) and discard
+  // the rest of the geometry, so GDAL's full shell/hole ring-classification
+  // pass (organizePolygons) is wasted work here -- it's also slow enough on
+  // PAD-US's many-part polygons (e.g. national forest boundaries made of
+  // hundreds of disjoint parcels) to log its own "may be really slow"
+  // warning. SKIP treats every ring as a top-level polygon instead of
+  // classifying holes, which can shift a centroid slightly for complex
+  // multi-part polygons but is immaterial for a representative map point.
+  await Bun.$`ogr2ogr --config OGR_ORGANIZE_POLYGONS SKIP -f CSV ${csvPath} ${gdbPath} -dialect sqlite -sql ${sql}`;
 
   return csvPath;
 }
 
-interface ProtectedAreaCsvRow {
-  sourceUniqueId: string;
-  unitName: string;
-  localName: string;
-  category: string;
-  managerType: string;
-  managerName: string;
-  ownerType: string;
-  ownerName: string;
-  designationType: string;
-  localDesignation: string;
-  gapStatus: string;
-  iucnCategory: string;
-  publicAccess: string;
-  dateEstablished: string;
-  acres: string;
-  aggregatorSource: string;
-  wdpaCode: string;
-  state: string;
-  latitude: string;
-  longitude: string;
+// PAD-US text fields (unit/local names, designations) can contain commas or
+// embedded newlines, which ogr2ogr quotes per RFC 4180. Re-quote on write so
+// a value round-trips exactly through parse -> split -> re-parse.
+function csvField(value: string): string {
+  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
-function toNullableString(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+function csvRow(fields: string[]): string {
+  return fields.map(csvField).join(",");
 }
 
-function toNullableInt(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isFinite(parsed) ? parsed : null;
-}
+// Splits the converted CSV into fixed-size row chunks (each carrying its own
+// header line) so ingestion can run as many small, independently-retryable
+// BullMQ jobs instead of one job that has to process all ~657k rows in a
+// single pass. Folds in the row count so a separate full-file count pass
+// (like the old countDataRows) isn't needed here.
+//
+// Parses real CSV records (via csv-parse) rather than splitting on raw
+// physical lines: a quoted field can itself contain a newline, so a
+// naive readline-based split can cut a chunk boundary in the middle of a
+// field and produce two corrupt chunk files (seen in practice -- "Quote Not
+// Closed" / "Invalid Closing Quote" errors from csv-parse on the resulting
+// chunks).
+export async function splitCsvIntoChunks(
+  csvPath: string,
+  destDir: string,
+  rowsPerChunk: number,
+): Promise<{ chunkPaths: string[]; totalRows: number }> {
+  const parser = fs.createReadStream(csvPath).pipe(parse({ columns: false }));
 
-function toNullableFloat(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseFloat(trimmed);
-  return Number.isFinite(parsed) ? parsed : null;
-}
+  let header: string[] | null = null;
+  let totalRows = 0;
+  let chunkIndex = 0;
+  let rowsInCurrentChunk = 0;
+  const current: { stream: fs.WriteStream | null } = { stream: null };
+  const chunkPaths: string[] = [];
+  const pendingWrites: Promise<void>[] = [];
 
-function toProtectedAreaData(row: ProtectedAreaCsvRow) {
-  return {
-    sourceUniqueId: row.sourceUniqueId,
-    unitName: row.unitName,
-    localName: toNullableString(row.localName),
-    category: row.category.toLowerCase() as ProtectedAreaCategory,
-    managerType: toNullableString(row.managerType),
-    managerName: toNullableString(row.managerName),
-    ownerType: toNullableString(row.ownerType),
-    ownerName: toNullableString(row.ownerName),
-    designationType: toNullableString(row.designationType),
-    localDesignation: toNullableString(row.localDesignation),
-    gapStatus: toNullableString(row.gapStatus),
-    iucnCategory: toNullableString(row.iucnCategory),
-    publicAccess: toNullableString(row.publicAccess),
-    dateEstablished: toNullableInt(row.dateEstablished),
-    acres: toNullableFloat(row.acres),
-    aggregatorSource: row.aggregatorSource,
-    wdpaCode: toNullableString(row.wdpaCode),
-    state: toNullableString(row.state),
-    latitude: toNullableFloat(row.latitude),
-    longitude: toNullableFloat(row.longitude),
-  };
-}
-
-async function countDataRows(csvPath: string): Promise<number> {
-  let lineCount = 0;
-  const rl = readline.createInterface({
-    input: fs.createReadStream(csvPath),
-    crlfDelay: Infinity,
-  });
-  for await (const _line of rl) {
-    lineCount++;
-  }
-  return Math.max(lineCount - 1, 0); // minus header row
-}
-
-// Pure Prisma + file logic, no network/GDAL -- the most heavily tested piece.
-export async function ingestProtectedAreasCsv(csvPath: string, job: Job) {
-  const total = await countDataRows(csvPath);
-
-  let processedCount = 0;
-  let createdCount = 0;
-  let updatedCount = 0;
-  let batch: ProtectedAreaCsvRow[] = [];
-
-  const flushBatch = async () => {
-    if (batch.length === 0) return;
-
-    const outcomes = await Promise.all(
-      batch.map(async (row) => {
-        const data = toProtectedAreaData(row);
-        const existing = await db.protectedArea.findUnique({
-          where: { sourceUniqueId: data.sourceUniqueId },
-          select: { id: true },
-        });
-        await db.protectedArea.upsert({
-          where: { sourceUniqueId: data.sourceUniqueId },
-          create: data,
-          update: data,
-        });
-        return existing ? "updated" : "created";
-      }),
+  const openNextChunk = () => {
+    current.stream?.end();
+    const chunkPath = path.join(
+      destDir,
+      `chunk-${String(chunkIndex).padStart(5, "0")}.csv`,
     );
-
-    processedCount += batch.length;
-    createdCount += outcomes.filter((outcome) => outcome === "created").length;
-    updatedCount += outcomes.filter((outcome) => outcome === "updated").length;
-    await job.updateProgress({ processed: processedCount, total });
-    batch = [];
+    chunkPaths.push(chunkPath);
+    current.stream = fs.createWriteStream(chunkPath);
+    pendingWrites.push(finished(current.stream));
+    current.stream.write(`${csvRow(header!)}\n`);
+    chunkIndex++;
+    rowsInCurrentChunk = 0;
   };
 
-  const parser = fs.createReadStream(csvPath).pipe(parse({ columns: true }));
   for await (const record of parser) {
-    batch.push(record as ProtectedAreaCsvRow);
-    if (batch.length >= BATCH_SIZE) {
-      await flushBatch();
+    if (header === null) {
+      header = record as string[];
+      continue;
     }
+    if (!current.stream || rowsInCurrentChunk >= rowsPerChunk) {
+      openNextChunk();
+    }
+    current.stream!.write(`${csvRow(record as string[])}\n`);
+    rowsInCurrentChunk++;
+    totalRows++;
   }
-  await flushBatch();
+  current.stream?.end();
 
-  return { processedCount, createdCount, updatedCount };
+  await Promise.all(pendingWrites);
+  return { chunkPaths, totalRows };
 }
 
 export async function ingestPadUs(
@@ -290,7 +252,8 @@ export async function ingestPadUs(
     },
   });
 
-  const destDir = fs.mkdtempSync(path.join(os.tmpdir(), "padus-"));
+  await fs.promises.mkdir(PADUS_TEMP_ROOT, { recursive: true });
+  const destDir = fs.mkdtempSync(path.join(PADUS_TEMP_ROOT, `run-`));
 
   try {
     const zipPath = await downloadPadUsZip(
@@ -299,20 +262,38 @@ export async function ingestPadUs(
       fetchImpl,
     );
     const csvPath = await convertGdbToCsv(zipPath, destDir);
-    const result = await ingestProtectedAreasCsv(csvPath, job);
+    const { chunkPaths } = await splitCsvIntoChunks(
+      csvPath,
+      destDir,
+      ROWS_PER_CHUNK,
+    );
 
-    await db.protectedAreaIngestRun.update({
-      where: { id: run.id },
-      data: {
-        status: "succeeded",
-        finishedAt: new Date(),
-        itemsProcessed: result.processedCount,
-        itemsCreated: result.createdCount,
-        itemsUpdated: result.updatedCount,
-      },
+    const flow = await flowProducer.add({
+      name: "finalize-padus-ingest",
+      queueName: PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
+      data: { runId: run.id, destDir },
+      children: chunkPaths.map((chunkPath) => ({
+        name: "ingest-padus-chunk",
+        queueName: PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
+        data: { runId: run.id, chunkPath },
+        opts: {
+          ignoreDependencyOnFailure: true,
+          attempts: 3,
+          backoff: { type: "exponential" as const, delay: 5000 },
+        },
+      })),
     });
 
-    return result;
+    return {
+      runId: run.id,
+      chunkCount: chunkPaths.length,
+      // Job ids of the flow just created -- lets callers (and tests) look a
+      // specific job up by id via Queue#getJob() regardless of what state
+      // it's since moved to, rather than scanning a queue's current state
+      // (which races against any worker process already consuming it).
+      finalizeJobId: flow.job.id!,
+      chunkJobIds: (flow.children ?? []).map((child) => child.job.id!),
+    };
   } catch (err) {
     logger.error("PAD-US ingest failed", { error: err });
     await db.protectedAreaIngestRun.update({
@@ -323,14 +304,13 @@ export async function ingestPadUs(
         errorMessage: String(err),
       },
     });
-    throw err;
-  } finally {
     await fs.promises.rm(destDir, { recursive: true, force: true });
+    throw err;
   }
 }
 
 export const ingestPadUsWorker = new Worker<IngestPadUsData>(
   PROTECTED_AREAS__INGEST_PADUS_WORKER,
   (job) => ingestPadUs(job),
-  defaultWorkerOptions,
+  { ...defaultWorkerOptions, lockDuration: 10 * 60_000 },
 );

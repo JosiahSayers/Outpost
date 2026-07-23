@@ -1,20 +1,27 @@
 import {
+  protectedAreasFinalizeIngestQueue,
+  protectedAreasIngestChunkQueue,
+} from "$/jobs/queues";
+import {
+  PADUS_TEMP_ROOT,
   PROTECTED_AREAS__INGEST_PADUS_WORKER,
   convertGdbToCsv,
   downloadPadUsZip,
   ingestPadUs,
-  ingestProtectedAreasCsv,
+  splitCsvIntoChunks,
   type IngestPadUsData,
 } from "$/jobs/workers/protected-areas/ingest-padus";
+import type { FinalizePadUsIngestData } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
+import type { IngestPadUsChunkData } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { db } from "$/utils/db";
 import type { Job } from "bullmq";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { parse as parseSync } from "csv-parse/sync";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 const FIXTURES_DIR = path.join(import.meta.dir, "../../../fixtures");
-const SAMPLE_CSV = path.join(FIXTURES_DIR, "padus-sample.csv");
 const SAMPLE_GDB_ZIP = path.join(FIXTURES_DIR, "padus-sample-gdb.zip");
 
 const CSV_HEADER =
@@ -31,17 +38,12 @@ beforeEach(async () => {
   userId = user.id;
 });
 
-function makeJob(
-  data: Partial<IngestPadUsData> = {},
-  updateProgress: ReturnType<
-    typeof mock<(progress: { processed: number; total: number }) => void>
-  > = mock((_progress: { processed: number; total: number }) => {}),
-) {
+function makeJob(data: Partial<IngestPadUsData> = {}) {
   return {
     id: "test-job-id",
     name: PROTECTED_AREAS__INGEST_PADUS_WORKER,
     data: { zipDownloadUrl: FAKE_ZIP_DOWNLOAD_URL, ...data },
-    updateProgress,
+    updateProgress: mock(async () => {}),
   } as unknown as Job<IngestPadUsData>;
 }
 
@@ -49,100 +51,82 @@ function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "padus-test-"));
 }
 
-describe("ingestProtectedAreasCsv", () => {
-  it("inserts rows from the fixture CSV, mapping fields and nulling blanks", async () => {
-    const result = await ingestProtectedAreasCsv(SAMPLE_CSV, makeJob());
-
-    expect(result).toEqual({
-      processedCount: 5,
-      createdCount: 5,
-      updatedCount: 0,
-    });
-
-    const forest = await db.protectedArea.findUniqueOrThrow({
-      where: { sourceUniqueId: "1000001" },
-    });
-    expect(forest).toMatchObject({
-      unitName: "Test National Forest",
-      localName: "Test Ranger District",
-      category: "fee",
-      managerType: "FED",
-      managerName: "USFS",
-      state: "CO",
-      latitude: 39.5,
-      longitude: -105.5,
-      acres: 123456.7,
-      dateEstablished: 1908,
-      aggregatorSource: "PADUS4_1",
-      wdpaCode: "1234",
-    });
-
-    const wilderness = await db.protectedArea.findUniqueOrThrow({
-      where: { sourceUniqueId: "1000002" },
-    });
-    expect(wilderness.category).toBe("designation");
-    expect(wilderness.localName).toBeNull();
-    expect(wilderness.wdpaCode).toBeNull();
-  });
-
-  it("upserts by sourceUniqueId on re-ingest instead of creating duplicates", async () => {
-    await ingestProtectedAreasCsv(SAMPLE_CSV, makeJob());
-    const countAfterFirst = await db.protectedArea.count();
-
-    const tempDir = makeTempDir();
-    const modifiedCsvPath = path.join(tempDir, "modified.csv");
-    const original = await Bun.file(SAMPLE_CSV).text();
-    await Bun.write(modifiedCsvPath, original.replace("123456.7", "999999.9"));
-
-    const result = await ingestProtectedAreasCsv(modifiedCsvPath, makeJob());
-
-    expect(result).toEqual({
-      processedCount: 5,
-      createdCount: 0,
-      updatedCount: 5,
-    });
-    expect(await db.protectedArea.count()).toBe(countAfterFirst);
-
-    const forest = await db.protectedArea.findUniqueOrThrow({
-      where: { sourceUniqueId: "1000001" },
-    });
-    expect(forest.acres).toBe(999999.9);
-  });
-
-  it("processes every row across multiple batches and reports increasing progress", async () => {
+describe("splitCsvIntoChunks", () => {
+  it("splits rows across multiple chunk files, each carrying the header", async () => {
     const tempDir = makeTempDir();
     const csvPath = path.join(tempDir, "large.csv");
-    const count = 1200;
     const rows = Array.from(
-      { length: count },
+      { length: 25 },
       (_, i) =>
-        `batch-${i},Batch Area ${i},,Fee,FED,USFS,FED,USFS,NF,,2,VI,OA,1990,100.0,PADUS4_1,,CO,-105.0,39.0`,
+        `row-${i},Area ${i},,Fee,FED,USFS,FED,USFS,NF,,2,VI,OA,1990,100.0,PADUS4_1,,CO,-105.0,39.0`,
     );
     await Bun.write(csvPath, [CSV_HEADER, ...rows].join("\n") + "\n");
 
-    const updateProgress = mock(
-      (_progress: { processed: number; total: number }) => {},
-    );
-    const result = await ingestProtectedAreasCsv(
+    const { chunkPaths, totalRows } = await splitCsvIntoChunks(
       csvPath,
-      makeJob({}, updateProgress),
+      tempDir,
+      10,
     );
 
-    expect(result).toEqual({
-      processedCount: count,
-      createdCount: count,
-      updatedCount: 0,
-    });
-    expect(await db.protectedArea.count()).toBe(count);
+    expect(totalRows).toBe(25);
+    expect(chunkPaths.length).toBe(3);
 
-    expect(updateProgress.mock.calls.length).toBeGreaterThanOrEqual(2);
-    const processedValues = updateProgress.mock.calls.map(
-      (call) => call[0].processed,
+    const contents = await Promise.all(
+      chunkPaths.map((p) => Bun.file(p).text()),
     );
-    for (let i = 1; i < processedValues.length; i++) {
-      expect(processedValues[i]).toBeGreaterThan(processedValues[i - 1]!);
+    const lineCounts = contents.map(
+      (c) => c.trim().split("\n").length - 1, // minus header
+    );
+    expect(lineCounts).toEqual([10, 10, 5]);
+    for (const content of contents) {
+      expect(content.split("\n")[0]).toBe(CSV_HEADER);
     }
-    expect(processedValues.at(-1)).toBe(count);
+    expect(contents[0]).toContain("row-0,");
+    expect(contents[2]).toContain("row-24,");
+  });
+
+  it("keeps a quoted field with an embedded comma and newline intact across a chunk boundary", async () => {
+    const tempDir = makeTempDir();
+    const csvPath = path.join(tempDir, "quoted.csv");
+    const plainRow = (i: number) =>
+      `row-${i},Area ${i},,Fee,FED,USFS,FED,USFS,NF,,2,VI,OA,1990,100.0,PADUS4_1,,CO,-105.0,39.0`;
+    // Last row of the first chunk (rowsPerChunk=2) has a quoted localName
+    // containing both a comma and a real embedded newline -- exactly what
+    // ogr2ogr emits for PAD-US text fields with punctuation. A naive
+    // physical-line split cuts this row in half, corrupting both chunks.
+    const rows = [
+      plainRow(0),
+      `row-1,Area 1,"Multi-line,\nlocal name",Fee,FED,USFS,FED,USFS,NF,,2,VI,OA,1990,100.0,PADUS4_1,,CO,-105.0,39.0`,
+      plainRow(2),
+      plainRow(3),
+    ];
+    await Bun.write(csvPath, [CSV_HEADER, ...rows].join("\n") + "\n");
+
+    const { chunkPaths, totalRows } = await splitCsvIntoChunks(
+      csvPath,
+      tempDir,
+      2,
+    );
+
+    expect(totalRows).toBe(4);
+    expect(chunkPaths.length).toBe(2);
+
+    const [chunk0, chunk1] = await Promise.all(
+      chunkPaths.map((p) => Bun.file(p).text()),
+    );
+
+    const chunk0Records = parseSync(chunk0!, { columns: true }) as Array<
+      Record<string, string>
+    >;
+    expect(chunk0Records.length).toBe(2);
+    expect(chunk0Records[1]!.localName).toBe("Multi-line,\nlocal name");
+
+    const chunk1Records = parseSync(chunk1!, { columns: true }) as Array<
+      Record<string, string>
+    >;
+    expect(chunk1Records.length).toBe(2);
+    expect(chunk1Records[0]!.sourceUniqueId).toBe("row-2");
+    expect(chunk1Records[1]!.sourceUniqueId).toBe("row-3");
   });
 });
 
@@ -194,7 +178,7 @@ describe("downloadPadUsZip", () => {
 });
 
 describe("ingestPadUs", () => {
-  it("wires download, convert, and ingest together and records a succeeded run", async () => {
+  it("wires download, convert, and split, then enqueues a finalize+chunk flow", async () => {
     const zipBytes = await Bun.file(SAMPLE_GDB_ZIP).bytes();
     const fetchImpl = mock(
       async () => new Response(zipBytes, { status: 200 }),
@@ -203,25 +187,44 @@ describe("ingestPadUs", () => {
 
     const result = await ingestPadUs(job, fetchImpl);
 
-    expect(result).toEqual({
-      processedCount: 5,
-      createdCount: 5,
-      updatedCount: 0,
-    });
+    expect(result.chunkCount).toBe(1); // 5 fixture rows, well under ROWS_PER_CHUNK
+    expect(result.chunkJobIds.length).toBe(1);
 
     const run = await db.protectedAreaIngestRun.findFirstOrThrow({
       where: { jobId: "test-job-id" },
       orderBy: { startedAt: "desc" },
     });
-    expect(run).toMatchObject({
-      status: "succeeded",
-      source: "PAD-US 4.1 Combined",
-      itemsProcessed: 5,
-      itemsCreated: 5,
-      itemsUpdated: 0,
-      initiatedByUserId: userId,
+    expect(run.initiatedByUserId).toBe(userId);
+    expect(run.id).toBe(result.runId);
+
+    // Look jobs up by the id FlowProducer.add() handed back, rather than
+    // scanning a queue for jobs currently in some particular state -- if a
+    // worker process is already running against this same Redis instance
+    // (e.g. `bun run dev:workers`), it can pick these jobs up and move them
+    // out of "waiting" well before this assertion runs.
+    const chunkJob = (await protectedAreasIngestChunkQueue.getJob(
+      result.chunkJobIds[0]!,
+    )) as Job<IngestPadUsChunkData> | undefined;
+    expect(chunkJob).toBeDefined();
+    const chunkContent = await Bun.file(chunkJob!.data.chunkPath).text();
+    expect(chunkContent.split("\n")[0]).toBe(CSV_HEADER);
+    expect(chunkContent).toContain("Test National Forest");
+
+    const finalizeJob = (await protectedAreasFinalizeIngestQueue.getJob(
+      result.finalizeJobId,
+    )) as Job<FinalizePadUsIngestData> | undefined;
+    expect(finalizeJob).toBeDefined();
+    expect(finalizeJob!.data.destDir).toBe(
+      path.dirname(chunkJob!.data.chunkPath),
+    );
+
+    // Best-effort cleanup -- a concurrently-running worker may have already
+    // completed/removed these, or be actively holding a lock on them.
+    await Promise.allSettled([chunkJob!.remove(), finalizeJob!.remove()]);
+    await fs.promises.rm(finalizeJob!.data.destDir, {
+      recursive: true,
+      force: true,
     });
-    expect(run.finishedAt).not.toBeNull();
   });
 
   it("records a failed run with an error message when a step throws, and still leaves no temp dir behind", async () => {
@@ -230,7 +233,9 @@ describe("ingestPadUs", () => {
         new Response(null, { status: 500, statusText: "Server Error" }),
     ) as unknown as typeof fetch;
     const job = makeJob();
-    const tmpEntriesBefore = fs.readdirSync(os.tmpdir()).length;
+    const entriesBefore = fs.existsSync(PADUS_TEMP_ROOT)
+      ? fs.readdirSync(PADUS_TEMP_ROOT).length
+      : 0;
 
     await expect(ingestPadUs(job, fetchImpl)).rejects.toThrow(
       /Failed to download PAD-US zip/,
@@ -243,6 +248,6 @@ describe("ingestPadUs", () => {
     expect(run.status).toBe("failed");
     expect(run.errorMessage).toContain("Failed to download PAD-US zip");
     expect(run.finishedAt).not.toBeNull();
-    expect(fs.readdirSync(os.tmpdir()).length).toBe(tmpEntriesBefore);
+    expect(fs.readdirSync(PADUS_TEMP_ROOT).length).toBe(entriesBefore);
   });
 });
