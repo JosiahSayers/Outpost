@@ -14,6 +14,14 @@ createBullBoard({
     (queue) => new BullMQAdapter(queue, { delimiter: "__" }),
   ),
   serverAdapter: serverAdapter,
+  options: {
+    uiConfig: {
+      sortQueues: true,
+      overview: {
+        groupByDelimiter: true,
+      },
+    },
+  },
 });
 
 bullBoardRouter.use("/", serverAdapter.getRouter());
