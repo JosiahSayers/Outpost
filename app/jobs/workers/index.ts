@@ -1,5 +1,8 @@
 import { moveToFinishedQueue, moveToInProgressQueue } from "$/jobs/queues";
 import { sendResetPasswordEmailWorker } from "$/jobs/workers/email/reset-password";
+import { cleanupOrphanedPadUsRuns } from "$/jobs/workers/protected-areas/cleanup-orphaned-runs";
+import { finalizePadUsIngestWorker } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
+import { ingestPadUsChunkWorker } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { ingestPadUsWorker } from "$/jobs/workers/protected-areas/ingest-padus";
 import { moveToFinishedWorker } from "$/jobs/workers/trip-status/move-to-finished";
 import { moveToInProgressWorker } from "$/jobs/workers/trip-status/move-to-in-progress";
@@ -11,7 +14,11 @@ const workers: Worker[] = [
   moveToFinishedWorker,
   sendResetPasswordEmailWorker,
   ingestPadUsWorker,
+  ingestPadUsChunkWorker,
+  finalizePadUsIngestWorker,
 ];
+
+await cleanupOrphanedPadUsRuns();
 
 await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {
   pattern: "1 0 * * *",
