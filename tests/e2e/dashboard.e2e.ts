@@ -413,6 +413,149 @@ test.describe("Dashboard Page", () => {
           page.getByRole("textbox", { name: "Trip name" }),
         ).toBeVisible();
       });
+
+      test.describe("Location autocomplete", () => {
+        test("suggests seeded places as you type in the Location field", async ({
+          page,
+        }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Location" }).fill("Rainier");
+          await expect(
+            page.getByRole("option", { name: /Mount Rainier National Park/ }),
+          ).toBeVisible();
+        });
+
+        test("selecting a suggestion fills the Location with the place and state", async ({
+          page,
+        }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Location" }).fill("Rainier");
+          await page
+            .getByRole("option", { name: /Mount Rainier National Park/ })
+            .click();
+          await expect(
+            page.getByRole("textbox", { name: "Location" }),
+          ).toHaveValue("Mount Rainier National Park, WA");
+        });
+
+        test("creates a trip with a location chosen from the autocomplete", async ({
+          page,
+        }) => {
+          const tripName = `E2E Autocomplete Trip ${Date.now()}`;
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
+          await page
+            .getByRole("textbox", { name: "Location" })
+            .fill("Yosemite");
+          await page
+            .getByRole("option", { name: /Yosemite National Park/ })
+            .click();
+          await page.getByRole("button", { name: "Create trip" }).click();
+
+          // Drawer closes on success.
+          await expect(
+            page.getByRole("button", { name: "Create trip" }),
+          ).not.toBeVisible();
+
+          const response = await page.request.get("/api/trips?take=100");
+          const { trips } = await response.json();
+          const created = trips.find(
+            (trip: { name: string }) => trip.name === tripName,
+          );
+          expect(created).toMatchObject({
+            name: tripName,
+            location: "Yosemite National Park, CA",
+          });
+        });
+
+        test("still accepts a free-typed location that matches no place", async ({
+          page,
+        }) => {
+          const tripName = `E2E Freeform Location ${Date.now()}`;
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
+          await page
+            .getByRole("textbox", { name: "Location" })
+            .fill("My secret backyard spot");
+          await page.getByRole("button", { name: "Create trip" }).click();
+
+          await expect(
+            page.getByRole("button", { name: "Create trip" }),
+          ).not.toBeVisible();
+
+          const response = await page.request.get("/api/trips?take=100");
+          const { trips } = await response.json();
+          const created = trips.find(
+            (trip: { name: string }) => trip.name === tripName,
+          );
+          expect(created).toMatchObject({
+            name: tripName,
+            location: "My secret backyard spot",
+          });
+        });
+
+        test("shows the place's state alongside each suggestion", async ({
+          page,
+        }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Location" }).fill("Rainier");
+          const option = page.getByRole("option", {
+            name: /Mount Rainier National Park/,
+          });
+          await expect(option).toBeVisible();
+          await expect(option).toContainText("WA");
+        });
+
+        test("matches on a prefix of the place name", async ({ page }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page.getByRole("textbox", { name: "Location" }).fill("yose");
+          await expect(
+            page.getByRole("option", { name: /Yosemite National Park/ }),
+          ).toBeVisible();
+        });
+
+        test("requires all typed tokens to match a place", async ({ page }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          const location = page.getByRole("textbox", { name: "Location" });
+          // Both tokens belong to the same place, so it still matches.
+          await location.fill("rocky mountain");
+          await expect(
+            page.getByRole("option", { name: /Rocky Mountain National Park/ }),
+          ).toBeVisible();
+          // Second token matches no place, so the suggestion drops out.
+          await location.fill("rocky ocean");
+          await expect(
+            page.getByRole("option", { name: /Rocky Mountain National Park/ }),
+          ).not.toBeVisible();
+        });
+
+        test("shows no suggestions for input that matches no place", async ({
+          page,
+        }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          await page
+            .getByRole("textbox", { name: "Location" })
+            .fill("zzzznowhere");
+          await expect(page.getByRole("option")).toHaveCount(0);
+        });
+
+        test("re-opens suggestions when the field is edited after a selection", async ({
+          page,
+        }) => {
+          await page.getByRole("button", { name: "New Trip" }).click();
+          const location = page.getByRole("textbox", { name: "Location" });
+          await location.fill("Rainier");
+          await page
+            .getByRole("option", { name: /Mount Rainier National Park/ })
+            .click();
+          await expect(location).toHaveValue("Mount Rainier National Park, WA");
+          // Clearing and typing a fresh query surfaces suggestions again.
+          await location.fill("Olympic");
+          await expect(
+            page.getByRole("option", { name: /Olympic National Park/ }),
+          ).toBeVisible();
+        });
+      });
     });
 
     // Regression test for BTP-46: a completed trip must still appear on the

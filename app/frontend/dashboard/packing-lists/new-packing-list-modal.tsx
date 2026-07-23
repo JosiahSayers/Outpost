@@ -8,6 +8,7 @@ import {
   Button,
   Combobox,
   Group,
+  Loader,
   Modal,
   Stack,
   Text,
@@ -106,6 +107,9 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
                 description="Leave blank to start with an empty list"
                 placeholder="Search lists…"
                 value={form.values.copyFromName}
+                rightSection={
+                  search.isFetching ? <Loader size="xs" /> : undefined
+                }
                 onChange={(e) => {
                   form.setFieldValue("copyFromName", e.currentTarget.value);
                   form.setFieldValue("copyFromId", undefined);
@@ -116,7 +120,7 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
                 onBlur={() => combobox.closeDropdown()}
               />
             </Combobox.Target>
-            <Combobox.Dropdown hidden={searchResults.length === 0}>
+            <Combobox.Dropdown>
               <Combobox.Options>
                 {searchResults.map((list) => (
                   <Combobox.Option key={list.id} value={String(list.id)}>
@@ -145,6 +149,19 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
                     </Group>
                   </Combobox.Option>
                 ))}
+                {searchResults.length === 0 &&
+                  (search.isFetching ? (
+                    <Combobox.Empty>
+                      <Group gap="xs" justify="center">
+                        <Loader size="xs" />
+                        <Text size="sm" c="dimmed">
+                          Searching…
+                        </Text>
+                      </Group>
+                    </Combobox.Empty>
+                  ) : (
+                    <Combobox.Empty>No lists found</Combobox.Empty>
+                  ))}
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>

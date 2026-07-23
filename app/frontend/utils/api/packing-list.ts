@@ -15,6 +15,7 @@ import type {
   updateSection,
 } from "$/validation/packing-list/section";
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -83,6 +84,7 @@ export function usePackingListSearch(query: string, publicOnly = false) {
         `/api/packing-lists?query=${encodeURIComponent(query)}&publicOnly=${encodeURIComponent(publicOnly.toString())}`,
       ).then((res) => res.packingLists ?? []),
     enabled: query.length > 0 || publicOnly,
+    placeholderData: keepPreviousData,
   });
 }
 
