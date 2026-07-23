@@ -149,19 +149,20 @@ describe("convertGdbToCsv", () => {
 describe("downloadPadUsZip", () => {
   it("streams the fetch response body to <destDir>/padus.zip", async () => {
     const tempDir = makeTempDir();
-    const bytes = new TextEncoder().encode("fake zip contents");
+    const zipBytes = new TextEncoder().encode("fake zip contents");
     const fetchImpl = mock(
-      async () => new Response(bytes, { status: 200 }),
+      async () => new Response(zipBytes, { status: 200 }),
     ) as unknown as typeof fetch;
 
-    const zipPath = await downloadPadUsZip(
+    const { destPath, bytes } = await downloadPadUsZip(
       tempDir,
       FAKE_ZIP_DOWNLOAD_URL,
       fetchImpl,
     );
 
-    expect(zipPath).toBe(path.join(tempDir, "padus.zip"));
-    expect(new Uint8Array(await Bun.file(zipPath).bytes())).toEqual(bytes);
+    expect(destPath).toBe(path.join(tempDir, "padus.zip"));
+    expect(bytes).toBe(zipBytes.byteLength);
+    expect(new Uint8Array(await Bun.file(destPath).bytes())).toEqual(zipBytes);
   });
 
   it("throws when the response is not ok", async () => {

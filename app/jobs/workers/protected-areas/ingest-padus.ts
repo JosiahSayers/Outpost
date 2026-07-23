@@ -45,7 +45,7 @@ export async function downloadPadUsZip(
   destDir: string,
   url: string,
   fetchImpl: typeof fetch = fetch,
-): Promise<string> {
+): Promise<{ destPath: string; bytes: number }> {
   const response = await fetchImpl(url);
   if (!response.ok || !response.body) {
     throw new Error(
@@ -60,7 +60,8 @@ export async function downloadPadUsZip(
       response.body as unknown as NodeReadableStream<Uint8Array>,
     ).pipe(fileStream),
   );
-  return destPath;
+  const { size: bytes } = await fs.promises.stat(destPath);
+  return { destPath, bytes };
 }
 
 async function findGdbDir(dir: string, depth = 0): Promise<string> {
@@ -156,15 +157,20 @@ export async function convertGdbToCsv(
   const csvPath = path.join(destDir, "padus.csv");
   const sql = `SELECT ${PADUS_SELECT_COLUMNS} FROM "${layerName}"`;
 
-  // We only ever keep the centroid (see PADUS_SELECT_COLUMNS) and discard
-  // the rest of the geometry, so GDAL's full shell/hole ring-classification
-  // pass (organizePolygons) is wasted work here -- it's also slow enough on
-  // PAD-US's many-part polygons (e.g. national forest boundaries made of
-  // hundreds of disjoint parcels) to log its own "may be really slow"
-  // warning. SKIP treats every ring as a top-level polygon instead of
-  // classifying holes, which can shift a centroid slightly for complex
-  // multi-part polygons but is immaterial for a representative map point.
-  await Bun.$`ogr2ogr --config OGR_ORGANIZE_POLYGONS SKIP -f CSV ${csvPath} ${gdbPath} -dialect sqlite -sql ${sql}`;
+  // --config OGR_ORGANIZE_POLYGONS SKIP: we only ever keep the centroid (see
+  //   PADUS_SELECT_COLUMNS) and discard the rest of the geometry, so GDAL's
+  //   full shell/hole ring-classification pass (organizePolygons) is wasted
+  //   work -- it's also slow enough on PAD-US's many-part polygons (national
+  //   forest boundaries made of hundreds of disjoint parcels) to log its own
+  //   "may be really slow" warning. SKIP treats every ring as a top-level
+  //   polygon instead of classifying holes, which can shift a centroid
+  //   slightly for complex multi-part polygons but is immaterial for a
+  //   representative map point.
+  // --config GDAL_CACHEMAX 256: cap GDAL's block cache at 256 MB so the
+  //   conversion doesn't balloon memory and push a small box into swap (which
+  //   would freeze the whole event loop). This step is the heaviest part of
+  //   the job on a resource-constrained box.
+  await Bun.$`ogr2ogr --config OGR_ORGANIZE_POLYGONS SKIP --config GDAL_CACHEMAX 256 -f CSV ${csvPath} ${gdbPath} -dialect sqlite -sql ${sql}`;
 
   return csvPath;
 }
@@ -256,18 +262,31 @@ export async function ingestPadUs(
   const destDir = fs.mkdtempSync(path.join(PADUS_TEMP_ROOT, `run-`));
 
   try {
-    const zipPath = await downloadPadUsZip(
+    logger.info("PAD-US ingest: downloading zip", { runId: run.id });
+    const { destPath: zipPath, bytes } = await downloadPadUsZip(
       destDir,
       job.data.zipDownloadUrl,
       fetchImpl,
     );
+
+    logger.info("PAD-US ingest: converting GDB to CSV", {
+      runId: run.id,
+      downloadedBytes: bytes,
+    });
     const csvPath = await convertGdbToCsv(zipPath, destDir);
-    const { chunkPaths } = await splitCsvIntoChunks(
+
+    logger.info("PAD-US ingest: splitting CSV into chunks", { runId: run.id });
+    const { chunkPaths, totalRows } = await splitCsvIntoChunks(
       csvPath,
       destDir,
       ROWS_PER_CHUNK,
     );
 
+    logger.info("PAD-US ingest: enqueueing chunk flow", {
+      runId: run.id,
+      totalRows,
+      chunkCount: chunkPaths.length,
+    });
     const flow = await flowProducer.add({
       name: "finalize-padus-ingest",
       queueName: PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
@@ -309,8 +328,19 @@ export async function ingestPadUs(
   }
 }
 
+// BullMQ renews a job's Redis lock on a setTimeout on the same event loop. The
+// download + ogr2ogr convert + CSV split pegs a small box's CPU for a long
+// stretch, starving that timer so the lock lapses and the job is wrongly
+// declared stalled (confirmed on staging: "could not renew lock" mid-convert).
+// Rather than depend on renewal firing under load, set the lock long enough to
+// outlive the entire prepare stage even if it never renews. Downside -- a real
+// crash leaves the job locked this long before reclaim -- is fine for a manual
+// job that runs once every couple of years, and the DB run row is reconciled
+// on worker restart by cleanupOrphanedPadUsRuns().
+const PREPARE_LOCK_DURATION_MS = 3 * 60 * 60_000; // 3 hours
+
 export const ingestPadUsWorker = new Worker<IngestPadUsData>(
   PROTECTED_AREAS__INGEST_PADUS_WORKER,
   (job) => ingestPadUs(job),
-  { ...defaultWorkerOptions, lockDuration: 10 * 60_000 },
+  { ...defaultWorkerOptions, lockDuration: PREPARE_LOCK_DURATION_MS },
 );
