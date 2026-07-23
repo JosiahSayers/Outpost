@@ -1,4 +1,5 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import LocationSearchEditor from "$/frontend/trip/header/location-search-editor";
 import TripActionsMenu from "$/frontend/trip/header/trip-actions-menu";
 import TripDates from "$/frontend/trip/header/trip-dates";
 import TripName from "$/frontend/trip/header/trip-name";
@@ -99,6 +100,7 @@ export default function Header({ trip }: Props) {
                 { onError: notifyError("Couldn't update location") },
               )
             }
+            renderEditor={(props) => <LocationSearchEditor {...props} />}
           />
           <TripDates
             start={trip.start}

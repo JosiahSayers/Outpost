@@ -1,6 +1,8 @@
 import { STATUS_LABEL } from "$/frontend/dashboard/trip-card";
 import DateInput from "$/frontend/shared-components/date-input";
 import Error from "$/frontend/shared-components/error";
+import SearchCombobox from "$/frontend/shared-components/search-combobox";
+import { usePlacesSearch } from "$/frontend/utils/api/places";
 import { useCreateTrip } from "$/frontend/utils/api/trip";
 import { newTrip } from "$/validation/trip";
 import {
@@ -13,6 +15,8 @@ import {
   TextInput,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
+import { useDebouncedValue } from "@mantine/hooks";
+import { MapPinIcon } from "@phosphor-icons/react";
 import type { TripStatus } from "../../../generated/prisma/enums";
 
 const STATUS_VALUES = Object.keys(STATUS_LABEL) as [
@@ -43,6 +47,11 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
     },
     validate: schemaResolver(newTrip, { sync: true }),
   });
+
+  const [debouncedLocation] = useDebouncedValue(form.values.location, 200);
+  const placesSearch = usePlacesSearch(debouncedLocation);
+  const placeResults = placesSearch.data ?? [];
+  const isSearching = debouncedLocation.length > 0;
 
   const handleClose = () => {
     form.reset();
@@ -96,11 +105,39 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
             description="Optional"
             {...form.getInputProps("trail")}
           />
-          <TextInput
+          <SearchCombobox
             label="Location"
             placeholder="e.g. Mount Rainier National Park, WA"
             description="Optional"
-            {...form.getInputProps("location")}
+            value={form.values.location}
+            onValueChange={(value) => form.setFieldValue("location", value)}
+            results={placeResults}
+            isFetching={placesSearch.isFetching}
+            getOptionValue={(place) => String(place.id)}
+            onOptionSubmit={(place) =>
+              form.setFieldValue(
+                "location",
+                place.state ? `${place.name}, ${place.state}` : place.name,
+              )
+            }
+            icon={
+              <MapPinIcon
+                size={16}
+                color="var(--mantine-color-trail-green-6)"
+              />
+            }
+            renderOption={(place) => (
+              <>
+                <Text size="sm" fw={600} lineClamp={1}>
+                  {place.name}
+                </Text>
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {place.state}
+                </Text>
+              </>
+            )}
+            emptyMessage="No places found"
+            hidden={!isSearching}
           />
           <Group grow>
             <DateInput label="Start date" {...form.getInputProps("start")} />
