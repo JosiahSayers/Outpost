@@ -14,7 +14,8 @@ describe("GET /api/places", () => {
       data: {
         name: "Zephyria National Preserve",
         state: "MT",
-        publicAccess: "OA",
+        publicAccess: "Open",
+        backpackingTier: 3,
       },
     });
 
@@ -37,10 +38,10 @@ describe("GET /api/places", () => {
 
   it("applies the state filter", async () => {
     const mt = await db.place.create({
-      data: { name: "Statesville Range", state: "MT" },
+      data: { name: "Statesville Range", state: "MT", backpackingTier: 3 },
     });
     const id = await db.place.create({
-      data: { name: "Statesville Range", state: "ID" },
+      data: { name: "Statesville Range", state: "ID", backpackingTier: 3 },
     });
 
     const response = await supertest(app)
