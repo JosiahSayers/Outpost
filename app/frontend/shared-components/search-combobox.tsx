@@ -4,19 +4,29 @@ import {
   Loader,
   Text,
   TextInput,
+  type TextInputProps,
   useCombobox,
 } from "@mantine/core";
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 export interface SearchComboboxProps<T> {
-  label: string;
+  /** Field label; omit for a bare inline input. */
+  label?: string;
   placeholder?: string;
   description?: string;
   required?: boolean;
+  size?: TextInputProps["size"];
+  /** Content rendered inside the input's left section (e.g. a field icon). */
+  leftSection?: ReactNode;
+  autoFocus?: boolean;
   /** Current text in the input. */
   value: string;
   /** Called as the user types. */
   onValueChange: (value: string) => void;
+  /** Called when the input loses focus (after the dropdown is closed). */
+  onBlur?: () => void;
+  /** Called on keydown in the input (e.g. to commit on Enter, cancel on Escape). */
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   results: T[];
   isFetching: boolean;
   /** Stable, unique string key for an item (also used as the option value). */
@@ -48,8 +58,13 @@ export default function SearchCombobox<T>({
   placeholder,
   description,
   required,
+  size,
+  leftSection,
+  autoFocus,
   value,
   onValueChange,
+  onBlur,
+  onKeyDown,
   results,
   isFetching,
   getOptionValue,
@@ -78,6 +93,9 @@ export default function SearchCombobox<T>({
           placeholder={placeholder}
           description={description}
           required={required}
+          size={size}
+          leftSection={leftSection}
+          autoFocus={autoFocus}
           value={value}
           rightSection={isFetching ? <Loader size="xs" /> : undefined}
           onChange={(e) => {
@@ -86,7 +104,11 @@ export default function SearchCombobox<T>({
           }}
           onClick={() => combobox.openDropdown()}
           onFocus={() => combobox.openDropdown()}
-          onBlur={() => combobox.closeDropdown()}
+          onBlur={() => {
+            combobox.closeDropdown();
+            onBlur?.();
+          }}
+          onKeyDown={onKeyDown}
         />
       </Combobox.Target>
       <Combobox.Dropdown hidden={hidden}>
