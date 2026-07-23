@@ -1,8 +1,20 @@
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import {
+  defaultWorkerOptions,
+  redisConnection,
+} from "$/jobs/workers/default-options";
+import { PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { db } from "$/utils/db";
-import { Worker, type Job } from "bullmq";
+import { Queue, Worker, type Job } from "bullmq";
 import fs from "node:fs";
+
+// Local producer for enqueuing the canonical-entity derivation once ingest
+// succeeds -- mirrors ingest-padus.ts constructing its own FlowProducer rather
+// than importing from queues.ts (which would create an import cycle).
+const deriveCanonicalEntitiesQueue = new Queue(
+  PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER,
+  { connection: redisConnection },
+);
 
 export const PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER =
   "protected_areas__finalize_padus_ingest";
@@ -72,6 +84,10 @@ export async function finalizePadUsIngest(job: Job<FinalizePadUsIngestData>) {
         `${failedCount} of ${chunkCount} PAD-US ingest chunk(s) failed`,
       );
     }
+
+    // All source rows have landed -- derive/refresh the canonical Place layer.
+    // Also manually triggerable via Bull Board for a standalone backfill.
+    await deriveCanonicalEntitiesQueue.add("derive-canonical-entities", {});
 
     return totals;
   } catch (err) {

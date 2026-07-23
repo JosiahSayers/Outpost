@@ -408,6 +408,10 @@ model ProtectedArea {
   latitude  Float? // computed centroid, not the source boundary
   longitude Float?
 
+  // Crosswalk rows pointing at this raw record (the PADUS_OBJECTID entries).
+  // Lets the canonical Place read source detail through the relation.
+  placeSourceIds PlaceSourceId[]
+
   @@index([unitName])
   @@index([state])
 }
@@ -438,4 +442,77 @@ model ProtectedAreaIngestRun {
   initiatedByUserId String?
 
   @@index([status, startedAt])
+}
+
+//
+// Canonical entity model + source-ID crosswalk (BTP-68)
+//
+// The canonical layer (Place) sits above raw per-source records (currently
+// only ProtectedArea / PAD-US). Place is intentionally thin -- just the fields
+// needed to find and disambiguate an entity (name, state, publicAccess). Rich
+// attributes (acres, category, GAP status, manager, geometry, ...) are NOT
+// duplicated here; they're read from the source record(s) through the
+// crosswalk relation (place -> sourceIds -> protectedArea).
+//
+// All entity<->source linkage lives on PlaceSourceId. Dedup IS implemented for
+// PAD-US: the derivation job (derive-canonical-entities) groups source rows by
+// exact normalized name + state into one Place, so the same physical unit
+// spread across PAD-US's Fee/Designation/Proclamation/Marine/Easement feature
+// classes collapses to a single canonical entity with one crosswalk row per
+// source OID. A future source attaches by adding crosswalk rows -- no schema
+// change required.
+
+enum SourceIdType {
+  WDPA_Cd // WDPA_Cd -- future international join key
+  PADUS_OBJECTID // PAD-US OBJECTID (== ProtectedArea.sourceUniqueId)
+  NPS_parkCode // reserved for BTP-67
+  RIDB_FacilityID // reserved for RIDB
+}
+
+model Place {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name         String // representative Unit_Nm for the merged group
+  state        String? // 2-letter USPS code
+  publicAccess String? // most-permissive Pub_Access across the group, mapped to a word (Open/Restricted/Unknown/Closed)
+
+  // Backpacking relevance for search ranking, best across the merged group.
+  // 3 = federal/state public land, 2 = local/district, 1 = other open land,
+  // 0 = closed access / private parks / private-NGO easements (demoted). See
+  // the derivation job for the exact rules.
+  backpackingTier Int    @default(0)
+  acres           Float? // largest GIS_Acres across the group (ranking tiebreak / display)
+
+  sourceIds PlaceSourceId[]
+
+  // Full text search over name -- populated by a BEFORE INSERT OR UPDATE
+  // trigger (see the migration), mirroring GearCategory.
+  data_fts Unsupported("tsvector")?
+
+  @@index([state])
+  @@index([name])
+  @@index([data_fts], type: Gin)
+}
+
+model PlaceSourceId {
+  id      String @id @default(uuid())
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  placeId String
+
+  idType  SourceIdType
+  idValue String
+  source  String // provenance, e.g. "PAD-US 4.1"
+
+  // Direct relation to the raw source record, so Place can read source detail
+  // through the crosswalk. Set on PADUS_OBJECTID rows; null for identity-only
+  // rows (e.g. WDPA_Cd) and future non-ProtectedArea sources.
+  protectedArea   ProtectedArea? @relation(fields: [protectedAreaId], references: [id], onDelete: Cascade)
+  protectedAreaId String?
+
+  // A given source ID resolves to exactly one canonical Place.
+  @@unique([idType, idValue])
+  @@index([placeId])
+  @@index([protectedAreaId])
 }

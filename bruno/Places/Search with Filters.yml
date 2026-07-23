@@ -1,0 +1,34 @@
+info:
+  name: Search with Filters
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/places?query=park&state=WY&limit=10&includeLowValue=false"
+  params:
+    - name: query
+      value: park
+      type: query
+    - name: state
+      value: WY
+      type: query
+    - name: limit
+      value: "10"
+      type: query
+    - name: includeLowValue
+      value: "false"
+      type: query
+  auth: inherit
+
+docs: |
+  Results are ranked backpacking-first: higher backpackingTier (federal/state
+  land > local > other) beats text relevance, then larger acreage. Low-value
+  places (closed access, private parks/golf/fairgrounds, private/NGO easements)
+  are excluded by default; set includeLowValue=true to include them ranked last.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

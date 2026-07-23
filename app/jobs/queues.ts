@@ -6,6 +6,7 @@ import {
   EMAILS__RESET_PASSWORD_WORKER,
   type SendResetPasswordEmailData,
 } from "$/jobs/workers/email/reset-password";
+import { PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
 import {
   PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
@@ -50,6 +51,11 @@ export const protectedAreasFinalizeIngestQueue = new Queue(
   { connection: redisConnection },
 );
 
+export const protectedAreasDeriveCanonicalEntitiesQueue = new Queue(
+  PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER,
+  { connection: redisConnection },
+);
+
 export const allQueues = [
   moveToInProgressQueue,
   moveToFinishedQueue,
@@ -57,4 +63,5 @@ export const allQueues = [
   protectedAreasIngestQueue,
   protectedAreasIngestChunkQueue,
   protectedAreasFinalizeIngestQueue,
+  protectedAreasDeriveCanonicalEntitiesQueue,
 ];
