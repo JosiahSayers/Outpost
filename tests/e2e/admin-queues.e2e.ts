@@ -1,4 +1,4 @@
-import { test, expect } from "./support/fixtures";
+import { expect, test } from "./support/fixtures";
 
 test.describe("Admin queues page authorization", () => {
   test("returns 401 when there is no session", async ({ page }) => {
@@ -45,8 +45,6 @@ test.describe("Queues console page", () => {
     await page.goto("/console/queues");
 
     const queuesFrame = page.frameLocator('iframe[title="Queues"]');
-    await expect(
-      queuesFrame.getByText("trips__move_to_in_progress"),
-    ).toBeVisible();
+    await expect(queuesFrame.getByText("move_to_in_progress")).toBeVisible();
   });
 });
