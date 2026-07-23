@@ -9,6 +9,7 @@ import { transform as mealPlanItemTransform } from "$/transformers/meal-plan/ite
 import { transform as packingListTransform } from "$/transformers/packing-list";
 import { transform as packingListItemTransform } from "$/transformers/packing-list-item";
 import { transform as packingListSectionTransform } from "$/transformers/packing-list-section";
+import { transform as placeTransform } from "$/transformers/place";
 import {
   transformFull as fullTripTransform,
   transform as tripTransform,
@@ -21,6 +22,7 @@ export const transformers = {
   packingList: packingListTransform,
   packingListSection: packingListSectionTransform,
   packingListItem: packingListItemTransform,
+  place: placeTransform,
   trip: tripTransform,
   fullTrip: fullTripTransform,
   tripTask: tripTaskTransform,
