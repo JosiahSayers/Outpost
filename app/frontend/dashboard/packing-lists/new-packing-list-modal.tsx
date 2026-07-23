@@ -1,20 +1,11 @@
 import Error from "$/frontend/shared-components/error";
+import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import {
   useCreatePackingList,
   usePackingListSearch,
 } from "$/frontend/utils/api/packing-list";
 import { packingListName } from "$/validation/packing-list";
-import {
-  Button,
-  Combobox,
-  Group,
-  Loader,
-  Modal,
-  Stack,
-  Text,
-  TextInput,
-  useCombobox,
-} from "@mantine/core";
+import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { ListBulletsIcon } from "@phosphor-icons/react";
@@ -35,9 +26,6 @@ interface Props {
 export default function NewPackingListModal({ opened, onClose }: Props) {
   const [, navigate] = useLocation();
   const createList = useCreatePackingList();
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-  });
 
   const form = useForm({
     initialValues: {
@@ -90,81 +78,47 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
             {...form.getInputProps("name")}
           />
 
-          <Combobox
-            store={combobox}
-            onOptionSubmit={(val) => {
-              const list = search.data?.find((l) => String(l.id) === val);
-              if (list) {
-                form.setFieldValue("copyFromName", list.name);
-                form.setFieldValue("copyFromId", list.id);
-              }
-              combobox.closeDropdown();
+          <SearchCombobox
+            label="Copy from existing list"
+            description="Leave blank to start with an empty list"
+            placeholder="Search lists…"
+            value={form.values.copyFromName}
+            onValueChange={(value) => {
+              form.setFieldValue("copyFromName", value);
+              form.setFieldValue("copyFromId", undefined);
             }}
-          >
-            <Combobox.Target>
-              <TextInput
-                label="Copy from existing list"
-                description="Leave blank to start with an empty list"
-                placeholder="Search lists…"
-                value={form.values.copyFromName}
-                rightSection={
-                  search.isFetching ? <Loader size="xs" /> : undefined
-                }
-                onChange={(e) => {
-                  form.setFieldValue("copyFromName", e.currentTarget.value);
-                  form.setFieldValue("copyFromId", undefined);
-                  combobox.openDropdown();
-                }}
-                onClick={() => combobox.openDropdown()}
-                onFocus={() => combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
+            results={searchResults}
+            isFetching={search.isFetching}
+            getOptionValue={(list) => String(list.id)}
+            onOptionSubmit={(list) => {
+              form.setFieldValue("copyFromName", list.name);
+              form.setFieldValue("copyFromId", list.id);
+            }}
+            icon={
+              <ListBulletsIcon
+                size={16}
+                color="var(--mantine-color-trail-green-6)"
               />
-            </Combobox.Target>
-            <Combobox.Dropdown>
-              <Combobox.Options>
-                {searchResults.map((list) => (
-                  <Combobox.Option key={list.id} value={String(list.id)}>
-                    <Group gap="xs" wrap="nowrap" align="flex-start">
-                      <ListBulletsIcon
-                        size={16}
-                        color="var(--mantine-color-trail-green-6)"
-                        style={{ marginTop: 3, flexShrink: 0 }}
-                      />
-                      <div style={{ minWidth: 0 }}>
-                        <Text size="sm" fw={600} lineClamp={1}>
-                          {list.name}
-                        </Text>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {list.totalSections} section
-                          {list.totalSections !== 1 ? "s" : ""} ·{" "}
-                          {list.totalItems} item
-                          {list.totalItems !== 1 ? "s" : ""}
-                        </Text>
-                        {list.description && (
-                          <Text size="xs" c="dimmed" lineClamp={1}>
-                            {list.description}
-                          </Text>
-                        )}
-                      </div>
-                    </Group>
-                  </Combobox.Option>
-                ))}
-                {searchResults.length === 0 &&
-                  (search.isFetching ? (
-                    <Combobox.Empty>
-                      <Group gap="xs" justify="center">
-                        <Loader size="xs" />
-                        <Text size="sm" c="dimmed">
-                          Searching…
-                        </Text>
-                      </Group>
-                    </Combobox.Empty>
-                  ) : (
-                    <Combobox.Empty>No lists found</Combobox.Empty>
-                  ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+            }
+            renderOption={(list) => (
+              <>
+                <Text size="sm" fw={600} lineClamp={1}>
+                  {list.name}
+                </Text>
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {list.totalSections} section
+                  {list.totalSections !== 1 ? "s" : ""} · {list.totalItems} item
+                  {list.totalItems !== 1 ? "s" : ""}
+                </Text>
+                {list.description && (
+                  <Text size="xs" c="dimmed" lineClamp={1}>
+                    {list.description}
+                  </Text>
+                )}
+              </>
+            )}
+            emptyMessage="No lists found"
+          />
 
           {createList.isError && <Error />}
 

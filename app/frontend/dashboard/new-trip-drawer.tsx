@@ -1,20 +1,18 @@
 import { STATUS_LABEL } from "$/frontend/dashboard/trip-card";
 import DateInput from "$/frontend/shared-components/date-input";
 import Error from "$/frontend/shared-components/error";
+import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import { usePlacesSearch } from "$/frontend/utils/api/places";
 import { useCreateTrip } from "$/frontend/utils/api/trip";
 import { newTrip } from "$/validation/trip";
 import {
   Button,
-  Combobox,
   Drawer,
   Group,
-  Loader,
   Select,
   Stack,
   Text,
   TextInput,
-  useCombobox,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -37,9 +35,6 @@ interface Props {
 
 export default function NewTripDrawer({ opened, onClose }: Props) {
   const createTrip = useCreateTrip();
-  const locationCombobox = useCombobox({
-    onDropdownClose: () => locationCombobox.resetSelectedOption(),
-  });
 
   const form = useForm({
     initialValues: {
@@ -110,74 +105,40 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
             description="Optional"
             {...form.getInputProps("trail")}
           />
-          <Combobox
-            store={locationCombobox}
-            onOptionSubmit={(val) => {
-              const place = placeResults.find((p) => String(p.id) === val);
-              if (place) {
-                form.setFieldValue(
-                  "location",
-                  place.state ? `${place.name}, ${place.state}` : place.name,
-                );
-              }
-              locationCombobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <TextInput
-                label="Location"
-                placeholder="e.g. Mount Rainier National Park, WA"
-                description="Optional"
-                value={form.values.location}
-                rightSection={
-                  placesSearch.isFetching ? <Loader size="xs" /> : undefined
-                }
-                onChange={(e) => {
-                  form.setFieldValue("location", e.currentTarget.value);
-                  locationCombobox.openDropdown();
-                }}
-                onClick={() => locationCombobox.openDropdown()}
-                onFocus={() => locationCombobox.openDropdown()}
-                onBlur={() => locationCombobox.closeDropdown()}
+          <SearchCombobox
+            label="Location"
+            placeholder="e.g. Mount Rainier National Park, WA"
+            description="Optional"
+            value={form.values.location}
+            onValueChange={(value) => form.setFieldValue("location", value)}
+            results={placeResults}
+            isFetching={placesSearch.isFetching}
+            getOptionValue={(place) => String(place.id)}
+            onOptionSubmit={(place) =>
+              form.setFieldValue(
+                "location",
+                place.state ? `${place.name}, ${place.state}` : place.name,
+              )
+            }
+            icon={
+              <MapPinIcon
+                size={16}
+                color="var(--mantine-color-trail-green-6)"
               />
-            </Combobox.Target>
-            <Combobox.Dropdown hidden={!isSearching}>
-              <Combobox.Options>
-                {placeResults.map((place) => (
-                  <Combobox.Option key={place.id} value={String(place.id)}>
-                    <Group gap="xs" wrap="nowrap" align="flex-start">
-                      <MapPinIcon
-                        size={16}
-                        color="var(--mantine-color-trail-green-6)"
-                        style={{ marginTop: 3, flexShrink: 0 }}
-                      />
-                      <div style={{ minWidth: 0 }}>
-                        <Text size="sm" fw={600} lineClamp={1}>
-                          {place.name}
-                        </Text>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {place.state}
-                        </Text>
-                      </div>
-                    </Group>
-                  </Combobox.Option>
-                ))}
-                {placeResults.length === 0 &&
-                  (placesSearch.isFetching ? (
-                    <Combobox.Empty>
-                      <Group gap="xs" justify="center">
-                        <Loader size="xs" />
-                        <Text size="sm" c="dimmed">
-                          Searching…
-                        </Text>
-                      </Group>
-                    </Combobox.Empty>
-                  ) : (
-                    <Combobox.Empty>No places found</Combobox.Empty>
-                  ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+            }
+            renderOption={(place) => (
+              <>
+                <Text size="sm" fw={600} lineClamp={1}>
+                  {place.name}
+                </Text>
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {place.state}
+                </Text>
+              </>
+            )}
+            emptyMessage="No places found"
+            hidden={!isSearching}
+          />
           <Group grow>
             <DateInput label="Start date" {...form.getInputProps("start")} />
             <DateInput label="End date" {...form.getInputProps("end")} />
