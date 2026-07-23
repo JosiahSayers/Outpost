@@ -170,5 +170,16 @@ export async function ingestPadUsChunk(job: Job<IngestPadUsChunkData>) {
 export const ingestPadUsChunkWorker = new Worker<IngestPadUsChunkData>(
   PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
   (job) => ingestPadUsChunk(job),
-  { ...defaultWorkerOptions, lockDuration: 10 * 60_000 },
+  {
+    ...defaultWorkerOptions,
+    // Process one chunk at a time instead of the shared default of 5. On a
+    // resource-constrained box, 5 concurrent chunks each firing bursts of
+    // upserts pegs the CPU and postgres, which is what starves BullMQ's
+    // lock-renewal timer. "Slow is fine" here (runs every couple of years), so
+    // trade throughput for a box that stays responsive.
+    concurrency: 1,
+    // Generous lock so a single chunk's inserts can't outlive the lock under
+    // contention (see the rationale on the prepare worker's lock).
+    lockDuration: 60 * 60_000, // 1 hour
+  },
 );

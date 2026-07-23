@@ -85,5 +85,7 @@ export async function finalizePadUsIngest(job: Job<FinalizePadUsIngestData>) {
 export const finalizePadUsIngestWorker = new Worker<FinalizePadUsIngestData>(
   PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
   (job) => finalizePadUsIngest(job),
-  { ...defaultWorkerOptions, lockDuration: 10 * 60_000 },
+  // Generous lock for consistency with the other PAD-US workers, so this can't
+  // lapse if the box is still under load when the chunks finish settling.
+  { ...defaultWorkerOptions, lockDuration: 60 * 60_000 }, // 1 hour
 );
