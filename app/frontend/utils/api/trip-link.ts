@@ -1,4 +1,5 @@
 import { tripKeys } from "$/frontend/utils/api/trip";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientFullTrip } from "$/transformers/trip";
 import type { ClientTripLink } from "$/transformers/trip-link";
 import type { createLink, editLink } from "$/validation/trip/link";
@@ -96,10 +97,14 @@ export function useDeleteTripLink(tripId: string) {
       );
       return { previous };
     },
-    onError: (_error, _linkId, context) => {
+    onError: (error, _linkId, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }
+      // The optimistic removal above unmounts the calling LinkCard
+      // immediately, so an onError passed to mutate() at the call site never
+      // fires — it has to live here instead to reliably notify on failure.
+      notifyError("Couldn't delete link")(error);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });

@@ -13,6 +13,15 @@ async function createTripViaApi(
   return trip.id;
 }
 
+// The Links section's URL input is always present on the page and has no
+// accessible name conflicts with it, so a bare getByRole("textbox") used for
+// whichever field is currently being edited must exclude it explicitly.
+function editingTextbox(page: Page) {
+  return page
+    .getByRole("textbox")
+    .and(page.locator(':not([aria-label="Link URL"])'));
+}
+
 test.describe("Trip Page", () => {
   let tripName: string;
   let tripId: string;
@@ -58,8 +67,8 @@ test.describe("Trip Page", () => {
     test("renaming the trip persists across a reload", async ({ page }) => {
       const newName = `E2E Renamed ${Date.now()}`;
       await page.getByRole("heading", { level: 1, name: tripName }).click();
-      await page.getByRole("textbox").fill(newName);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(newName);
+      await editingTextbox(page).press("Enter");
 
       await expect(
         page.getByRole("heading", { level: 1, name: newName }),
@@ -82,8 +91,8 @@ test.describe("Trip Page", () => {
       });
 
       await page.getByRole("heading", { level: 1, name: tripName }).click();
-      await page.getByRole("textbox").fill("This rename should fail");
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill("This rename should fail");
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText("Couldn't rename trip")).toBeVisible();
       await expect(
@@ -125,8 +134,8 @@ test.describe("Trip Page", () => {
     test("editing the trail persists across a reload", async ({ page }) => {
       const trail = `Wonderland Trail ${Date.now()}`;
       await page.getByText("Add a trail").click();
-      await page.getByRole("textbox").fill(trail);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(trail);
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText(trail)).toBeVisible();
 
@@ -137,8 +146,8 @@ test.describe("Trip Page", () => {
     test("editing the location persists across a reload", async ({ page }) => {
       const location = `Mount Rainier NP ${Date.now()}`;
       await page.getByText("Add a location").click();
-      await page.getByRole("textbox").fill(location);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(location);
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText(location)).toBeVisible();
 
@@ -157,8 +166,8 @@ test.describe("Trip Page", () => {
       });
 
       await page.getByText("Add a trail").click();
-      await page.getByRole("textbox").fill("This trail should fail");
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill("This trail should fail");
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText("Couldn't update trail")).toBeVisible();
       await expect(page.getByText("Add a trail")).toBeVisible();
@@ -666,7 +675,7 @@ test.describe("Trip Page", () => {
         // whatever the live fetch happens to return.
         const url = "https://example.com/";
         await page.getByRole("textbox", { name: "Link URL" }).fill(url);
-        await page.getByRole("button", { name: "Add" }).click();
+        await page.getByRole("button", { name: "Add", exact: true }).click();
 
         await expect(page.getByText(url)).toBeVisible();
 
@@ -687,7 +696,7 @@ test.describe("Trip Page", () => {
         await page
           .getByRole("textbox", { name: "Link URL" })
           .fill("https://example.com/");
-        await page.getByRole("button", { name: "Add" }).click();
+        await page.getByRole("button", { name: "Add", exact: true }).click();
 
         await expect(page.getByText("Couldn't add link")).toBeVisible();
       });
@@ -708,7 +717,7 @@ test.describe("Trip Page", () => {
         await page
           .getByRole("textbox", { name: "Link URL" })
           .fill("https://nps.gov/mora");
-        await page.getByRole("button", { name: "Add" }).click();
+        await page.getByRole("button", { name: "Add", exact: true }).click();
 
         await expect(
           page.getByText("That URL already exists on this trip."),
@@ -850,6 +859,9 @@ test.describe("Trip Page", () => {
             .click();
 
           await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).not.toBeVisible();
+          await expect(
             page.getByText("Mount Rainier National Park"),
           ).not.toBeVisible();
 
@@ -867,6 +879,9 @@ test.describe("Trip Page", () => {
           ).toBeVisible();
           await page.getByRole("button", { name: "Cancel" }).click();
 
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).not.toBeVisible();
           await expect(
             page.getByText("Mount Rainier National Park"),
           ).toBeVisible();

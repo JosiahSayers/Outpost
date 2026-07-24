@@ -4,7 +4,6 @@ import LinkDescriptionField from "$/frontend/trip/links/link-description-field";
 import LinkThumb from "$/frontend/trip/links/link-thumb";
 import LinkTitleField from "$/frontend/trip/links/link-title-field";
 import { useDeleteTripLink } from "$/frontend/utils/api/trip-link";
-import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientTripLink } from "$/transformers/trip-link";
 import { ActionIcon, Badge, Card, Group, Stack, Text } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
@@ -92,11 +91,7 @@ export default function LinkCard({ tripId, link }: Props) {
       <ConfirmDeleteModal
         opened={confirmOpened}
         onClose={confirm.close}
-        onConfirm={() =>
-          deleteLink.mutate(link.id, {
-            onError: notifyError("Couldn't delete link"),
-          })
-        }
+        onConfirm={() => deleteLink.mutate(link.id)}
         title="Delete link?"
       >
         Remove <strong>{link.name || hostname}</strong> from this trip? This

@@ -62,7 +62,11 @@ describe("rendering", () => {
 
   it("renders the site name as a badge when present", () => {
     renderCard(link({ siteName: "NPS" }));
-    expect(screen.getByText("NPS")).toBeInTheDocument();
+    // The thumbnail fallback also renders the site name, so scope past it
+    // to the badge rendered alongside the metadata text.
+    const anchor = screen.getByRole("link");
+    const badge = screen.getAllByText("NPS").find((el) => !anchor.contains(el));
+    expect(badge).toBeInTheDocument();
   });
 
   it("wraps the thumbnail in a link to the original url", () => {
@@ -86,7 +90,13 @@ describe("rendering", () => {
 describe("metadata text", () => {
   it("shows the hostname when a title or description is present", () => {
     renderCard(link({ url: "https://nps.gov/mora" }));
-    expect(screen.getByText("nps.gov")).toBeInTheDocument();
+    // The thumbnail fallback also renders the hostname when there's no site
+    // name, so scope past it to the metadata text below the title.
+    const anchor = screen.getByRole("link");
+    const meta = screen
+      .getAllByText("nps.gov")
+      .find((el) => !anchor.contains(el));
+    expect(meta).toBeInTheDocument();
   });
 
   it("shows the full url when there is neither a title nor a description", () => {
