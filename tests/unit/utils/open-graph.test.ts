@@ -1,6 +1,6 @@
 import { fetchOpenGraph } from "$/utils/open-graph";
-import type { lookup as dnsLookup } from "node:dns/promises";
 import { describe, expect, it, mock } from "bun:test";
+import type { lookup as dnsLookup } from "node:dns/promises";
 
 function htmlResponse(body: string, init?: ResponseInit) {
   return new Response(body, {
@@ -107,7 +107,9 @@ describe("fetchOpenGraph", () => {
     const [url, options] = fetchImpl.mock.calls[0]!;
     expect(url).toBe("https://example.com/page");
     const headers = options?.headers as Record<string, string> | undefined;
-    expect(headers?.["User-Agent"]).toBeTruthy();
+    expect(headers?.["User-Agent"]).toBe(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5.2 Safari/605.1.15",
+    );
   });
 
   describe("SSRF protections", () => {

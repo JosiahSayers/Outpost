@@ -1,4 +1,3 @@
-import { faker } from "@faker-js/faker";
 import * as cheerio from "cheerio";
 import ipaddr from "ipaddr.js";
 import { lookup as dnsLookup } from "node:dns/promises";
@@ -134,7 +133,10 @@ async function fetchHtml(
     await assertHostIsPublic(parsed.hostname, lookupImpl);
 
     const res = await fetchImpl(currentUrl, {
-      headers: { "User-Agent": faker.internet.userAgent() },
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5.2 Safari/605.1.15",
+      },
       redirect: "manual",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
