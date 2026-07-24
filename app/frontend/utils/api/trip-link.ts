@@ -27,10 +27,6 @@ export function useCreateTripLink(tripId: string) {
   });
 }
 
-// The PATCH route this calls doesn't exist yet (separate follow-up work) —
-// this hook is wired ahead of it so the inline title/description editors
-// have somewhere to call. Until the route ships, every edit will optimistically
-// apply then roll back with an error toast.
 export function useUpdateTripLink(tripId: string) {
   const queryClient = useQueryClient();
   const queryKey = tripKeys.detail(tripId);

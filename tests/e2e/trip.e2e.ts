@@ -740,6 +740,102 @@ test.describe("Trip Page", () => {
         ).toHaveAttribute("href", linkUrl);
       });
 
+      test.describe("editing a link", () => {
+        test("editing the title persists across a reload", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Mount Rainier NP");
+          await titleInput.press("Enter");
+
+          await expect(page.getByText("Mount Rainier NP")).toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("Mount Rainier NP")).toBeVisible();
+        });
+
+        test("editing the description persists across a reload", async ({
+          page,
+        }) => {
+          await page
+            .getByText("Home to the most glaciated peak in the lower 48.")
+            .click();
+          const descriptionInput = page.getByRole("textbox", {
+            name: "Link description",
+          });
+          await descriptionInput.fill("A dormant volcano in Washington state.");
+          await descriptionInput.blur();
+
+          await expect(
+            page.getByText("A dormant volcano in Washington state."),
+          ).toBeVisible();
+
+          await page.reload();
+          await expect(
+            page.getByText("A dormant volcano in Washington state."),
+          ).toBeVisible();
+        });
+
+        test("cancels the edit on Escape without saving", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Should not persist");
+          await titleInput.press("Escape");
+
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+          await expect(page.getByText("Should not persist")).not.toBeVisible();
+        });
+
+        test("shows an error and reverts the title when the save fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "PATCH") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Should not persist");
+          await titleInput.press("Enter");
+
+          await expect(page.getByText("Couldn't update title")).toBeVisible();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
+
+        test("shows an error and reverts the description when the save fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "PATCH") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page
+            .getByText("Home to the most glaciated peak in the lower 48.")
+            .click();
+          const descriptionInput = page.getByRole("textbox", {
+            name: "Link description",
+          });
+          await descriptionInput.fill("Should not persist");
+          await descriptionInput.blur();
+
+          await expect(
+            page.getByText("Couldn't update description"),
+          ).toBeVisible();
+          await expect(
+            page.getByText("Home to the most glaciated peak in the lower 48."),
+          ).toBeVisible();
+        });
+      });
+
       test.describe("deleting a link", () => {
         test("removes the link and persists across a reload", async ({
           page,
