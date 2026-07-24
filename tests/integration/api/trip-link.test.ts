@@ -329,3 +329,78 @@ describe("POST /", () => {
       .expect(200);
   });
 });
+
+describe("DELETE /:linkId", () => {
+  let linkId: string;
+
+  beforeEach(async () => {
+    const link = await db.tripLink.create({
+      data: make("TripLink", {
+        tripId,
+        url: "https://example.com/guide",
+      }),
+    });
+    linkId = link.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/links/${linkId}`)
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .delete(`/api/trips/does-not-exist/links/${linkId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/links/${linkId}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the link does not exist", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/links/does-not-exist`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the link belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .delete(`/api/trips/${otherTrip.id}/links/${linkId}`)
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("deletes the link", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/links/${linkId}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbLink = await db.tripLink.findUnique({ where: { id: linkId } });
+    expect(dbLink).toBeNull();
+  });
+
+  it("does not delete the link when the owning user check fails", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/links/${linkId}`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbLink = await db.tripLink.findUnique({ where: { id: linkId } });
+    expect(dbLink).not.toBeNull();
+  });
+});

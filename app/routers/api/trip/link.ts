@@ -2,7 +2,7 @@ import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { fetchOpenGraph } from "$/utils/open-graph";
 import { idParam } from "$/validation/shared";
-import { createLink } from "$/validation/trip/link";
+import { createLink, tripLinkParams } from "$/validation/trip/link";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { Router } from "express";
 import validate from "express-zod-safe";
@@ -32,6 +32,26 @@ tripLinkRouter.post(
     } catch {
       return res.json({ link: transformers.tripLink(link) });
     }
+  },
+);
+
+tripLinkRouter.delete(
+  "/:linkId",
+  validate({ params: tripLinkParams }),
+  async (req, res) => {
+    const link = await db.tripLink.findUnique({
+      where: {
+        tripId: req.params.id,
+        id: req.params.linkId,
+      },
+    });
+
+    if (!link) {
+      return res.sendStatus(404);
+    }
+
+    await db.tripLink.delete({ where: { id: req.params.linkId } });
+    return res.sendStatus(200);
   },
 );
 
