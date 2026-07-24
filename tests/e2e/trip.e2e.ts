@@ -1,5 +1,7 @@
 import { test, expect } from "./support/fixtures";
 import type { Page } from "@playwright/test";
+import { db } from "$/utils/db";
+import { make } from "../helpers/test-data/make";
 
 async function createTripViaApi(
   page: Page,
@@ -9,6 +11,15 @@ async function createTripViaApi(
   expect(response.ok()).toBe(true);
   const { trip } = await response.json();
   return trip.id;
+}
+
+// The Links section's URL input is always present on the page and has no
+// accessible name conflicts with it, so a bare getByRole("textbox") used for
+// whichever field is currently being edited must exclude it explicitly.
+function editingTextbox(page: Page) {
+  return page
+    .getByRole("textbox")
+    .and(page.locator(':not([aria-label="Link URL"])'));
 }
 
 test.describe("Trip Page", () => {
@@ -56,8 +67,8 @@ test.describe("Trip Page", () => {
     test("renaming the trip persists across a reload", async ({ page }) => {
       const newName = `E2E Renamed ${Date.now()}`;
       await page.getByRole("heading", { level: 1, name: tripName }).click();
-      await page.getByRole("textbox").fill(newName);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(newName);
+      await editingTextbox(page).press("Enter");
 
       await expect(
         page.getByRole("heading", { level: 1, name: newName }),
@@ -80,8 +91,8 @@ test.describe("Trip Page", () => {
       });
 
       await page.getByRole("heading", { level: 1, name: tripName }).click();
-      await page.getByRole("textbox").fill("This rename should fail");
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill("This rename should fail");
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText("Couldn't rename trip")).toBeVisible();
       await expect(
@@ -123,8 +134,8 @@ test.describe("Trip Page", () => {
     test("editing the trail persists across a reload", async ({ page }) => {
       const trail = `Wonderland Trail ${Date.now()}`;
       await page.getByText("Add a trail").click();
-      await page.getByRole("textbox").fill(trail);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(trail);
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText(trail)).toBeVisible();
 
@@ -135,8 +146,8 @@ test.describe("Trip Page", () => {
     test("editing the location persists across a reload", async ({ page }) => {
       const location = `Mount Rainier NP ${Date.now()}`;
       await page.getByText("Add a location").click();
-      await page.getByRole("textbox").fill(location);
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill(location);
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText(location)).toBeVisible();
 
@@ -155,8 +166,8 @@ test.describe("Trip Page", () => {
       });
 
       await page.getByText("Add a trail").click();
-      await page.getByRole("textbox").fill("This trail should fail");
-      await page.getByRole("textbox").press("Enter");
+      await editingTextbox(page).fill("This trail should fail");
+      await editingTextbox(page).press("Enter");
 
       await expect(page.getByText("Couldn't update trail")).toBeVisible();
       await expect(page.getByText("Add a trail")).toBeVisible();
@@ -652,6 +663,256 @@ test.describe("Trip Page", () => {
         await expect(page.getByRole("textbox", { name: /^Name/ })).toHaveValue(
           "Granola",
         );
+      });
+    });
+  });
+
+  test.describe("links", () => {
+    test.describe("creating a link", () => {
+      test("adds the link and shows it after a reload", async ({ page }) => {
+        // example.com has no Open Graph tags, so the card falls back to
+        // showing the full url — this keeps the assertion independent of
+        // whatever the live fetch happens to return.
+        const url = "https://example.com/";
+        await page.getByRole("textbox", { name: "Link URL" }).fill(url);
+        await page.getByRole("button", { name: "Add", exact: true }).click();
+
+        await expect(page.getByText(url)).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText(url)).toBeVisible();
+      });
+
+      test("shows an error notification when the create fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/links`, (route) => {
+          if (route.request().method() === "POST") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page
+          .getByRole("textbox", { name: "Link URL" })
+          .fill("https://example.com/");
+        await page.getByRole("button", { name: "Add", exact: true }).click();
+
+        await expect(page.getByText("Couldn't add link")).toBeVisible();
+      });
+
+      test("rejects a duplicate url without calling the API", async ({
+        page,
+      }) => {
+        // Seeded directly in the DB rather than through the composer, so this
+        // test doesn't depend on a second live Open Graph fetch.
+        await db.tripLink.create({
+          data: make("TripLink", {
+            tripId,
+            url: "https://nps.gov/mora",
+          }),
+        });
+        await page.reload();
+
+        await page
+          .getByRole("textbox", { name: "Link URL" })
+          .fill("https://nps.gov/mora");
+        await page.getByRole("button", { name: "Add", exact: true }).click();
+
+        await expect(
+          page.getByText("That URL already exists on this trip."),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("with an existing link", () => {
+      const linkUrl = "https://nps.gov/mora";
+
+      test.beforeEach(async ({ page }) => {
+        await db.tripLink.create({
+          data: make("TripLink", {
+            tripId,
+            url: linkUrl,
+            name: "Mount Rainier National Park",
+            description: "Home to the most glaciated peak in the lower 48.",
+          }),
+        });
+        await page.reload();
+        await expect(
+          page.getByText("Mount Rainier National Park"),
+        ).toBeVisible();
+      });
+
+      test("opening a link", async ({ page }) => {
+        await expect(
+          page.getByRole("link", { name: "Open Mount Rainier National Park" }),
+        ).toHaveAttribute("href", linkUrl);
+      });
+
+      test.describe("editing a link", () => {
+        test("editing the title persists across a reload", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Mount Rainier NP");
+          await titleInput.press("Enter");
+
+          await expect(page.getByText("Mount Rainier NP")).toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("Mount Rainier NP")).toBeVisible();
+        });
+
+        test("editing the description persists across a reload", async ({
+          page,
+        }) => {
+          await page
+            .getByText("Home to the most glaciated peak in the lower 48.")
+            .click();
+          const descriptionInput = page.getByRole("textbox", {
+            name: "Link description",
+          });
+          await descriptionInput.fill("A dormant volcano in Washington state.");
+          await descriptionInput.blur();
+
+          await expect(
+            page.getByText("A dormant volcano in Washington state."),
+          ).toBeVisible();
+
+          await page.reload();
+          await expect(
+            page.getByText("A dormant volcano in Washington state."),
+          ).toBeVisible();
+        });
+
+        test("cancels the edit on Escape without saving", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Should not persist");
+          await titleInput.press("Escape");
+
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+          await expect(page.getByText("Should not persist")).not.toBeVisible();
+        });
+
+        test("shows an error and reverts the title when the save fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "PATCH") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page.getByText("Mount Rainier National Park").click();
+          const titleInput = page.getByRole("textbox", { name: "Link title" });
+          await titleInput.fill("Should not persist");
+          await titleInput.press("Enter");
+
+          await expect(page.getByText("Couldn't update title")).toBeVisible();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
+
+        test("shows an error and reverts the description when the save fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "PATCH") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page
+            .getByText("Home to the most glaciated peak in the lower 48.")
+            .click();
+          const descriptionInput = page.getByRole("textbox", {
+            name: "Link description",
+          });
+          await descriptionInput.fill("Should not persist");
+          await descriptionInput.blur();
+
+          await expect(
+            page.getByText("Couldn't update description"),
+          ).toBeVisible();
+          await expect(
+            page.getByText("Home to the most glaciated peak in the lower 48."),
+          ).toBeVisible();
+        });
+      });
+
+      test.describe("deleting a link", () => {
+        test("removes the link and persists across a reload", async ({
+          page,
+        }) => {
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page
+            .getByRole("button", { name: "Delete", exact: true })
+            .click();
+
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).not.toBeVisible();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).not.toBeVisible();
+
+          await page.reload();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).not.toBeVisible();
+        });
+
+        test("does not delete when cancelled", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page.getByRole("button", { name: "Cancel" }).click();
+
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).not.toBeVisible();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
+
+        test("shows an error notification when the delete fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "DELETE") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page
+            .getByRole("button", { name: "Delete", exact: true })
+            .click();
+
+          await expect(page.getByText("Couldn't delete link")).toBeVisible();
+          // Optimistic delete rolls back on failure — the link should still
+          // be there.
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
       });
     });
   });

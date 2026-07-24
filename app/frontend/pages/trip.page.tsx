@@ -65,7 +65,7 @@ export default function TripPage() {
 
       <Divider />
 
-      <Links />
+      <Links tripId={trip.id} links={trip.links} />
     </PageContainer>
   );
 }

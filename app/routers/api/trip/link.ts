@@ -1,8 +1,9 @@
+import { tripLinkExists } from "$/middleware/authorization/trip-link";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { fetchOpenGraph } from "$/utils/open-graph";
 import { idParam } from "$/validation/shared";
-import { createLink, tripLinkParams } from "$/validation/trip/link";
+import { createLink, editLink, tripLinkParams } from "$/validation/trip/link";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { Router } from "express";
 import validate from "express-zod-safe";
@@ -37,21 +38,28 @@ tripLinkRouter.post(
 
 tripLinkRouter.delete(
   "/:linkId",
+  tripLinkExists,
   validate({ params: tripLinkParams }),
   async (req, res) => {
-    const link = await db.tripLink.findUnique({
-      where: {
-        tripId: req.params.id,
-        id: req.params.linkId,
+    await db.tripLink.delete({ where: { id: req.params.linkId } });
+    return res.sendStatus(200);
+  },
+);
+
+tripLinkRouter.patch(
+  "/:linkId",
+  tripLinkExists,
+  validate({ params: tripLinkParams, body: editLink }),
+  async (req, res) => {
+    const updated = await db.tripLink.update({
+      where: { id: req.params.linkId },
+      data: {
+        name: req.body.name,
+        description: req.body.description,
       },
     });
 
-    if (!link) {
-      return res.sendStatus(404);
-    }
-
-    await db.tripLink.delete({ where: { id: req.params.linkId } });
-    return res.sendStatus(200);
+    return res.json({ link: transformers.tripLink(updated) });
   },
 );
 

@@ -404,3 +404,221 @@ describe("DELETE /:linkId", () => {
     expect(dbLink).not.toBeNull();
   });
 });
+
+describe("PATCH /:linkId", () => {
+  let linkId: string;
+
+  beforeEach(async () => {
+    const link = await db.tripLink.create({
+      data: make("TripLink", {
+        tripId,
+        url: "https://example.com/guide",
+        name: "Original Title",
+        description: "Original description",
+      }),
+    });
+    linkId = link.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "New Title" })
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/does-not-exist/links/${linkId}`)
+      .send({ name: "New Title" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "New Title" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the link does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/links/does-not-exist`)
+      .send({ name: "New Title" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the link belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${otherTrip.id}/links/${linkId}`)
+      .send({ name: "New Title" })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("updates the title", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "New Title" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({
+      id: linkId,
+      name: "New Title",
+      description: "Original description",
+    });
+  });
+
+  it("updates the description", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ description: "New description" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({
+      name: "Original Title",
+      description: "New description",
+    });
+  });
+
+  it("updates the title and description together", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "New Title", description: "New description" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({
+      name: "New Title",
+      description: "New description",
+    });
+  });
+
+  it("trims whitespace from the title and description", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({
+        name: "  Trimmed Title  ",
+        description: "  Trimmed description  ",
+      })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({
+      name: "Trimmed Title",
+      description: "Trimmed description",
+    });
+  });
+
+  it("allows clearing the title and description with empty strings", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "", description: "" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({ name: "", description: "" });
+  });
+
+  it("leaves fields unchanged when omitted from the body", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({})
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.link).toMatchObject({
+      name: "Original Title",
+      description: "Original description",
+    });
+  });
+
+  it("persists the change to the database", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "Persisted Title" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbLink = await db.tripLink.findUnique({ where: { id: linkId } });
+    expect(dbLink?.name).toBe("Persisted Title");
+  });
+
+  it("does not update the link when the owning user check fails", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "Should not persist" })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbLink = await db.tripLink.findUnique({ where: { id: linkId } });
+    expect(dbLink?.name).toBe("Original Title");
+  });
+
+  it("rejects a non-string name", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: 123 })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "message": "Invalid input: expected string, received number",
+              "path": [
+                "name",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/links/${linkId}`)
+      .send({ name: "New Title", url: "https://example.com/hacked" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "url",
+              ],
+              "message": "Unrecognized key: "url"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+});

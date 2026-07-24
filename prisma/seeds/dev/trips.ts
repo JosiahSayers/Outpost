@@ -39,5 +39,29 @@ export async function createTrips() {
     for (const day of mealPlanDays) {
       await seedMealPlanItems(day);
     }
+
+    await db.tripLink.createMany({
+      data: [
+        make("TripLink", {
+          tripId: trip.id,
+          url: "https://www.nps.gov/mora/index.htm",
+          name: "Mount Rainier National Park",
+          description:
+            "Home to the most glaciated peak in the contiguous United States, Mount Rainier National Park showcases subalpine wildflower meadows.",
+          imageUrl: null,
+          siteName: "National Park Service",
+          type: "website",
+        }),
+        make("TripLink", {
+          tripId: trip.id,
+          url: "https://www.rei.com/learn/expert-advice/backpacking-checklist.html",
+          name: null,
+          description: null,
+          imageUrl: null,
+          siteName: null,
+          type: null,
+        }),
+      ],
+    });
   }
 }

@@ -8,3 +8,10 @@ export const tripLinkParams = idParam.extend({
 export const createLink = z.strictObject({
   url: z.httpUrl(),
 });
+
+export const editLink = z
+  .strictObject({
+    name: z.string().trim(),
+    description: z.string().trim(),
+  })
+  .partial();
