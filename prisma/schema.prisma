@@ -332,7 +332,7 @@ model TripLink {
   audioUrl    String?
   videoUrl    String?
 
-  trip   Trip   @relation(fields: [tripId], references: [id])
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId String
 
   @@unique([url, tripId])

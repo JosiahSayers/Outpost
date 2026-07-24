@@ -20,4 +20,4 @@ CREATE TABLE "TripLink" (
 CREATE UNIQUE INDEX "TripLink_url_tripId_key" ON "TripLink"("url", "tripId");
 
 -- AddForeignKey
-ALTER TABLE "TripLink" ADD CONSTRAINT "TripLink_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TripLink" ADD CONSTRAINT "TripLink_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE CASCADE ON UPDATE CASCADE;
