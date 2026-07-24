@@ -7,7 +7,8 @@ function mockFetch(response: string) {
   }));
 }
 
-const asFetch = (fn: ReturnType<typeof mockFetch>) => fn as unknown as typeof fetch;
+const asFetch = (fn: ReturnType<typeof mockFetch>) =>
+  fn as unknown as typeof fetch;
 
 describe("fetchOpenGraph", () => {
   it("extracts all supported Open Graph tags", async () => {
