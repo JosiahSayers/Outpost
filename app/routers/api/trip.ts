@@ -45,7 +45,11 @@ tripRouter.get(
   async (req, res) => {
     const trip = await db.trip.findUnique({
       where: { id: req.params.id },
-      include: { tasks: true, mealPlanDays: { include: { items: true } } },
+      include: {
+        tasks: true,
+        mealPlanDays: { include: { items: true } },
+        links: true,
+      },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });
   },

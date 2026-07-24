@@ -40,9 +40,15 @@ describe("transformFull", () => {
     const task1 = make("TripTask", { tripId: trip.id, phase: "before" });
     const task2 = make("TripTask", { tripId: trip.id, phase: "after" });
     const day = makeMealPlanDay();
+    const link = make("TripLink", { tripId: trip.id });
 
     expect(
-      transformFull({ ...trip, tasks: [task1, task2], mealPlanDays: [day] }),
+      transformFull({
+        ...trip,
+        tasks: [task1, task2],
+        mealPlanDays: [day],
+        links: [link],
+      }),
     ).toEqual({
       ...transform(trip),
       tasks: [
@@ -74,15 +80,29 @@ describe("transformFull", () => {
           },
         },
       ],
+      links: [
+        {
+          id: link.id,
+          audioUrl: link.audioUrl,
+          description: link.description,
+          imageUrl: link.imageUrl,
+          name: link.name,
+          siteName: link.siteName,
+          type: link.type,
+          url: link.url,
+          videoUrl: link.videoUrl,
+        },
+      ],
     });
   });
 
   it("returns an empty tasks array when the trip has no tasks", () => {
     const trip = make("Trip");
     expect(
-      transformFull({ ...trip, tasks: [], mealPlanDays: [] }),
+      transformFull({ ...trip, tasks: [], mealPlanDays: [], links: [] }),
     ).toMatchObject({
       tasks: [],
+      links: [],
     });
   });
 });

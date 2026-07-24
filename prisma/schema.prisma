@@ -279,7 +279,7 @@ model Trip {
   userId       String
   tasks        TripTask[]
   mealPlanDays MealPlanDay[]
-  tripLinks    TripLink[]
+  links        TripLink[]
 
   // Covers status alone or status + start
   @@index([status, start])

@@ -734,6 +734,7 @@ describe("GET /:id", () => {
         end: toDateOnly(trip.end),
         tasks: [],
         mealPlan: [],
+        links: [],
       },
     });
   });
@@ -853,6 +854,63 @@ describe("GET /:id", () => {
       .expect(200);
 
     expect(response.body.trip.mealPlan).toEqual([]);
+  });
+
+  it("returns the trip's links", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+    const link = await db.tripLink.create({
+      data: make("TripLink", {
+        tripId: trip.id,
+        url: "https://example.com/trail-guide",
+        name: "Trail Guide",
+        description: "A helpful guide",
+        imageUrl: "https://example.com/image.png",
+        type: "article",
+        siteName: "Example",
+        audioUrl: "https://example.com/audio.mp3",
+        videoUrl: "https://example.com/video.mp4",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.links).toEqual([
+      {
+        id: link.id,
+        url: "https://example.com/trail-guide",
+        name: "Trail Guide",
+        description: "A helpful guide",
+        imageUrl: "https://example.com/image.png",
+        type: "article",
+        siteName: "Example",
+        audioUrl: "https://example.com/audio.mp3",
+        videoUrl: "https://example.com/video.mp4",
+      },
+    ]);
+  });
+
+  it("returns an empty links array when the trip has no links", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.links).toEqual([]);
   });
 });
 
