@@ -20,14 +20,18 @@ tripLinkRouter.post(
       },
     });
 
-    const openGraph = await fetchOpenGraph(link.url);
+    try {
+      const openGraph = await fetchOpenGraph(link.url);
 
-    const withOpenGraph = await db.tripLink.update({
-      where: { id: link.id },
-      data: openGraph,
-    });
+      const withOpenGraph = await db.tripLink.update({
+        where: { id: link.id },
+        data: openGraph,
+      });
 
-    return res.json({ link: transformers.tripLink(withOpenGraph) });
+      return res.json({ link: transformers.tripLink(withOpenGraph) });
+    } catch {
+      return res.json({ link: transformers.tripLink(link) });
+    }
   },
 );
 
