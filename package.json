@@ -65,6 +65,7 @@
     "@types/express": "^5.0.6",
     "better-auth": "^1.6.23",
     "bullmq": "^5.80.2",
+    "cheerio": "^1.2.0",
     "csv-parse": "^7.0.1",
     "express": "^5.2.1",
     "express-zod-safe": "^3.2.1",
