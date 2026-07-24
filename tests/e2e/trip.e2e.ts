@@ -1,5 +1,7 @@
 import { test, expect } from "./support/fixtures";
 import type { Page } from "@playwright/test";
+import { db } from "$/utils/db";
+import { make } from "../helpers/test-data/make";
 
 async function createTripViaApi(
   page: Page,
@@ -652,6 +654,154 @@ test.describe("Trip Page", () => {
         await expect(page.getByRole("textbox", { name: /^Name/ })).toHaveValue(
           "Granola",
         );
+      });
+    });
+  });
+
+  test.describe("links", () => {
+    test.describe("creating a link", () => {
+      test("adds the link and shows it after a reload", async ({ page }) => {
+        // example.com has no Open Graph tags, so the card falls back to
+        // showing the full url — this keeps the assertion independent of
+        // whatever the live fetch happens to return.
+        const url = "https://example.com/";
+        await page.getByRole("textbox", { name: "Link URL" }).fill(url);
+        await page.getByRole("button", { name: "Add" }).click();
+
+        await expect(page.getByText(url)).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText(url)).toBeVisible();
+      });
+
+      test("shows an error notification when the create fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/links`, (route) => {
+          if (route.request().method() === "POST") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page
+          .getByRole("textbox", { name: "Link URL" })
+          .fill("https://example.com/");
+        await page.getByRole("button", { name: "Add" }).click();
+
+        await expect(page.getByText("Couldn't add link")).toBeVisible();
+      });
+
+      test("rejects a duplicate url without calling the API", async ({
+        page,
+      }) => {
+        // Seeded directly in the DB rather than through the composer, so this
+        // test doesn't depend on a second live Open Graph fetch.
+        await db.tripLink.create({
+          data: make("TripLink", {
+            tripId,
+            url: "https://nps.gov/mora",
+          }),
+        });
+        await page.reload();
+
+        await page
+          .getByRole("textbox", { name: "Link URL" })
+          .fill("https://nps.gov/mora");
+        await page.getByRole("button", { name: "Add" }).click();
+
+        await expect(
+          page.getByText("That URL already exists on this trip."),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("with an existing link", () => {
+      const linkUrl = "https://nps.gov/mora";
+
+      test.beforeEach(async ({ page }) => {
+        await db.tripLink.create({
+          data: make("TripLink", {
+            tripId,
+            url: linkUrl,
+            name: "Mount Rainier National Park",
+            description: "Home to the most glaciated peak in the lower 48.",
+          }),
+        });
+        await page.reload();
+        await expect(
+          page.getByText("Mount Rainier National Park"),
+        ).toBeVisible();
+      });
+
+      test("opening a link", async ({ page }) => {
+        await expect(
+          page.getByRole("link", { name: "Open Mount Rainier National Park" }),
+        ).toHaveAttribute("href", linkUrl);
+      });
+
+      test.describe("deleting a link", () => {
+        test("removes the link and persists across a reload", async ({
+          page,
+        }) => {
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page
+            .getByRole("button", { name: "Delete", exact: true })
+            .click();
+
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).not.toBeVisible();
+
+          await page.reload();
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).not.toBeVisible();
+        });
+
+        test("does not delete when cancelled", async ({ page }) => {
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page.getByRole("button", { name: "Cancel" }).click();
+
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
+
+        test("shows an error notification when the delete fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/links/**`, (route) => {
+            if (route.request().method() === "DELETE") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page.getByText("Mount Rainier National Park").hover();
+          await page.getByRole("button", { name: "Delete link" }).click();
+          await expect(
+            page.getByRole("heading", { name: "Delete link?" }),
+          ).toBeVisible();
+          await page
+            .getByRole("button", { name: "Delete", exact: true })
+            .click();
+
+          await expect(page.getByText("Couldn't delete link")).toBeVisible();
+          // Optimistic delete rolls back on failure — the link should still
+          // be there.
+          await expect(
+            page.getByText("Mount Rainier National Park"),
+          ).toBeVisible();
+        });
       });
     });
   });
