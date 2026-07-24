@@ -14,6 +14,7 @@ import {
   transformFull as fullTripTransform,
   transform as tripTransform,
 } from "$/transformers/trip";
+import { transform as tripLinkTransform } from "$/transformers/trip-link";
 import { transform as tripTaskTransform } from "$/transformers/trip-task";
 
 export const transformers = {
@@ -26,6 +27,7 @@ export const transformers = {
   trip: tripTransform,
   fullTrip: fullTripTransform,
   tripTask: tripTaskTransform,
+  tripLink: tripLinkTransform,
   mealPlanDay: mealPlanDayTransform,
   mealPlanItem: mealPlanItemTransform,
   accountSetting: accountSettingTransform,

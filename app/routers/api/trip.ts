@@ -2,6 +2,7 @@ import { createDefaultMealPlan } from "$/frontend/utils/default-data/meal-plan-d
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { tripLinkRouter } from "$/routers/api/trip/link";
 import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
@@ -44,7 +45,11 @@ tripRouter.get(
   async (req, res) => {
     const trip = await db.trip.findUnique({
       where: { id: req.params.id },
-      include: { tasks: true, mealPlanDays: { include: { items: true } } },
+      include: {
+        tasks: true,
+        mealPlanDays: { include: { items: true } },
+        links: true,
+      },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });
   },
@@ -128,3 +133,4 @@ tripRouter.patch(
 
 tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);
 tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);
+tripRouter.use("/:id/links", userCanEditTrip, tripLinkRouter);

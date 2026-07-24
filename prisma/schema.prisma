@@ -43,12 +43,12 @@ model User {
   trips              Trip[]
 
   role                            String?
-  banned                          Boolean?                @default(false)
+  banned                          Boolean?                 @default(false)
   banReason                       String?
   banExpires                      DateTime?
   accountSettingValues            AccountSettingValue[]
-  communicationAuditLogsInitiated CommunicationAuditLog[] @relation("initiatedBy")
-  communicationAuditLogsReceived  CommunicationAuditLog[] @relation("recipient")
+  communicationAuditLogsInitiated CommunicationAuditLog[]  @relation("initiatedBy")
+  communicationAuditLogsReceived  CommunicationAuditLog[]  @relation("recipient")
   protectedAreaIngestRuns         ProtectedAreaIngestRun[]
 
   @@unique([email])
@@ -279,6 +279,7 @@ model Trip {
   userId       String
   tasks        TripTask[]
   mealPlanDays MealPlanDay[]
+  links        TripLink[]
 
   // Covers status alone or status + start
   @@index([status, start])
@@ -315,6 +316,26 @@ enum TripTaskPhase {
   before
   during
   after
+}
+
+model TripLink {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  url         String
+  name        String?
+  description String?
+  imageUrl    String?
+  type        String?
+  siteName    String?
+  audioUrl    String?
+  videoUrl    String?
+
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String
+
+  @@unique([url, tripId])
 }
 
 model MealPlanDay {
