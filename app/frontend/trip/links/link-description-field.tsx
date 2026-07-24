@@ -41,8 +41,7 @@ export default function LinkDescriptionField({
         onChange={(e) => setDraft(e.currentTarget.value)}
         onBlur={commit}
         onKeyDown={(e) => {
-          // Enter inserts a newline here rather than committing — unlike the
-          // single-line title field, a description is meant to wrap.
+          if (e.key === "Enter") commit();
           if (e.key === "Escape") cancel();
         }}
         autoFocus

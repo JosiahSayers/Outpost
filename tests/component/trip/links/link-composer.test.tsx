@@ -31,6 +31,13 @@ describe("submitting a valid url", () => {
     expect(onSubmit).toHaveBeenCalledWith("https://nps.gov/mora");
   });
 
+  it("assumes https when no protocol is given", () => {
+    const onSubmit = renderComposer();
+    fireEvent.change(input(), { target: { value: "nps.gov/mora" } });
+    submit();
+    expect(onSubmit).toHaveBeenCalledWith("https://nps.gov/mora");
+  });
+
   it("clears the input after submitting", () => {
     renderComposer();
     fireEvent.change(input(), { target: { value: "https://nps.gov/mora" } });
@@ -50,6 +57,16 @@ describe("validation", () => {
   it("rejects an unparseable url", () => {
     const onSubmit = renderComposer();
     fireEvent.change(input(), { target: { value: "not a url" } });
+    submit();
+    expect(
+      screen.getByText("Enter a valid link, like https://example.com/trail."),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("rejects a url with a single-label hostname, matching the backend schema", () => {
+    const onSubmit = renderComposer();
+    fireEvent.change(input(), { target: { value: "https://google" } });
     submit();
     expect(
       screen.getByText("Enter a valid link, like https://example.com/trail."),

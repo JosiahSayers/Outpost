@@ -39,7 +39,7 @@ export default function Links({ tripId, links }: Props) {
         existingUrls={links.map((link) => link.url)}
         onSubmit={handleAdd}
       />
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
         {links.map((link) => (
           <LinkCard key={link.id} tripId={tripId} link={link} />
         ))}

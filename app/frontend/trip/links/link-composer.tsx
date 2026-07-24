@@ -1,45 +1,53 @@
+import { createLink } from "$/validation/trip/link";
 import { Box, Button, Group, TextInput } from "@mantine/core";
 import { LinkIcon } from "@phosphor-icons/react";
-import { type FormEvent, useState } from "react";
+import { type SubmitEvent, useState } from "react";
 
 interface Props {
   existingUrls: string[];
   onSubmit: (url: string) => void;
 }
 
-function validate(raw: string, existingUrls: string[]): string | null {
-  const url = raw.trim();
-  if (!url) return "Enter a link to add.";
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return "Enter a valid link, like https://example.com/trail.";
+function withScheme(raw: string): string {
+  return /^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+}
+
+function validate(
+  raw: string,
+  existingUrls: string[],
+): { url: string } | { error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { error: "Enter a link to add." };
+
+  // Reuses the backend's zod schema so a link that passes here is guaranteed
+  // to be accepted by the API too (e.g. it rejects single-label hosts like
+  // "https://google" that the WHATWG URL parser would otherwise allow).
+  const result = createLink.shape.url.safeParse(withScheme(trimmed));
+  if (!result.success) {
+    return { error: "Enter a valid link, like https://example.com/trail." };
   }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    return "Enter a valid link, like https://example.com/trail.";
+
+  if (existingUrls.includes(result.data)) {
+    return { error: "That URL already exists on this trip." };
   }
-  if (existingUrls.includes(url)) {
-    return "That URL already exists on this trip.";
-  }
-  return null;
+
+  return { url: result.data };
 }
 
 export default function LinkComposer({ existingUrls, onSubmit }: Props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
-    const url = value.trim();
-    const message = validate(url, existingUrls);
-    if (message) {
-      setError(message);
+    const result = validate(value, existingUrls);
+    if ("error" in result) {
+      setError(result.error);
       return;
     }
     setError(null);
     setValue("");
-    onSubmit(url);
+    onSubmit(result.url);
   }
 
   return (

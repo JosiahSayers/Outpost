@@ -36,15 +36,22 @@ export default function LinkThumb({ link }: { link: ClientTripLink }) {
     );
   }
 
-  const seed = link.siteName || hostname;
-  const [from, to] = paletteGradient(seed);
+  const label = link.siteName || hostname;
+  const [from, to] = paletteGradient(hostname);
   return (
     <Center
       h={THUMB_HEIGHT}
       style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
     >
-      <Text ff="var(--mantine-font-family-headings)" fw={700} fz={40} c="white">
-        {seed.charAt(0).toUpperCase()}
+      <Text
+        ff="var(--mantine-font-family-headings)"
+        fw={700}
+        fz={24}
+        c="white"
+        ta="center"
+        px="md"
+      >
+        {label}
       </Text>
     </Center>
   );

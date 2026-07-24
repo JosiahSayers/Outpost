@@ -84,17 +84,26 @@ describe("without a description", () => {
 });
 
 describe("committing an edit", () => {
-  it("does not commit on Enter — it inserts a newline instead", () => {
-    renderField(link({ description: "Old description" }));
+  it("commits on Enter with the new description", async () => {
+    renderField(link({ id: "link-42", description: "Old description" }));
     fireEvent.click(screen.getByText("Old description"));
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Link description" }),
+      { target: { value: "New description" } },
+    );
     fireEvent.keyDown(
       screen.getByRole("textbox", { name: "Link description" }),
       { key: "Enter" },
     );
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("textbox", { name: "Link description" }),
-    ).toBeInTheDocument();
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
+      .mock.calls[0]! as [string, RequestInit];
+    expect(url).toBe("/api/trips/trip-1/links/link-42");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      description: "New description",
+    });
   });
 
   it("commits on blur with the new description", async () => {

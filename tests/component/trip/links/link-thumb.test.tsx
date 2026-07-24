@@ -37,26 +37,26 @@ describe("with an image", () => {
     expect(img).toHaveAttribute("src", "https://example.com/photo.jpg");
   });
 
-  it("falls back to a letter avatar when the image fails to load", () => {
+  it("falls back to the site name when the image fails to load", () => {
     const { container } = renderThumb(
       link({ imageUrl: "https://example.com/broken.jpg", siteName: "Example" }),
     );
     const img = container.querySelector("img")!;
     fireEvent.error(img);
 
-    expect(screen.getByText("E")).toBeInTheDocument();
+    expect(screen.getByText("Example")).toBeInTheDocument();
     expect(container.querySelector("img")).not.toBeInTheDocument();
   });
 });
 
 describe("without an image", () => {
-  it("renders a letter avatar using the site name's first letter", () => {
+  it("renders the site name", () => {
     renderThumb(link({ siteName: "Example" }));
-    expect(screen.getByText("E")).toBeInTheDocument();
+    expect(screen.getByText("Example")).toBeInTheDocument();
   });
 
-  it("renders a letter avatar using the hostname's first letter when there is no site name", () => {
+  it("renders the full hostname when there is no site name", () => {
     renderThumb(link({ url: "https://nps.gov/mora", siteName: null }));
-    expect(screen.getByText("N")).toBeInTheDocument();
+    expect(screen.getByText("nps.gov")).toBeInTheDocument();
   });
 });
