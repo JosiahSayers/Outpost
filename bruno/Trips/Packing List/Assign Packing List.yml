@@ -1,0 +1,21 @@
+info:
+  name: Assign Packing List
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/trips/018b8c70-b889-4e92-a7bc-8cdaf25ae07c/packing-list"
+  body:
+    type: json
+    data: |-
+      {
+        "packingListId": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
