@@ -408,6 +408,8 @@ model TripPackingListItemStatus {
   tripPackingListId String
   packingListItem   PackingListItem @relation(fields: [packingListItemId], references: [id], onDelete: Cascade)
   packingListItemId Int
+
+  @@unique([tripPackingListId, packingListItemId])
 }
 
 //

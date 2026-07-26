@@ -28,6 +28,9 @@ CREATE INDEX "TripPackingList_packingListId_idx" ON "TripPackingList"("packingLi
 -- CreateIndex
 CREATE UNIQUE INDEX "TripPackingList_tripId_key" ON "TripPackingList"("tripId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "TripPackingListItemStatus_tripPackingListId_packingListItem_key" ON "TripPackingListItemStatus"("tripPackingListId", "packingListItemId");
+
 -- AddForeignKey
 ALTER TABLE "TripPackingList" ADD CONSTRAINT "TripPackingList_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

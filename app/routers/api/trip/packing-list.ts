@@ -3,6 +3,8 @@ import { db } from "$/utils/db";
 import { idParam } from "$/validation/shared";
 import {
   assignPackingList,
+  editTripPackingListItem,
+  tripPackingListItemParams,
   tripPackingListParams,
 } from "$/validation/trip/packing-list";
 import { Router } from "express";
@@ -92,5 +94,72 @@ tripPackingListRouter.delete(
     });
 
     return res.sendStatus(200);
+  },
+);
+
+tripPackingListRouter.patch(
+  "/:listId/:itemId",
+  validate({
+    params: tripPackingListItemParams,
+    body: editTripPackingListItem,
+  }),
+  async (req, res) => {
+    const tripPackingList = await db.tripPackingList.findUnique({
+      where: {
+        tripId: req.params.id,
+        packingListId: req.params.listId,
+      },
+    });
+
+    if (!tripPackingList) {
+      return res.status(404).json({
+        error: `Unable to find packing list (${req.params.listId}) on this trip (${req.params.id})`,
+      });
+    }
+
+    const item = await db.packingListItem.findUnique({
+      where: { id: req.params.itemId },
+      include: {
+        packingListSection: true,
+      },
+    });
+
+    if (
+      !item ||
+      item.packingListSection?.packingListId !== tripPackingList.packingListId
+    ) {
+      return res.status(404).json({
+        error: `Unable to find packing list item (${req.params.itemId}) on this packing list (${req.params.listId})`,
+      });
+    }
+
+    const newItemStatus = await db.tripPackingListItemStatus.upsert({
+      where: {
+        tripPackingListId_packingListItemId: {
+          tripPackingListId: tripPackingList.id,
+          packingListItemId: req.params.itemId,
+        },
+      },
+      create: {
+        packed: req.body.packed,
+        notNeeded: req.body.notNeeded,
+        packingListItemId: req.params.itemId,
+        tripPackingListId: tripPackingList.id,
+      },
+      update: {
+        packed: req.body.packed,
+        notNeeded: req.body.notNeeded,
+      },
+    });
+    const updatedItem = await db.packingListItem.findUnique({
+      where: { id: newItemStatus.packingListItemId },
+      include: {
+        tripPackingListItemStatuses: true,
+      },
+    });
+
+    return res.json({
+      item: transformers.tripPackingListItem(updatedItem!),
+    });
   },
 );
