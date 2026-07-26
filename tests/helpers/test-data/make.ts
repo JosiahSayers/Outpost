@@ -13,6 +13,8 @@ import makePlace from "./generators/place";
 import makeSession from "./generators/session";
 import makeTrip from "./generators/trip";
 import makeTripLink from "./generators/trip-link";
+import makeTripPackingList from "./generators/trip-packing-list";
+import makeTripPackingListItemStatus from "./generators/trip-packing-list-item-status";
 import makeTripTask from "./generators/trip-task";
 import makeUser from "./generators/user";
 
@@ -29,6 +31,8 @@ type SupportedModels = PickStringLiteral<
   | "Session"
   | "Trip"
   | "TripLink"
+  | "TripPackingList"
+  | "TripPackingListItemStatus"
   | "TripTask"
   | "MealPlanDay"
   | "MealPlanItem"
@@ -47,6 +51,8 @@ const generators = {
   Session: makeSession,
   Trip: makeTrip,
   TripLink: makeTripLink,
+  TripPackingList: makeTripPackingList,
+  TripPackingListItemStatus: makeTripPackingListItemStatus,
   TripTask: makeTripTask,
   MealPlanDay: makeMealPlanDay,
   MealPlanItem: makeMealPlanItem,
