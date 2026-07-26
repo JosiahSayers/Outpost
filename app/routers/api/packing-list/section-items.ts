@@ -23,7 +23,7 @@ itemsRouter.post(
   async (req, res) => {
     const existingItems = await db.packingListItem.findMany({
       where: {
-        packingListSectionId: Number(req.params.sectionId),
+        packingListSectionId: req.params.sectionId,
       },
     });
 
@@ -51,7 +51,7 @@ itemsRouter.post(
         quantity: req.body.quantity,
         optional: req.body.optional,
         sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
-        packingListSectionId: Number(req.params.sectionId),
+        packingListSectionId: req.params.sectionId,
         gearInventoryItemId: req.body.assignedGearId,
         gearCategoryId: req.body.gearCategoryId,
       },
@@ -69,8 +69,8 @@ itemsRouter.delete(
   async (req, res) => {
     const item = await db.packingListItem.findUnique({
       where: {
-        id: Number(req.params.itemId),
-        packingListSectionId: Number(req.params.sectionId),
+        id: req.params.itemId,
+        packingListSectionId: req.params.sectionId,
       },
     });
 
@@ -80,7 +80,7 @@ itemsRouter.delete(
 
     await db.packingListItem.delete({
       where: {
-        id: Number(req.params.itemId),
+        id: req.params.itemId,
       },
     });
 
@@ -94,13 +94,11 @@ itemsRouter.patch(
   async (req, res) => {
     const existingItems = await db.packingListItem.findMany({
       where: {
-        packingListSectionId: Number(req.params.sectionId),
+        packingListSectionId: req.params.sectionId,
       },
     });
 
-    const itemToUpdate = existingItems.find(
-      (i) => i.id === Number(req.params.itemId),
-    );
+    const itemToUpdate = existingItems.find((i) => i.id === req.params.itemId);
 
     if (!itemToUpdate) {
       return res.sendStatus(404);
@@ -125,13 +123,13 @@ itemsRouter.patch(
       }
 
       updatedItem = await tx.packingListItem.update({
-        where: { id: Number(req.params.itemId) },
+        where: { id: req.params.itemId },
         data: {
           name: req.body.name,
           quantity: req.body.quantity,
           optional: req.body.optional,
           sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
-          packingListSectionId: Number(req.params.sectionId),
+          packingListSectionId: req.params.sectionId,
           gearInventoryItemId: req.body.assignedGearId,
           gearCategoryId: req.body.gearCategoryId,
         },

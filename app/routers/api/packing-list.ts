@@ -63,33 +63,38 @@ packingListRouter.get(
   },
 );
 
-packingListRouter.get("/:id", userCanAccessPackingList, async (req, res) => {
-  const packingList = await db.packingList.findUnique({
-    where: { id: Number(req.params.id) },
-    include: {
-      packingListSections: {
-        include: {
-          items: true,
+packingListRouter.get(
+  "/:id",
+  userCanAccessPackingList,
+  validate({ params: idParam }),
+  async (req, res) => {
+    const packingList = await db.packingList.findUnique({
+      where: { id: req.params.id },
+      include: {
+        packingListSections: {
+          include: {
+            items: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return res.json({
-    packingList: transformers.packingList(
-      packingList!,
-      true,
-      req.session!.user.id,
-    ),
-  });
-});
+    return res.json({
+      packingList: transformers.packingList(
+        packingList!,
+        true,
+        req.session!.user.id,
+      ),
+    });
+  },
+);
 
 packingListRouter.post(
   "/",
   validate({ body: newPackingList }),
   async (req, res) => {
     const { name, copiedFromPackingListId } = req.body;
-    let newPackingListId: number;
+    let newPackingListId: string;
 
     if (!copiedFromPackingListId) {
       const newPackingList = await db.packingList.create({
@@ -180,32 +185,37 @@ packingListRouter.post(
   },
 );
 
-packingListRouter.delete("/:id", async (req, res) => {
-  const packingList = await db.packingList.findUnique({
-    where: { id: Number(req.params.id) },
-  });
-
-  if (!packingList) {
-    return res.sendStatus(404);
-  }
-
-  if (packingList.userId !== req.session!.user.id) {
-    req.logger.warn("User tried to delete a packing list they don't own", {
-      triedToDeleteListId: packingList.id,
+packingListRouter.delete(
+  "/:id",
+  validate({ params: idParam }),
+  async (req, res) => {
+    const packingList = await db.packingList.findUnique({
+      where: { id: req.params.id },
     });
-    return res.sendStatus(403);
-  }
 
-  await db.packingList.delete({ where: { id: packingList.id } });
-  return res.sendStatus(200);
-});
+    if (!packingList) {
+      return res.sendStatus(404);
+    }
+
+    if (packingList.userId !== req.session!.user.id) {
+      req.logger.warn("User tried to delete a packing list they don't own", {
+        triedToDeleteListId: packingList.id,
+      });
+      return res.sendStatus(403);
+    }
+
+    await db.packingList.delete({ where: { id: packingList.id } });
+    return res.sendStatus(200);
+  },
+);
 
 packingListRouter.get(
   "/:id/pdf",
   userCanAccessPackingList,
+  validate({ params: idParam }),
   async (req, res) => {
     const packingList = await db.packingList.findFirst({
-      where: { id: Number(req.params.id) },
+      where: { id: req.params.id },
       include: {
         owner: true,
         packingListSections: {
@@ -231,7 +241,7 @@ packingListRouter.patch(
   async (req, res) => {
     const updatedPackingList = await db.packingList.update({
       data: { name: req.body.name, description: req.body.description },
-      where: { id: Number(req.params.id) },
+      where: { id: req.params.id },
       include: {
         packingListSections: {
           include: {

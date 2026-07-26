@@ -17,10 +17,10 @@ import { useLayoutEffect, useRef } from "react";
 type Position = { top: number; left: number };
 
 export function useFlipReorder(durationMs = 250) {
-  const refs = useRef(new Map<number, HTMLElement>());
-  const callbacks = useRef(new Map<number, (el: HTMLElement | null) => void>());
-  const prevPositions = useRef(new Map<number, Position>());
-  const movedIds = useRef<Set<number> | null>(null);
+  const refs = useRef(new Map<string, HTMLElement>());
+  const callbacks = useRef(new Map<string, (el: HTMLElement | null) => void>());
+  const prevPositions = useRef(new Map<string, Position>());
+  const movedIds = useRef<Set<string> | null>(null);
 
   useLayoutEffect(() => {
     const reduceMotion = window.matchMedia?.(
@@ -34,7 +34,7 @@ export function useFlipReorder(durationMs = 250) {
     // rather than getBoundingClientRect — those are immune to scroll/page
     // shifts, which otherwise corrupt the delta when a column reflow changes
     // the document height.
-    const nextPositions = new Map<number, Position>();
+    const nextPositions = new Map<string, Position>();
     refs.current.forEach((el, id) => {
       el.style.transition = "none";
       el.style.transform = "";
@@ -75,7 +75,7 @@ export function useFlipReorder(durationMs = 250) {
     prevPositions.current = nextPositions;
   });
 
-  function register(id: number) {
+  function register(id: string) {
     let cb = callbacks.current.get(id);
     if (!cb) {
       cb = (el: HTMLElement | null) => {
@@ -87,7 +87,7 @@ export function useFlipReorder(durationMs = 250) {
     return cb;
   }
 
-  function markMoved(ids: number[]) {
+  function markMoved(ids: string[]) {
     movedIds.current = new Set(ids);
   }
 

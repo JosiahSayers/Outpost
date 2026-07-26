@@ -122,7 +122,7 @@ test.describe("Dashboard Page", () => {
         await page.getByRole("button", { name: "New List" }).click();
         await page.getByRole("textbox", { name: "List name" }).fill(listName);
         await page.getByRole("button", { name: "Create list" }).click();
-        await page.waitForURL(/\/packing-lists\/\d+/);
+        await page.waitForURL(/\/packing-lists\/[\w-]+/);
         await expect(
           page.getByRole("heading", { level: 1, name: listName }),
         ).toBeVisible();
@@ -141,7 +141,7 @@ test.describe("Dashboard Page", () => {
           .getByRole("option", { name: "REI Backpacking Checklist" })
           .click();
         await page.getByRole("button", { name: "Create list" }).click();
-        await page.waitForURL(/\/packing-lists\/\d+/);
+        await page.waitForURL(/\/packing-lists\/[\w-]+/);
         await expect(
           page.getByRole("heading", { level: 1, name: newListName }),
         ).toBeVisible();
@@ -203,7 +203,7 @@ test.describe("Dashboard Page", () => {
         page,
       }) => {
         await page.getByRole("link", { name: listName }).click();
-        await page.waitForURL(/\/packing-lists\/\d+/);
+        await page.waitForURL(/\/packing-lists\/[\w-]+/);
         await expect(
           page.getByRole("heading", { level: 1, name: listName }),
         ).toBeVisible();

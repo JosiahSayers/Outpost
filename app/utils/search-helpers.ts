@@ -67,7 +67,7 @@ export async function searchCategories(
     .map((word) => `${word}:*`) // Make each word a partial match
     .join(" & "); // Require all words in row
 
-  const results = await db.$queryRaw<Array<{ id: number }>>`
+  const results = await db.$queryRaw<Array<{ id: string }>>`
 SELECT "GearCategory".id
   FROM "GearCategory"
   WHERE "GearCategory".data_fts @@ to_tsquery('english', ${formattedQuery}) AND (public=TRUE OR "userId"=${forUserId});

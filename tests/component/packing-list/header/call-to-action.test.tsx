@@ -9,7 +9,7 @@ const onAddSection = mock(() => {});
 const onDelete = mock(() => {});
 const onCopy = mock(() => {});
 
-function renderComponent(editable: boolean, listId = 42) {
+function renderComponent(editable: boolean, listId = "42") {
   render(
     <MantineProvider>
       <PackingListProvider value={{ editable }}>
@@ -32,14 +32,14 @@ beforeEach(() => {
 
 describe("Export PDF", () => {
   it("renders in editable mode with the correct href", () => {
-    renderComponent(true, 7);
+    renderComponent(true, "7");
     const link = screen.getByRole("link", { name: /export pdf/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/api/packing-lists/7/pdf");
   });
 
   it("renders in non-editable mode with the correct href", () => {
-    renderComponent(false, 99);
+    renderComponent(false, "99");
     const link = screen.getByRole("link", { name: /export pdf/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/api/packing-lists/99/pdf");

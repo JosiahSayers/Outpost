@@ -26,7 +26,7 @@ beforeEach(async () => {
 });
 
 describe("POST /", () => {
-  let packingListId: number;
+  let packingListId: string;
 
   beforeEach(async () => {
     const packingList = await db.packingList.create({
@@ -61,13 +61,13 @@ describe("POST /", () => {
   it("returns 404 when the packing list does not exist", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/packing-list`)
-      .send({ packingListId: 9999999 })
+      .send({ packingListId: "does-not-exist" })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(404);
 
     expect(response.body).toEqual({
-      error: `Unable to find packing list with id 9999999`,
+      error: `Unable to find packing list with id does-not-exist`,
     });
   });
 
@@ -149,8 +149,8 @@ describe("POST /", () => {
           "errors": [
             {
               "code": "invalid_type",
-              "expected": "number",
-              "message": "Invalid input: expected number, received undefined",
+              "expected": "string",
+              "message": "Invalid input: expected string, received undefined",
               "path": [
                 "packingListId",
               ],
@@ -191,7 +191,7 @@ describe("POST /", () => {
 });
 
 describe("DELETE /:listId", () => {
-  let packingListId: number;
+  let packingListId: string;
 
   beforeEach(async () => {
     const packingList = await db.packingList.create({
@@ -268,39 +268,19 @@ describe("DELETE /:listId", () => {
     expect(dbTripPackingList).not.toBeNull();
   });
 
-  it("rejects a non-numeric listId", async () => {
-    const response = await request(app)
-      .delete(`/api/trips/${tripId}/packing-list/not-a-number`)
+  it("returns 404 for a listId that does not match any assigned packing list", async () => {
+    await request(app)
+      .delete(`/api/trips/${tripId}/packing-list/does-not-exist`)
       .set("Cookie", authCookies)
-      .expect("Content-Type", /json/)
-      .expect(400);
-
-    expect(response.body).toMatchInlineSnapshot(`
-      [
-        {
-          "errors": [
-            {
-              "code": "invalid_type",
-              "expected": "number",
-              "message": "Invalid input: expected number, received NaN",
-              "path": [
-                "listId",
-              ],
-              "received": "NaN",
-            },
-          ],
-          "type": "params",
-        },
-      ]
-    `);
+      .expect(404);
   });
 });
 
 describe("PATCH /:listId/:itemId", () => {
-  let packingListId: number;
+  let packingListId: string;
   let tripPackingListId: string;
-  let sectionId: number;
-  let itemId: number;
+  let sectionId: string;
+  let itemId: string;
 
   beforeEach(async () => {
     const packingList = await db.packingList.create({
@@ -379,7 +359,9 @@ describe("PATCH /:listId/:itemId", () => {
 
   it("returns 404 when the item does not exist", async () => {
     await request(app)
-      .patch(`/api/trips/${tripId}/packing-list/${packingListId}/9999999`)
+      .patch(
+        `/api/trips/${tripId}/packing-list/${packingListId}/does-not-exist`,
+      )
       .send({ packed: true })
       .set("Cookie", authCookies)
       .expect(404);
@@ -506,34 +488,6 @@ describe("PATCH /:listId/:itemId", () => {
       packed: true,
       notNeeded: true,
     });
-  });
-
-  it("rejects a non-numeric itemId", async () => {
-    const response = await request(app)
-      .patch(`/api/trips/${tripId}/packing-list/${packingListId}/not-a-number`)
-      .send({ packed: true })
-      .set("Cookie", authCookies)
-      .expect("Content-Type", /json/)
-      .expect(400);
-
-    expect(response.body).toMatchInlineSnapshot(`
-      [
-        {
-          "errors": [
-            {
-              "code": "invalid_type",
-              "expected": "number",
-              "message": "Invalid input: expected number, received NaN",
-              "path": [
-                "itemId",
-              ],
-              "received": "NaN",
-            },
-          ],
-          "type": "params",
-        },
-      ]
-    `);
   });
 
   it("rejects unrecognized fields", async () => {

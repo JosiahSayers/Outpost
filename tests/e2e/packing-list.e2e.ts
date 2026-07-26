@@ -446,7 +446,7 @@ test.describe("Packing List Page", () => {
       await page.getByRole("button", { name: "Copy to my lists" }).click();
 
       const expectedName = `Copy of ${REI_LIST}`;
-      await page.waitForURL(/\/packing-lists\/\d+/);
+      await page.waitForURL(/\/packing-lists\/[\w-]+/);
       await expect(
         page.getByRole("heading", { level: 1, name: expectedName }),
       ).toBeVisible();
@@ -459,7 +459,7 @@ test.describe("Packing List Page", () => {
       await expect(link).toBeVisible();
 
       const href = await link.getAttribute("href");
-      expect(href).toMatch(/\/api\/packing-lists\/\d+\/pdf$/);
+      expect(href).toMatch(/\/api\/packing-lists\/[\w-]+\/pdf$/);
 
       const response = await page.request.get(href!);
       expect(response.ok()).toBe(true);

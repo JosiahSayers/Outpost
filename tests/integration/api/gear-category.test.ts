@@ -10,17 +10,15 @@ describe("GET /", () => {
       .set("Cookie", await getAuthCookies())
       .expect("Content-Type", /json/)
       .expect(200);
-    expect(response.body).toMatchInlineSnapshot(`
-      {
-        "categories": [
-          {
-            "id": 1,
-            "name": "Backpacks",
-            "public": true,
-          },
-        ],
-      }
-    `);
+    expect(response.body).toEqual({
+      categories: [
+        {
+          id: expect.any(String),
+          name: "Backpacks",
+          public: true,
+        },
+      ],
+    });
   });
 
   it("returns a validation error when the query is not present", async () => {

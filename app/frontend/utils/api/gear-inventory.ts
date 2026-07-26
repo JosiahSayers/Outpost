@@ -35,7 +35,7 @@ export function useUpdateGearInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (
-      data: z.input<typeof createGearInventoryItemValidator> & { id: number },
+      data: z.input<typeof createGearInventoryItemValidator> & { id: string },
     ) =>
       apiClient<ClientGearInventoryItem>(`/api/gear-inventory/${data.id}`, {
         method: "PUT",
@@ -51,7 +51,7 @@ export function useUpdateGearInventoryItem() {
 export function useDeleteGearInventoryItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       apiClient(`/api/gear-inventory/${id}`, {
         method: "DELETE",
       }),

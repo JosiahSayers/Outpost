@@ -25,7 +25,7 @@ import { z } from "zod/v4";
 const formSchema = z.object({
   name: z.string().min(1, { error: "Name is required" }),
   categoryName: z.string().min(1, { error: "Category is required" }),
-  categoryId: z.number().int().optional(),
+  categoryId: z.string().optional(),
   quantity: z.int().min(1),
   grams: z.preprocess((v) => (v === "" ? undefined : v), z.number().optional()),
 });
@@ -48,7 +48,7 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
     initialValues: {
       name: "",
       categoryName: "",
-      categoryId: undefined as number | undefined,
+      categoryId: undefined as string | undefined,
       quantity: 1,
       grams: "" as string | number,
     },

@@ -175,7 +175,7 @@ describe("successful submission", () => {
     global.fetch = mock(() =>
       Promise.resolve(
         new Response(
-          JSON.stringify({ packingList: { id: 42, name: "Weekend Kit" } }),
+          JSON.stringify({ packingList: { id: "42", name: "Weekend Kit" } }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       ),
@@ -265,13 +265,13 @@ describe("when creation fails", () => {
 describe("copy from existing list search", () => {
   const searchResults: Partial<ClientPackingList>[] = [
     {
-      id: 1,
+      id: "1",
       name: "Weekend Kit",
       totalSections: 2,
       totalItems: 6,
       description: "A light setup for a two night trip.",
     },
-    { id: 2, name: "Weekend Warrior", totalSections: 1, totalItems: 3 },
+    { id: "2", name: "Weekend Warrior", totalSections: 1, totalItems: 3 },
   ];
 
   function renderWithSearchData(query: string) {
@@ -337,7 +337,7 @@ describe("copy from existing list search", () => {
     global.fetch = mock(() =>
       Promise.resolve(
         new Response(
-          JSON.stringify({ packingList: { id: 99, name: "Emergency Bag" } }),
+          JSON.stringify({ packingList: { id: "99", name: "Emergency Bag" } }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       ),
@@ -363,7 +363,7 @@ describe("copy from existing list search", () => {
       const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
       const [, init] = fetchMock.mock.calls[0]!;
       const body = JSON.parse(init.body as string);
-      expect(body).toMatchObject({ copiedFromPackingListId: 1 });
+      expect(body).toMatchObject({ copiedFromPackingListId: "1" });
     });
   });
 });

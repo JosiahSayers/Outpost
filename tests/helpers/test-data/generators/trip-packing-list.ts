@@ -10,7 +10,7 @@ export default function makeTripPackingList(
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     tripId: faker.string.uuid(),
-    packingListId: faker.number.int(),
+    packingListId: faker.string.uuid(),
     ...overrides,
   };
 }

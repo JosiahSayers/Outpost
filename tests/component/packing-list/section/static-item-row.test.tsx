@@ -6,7 +6,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "bun:test";
 
 const baseItem: ClientPackingListItem = {
-  id: 1,
+  id: "1",
   name: "Sleeping bag",
   optional: false,
   quantity: 1,

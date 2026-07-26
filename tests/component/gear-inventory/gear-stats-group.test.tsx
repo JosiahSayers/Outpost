@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 
 function makeClientItem(
-  categoryId: number,
+  categoryId: string,
   categoryName: string,
   quantity: number,
   grams: number,
@@ -27,9 +27,9 @@ function makeClientItem(
 // total: 4 items, 3 unique, 2500g (5.51 lb under the en-US test locale,
 // rolled up from 88.18 oz), 2 categories
 const items = [
-  makeClientItem(1, "Shelter", 2, 500),
-  makeClientItem(1, "Shelter", 1, 1000),
-  makeClientItem(2, "Clothing", 1, 500),
+  makeClientItem("1", "Shelter", 2, 500),
+  makeClientItem("1", "Shelter", 1, 1000),
+  makeClientItem("2", "Clothing", 1, 500),
 ];
 
 describe("with items", () => {

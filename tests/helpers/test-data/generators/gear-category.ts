@@ -6,7 +6,7 @@ export default function makeGearCategory(
   overrides: OptionalPartial<GearCategory> = {},
 ): GearCategory {
   return {
-    id: faker.number.int(),
+    id: faker.string.uuid(),
     name: faker.commerce.product(),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),

@@ -6,9 +6,9 @@ export default function makePackingListSection(
   overrides: OptionalPartial<PackingListSection> = {},
 ): PackingListSection {
   return {
-    id: faker.number.int(),
+    id: faker.string.uuid(),
     name: faker.animal.insect(),
-    packingListId: faker.number.int(),
+    packingListId: faker.string.uuid(),
     sortPosition: faker.number.int(),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),

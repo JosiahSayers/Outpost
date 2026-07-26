@@ -6,7 +6,7 @@ export const createGearInventoryItemValidator = z
   .strictObject({
     name: z.string().min(1),
     quantity: z.int().min(1).default(1),
-    existingCategoryId: z.int().optional(),
+    existingCategoryId: z.string().optional(),
     newCategoryName: z.string().optional(),
     grams: z.int().optional(),
   })

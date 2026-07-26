@@ -10,7 +10,7 @@ export const packingListName = z.string().trim().min(3);
 
 export const newPackingList = z.strictObject({
   name: packingListName,
-  copiedFromPackingListId: z.int().optional(),
+  copiedFromPackingListId: z.string().optional(),
 });
 
 export const editPackingList = z.strictObject({

@@ -2,15 +2,15 @@ import { idParam } from "$/validation/shared";
 import z from "zod";
 
 export const tripPackingListParams = idParam.extend({
-  listId: z.coerce.number().int(),
+  listId: z.string(),
 });
 
 export const tripPackingListItemParams = tripPackingListParams.extend({
-  itemId: z.coerce.number().int(),
+  itemId: z.string(),
 });
 
 export const assignPackingList = z.strictObject({
-  packingListId: z.int(),
+  packingListId: z.string(),
 });
 
 export const editTripPackingListItem = z.strictObject({

@@ -12,7 +12,7 @@ export default function makeTripPackingListItemStatus(
     packed: false,
     notNeeded: false,
     tripPackingListId: faker.string.uuid(),
-    packingListItemId: faker.number.int(),
+    packingListItemId: faker.string.uuid(),
     ...overrides,
   };
 }

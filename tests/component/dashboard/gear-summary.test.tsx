@@ -9,7 +9,7 @@ import { beforeEach, expect, it } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 import { Router } from "wouter";
 
-function makeClientItem(categoryId: number, quantity: number, grams: number) {
+function makeClientItem(categoryId: string, quantity: number, grams: number) {
   const item = make("GearInventoryItem", {
     quantity,
     grams,
@@ -26,9 +26,9 @@ function makeClientItem(categoryId: number, quantity: number, grams: number) {
 // cat 1: qty=1 @ 500g + qty=2 @ 1000g = 3 items, 2500g
 // cat 2: qty=1 @ 500g = 1 item, 500g
 const items = [
-  makeClientItem(1, 1, 500),
-  makeClientItem(1, 2, 1000),
-  makeClientItem(2, 1, 500),
+  makeClientItem("1", 1, 500),
+  makeClientItem("1", 2, 1000),
+  makeClientItem("2", 1, 500),
 ];
 
 beforeEach(() => {

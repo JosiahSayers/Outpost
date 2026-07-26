@@ -20,7 +20,7 @@ const onReorderItem = mock(
 );
 
 const requiredItem: ClientPackingListItem = {
-  id: 1,
+  id: "1",
   name: "Sleeping bag",
   optional: false,
   quantity: 1,
@@ -28,7 +28,7 @@ const requiredItem: ClientPackingListItem = {
 };
 
 const optionalItem: ClientPackingListItem = {
-  id: 2,
+  id: "2",
   name: "Camp shoes",
   optional: true,
   quantity: 1,
@@ -38,7 +38,7 @@ const optionalItem: ClientPackingListItem = {
 const baseSection: ClientPackingListSection & {
   items: ClientPackingListItem[];
 } = {
-  id: 1,
+  id: "1",
   name: "Sleep system",
   sortPosition: 1,
   items: [requiredItem],
@@ -50,7 +50,7 @@ const baseSection: ClientPackingListSection & {
 function renderSection(editable: boolean, section = baseSection) {
   function Wrapper() {
     const [items, setItems] = useState(section.items);
-    const [autoEditItemId, setAutoEditItemId] = useState<number | null>(null);
+    const [autoEditItemId, setAutoEditItemId] = useState<string | null>(null);
 
     return (
       <MantineProvider>
@@ -66,7 +66,7 @@ function renderSection(editable: boolean, section = baseSection) {
             autoEdit={false}
             autoEditItemId={autoEditItemId}
             onAddItem={() => {
-              const id = Math.max(0, ...items.map((i) => i.id)) + 1;
+              const id = crypto.randomUUID();
               setItems((prev) => [
                 ...prev,
                 {

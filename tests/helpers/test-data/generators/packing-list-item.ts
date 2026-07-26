@@ -6,12 +6,12 @@ export default function makePackingListItem(
   overrides: OptionalPartial<PackingListItem> = {},
 ): PackingListItem {
   return {
-    id: faker.number.int(),
+    id: faker.string.uuid(),
     name: faker.commerce.productName(),
     sortPosition: faker.number.int(),
-    gearCategoryId: faker.number.int(),
-    gearInventoryItemId: faker.number.int(),
-    packingListSectionId: faker.number.int(),
+    gearCategoryId: faker.string.uuid(),
+    gearInventoryItemId: faker.string.uuid(),
+    packingListSectionId: faker.string.uuid(),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     quantity: faker.number.int(5),

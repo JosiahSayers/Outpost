@@ -13,6 +13,24 @@ beforeAll(async () => {
   authCookies = await getAuthCookies();
 });
 
+// Ids are random UUIDs and section/item order is not guaranteed by the
+// backend, so normalize both before snapshotting a full packing list.
+function normalizePackingListForSnapshot(packingList: any) {
+  return {
+    ...packingList,
+    id: "<uuid>",
+    sections: [...packingList.sections]
+      .sort((a: any, b: any) => a.sortPosition - b.sortPosition)
+      .map((section: any) => ({
+        ...section,
+        id: "<uuid>",
+        items: [...section.items]
+          .sort((a: any, b: any) => a.sortPosition - b.sortPosition)
+          .map((item: any) => ({ ...item, id: "<uuid>" })),
+      })),
+  };
+}
+
 describe("GET /", () => {
   it("returns a minimal version of a packing list", async () => {
     const response = await supertest(app)
@@ -20,36 +38,40 @@ describe("GET /", () => {
       .set("Cookie", authCookies)
       .expect("Content-Type", /application\/json/)
       .expect(200);
-    expect(response.body).toMatchInlineSnapshot(`
+    // The backend makes no ordering guarantee, so sort by name before comparing.
+    const packingLists = [...response.body.packingLists].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    expect(packingLists).toEqual([
       {
-        "packingLists": [
-          {
-            "copiedFromPackingListId": null,
-            "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
-            "editable": false,
-            "id": 1,
-            "name": "REI Backpacking Checklist",
-            "public": true,
-            "sourceUrl": "https://www.rei.com/dam/backpacking_checklist_printable.pdf",
-            "totalItems": 85,
-            "totalSections": 10,
-            "totalUniqueItems": 85,
-          },
-          {
-            "copiedFromPackingListId": null,
-            "description": "Winter camping in the backcountry requires more—and slightly different—gear than a summer backpacking trip does.",
-            "editable": false,
-            "id": 2,
-            "name": "REI Winter Backcountry Camping Checklist",
-            "public": true,
-            "sourceUrl": "https://www.rei.com/dam/winter_backcountry_camping_checklist-(1).pdf",
-            "totalItems": 83,
-            "totalSections": 10,
-            "totalUniqueItems": 83,
-          },
-        ],
-      }
-    `);
+        copiedFromPackingListId: null,
+        description:
+          "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
+        editable: false,
+        id: expect.any(String),
+        name: "REI Backpacking Checklist",
+        public: true,
+        sourceUrl:
+          "https://www.rei.com/dam/backpacking_checklist_printable.pdf",
+        totalItems: 85,
+        totalSections: 10,
+        totalUniqueItems: 85,
+      },
+      {
+        copiedFromPackingListId: null,
+        description:
+          "Winter camping in the backcountry requires more—and slightly different—gear than a summer backpacking trip does.",
+        editable: false,
+        id: expect.any(String),
+        name: "REI Winter Backcountry Camping Checklist",
+        public: true,
+        sourceUrl:
+          "https://www.rei.com/dam/winter_backcountry_camping_checklist-(1).pdf",
+        totalItems: 83,
+        totalSections: 10,
+        totalUniqueItems: 83,
+      },
+    ]);
   });
 
   it("returns only the user's own packing lists when no query is provided", async () => {
@@ -82,7 +104,7 @@ describe("GET /", () => {
     expect(response.body).toEqual({
       packingLists: [
         {
-          id: expect.any(Number),
+          id: expect.any(String),
           name: "My Trip List",
           public: false,
           sourceUrl: null,
@@ -253,84 +275,86 @@ describe("GET /:id", () => {
       .set("Cookie", authCookies)
       .expect("Content-Type", /application\/json/)
       .expect(200);
-    expect(response.body).toMatchInlineSnapshot(`
+    expect({
+      packingList: normalizePackingListForSnapshot(response.body.packingList),
+    }).toMatchInlineSnapshot(`
       {
         "packingList": {
           "copiedFromPackingListId": null,
           "description": "To determine what you need to bring on a backpacking trip, think about how far you plan to hike, how remote the location is and what the weather forecast has in store. This list is intentionally comprehensive and you won’t take all items.",
           "editable": false,
-          "id": 1,
+          "id": "<uuid>",
           "name": "REI Backpacking Checklist",
           "public": true,
           "sections": [
             {
-              "id": 1,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 1,
+                  "id": "<uuid>",
                   "name": "Backpack",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 2,
+                  "id": "<uuid>",
                   "name": "Backpacking tent",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 3,
+                  "id": "<uuid>",
                   "name": "Sleeping bag",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 4,
+                  "id": "<uuid>",
                   "name": "Sleeping pad",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 5,
+                  "id": "<uuid>",
                   "name": "Headlamp or flashlight (with extra batteries)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 6,
+                  "id": "<uuid>",
                   "name": "Trekking poles",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 6,
                 },
                 {
-                  "id": 7,
+                  "id": "<uuid>",
                   "name": "Packable lantern",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 7,
                 },
                 {
-                  "id": 8,
+                  "id": "<uuid>",
                   "name": "Tent footprint",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 8,
                 },
                 {
-                  "id": 9,
+                  "id": "<uuid>",
                   "name": "Pillow",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 9,
                 },
                 {
-                  "id": 10,
+                  "id": "<uuid>",
                   "name": "Bear spray",
                   "optional": true,
                   "quantity": 1,
@@ -341,45 +365,45 @@ describe("GET /:id", () => {
               "sortPosition": 1,
             },
             {
-              "id": 2,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 11,
+                  "id": "<uuid>",
                   "name": "Map (in waterproof sleeve)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 12,
+                  "id": "<uuid>",
                   "name": "Compass",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 13,
+                  "id": "<uuid>",
                   "name": "Route description/guidebook",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 14,
+                  "id": "<uuid>",
                   "name": "Altimeter Watch",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 15,
+                  "id": "<uuid>",
                   "name": "GPS",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 16,
+                  "id": "<uuid>",
                   "name": "Satellite messenger and/or personal locator beacon",
                   "optional": true,
                   "quantity": 1,
@@ -390,122 +414,122 @@ describe("GET /:id", () => {
               "sortPosition": 2,
             },
             {
-              "id": 3,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 17,
+                  "id": "<uuid>",
                   "name": "Moisture-wicking underwear",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 18,
+                  "id": "<uuid>",
                   "name": "Moisture-wicking T-shirts",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 19,
+                  "id": "<uuid>",
                   "name": "Quick-drying pants/shorts",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 20,
+                  "id": "<uuid>",
                   "name": "Long-sleeve shirts (for sun and bugs)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 21,
+                  "id": "<uuid>",
                   "name": "Lightweight fleece or jacket",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 22,
+                  "id": "<uuid>",
                   "name": "Boots or shoes suited to terrain",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
                 },
                 {
-                  "id": 23,
+                  "id": "<uuid>",
                   "name": "Socks (synthetic or wool)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
                 },
                 {
-                  "id": 24,
+                  "id": "<uuid>",
                   "name": "Extra clothes (beyond the minimum expectation)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
                 },
                 {
-                  "id": 25,
+                  "id": "<uuid>",
                   "name": "Rainwear (jacket and pants)",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 9,
                 },
                 {
-                  "id": 26,
+                  "id": "<uuid>",
                   "name": "Long underwear",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 10,
                 },
                 {
-                  "id": 27,
+                  "id": "<uuid>",
                   "name": "Warm insulated jacket or vest",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 11,
                 },
                 {
-                  "id": 28,
+                  "id": "<uuid>",
                   "name": "Fleece pants",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 12,
                 },
                 {
-                  "id": 29,
+                  "id": "<uuid>",
                   "name": "Gloves or mittens",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 13,
                 },
                 {
-                  "id": 30,
+                  "id": "<uuid>",
                   "name": "Warm hat",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 14,
                 },
                 {
-                  "id": 31,
+                  "id": "<uuid>",
                   "name": "Sandals (for fording streams and/or camp shoes)",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 15,
                 },
                 {
-                  "id": 32,
+                  "id": "<uuid>",
                   "name": "Bandana or Buff",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 16,
                 },
                 {
-                  "id": 33,
+                  "id": "<uuid>",
                   "name": "Gaiters (for rainy, snowy, or muddy conditions)",
                   "optional": true,
                   "quantity": 1,
@@ -516,73 +540,73 @@ describe("GET /:id", () => {
               "sortPosition": 3,
             },
             {
-              "id": 4,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 34,
+                  "id": "<uuid>",
                   "name": "Backpacking stove",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 35,
+                  "id": "<uuid>",
                   "name": "Fuel",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 36,
+                  "id": "<uuid>",
                   "name": "Cookset",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 37,
+                  "id": "<uuid>",
                   "name": "Dishes/bowls",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 38,
+                  "id": "<uuid>",
                   "name": "Eating utensils",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 39,
+                  "id": "<uuid>",
                   "name": "Mug/cup",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
                 },
                 {
-                  "id": 40,
+                  "id": "<uuid>",
                   "name": "Biodegradable soap",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
                 },
                 {
-                  "id": 41,
+                  "id": "<uuid>",
                   "name": "Small quick-dry towel",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
                 },
                 {
-                  "id": 42,
+                  "id": "<uuid>",
                   "name": "Collapsible water container",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 9,
                 },
                 {
-                  "id": 43,
+                  "id": "<uuid>",
                   "name": "Bear canister/food sack; or hang bag + 50’ nylon cord",
                   "optional": false,
                   "quantity": 1,
@@ -593,38 +617,38 @@ describe("GET /:id", () => {
               "sortPosition": 4,
             },
             {
-              "id": 5,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 44,
+                  "id": "<uuid>",
                   "name": "Water bottles and/or reservoir ",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 45,
+                  "id": "<uuid>",
                   "name": "Water filter/purifier or chemical treatment",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 46,
+                  "id": "<uuid>",
                   "name": "Meals",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 47,
+                  "id": "<uuid>",
                   "name": "Energy food and drinks (bars, gels, chews, trail mix, drink mix)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 48,
+                  "id": "<uuid>",
                   "name": "Extra day’s supply of food",
                   "optional": false,
                   "quantity": 1,
@@ -635,101 +659,101 @@ describe("GET /:id", () => {
               "sortPosition": 5,
             },
             {
-              "id": 6,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 49,
+                  "id": "<uuid>",
                   "name": "Hand sanitizer",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 50,
+                  "id": "<uuid>",
                   "name": "Toothbrush and toothpaste",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 51,
+                  "id": "<uuid>",
                   "name": "Sanitation trowel",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 52,
+                  "id": "<uuid>",
                   "name": "Toilet paper/wipes and sealable bag (to pack it out)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 53,
+                  "id": "<uuid>",
                   "name": "Menstrual products",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 54,
+                  "id": "<uuid>",
                   "name": "Prescription medications",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
                 },
                 {
-                  "id": 55,
+                  "id": "<uuid>",
                   "name": "Prescription glasses",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
                 },
                 {
-                  "id": 56,
+                  "id": "<uuid>",
                   "name": "Sunglasses (+ retainer leash)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
                 },
                 {
-                  "id": 57,
+                  "id": "<uuid>",
                   "name": "Sunscreen",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 9,
                 },
                 {
-                  "id": 58,
+                  "id": "<uuid>",
                   "name": "SPF-rated lip balm ",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 10,
                 },
                 {
-                  "id": 59,
+                  "id": "<uuid>",
                   "name": "Sun hat",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 11,
                 },
                 {
-                  "id": 60,
+                  "id": "<uuid>",
                   "name": "Insect repellent",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 12,
                 },
                 {
-                  "id": 61,
+                  "id": "<uuid>",
                   "name": "Urinary products",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 13,
                 },
                 {
-                  "id": 62,
+                  "id": "<uuid>",
                   "name": "Additional blister treatment supplies",
                   "optional": true,
                   "quantity": 1,
@@ -740,24 +764,24 @@ describe("GET /:id", () => {
               "sortPosition": 6,
             },
             {
-              "id": 7,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 63,
+                  "id": "<uuid>",
                   "name": "Knife or multi-tool",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 64,
+                  "id": "<uuid>",
                   "name": "Repair kit for mattress, stove",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 65,
+                  "id": "<uuid>",
                   "name": "Duct tape strips",
                   "optional": false,
                   "quantity": 1,
@@ -768,45 +792,45 @@ describe("GET /:id", () => {
               "sortPosition": 7,
             },
             {
-              "id": 8,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 66,
+                  "id": "<uuid>",
                   "name": "First-aid kit or supplies ",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 67,
+                  "id": "<uuid>",
                   "name": "Whistle",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 68,
+                  "id": "<uuid>",
                   "name": "Lighter/matches (in waterproof container)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 69,
+                  "id": "<uuid>",
                   "name": "Fire starter (for emergency survival fire)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 70,
+                  "id": "<uuid>",
                   "name": "Emergency shelter",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 71,
+                  "id": "<uuid>",
                   "name": "Two itineraries: 1 left with friend + 1 under car seat",
                   "optional": false,
                   "quantity": 1,
@@ -817,38 +841,38 @@ describe("GET /:id", () => {
               "sortPosition": 8,
             },
             {
-              "id": 9,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 81,
+                  "id": "<uuid>",
                   "name": "Permits (if needed)",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 82,
+                  "id": "<uuid>",
                   "name": "Credit card and/or cash",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 83,
+                  "id": "<uuid>",
                   "name": "ID",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 84,
+                  "id": "<uuid>",
                   "name": "Car keys",
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 85,
+                  "id": "<uuid>",
                   "name": "Cellphone",
                   "optional": false,
                   "quantity": 1,
@@ -859,66 +883,66 @@ describe("GET /:id", () => {
               "sortPosition": 9,
             },
             {
-              "id": 10,
+              "id": "<uuid>",
               "items": [
                 {
-                  "id": 72,
+                  "id": "<uuid>",
                   "name": "Daypack (for day trips away from camp)",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 1,
                 },
                 {
-                  "id": 73,
+                  "id": "<uuid>",
                   "name": "Camera or action cam (with extra memory cards)",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 2,
                 },
                 {
-                  "id": 74,
+                  "id": "<uuid>",
                   "name": "Interpretive field guide(s)",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 3,
                 },
                 {
-                  "id": 75,
+                  "id": "<uuid>",
                   "name": "Star chart/night-sky identifier",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 4,
                 },
                 {
-                  "id": 76,
+                  "id": "<uuid>",
                   "name": "Outdoor journal or sketchbook with pen/pencil",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 5,
                 },
                 {
-                  "id": 77,
+                  "id": "<uuid>",
                   "name": "Book/reading material",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 6,
                 },
                 {
-                  "id": 78,
+                  "id": "<uuid>",
                   "name": "Cards or games",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 7,
                 },
                 {
-                  "id": 79,
+                  "id": "<uuid>",
                   "name": "Compact binoculars",
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 8,
                 },
                 {
-                  "id": 80,
+                  "id": "<uuid>",
                   "name": "Two-way radios",
                   "optional": true,
                   "quantity": 1,
@@ -1055,13 +1079,16 @@ describe("POST /", () => {
     const { body } = await supertest(app)
       .post("/api/packing-lists")
       .set("Cookie", authCookies)
-      .send({ name: "New Packing List", copiedFromPackingListId: -1 })
+      .send({
+        name: "New Packing List",
+        copiedFromPackingListId: "does-not-exist",
+      })
       .expect("Content-Type", /application\/json/)
       .expect(404);
 
     expect(body).toMatchInlineSnapshot(`
       {
-        "error": "Could not find an existing packing list with the id: -1",
+        "error": "Could not find an existing packing list with the id: does-not-exist",
       }
     `);
   });
@@ -1085,11 +1112,9 @@ describe("POST /", () => {
       .expect("Content-Type", /application\/json/)
       .expect(404);
 
-    expect(body).toMatchInlineSnapshot(`
-      {
-        "error": "Could not find an existing packing list with the id: 3",
-      }
-    `);
+    expect(body).toEqual({
+      error: `Could not find an existing packing list with the id: ${user1List.id}`,
+    });
   });
 
   it("creates a new packing list when no copiedFromPackingListId is sent", async () => {
@@ -1105,7 +1130,7 @@ describe("POST /", () => {
         copiedFromPackingListId: null,
         description: null,
         editable: true,
-        id: expect.any(Number),
+        id: expect.any(String),
         name: "New Packing List",
         public: false,
         sections: [],
