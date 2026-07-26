@@ -5,7 +5,7 @@ import {
   usePackingListSearch,
 } from "$/frontend/utils/api/packing-list";
 import { packingListName } from "$/validation/packing-list";
-import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
+import { Button, Drawer, Group, Stack, Text, TextInput } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { ListBulletsIcon } from "@phosphor-icons/react";
@@ -23,7 +23,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function NewPackingListModal({ opened, onClose }: Props) {
+export default function NewPackingListDrawer({ opened, onClose }: Props) {
   const [, navigate] = useLocation();
   const createList = useCreatePackingList();
 
@@ -57,20 +57,19 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
   });
 
   return (
-    <Modal
+    <Drawer
       opened={opened}
       onClose={handleClose}
-      title="New Packing List"
-      size="sm"
-      centered
+      title={
+        <Text fw={700} size="lg" ff="var(--mantine-font-family-headings)">
+          New packing list
+        </Text>
+      }
+      position="right"
+      size="md"
     >
-      <Text c="dimmed" size="sm" mb="lg">
-        Give your new list a name. Optionally, copy the sections and items from
-        an existing list to use as a starting point.
-      </Text>
-
-      <form onSubmit={handleSubmit}>
-        <Stack gap="md">
+      <form onSubmit={handleSubmit} noValidate>
+        <Stack gap="md" pt="xs">
           <TextInput
             label="List name"
             placeholder="e.g. Weekend Kit"
@@ -122,7 +121,7 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
 
           {createList.isError && <Error />}
 
-          <Group justify="flex-end" mt="xs">
+          <Group justify="flex-end" mt="sm">
             <Button variant="subtle" onClick={handleClose}>
               Cancel
             </Button>
@@ -132,6 +131,6 @@ export default function NewPackingListModal({ opened, onClose }: Props) {
           </Group>
         </Stack>
       </form>
-    </Modal>
+    </Drawer>
   );
 }
