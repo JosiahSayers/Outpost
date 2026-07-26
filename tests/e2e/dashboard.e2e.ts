@@ -80,26 +80,26 @@ test.describe("Dashboard Page", () => {
 
   test.describe("Packing Lists", () => {
     test.describe("creating a new packing list", () => {
-      test("clicking New List opens the modal", async ({ page }) => {
+      test("clicking New List opens the drawer", async ({ page }) => {
         await page.getByRole("button", { name: "New List" }).click();
         await expect(
-          page.getByRole("heading", { name: "New Packing List" }),
+          page.getByRole("textbox", { name: "List name" }),
         ).toBeVisible();
       });
 
-      test("Cancel closes the modal without creating a list", async ({
+      test("Cancel closes the drawer without creating a list", async ({
         page,
       }) => {
         await page.getByRole("button", { name: "New List" }).click();
         await expect(
-          page.getByRole("heading", { name: "New Packing List" }),
+          page.getByRole("textbox", { name: "List name" }),
         ).toBeVisible();
         await page
           .getByRole("textbox", { name: "List name" })
           .fill("Should not be created");
         await page.getByRole("button", { name: "Cancel" }).click();
         await expect(
-          page.getByRole("heading", { name: "New Packing List" }),
+          page.getByRole("textbox", { name: "List name" }),
         ).not.toBeVisible();
         await expect(page.getByText("Should not be created")).not.toBeVisible();
       });
@@ -151,7 +151,7 @@ test.describe("Dashboard Page", () => {
         ).toBeVisible();
       });
 
-      test("shows an error and keeps the modal open when the API fails", async ({
+      test("shows an error and keeps the drawer open when the API fails", async ({
         page,
       }) => {
         await page.route("**/api/packing-lists", (route) => {
@@ -170,7 +170,7 @@ test.describe("Dashboard Page", () => {
           page.getByText("Something went wrong. Please try again."),
         ).toBeVisible();
         await expect(
-          page.getByRole("heading", { name: "New Packing List" }),
+          page.getByRole("textbox", { name: "List name" }),
         ).toBeVisible();
       });
     });

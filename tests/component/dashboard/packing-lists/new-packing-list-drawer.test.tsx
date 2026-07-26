@@ -1,4 +1,4 @@
-import NewPackingListModal from "$/frontend/dashboard/packing-lists/new-packing-list-modal";
+import NewPackingListDrawer from "$/frontend/dashboard/packing-lists/new-packing-list-drawer";
 import { packingListKeys } from "$/frontend/utils/api/packing-list";
 import type { ClientPackingList } from "$/transformers/packing-list";
 import { MantineProvider } from "@mantine/core";
@@ -39,7 +39,7 @@ function makeQueryClient() {
   });
 }
 
-function renderModal({
+function renderDrawer({
   useNavigateMock = false,
   queryClient,
 }: { useNavigateMock?: boolean; queryClient?: QueryClient } = {}) {
@@ -53,7 +53,7 @@ function renderModal({
             useNavigateMock ? (navigate as any) : () => {},
           ]}
         >
-          <NewPackingListModal opened={true} onClose={onClose} />
+          <NewPackingListDrawer opened={true} onClose={onClose} />
         </Router>
       </MantineProvider>
     </QueryClientProvider>,
@@ -68,20 +68,12 @@ beforeEach(() => {
 
 describe("when opened", () => {
   beforeEach(async () => {
-    renderModal();
+    renderDrawer();
     await waitFor(() => {});
   });
 
-  it("renders the modal title", () => {
-    expect(screen.getByText("New Packing List")).toBeInTheDocument();
-  });
-
-  it("renders the description", () => {
-    expect(
-      screen.getByText(
-        "Give your new list a name. Optionally, copy the sections and items from an existing list to use as a starting point.",
-      ),
-    ).toBeInTheDocument();
+  it("renders the drawer title", () => {
+    expect(screen.getByText("New packing list")).toBeInTheDocument();
   });
 
   it("renders the List name input", () => {
@@ -108,23 +100,23 @@ describe("when opened", () => {
 });
 
 describe("when opened is false", () => {
-  it("does not render modal content", () => {
+  it("does not render drawer content", () => {
     render(
       <QueryClientProvider client={makeQueryClient()}>
         <MantineProvider theme={{ respectReducedMotion: true }}>
           <Router hook={() => ["/dashboard", () => {}]}>
-            <NewPackingListModal opened={false} onClose={onClose} />
+            <NewPackingListDrawer opened={false} onClose={onClose} />
           </Router>
         </MantineProvider>
       </QueryClientProvider>,
     );
-    expect(screen.queryByText("New Packing List")).not.toBeInTheDocument();
+    expect(screen.queryByText("New packing list")).not.toBeInTheDocument();
   });
 });
 
 describe("clicking Cancel", () => {
   beforeEach(async () => {
-    renderModal();
+    renderDrawer();
     await waitFor(() => {});
   });
 
@@ -139,7 +131,7 @@ describe("form validation", () => {
     global.fetch = mock(() =>
       Promise.resolve(new Response("{}", { status: 200 })),
     ) as unknown as typeof fetch;
-    renderModal();
+    renderDrawer();
     // Prepopulating the combobox fires a search request on mount; wait for it
     // and clear it so fetch-call assertions below only reflect actions taken
     // in each test.
@@ -191,7 +183,7 @@ describe("successful submission", () => {
   });
 
   it("calls the API with the list name", async () => {
-    renderModal();
+    renderDrawer();
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     (global.fetch as unknown as ReturnType<typeof mock>).mockClear();
     fireEvent.change(screen.getByRole("textbox", { name: "List name" }), {
@@ -220,7 +212,7 @@ describe("successful submission", () => {
   });
 
   it("navigates to the new packing list", async () => {
-    renderModal({ useNavigateMock: true });
+    renderDrawer({ useNavigateMock: true });
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     fireEvent.change(screen.getByRole("textbox", { name: "List name" }), {
       target: { value: "Weekend Kit" },
@@ -242,7 +234,7 @@ describe("when creation fails", () => {
         }),
       ),
     ) as unknown as typeof fetch;
-    renderModal({ useNavigateMock: true });
+    renderDrawer({ useNavigateMock: true });
     await waitFor(() => {});
   });
 
@@ -285,7 +277,7 @@ describe("copy from existing list search", () => {
   function renderWithSearchData(query: string) {
     const queryClient = makeQueryClient();
     queryClient.setQueryData(packingListKeys.search(query), searchResults);
-    renderModal({ queryClient });
+    renderDrawer({ queryClient });
     return queryClient;
   }
 

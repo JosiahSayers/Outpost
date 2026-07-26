@@ -1,5 +1,5 @@
 import PackingListCard from "$/frontend/dashboard/packing-lists/packing-list-card";
-import NewPackingListModal from "$/frontend/dashboard/packing-lists/new-packing-list-modal";
+import NewPackingListDrawer from "$/frontend/dashboard/packing-lists/new-packing-list-drawer";
 import { usePackingLists } from "$/frontend/utils/api/packing-list";
 import {
   Button,
@@ -17,12 +17,12 @@ import { PlusIcon } from "@phosphor-icons/react";
 export default function PackingLists() {
   const { data: lists, isFetching } = usePackingLists();
   const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
-  const [modalOpened, { open: openModal, close: closeModal }] =
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
   return (
     <section>
-      <NewPackingListModal opened={modalOpened} onClose={closeModal} />
+      <NewPackingListDrawer opened={drawerOpened} onClose={closeDrawer} />
       <Group justify="space-between" mb="md" align="flex-end">
         <div>
           <Title order={2}>My Packing Lists</Title>
@@ -30,7 +30,7 @@ export default function PackingLists() {
         <Button
           leftSection={<PlusIcon size={16} />}
           variant="light"
-          onClick={openModal}
+          onClick={openDrawer}
         >
           New List
         </Button>
