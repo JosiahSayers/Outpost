@@ -24,9 +24,10 @@ packingListRouter.get(
   validate({ query: packingListSearch }),
   async (req, res) => {
     const publicOnly = req.query.publicOnly === "true";
+    const mineOnly = req.query.mineOnly === "true";
     let take: number | undefined;
     // Take should be undefined when loading the user's entire packing list dataset
-    if (req.query.query || publicOnly) {
+    if (req.query.query || publicOnly || mineOnly) {
       const parsedTake = Number(req.query.take);
       take = isNaN(parsedTake) ? 5 : parsedTake;
     }
@@ -39,12 +40,19 @@ packingListRouter.get(
               ? { contains: req.query.query, mode: "insensitive" }
               : undefined,
           }
-        : req.query.query
+        : mineOnly
           ? {
-              name: { contains: req.query.query, mode: "insensitive" },
-              OR: [{ public: true }, { userId: req.session!.user.id }],
+              userId: req.session!.user.id,
+              name: req.query.query
+                ? { contains: req.query.query, mode: "insensitive" }
+                : undefined,
             }
-          : { userId: req.session!.user.id },
+          : req.query.query
+            ? {
+                name: { contains: req.query.query, mode: "insensitive" },
+                OR: [{ public: true }, { userId: req.session!.user.id }],
+              }
+            : { userId: req.session!.user.id },
       take,
       include: {
         packingListSections: {

@@ -5,15 +5,34 @@ import {
   placeholderPackingLists,
 } from "$/frontend/trip/placeholder-data";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
+
+// Suppresses act() warnings from Mantine's Popover (used by the assign
+// drawer's search combobox) — see new-packing-list-drawer.test.tsx for the
+// full explanation of why this matchMedia mock plus `await waitFor(() => {})`
+// after synchronous renders are both needed.
+window.matchMedia = (query: string) =>
+  ({
+    matches: query === "(prefers-reduced-motion: reduce)",
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }) as MediaQueryList;
 
 function renderSection() {
   return render(
-    <MantineProvider>
-      <PackingListSection />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider theme={{ respectReducedMotion: true }}>
+        <PackingListSection tripId="trip-1" />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -109,6 +128,171 @@ describe("including a previously excluded item", () => {
     await waitFor(() =>
       expect(
         screen.getByText(`${pct(packed, total + 1)}%`),
+      ).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("assigning and removing a packing list", () => {
+  function mockFetch() {
+    global.fetch = mock((url: RequestInfo | URL, init?: RequestInit) => {
+      const urlStr = String(url);
+      const method = init?.method ?? "GET";
+
+      if (urlStr.startsWith("/api/packing-lists") && method === "GET") {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              packingLists: [
+                {
+                  id: "list-1",
+                  name: "Alpine Kit",
+                  totalSections: 2,
+                  totalItems: 5,
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+        );
+      }
+
+      if (urlStr === "/api/trips/trip-1/packing-list" && method === "POST") {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              tripPackingList: {
+                id: "tpl-1",
+                tripId: "trip-1",
+                packingListId: "list-1",
+                name: "Alpine Kit",
+                sections: [],
+              },
+            }),
+            { status: 201, headers: { "Content-Type": "application/json" } },
+          ),
+        );
+      }
+
+      if (
+        urlStr === "/api/trips/trip-1/packing-list/list-1" &&
+        method === "DELETE"
+      ) {
+        return Promise.resolve(new Response(null, { status: 200 }));
+      }
+
+      return Promise.resolve(new Response("{}", { status: 200 }));
+    }) as unknown as typeof fetch;
+  }
+
+  async function assignAlpineKit() {
+    fireEvent.click(
+      screen.getByRole("button", { name: "Assign a packing list" }),
+    );
+    await waitFor(() => screen.getByRole("textbox", { name: /Packing list/i }));
+
+    fireEvent.change(screen.getByRole("textbox", { name: /Packing list/i }), {
+      target: { value: "Alpine" },
+    });
+    await waitFor(() => screen.getByText("Alpine Kit"));
+    fireEvent.click(screen.getByText("Alpine Kit"));
+    fireEvent.click(screen.getByRole("button", { name: "Assign list" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Remove packing list assignment" }),
+      ).toBeInTheDocument(),
+    );
+  }
+
+  it("opens the assign drawer when clicked", async () => {
+    mockFetch();
+    renderSection();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Assign a packing list" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: /Packing list/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("renames the button to offer removal once a list is assigned", async () => {
+    mockFetch();
+    renderSection();
+    await assignAlpineKit();
+  });
+
+  it("calls the assign API with the selected packing list id", async () => {
+    mockFetch();
+    renderSection();
+    await assignAlpineKit();
+
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    const postCall = fetchMock.mock.calls.find(
+      (call: unknown[]) =>
+        (call[1] as RequestInit | undefined)?.method === "POST",
+    )! as [string, RequestInit];
+    expect(postCall[0]).toBe("/api/trips/trip-1/packing-list");
+    expect(JSON.parse(postCall[1].body as string)).toEqual({
+      packingListId: "list-1",
+    });
+  });
+
+  it("shows a confirmation modal explaining the effect of removal", async () => {
+    mockFetch();
+    renderSection();
+    await assignAlpineKit();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove packing list assignment" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Remove packing list assignment?"),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText(/all packing list item statuses/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/won.t be affected/)).toBeInTheDocument();
+  });
+
+  it("calls the remove API and reverts the button on confirm", async () => {
+    mockFetch();
+    renderSection();
+    await assignAlpineKit();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove packing list assignment" }),
+    );
+    await waitFor(() => screen.getByText("Remove packing list assignment?"));
+
+    (global.fetch as unknown as ReturnType<typeof mock>).mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+    await waitFor(() => {
+      const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+      const deleteCall = fetchMock.mock.calls.find(
+        (call: unknown[]) =>
+          (call[1] as RequestInit | undefined)?.method === "DELETE",
+      );
+      expect(deleteCall).toBeDefined();
+    });
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    const deleteCall = fetchMock.mock.calls.find(
+      (call: unknown[]) =>
+        (call[1] as RequestInit | undefined)?.method === "DELETE",
+    )! as [string, RequestInit];
+    expect(deleteCall[0]).toBe("/api/trips/trip-1/packing-list/list-1");
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Assign a packing list" }),
       ).toBeInTheDocument(),
     );
   });

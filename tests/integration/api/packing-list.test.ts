@@ -260,6 +260,78 @@ describe("GET /", () => {
     ).not.toContain("My Private Trip");
   });
 
+  it("defaults to returning at most 5 packing lists when mineOnly is true", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?mineOnly=true")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(5);
+  });
+
+  it("respects a provided take parameter when mineOnly is true", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.createMany({
+      data: Array.from({ length: 7 }, (_, i) => ({
+        name: `Trip List ${i}`,
+        userId: user!.id,
+      })),
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?mineOnly=true&take=2")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toHaveLength(2);
+  });
+
+  it("excludes public packing lists when mineOnly is true, even when they match the query", async () => {
+    const response = await supertest(app)
+      .get("/api/packing-lists?mineOnly=true&query=REI")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(response.body.packingLists).toEqual([]);
+  });
+
+  it("only returns the user's own packing lists matching the query when mineOnly is true", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.packingList.create({
+      data: { name: "Alpine Kit", userId: user!.id },
+    });
+    await db.packingList.create({
+      data: { name: "Desert Kit", userId: user!.id },
+    });
+
+    const response = await supertest(app)
+      .get("/api/packing-lists?mineOnly=true&query=Alpine")
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /application\/json/)
+      .expect(200);
+
+    expect(
+      response.body.packingLists.map((list: { name: string }) => list.name),
+    ).toEqual(["Alpine Kit"]);
+  });
+
   it("requires a valid session", async () => {
     await supertest(app).get("/api/packing-lists").expect(401);
   });

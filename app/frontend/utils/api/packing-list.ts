@@ -29,6 +29,8 @@ export const packingListKeys = {
   detail: (id: string) => ["packing-list", id] as const,
   all: () => ["packing-lists"],
   search: (query: string) => ["packing-lists", "search", query] as const,
+  mineSearch: (query: string) =>
+    ["packing-lists", "mine-search", query] as const,
 };
 
 // Shared optimistic-update plumbing: cancel in-flight refetches, snapshot the
@@ -84,6 +86,19 @@ export function usePackingListSearch(query: string, publicOnly = false) {
         `/api/packing-lists?query=${encodeURIComponent(query)}&publicOnly=${encodeURIComponent(publicOnly.toString())}`,
       ).then((res) => res.packingLists ?? []),
     enabled: query.length > 0 || publicOnly,
+    placeholderData: keepPreviousData,
+  });
+}
+
+// Search scoped to lists the current user owns, excluding public lists —
+// used by flows that assign an existing list rather than copy from one.
+export function useMyPackingListSearch(query: string) {
+  return useQuery({
+    queryKey: packingListKeys.mineSearch(query),
+    queryFn: () =>
+      apiClient<{ packingLists: ClientPackingList[] }>(
+        `/api/packing-lists?query=${encodeURIComponent(query)}&mineOnly=true`,
+      ).then((res) => res.packingLists ?? []),
     placeholderData: keepPreviousData,
   });
 }
