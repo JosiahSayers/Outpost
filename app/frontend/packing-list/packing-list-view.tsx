@@ -35,11 +35,11 @@ export default function PackingListView({ editable = false, list }: Props) {
   // backend makes no ordering guarantee.
   const sections = sortByPosition(list.sections);
   // Section the user just added, so it mounts directly in edit mode.
-  const [autoEditSectionId, setAutoEditSectionId] = useState<number | null>(
+  const [autoEditSectionId, setAutoEditSectionId] = useState<string | null>(
     null,
   );
   // Item the user just added, so its row mounts directly in edit mode.
-  const [autoEditItemId, setAutoEditItemId] = useState<number | null>(null);
+  const [autoEditItemId, setAutoEditItemId] = useState<string | null>(null);
   const columnsRef = useRef<HTMLDivElement>(null);
   const { register: registerSection, markMoved } = useFlipReorder();
   const [, navigate] = useLocation();
@@ -87,14 +87,14 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
-  function handleRenameSection(sectionId: number, name: string) {
+  function handleRenameSection(sectionId: string, name: string) {
     updateSection.mutate(
       { sectionId, name },
       { onError: notifyError("Couldn't rename section") },
     );
   }
 
-  function handleDeleteSection(sectionId: number) {
+  function handleDeleteSection(sectionId: string) {
     deleteSection.mutate(sectionId, {
       onError: notifyError("Couldn't delete section"),
     });
@@ -129,7 +129,7 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
-  function handleAddItem(sectionId: number) {
+  function handleAddItem(sectionId: string) {
     createItem.mutate(
       { sectionId, name: "New item", quantity: 1 },
       {
@@ -140,7 +140,7 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
-  function handleEditItem(sectionId: number, item: ClientPackingListItem) {
+  function handleEditItem(sectionId: string, item: ClientPackingListItem) {
     updateItem.mutate(
       {
         sectionId,
@@ -153,7 +153,7 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
-  function handleDeleteItem(sectionId: number, item: ClientPackingListItem) {
+  function handleDeleteItem(sectionId: string, item: ClientPackingListItem) {
     deleteItem.mutate(
       { sectionId, itemId: item.id },
       { onError: notifyError("Couldn't delete item") },
@@ -161,7 +161,7 @@ export default function PackingListView({ editable = false, list }: Props) {
   }
 
   function handleToggleOptional(
-    sectionId: number,
+    sectionId: string,
     item: ClientPackingListItem,
   ) {
     updateItem.mutate(
@@ -171,7 +171,7 @@ export default function PackingListView({ editable = false, list }: Props) {
   }
 
   function handleReorderItem(
-    sectionId: number,
+    sectionId: string,
     item: ClientPackingListItem,
     sortPosition: number,
   ) {

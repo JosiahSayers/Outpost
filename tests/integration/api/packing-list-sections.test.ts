@@ -5,7 +5,7 @@ import { app } from "$/server";
 import { db } from "$/utils/db";
 
 let authCookies: string[];
-let packingListId: number;
+let packingListId: string;
 
 beforeAll(async () => {
   authCookies = await getAuthCookies();
@@ -107,7 +107,7 @@ describe("POST /", () => {
       .expect(201);
     expect(body).toEqual({
       section: {
-        id: expect.any(Number),
+        id: expect.any(String),
         name: "My Section",
         sortPosition: 1,
       },
@@ -148,7 +148,7 @@ describe("POST /", () => {
 });
 
 describe("DELETE /:sectionId", () => {
-  let sectionId: number;
+  let sectionId: string;
 
   beforeEach(async () => {
     const section = await db.packingListSection.create({
@@ -206,7 +206,7 @@ describe("DELETE /:sectionId", () => {
 });
 
 describe("PATCH /:sectionId", () => {
-  let sectionId: number;
+  let sectionId: string;
 
   beforeEach(async () => {
     const section = await db.packingListSection.create({

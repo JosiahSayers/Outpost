@@ -26,7 +26,7 @@ import type { z } from "zod";
 import { apiClient } from "./client";
 
 export const packingListKeys = {
-  detail: (id: number) => ["packing-list", id] as const,
+  detail: (id: string) => ["packing-list", id] as const,
   all: () => ["packing-lists"],
   search: (query: string) => ["packing-lists", "search", query] as const,
 };
@@ -98,7 +98,7 @@ export function usePackingLists() {
   });
 }
 
-export function usePackingList(id: number) {
+export function usePackingList(id: string) {
   return useQuery({
     queryKey: packingListKeys.detail(id),
     queryFn: () =>
@@ -109,7 +109,7 @@ export function usePackingList(id: number) {
   });
 }
 
-export function useDeletePackingList(listId: number) {
+export function useDeletePackingList(listId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
@@ -136,7 +136,7 @@ export function useCreatePackingList() {
   });
 }
 
-export function useUpdatePackingList(listId: number) {
+export function useUpdatePackingList(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
@@ -171,7 +171,7 @@ export function useUpdatePackingList(listId: number) {
   });
 }
 
-export function useCreateSection(listId: number) {
+export function useCreateSection(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
@@ -200,14 +200,14 @@ export function useCreateSection(listId: number) {
   });
 }
 
-export function useUpdateSection(listId: number) {
+export function useUpdateSection(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
     mutationFn: ({
       sectionId,
       ...data
-    }: z.input<typeof updateSection> & { sectionId: number }) =>
+    }: z.input<typeof updateSection> & { sectionId: string }) =>
       apiClient<{ section: ClientPackingListSection }>(
         `/api/packing-lists/${listId}/sections/${sectionId}`,
         {
@@ -245,11 +245,11 @@ export function useUpdateSection(listId: number) {
   });
 }
 
-export function useDeleteSection(listId: number) {
+export function useDeleteSection(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
-    mutationFn: (sectionId: number) =>
+    mutationFn: (sectionId: string) =>
       apiClient(`/api/packing-lists/${listId}/sections/${sectionId}`, {
         method: "DELETE",
       }),
@@ -266,14 +266,14 @@ export function useDeleteSection(listId: number) {
   });
 }
 
-export function useCreateItem(listId: number) {
+export function useCreateItem(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
     mutationFn: ({
       sectionId,
       ...data
-    }: z.input<typeof createItem> & { sectionId: number }) =>
+    }: z.input<typeof createItem> & { sectionId: string }) =>
       apiClient<{ item: ClientPackingListItem }>(
         `/api/packing-lists/${listId}/sections/${sectionId}/items`,
         {
@@ -304,7 +304,7 @@ export function useCreateItem(listId: number) {
   });
 }
 
-export function useUpdateItem(listId: number) {
+export function useUpdateItem(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
@@ -312,7 +312,7 @@ export function useUpdateItem(listId: number) {
       sectionId,
       itemId,
       ...data
-    }: z.input<typeof updateItem> & { sectionId: number; itemId: number }) =>
+    }: z.input<typeof updateItem> & { sectionId: string; itemId: string }) =>
       apiClient<{ item: ClientPackingListItem }>(
         `/api/packing-lists/${listId}/sections/${sectionId}/items/${itemId}`,
         {
@@ -353,7 +353,7 @@ export function useUpdateItem(listId: number) {
   });
 }
 
-export function useDeleteItem(listId: number) {
+export function useDeleteItem(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
   return useMutation({
@@ -361,8 +361,8 @@ export function useDeleteItem(listId: number) {
       sectionId,
       itemId,
     }: {
-      sectionId: number;
-      itemId: number;
+      sectionId: string;
+      itemId: string;
     }) =>
       apiClient(
         `/api/packing-lists/${listId}/sections/${sectionId}/items/${itemId}`,

@@ -5,12 +5,12 @@ export default function makeGearInventoryItem(
   overrides: Partial<GearInventoryItem> = {},
 ): GearInventoryItem {
   return {
-    id: faker.number.int(),
+    id: faker.string.uuid(),
     name: faker.commerce.productName(),
     quantity: faker.number.int({ min: 1, max: 5 }),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
-    gearCategoryId: faker.number.int(),
+    gearCategoryId: faker.string.uuid(),
     userId: faker.string.uuid(),
     grams: faker.number.int(5000),
     ...overrides,

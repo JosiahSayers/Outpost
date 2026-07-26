@@ -13,13 +13,13 @@ const onDeleteItem = mock(() => {});
 
 const items: ClientPackingListItem[] = [
   {
-    id: 1,
+    id: "1",
     name: "Sleeping bag",
     optional: false,
     quantity: 1,
     sortPosition: 1,
   },
-  { id: 2, name: "Tent", optional: false, quantity: 1, sortPosition: 2 },
+  { id: "2", name: "Tent", optional: false, quantity: 1, sortPosition: 2 },
 ];
 
 function renderList(editable: boolean) {

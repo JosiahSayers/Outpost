@@ -5,8 +5,8 @@ import { app } from "$/server";
 import { db } from "$/utils/db";
 
 let authCookies: string[];
-let packingListId: number;
-let sectionId: number;
+let packingListId: string;
+let sectionId: string;
 
 beforeAll(async () => {
   authCookies = await getAuthCookies();
@@ -140,7 +140,7 @@ describe("POST /", () => {
       .expect(201);
     expect(body).toEqual({
       item: {
-        id: expect.any(Number),
+        id: expect.any(String),
         name: "My Item",
         quantity: 2,
         optional: false,
@@ -200,7 +200,7 @@ describe("POST /", () => {
 });
 
 describe("DELETE /:itemId", () => {
-  let itemId: number;
+  let itemId: string;
 
   beforeEach(async () => {
     const item = await db.packingListItem.create({
@@ -272,7 +272,7 @@ describe("DELETE /:itemId", () => {
 });
 
 describe("PATCH /:itemId", () => {
-  let itemId: number;
+  let itemId: string;
 
   beforeEach(async () => {
     const item = await db.packingListItem.create({

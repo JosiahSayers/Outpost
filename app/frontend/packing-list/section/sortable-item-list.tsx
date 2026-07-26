@@ -21,7 +21,7 @@ export interface SortableItemListProps {
   onToggleOptional: (item: ClientPackingListItem) => void;
   onEditItem: (item: ClientPackingListItem) => void;
   onDeleteItem: (item: ClientPackingListItem) => void;
-  autoEditItemId: number | null;
+  autoEditItemId: string | null;
 }
 
 export default function SortableItemList({

@@ -30,7 +30,7 @@ describe("POST /", () => {
       .expect(201);
     expect(response.body).toEqual({
       item: {
-        id: expect.any(Number),
+        id: expect.any(String),
         name: "Snazzy Test Backpack",
         quantity: 1,
         grams: null,
@@ -56,12 +56,12 @@ describe("POST /", () => {
       .expect(201);
     expect(response.body).toEqual({
       item: {
-        id: expect.any(Number),
+        id: expect.any(String),
         name: "Snazzy Test Backpack",
         quantity: 1,
         grams: null,
         category: {
-          id: expect.any(Number),
+          id: expect.any(String),
           name: "Fancy New Category",
           public: false,
         },
@@ -75,7 +75,7 @@ describe("POST /", () => {
       .send({
         name: "Snazzy Test Backpack",
         quantity: 1,
-        existingCategoryId: -1,
+        existingCategoryId: "does-not-exist",
       })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
@@ -169,9 +169,9 @@ describe("GET /", () => {
 });
 
 describe("PUT /:id", () => {
-  let user1ItemId: number;
-  let user2ItemId: number;
-  let backpacksCategoryId: number;
+  let user1ItemId: string;
+  let user2ItemId: string;
+  let backpacksCategoryId: string;
 
   beforeEach(async () => {
     const user = await db.user.findUnique({
@@ -300,7 +300,7 @@ describe("PUT /:id", () => {
         quantity: 1,
         grams: 100,
         category: {
-          id: expect.any(Number),
+          id: expect.any(String),
           name: "My Custom Category",
           public: false,
         },
@@ -464,8 +464,8 @@ describe("PUT /:id", () => {
 });
 
 describe("DELETE /:id", () => {
-  let user1ItemId: number;
-  let user2ItemId: number;
+  let user1ItemId: string;
+  let user2ItemId: string;
 
   beforeEach(async () => {
     const user = await db.user.findUnique({

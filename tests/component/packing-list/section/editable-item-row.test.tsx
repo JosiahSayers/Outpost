@@ -15,7 +15,7 @@ const onEdit = mock(() => {});
 const onDelete = mock(() => {});
 
 const baseItem: ClientPackingListItem = {
-  id: 1,
+  id: "1",
   name: "Sleeping bag",
   optional: false,
   quantity: 1,

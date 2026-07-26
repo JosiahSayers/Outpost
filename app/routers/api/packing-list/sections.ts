@@ -23,7 +23,7 @@ sectionsRouter.post(
   validate({ body: createSection, params: idParam }),
   async (req, res) => {
     const existingSections = await db.packingListSection.findMany({
-      where: { packingListId: Number(req.params.id) },
+      where: { packingListId: req.params.id },
     });
 
     const currentHighestSort = getHighestSort(existingSections);
@@ -48,7 +48,7 @@ sectionsRouter.post(
       data: {
         name: req.body.name,
         sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
-        packingListId: Number(req.params.id),
+        packingListId: req.params.id,
       },
     });
 
@@ -64,8 +64,8 @@ sectionsRouter.delete(
   async (req, res) => {
     const section = await db.packingListSection.findUnique({
       where: {
-        id: Number(req.params.sectionId),
-        packingListId: Number(req.params.id),
+        id: req.params.sectionId,
+        packingListId: req.params.id,
       },
     });
 
@@ -75,7 +75,7 @@ sectionsRouter.delete(
 
     await db.packingListSection.delete({
       where: {
-        id: Number(req.params.sectionId),
+        id: req.params.sectionId,
       },
     });
 
@@ -89,12 +89,12 @@ sectionsRouter.patch(
   async (req, res) => {
     const existingSections = await db.packingListSection.findMany({
       where: {
-        packingListId: Number(req.params.id),
+        packingListId: req.params.id,
       },
     });
 
     const sectionToUpdate = existingSections.find(
-      (s) => s.id === Number(req.params.sectionId),
+      (s) => s.id === req.params.sectionId,
     );
 
     if (!sectionToUpdate) {
@@ -122,7 +122,7 @@ sectionsRouter.patch(
       }
 
       updatedSection = await tx.packingListSection.update({
-        where: { id: Number(req.params.sectionId) },
+        where: { id: req.params.sectionId },
         data: {
           name: req.body.name,
           sortPosition: req.body.sortPosition,

@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 
 interface Props {
-  listId: number;
+  listId: string;
   onAddSection: () => void;
   onDelete?: () => void;
   isDeleting?: boolean;

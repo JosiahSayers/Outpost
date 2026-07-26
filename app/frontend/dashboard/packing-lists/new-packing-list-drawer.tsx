@@ -15,7 +15,7 @@ import { z } from "zod/v4";
 const formSchema = z.object({
   name: packingListName,
   copyFromName: z.string(),
-  copyFromId: z.number().int().optional(),
+  copyFromId: z.string().optional(),
 });
 
 interface Props {
@@ -31,7 +31,7 @@ export default function NewPackingListDrawer({ opened, onClose }: Props) {
     initialValues: {
       name: "",
       copyFromName: "",
-      copyFromId: undefined as number | undefined,
+      copyFromId: undefined as string | undefined,
     },
     validate: schemaResolver(formSchema, { sync: true }),
   });

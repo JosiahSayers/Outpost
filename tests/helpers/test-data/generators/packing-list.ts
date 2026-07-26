@@ -6,7 +6,7 @@ export default function makePackingList(
   overrides: OptionalPartial<PackingList> = {},
 ): PackingList {
   return {
-    id: faker.number.int(),
+    id: faker.string.uuid(),
     name: `${faker.internet.displayName()}'s Packing List`,
     public: true,
     createdAt: faker.date.past(),

@@ -19,7 +19,7 @@ datasource db {
 // Production Seed Data
 //
 model AppliedSeeds {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String   @unique
   appliedAt DateTime @default(now())
 }
@@ -172,7 +172,7 @@ enum CommunicationType {
 // Core models
 //
 model GearCategory {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -191,7 +191,7 @@ model GearCategory {
 }
 
 model GearInventoryItem {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -200,7 +200,7 @@ model GearInventoryItem {
   grams    Int?
 
   category       GearCategory @relation(fields: [gearCategoryId], references: [id])
-  gearCategoryId Int
+  gearCategoryId String
 
   owner            User              @relation(fields: [userId], references: [id])
   userId           String
@@ -210,7 +210,7 @@ model GearInventoryItem {
 }
 
 model PackingList {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -219,7 +219,7 @@ model PackingList {
 
   sourceUrl               String?
   description             String?
-  copiedFromPackingListId Int?
+  copiedFromPackingListId String?
 
   owner               User?                @relation(fields: [userId], references: [id])
   userId              String?
@@ -230,7 +230,7 @@ model PackingList {
 }
 
 model PackingListSection {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -238,14 +238,14 @@ model PackingListSection {
   sortPosition Int
 
   packingList   PackingList       @relation(fields: [packingListId], references: [id], onDelete: Cascade)
-  packingListId Int
+  packingListId String
   items         PackingListItem[]
 
   @@unique([name, packingListId])
 }
 
 model PackingListItem {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -255,11 +255,11 @@ model PackingListItem {
   sortPosition Int
 
   category                    GearCategory?               @relation(fields: [gearCategoryId], references: [id])
-  gearCategoryId              Int?
+  gearCategoryId              String?
   assignedGear                GearInventoryItem?          @relation(fields: [gearInventoryItemId], references: [id])
-  gearInventoryItemId         Int?
+  gearInventoryItemId         String?
   packingListSection          PackingListSection?         @relation(fields: [packingListSectionId], references: [id], onDelete: Cascade)
-  packingListSectionId        Int?
+  packingListSectionId        String?
   tripPackingListItemStatuses TripPackingListItemStatus[]
 
   @@unique([name, packingListSectionId])
@@ -389,7 +389,7 @@ model TripPackingList {
   trip                        Trip                        @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId                      String
   packingList                 PackingList                 @relation(fields: [packingListId], references: [id], onDelete: Cascade)
-  packingListId               Int
+  packingListId               String
   tripPackingListItemStatuses TripPackingListItemStatus[]
 
   @@unique(tripId)
@@ -407,7 +407,7 @@ model TripPackingListItemStatus {
   tripPackingList   TripPackingList @relation(fields: [tripPackingListId], references: [id], onDelete: Cascade)
   tripPackingListId String
   packingListItem   PackingListItem @relation(fields: [packingListItemId], references: [id], onDelete: Cascade)
-  packingListItemId Int
+  packingListItemId String
 
   @@unique([tripPackingListId, packingListItemId])
 }

@@ -7,7 +7,7 @@ export const userCanAccessGearInventoryItem: RequestHandler = async (
   next,
 ) => {
   const item = await db.gearInventoryItem.findUnique({
-    where: { id: Number(req.params.id) },
+    where: { id: String(req.params.id) },
   });
 
   if (!item) {

@@ -7,7 +7,7 @@ export const userCanAccessPackingList: RequestHandler = async (
   next,
 ) => {
   const packingList = await db.packingList.findUnique({
-    where: { id: Number(req.params.id) },
+    where: { id: String(req.params.id) },
   });
 
   if (!packingList) {
@@ -30,7 +30,7 @@ export const userCanEditPackingList: RequestHandler = async (
   next,
 ) => {
   const packingList = await db.packingList.findUnique({
-    where: { id: Number(req.params.id) },
+    where: { id: String(req.params.id) },
   });
 
   if (!packingList) {

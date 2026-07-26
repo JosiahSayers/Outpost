@@ -69,11 +69,11 @@ gearInventoryRouter.put(
   userCanAccessGearInventoryItem,
   async (req, res) => {
     const existingItem = await db.gearInventoryItem.findUnique({
-      where: { id: Number(req.params.id) },
+      where: { id: req.params.id },
       include: { category: true },
     });
 
-    let newCategoryId: number;
+    let newCategoryId: string;
 
     if (req.body.newCategoryName) {
       const newCategory = await db.gearCategory.create({
@@ -101,7 +101,7 @@ gearInventoryRouter.put(
     const oldCategoryId = existingItem!.gearCategoryId;
 
     const updatedItem = await db.gearInventoryItem.update({
-      where: { id: Number(req.params.id) },
+      where: { id: req.params.id },
       data: {
         name: req.body.name,
         quantity: req.body.quantity,
@@ -139,10 +139,11 @@ gearInventoryRouter.get("/", async (req, res) => {
 
 gearInventoryRouter.delete(
   "/:id",
+  validate({ params: itemIdParamsValidator }),
   userCanAccessGearInventoryItem,
   async (req, res) => {
     await db.gearInventoryItem.delete({
-      where: { id: Number(req.params.id), userId: req.session!.user.id },
+      where: { id: req.params.id, userId: req.session!.user.id },
     });
     return res.sendStatus(200);
   },

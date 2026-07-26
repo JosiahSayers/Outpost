@@ -8,8 +8,8 @@ import { useParams } from "wouter";
 
 export default function PackingListPage() {
   useAuthenticatedGuard();
-  const { id } = useParams();
-  const { data, isLoading, isError } = usePackingList(Number(id));
+  const { id } = useParams<{ id: string }>();
+  const { data, isLoading, isError } = usePackingList(id);
 
   if (isLoading) {
     return (

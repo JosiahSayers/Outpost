@@ -11,12 +11,12 @@ const onDelete = mock(() => {});
 const formatWeight = mock(() => "450g");
 
 const item1 = transformers.gearInventoryItem({
-  ...make("GearInventoryItem", { name: "Tent", gearCategoryId: 1 }),
-  category: make("GearCategory", { id: 1, name: "Shelter" }),
+  ...make("GearInventoryItem", { name: "Tent", gearCategoryId: "1" }),
+  category: make("GearCategory", { id: "1", name: "Shelter" }),
 });
 const item2 = transformers.gearInventoryItem({
-  ...make("GearInventoryItem", { name: "Sleeping Bag", gearCategoryId: 1 }),
-  category: make("GearCategory", { id: 1, name: "Shelter" }),
+  ...make("GearInventoryItem", { name: "Sleeping Bag", gearCategoryId: "1" }),
+  category: make("GearCategory", { id: "1", name: "Shelter" }),
 });
 
 beforeEach(() => {

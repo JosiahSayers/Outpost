@@ -16,7 +16,7 @@ interface Props {
   onRename: (name: string) => void;
   onDelete: () => void;
   autoEdit: boolean;
-  autoEditItemId: number | null;
+  autoEditItemId: string | null;
   onAddItem: () => void;
   onEditItem: (item: ClientPackingListItem) => void;
   onDeleteItem: (item: ClientPackingListItem) => void;
