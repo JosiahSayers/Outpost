@@ -4,6 +4,7 @@ import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { tripLinkRouter } from "$/routers/api/trip/link";
 import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
+import { tripPackingListRouter } from "$/routers/api/trip/packing-list";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
@@ -134,3 +135,4 @@ tripRouter.patch(
 tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);
 tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);
 tripRouter.use("/:id/links", userCanEditTrip, tripLinkRouter);
+tripRouter.use("/:id/packing-list", userCanEditTrip, tripPackingListRouter);

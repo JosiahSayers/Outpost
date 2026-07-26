@@ -1,0 +1,22 @@
+info:
+  name: Update Item
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/trips/018b8c70-b889-4e92-a7bc-8cdaf25ae07c/packing-list/1/1"
+  body:
+    type: json
+    data: |-
+      {
+        "packed": true,
+        "notNeeded": false
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
