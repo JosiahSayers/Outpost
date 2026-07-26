@@ -1,15 +1,10 @@
 import { hostnameOf } from "$/frontend/trip/links/hostname";
+import { hashIndex } from "$/frontend/utils/hash-index";
 import type { ClientTripLink } from "$/transformers/trip-link";
 import { Center, Image, Text } from "@mantine/core";
 import { useState } from "react";
 
 const PALETTES = ["trail-green", "bark-brown", "trail-dust"];
-
-function hashIndex(str: string, mod: number): number {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
-  return Math.abs(h) % mod;
-}
 
 /** Deterministic per-site gradient drawn only from the theme's own palettes,
  * so a link without an og:image still gets an on-brand fallback avatar. */
