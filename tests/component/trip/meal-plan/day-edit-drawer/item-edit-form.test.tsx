@@ -17,6 +17,7 @@ function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
     quantity: 1,
     waterMl: 240,
     dryWeightGrams: 90,
+    status: { packed: false, purchased: false },
     ...overrides,
   };
 }

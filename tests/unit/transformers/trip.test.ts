@@ -4,10 +4,13 @@ import { transform, transformFull } from "$/transformers/trip";
 
 function makeMealPlanDay() {
   const day = make("MealPlanDay");
-  const breakfastItem = make("MealPlanItem", {
-    mealPlanDayId: day.id,
-    meal: "breakfast",
-  });
+  const breakfastItem = {
+    ...make("MealPlanItem", {
+      mealPlanDayId: day.id,
+      meal: "breakfast",
+    }),
+    packingStatuses: [],
+  };
   return {
     ...day,
     items: [breakfastItem],

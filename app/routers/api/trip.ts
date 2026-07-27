@@ -48,7 +48,11 @@ tripRouter.get(
       where: { id: req.params.id },
       include: {
         tasks: true,
-        mealPlanDays: { include: { items: true } },
+        mealPlanDays: {
+          include: {
+            items: { include: { packingStatuses: true } },
+          },
+        },
         links: true,
         packingList: {
           include: {

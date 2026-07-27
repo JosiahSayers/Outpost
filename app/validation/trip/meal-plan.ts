@@ -36,3 +36,8 @@ export const editMealPlanItem = createMealPlanItem.partial().extend({
   waterMl: z.int().nullable().optional(),
   dryWeightGrams: z.int().nullable().optional(),
 });
+
+export const editMealPlanItemStatus = z.strictObject({
+  purchased: z.boolean().optional(),
+  packed: z.boolean().optional(),
+});

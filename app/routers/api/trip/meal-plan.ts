@@ -10,6 +10,7 @@ import {
   createMealPlanItem,
   editMealPlanDay,
   editMealPlanItem,
+  editMealPlanItemStatus,
   mealPlanDayParams,
   mealPlanItemParams,
 } from "$/validation/trip/meal-plan";
@@ -44,7 +45,11 @@ mealPlanRouter.post(
         date: req.body.date,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            packingStatuses: true,
+          },
+        },
       },
     });
 
@@ -88,7 +93,11 @@ mealPlanRouter.patch(
         date: req.body.date,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            packingStatuses: true,
+          },
+        },
       },
     });
 
@@ -110,6 +119,9 @@ mealPlanRouter.post(
         quantity: req.body.quantity,
         waterMl: req.body.waterMl,
         dryWeightGrams: req.body.dryWeightGrams,
+      },
+      include: {
+        packingStatuses: true,
       },
     });
 
@@ -134,6 +146,9 @@ mealPlanRouter.patch(
         waterMl: req.body.waterMl,
         dryWeightGrams: req.body.dryWeightGrams,
       },
+      include: {
+        packingStatuses: true,
+      },
     });
 
     return res.json({ mealPlanItem: transformers.mealPlanItem(updated) });
@@ -150,5 +165,37 @@ mealPlanRouter.delete(
     });
 
     return res.sendStatus(200);
+  },
+);
+
+mealPlanRouter.patch(
+  "/days/:day/items/:itemId/status",
+  mealPlanItemExists,
+  validate({ params: mealPlanItemParams, body: editMealPlanItemStatus }),
+  async (req, res) => {
+    const newItemStatus = await db.mealPlanItemPackingStatus.upsert({
+      where: {
+        mealPlanItemId: req.params.itemId,
+      },
+      create: {
+        purchased: req.body.purchased,
+        packed: req.body.packed,
+        mealPlanItemId: req.params.itemId,
+      },
+      update: {
+        purchased: req.body.purchased,
+        packed: req.body.packed,
+      },
+    });
+    const updatedItem = await db.mealPlanItem.findUnique({
+      where: { id: req.params.itemId },
+      include: {
+        packingStatuses: true,
+      },
+    });
+
+    return res.json({
+      item: transformers.mealPlanItem(updatedItem!),
+    });
   },
 );

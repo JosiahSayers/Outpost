@@ -5,14 +5,20 @@ import { make } from "../../../helpers/test-data/make";
 describe("transform", () => {
   it("returns the expected shape, grouping items by meal", () => {
     const day = make("MealPlanDay", { date: new Date("2026-06-01") });
-    const breakfastItem = make("MealPlanItem", {
-      mealPlanDayId: day.id,
-      meal: "breakfast",
-    });
-    const dinnerItem = make("MealPlanItem", {
-      mealPlanDayId: day.id,
-      meal: "dinner",
-    });
+    const breakfastItem = {
+      ...make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        meal: "breakfast",
+      }),
+      packingStatuses: [],
+    };
+    const dinnerItem = {
+      ...make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        meal: "dinner",
+      }),
+      packingStatuses: [],
+    };
 
     expect(transform({ ...day, items: [breakfastItem, dinnerItem] })).toEqual({
       id: day.id,
@@ -49,8 +55,14 @@ describe("transform", () => {
   it("groups multiple items under the same meal", () => {
     const day = make("MealPlanDay");
     const items = [
-      make("MealPlanItem", { mealPlanDayId: day.id, meal: "snacks" }),
-      make("MealPlanItem", { mealPlanDayId: day.id, meal: "snacks" }),
+      {
+        ...make("MealPlanItem", { mealPlanDayId: day.id, meal: "snacks" }),
+        packingStatuses: [],
+      },
+      {
+        ...make("MealPlanItem", { mealPlanDayId: day.id, meal: "snacks" }),
+        packingStatuses: [],
+      },
     ];
 
     expect(transform({ ...day, items }).meals.snacks).toHaveLength(2);

@@ -375,8 +375,9 @@ model MealPlanItem {
   waterMl        Int?
   dryWeightGrams Int?
 
-  mealPlanDay   MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
-  mealPlanDayId String
+  mealPlanDay     MealPlanDay                 @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
+  mealPlanDayId   String
+  packingStatuses MealPlanItemPackingStatus[]
 
   @@index([meal, mealPlanDayId])
 }
@@ -409,6 +410,18 @@ model TripPackingListItemStatus {
   packingListItemId String
 
   @@unique([tripPackingListId, packingListItemId])
+}
+
+model MealPlanItemPackingStatus {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchased Boolean @default(false)
+  packed    Boolean @default(false)
+
+  mealPlanItem   MealPlanItem @relation(fields: [mealPlanItemId], references: [id], onDelete: Cascade)
+  mealPlanItemId String       @unique
 }
 
 //
