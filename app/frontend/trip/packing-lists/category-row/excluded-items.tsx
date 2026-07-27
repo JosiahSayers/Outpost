@@ -1,10 +1,10 @@
-import type { MergedPackingCategory } from "$/frontend/trip/placeholder-data";
+import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { Button, Collapse, Group, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { CaretDownIcon } from "@phosphor-icons/react";
 
 interface Props {
-  items: MergedPackingCategory["items"];
+  items: ClientTripPackingListItem[];
   onToggleNotNeeded: (itemId: string, notNeeded: boolean) => void;
 }
 

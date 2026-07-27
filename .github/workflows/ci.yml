@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        suite: [test, format:check, typecheck]
+        suite: [test:unit, test:integration, format:check, typecheck]
     services:
       db:
         image: postgres

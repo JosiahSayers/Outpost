@@ -3,13 +3,13 @@ import { Group, RingProgress, Text } from "@mantine/core";
 interface Props {
   packed: number;
   total: number;
-  numberOfPackingLists: number;
+  packingListName: string;
 }
 
 export default function ProgressOverview({
   packed,
   total,
-  numberOfPackingLists,
+  packingListName,
 }: Props) {
   const pct = total === 0 ? 0 : Math.round((packed / total) * 100);
 
@@ -40,7 +40,7 @@ export default function ProgressOverview({
           {packed}/{total} packed
         </Text>
         <Text size="xs" c="dimmed">
-          across {numberOfPackingLists} lists
+          {packingListName}
         </Text>
       </div>
     </Group>

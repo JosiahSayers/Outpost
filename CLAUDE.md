@@ -8,9 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 bun run dev              # Start Express server + frontend dev server
 bun run dev:workers      # Start BullMQ background workers (separate process)
 
-bun test                                    # Run all tests
-bun test tests/unit/transformers/foo.test.ts  # Run a single test file
-SKIP_DB_SETUP=1 bun test tests/component/dashboard/foo.test.tsx  # Skip DB reset for component/unit tests
+bun run test:unit                           # Unit + component tests, no DB reset (fast)
+bun run test:integration                    # Integration tests, with DB reset/seed per test
+bun run test:all                            # Both suites, in sequence
+bun test tests/unit/transformers/foo.test.ts  # Run a single unit/component test file directly
 
 bun run db:migrate       # Apply pending Prisma migrations
 bun run db:seed          # Seed with dev data
@@ -52,14 +53,14 @@ API hooks live in `app/frontend/utils/api/`. Each hook uses `useQuery`/`useMutat
 
 ## Test setup
 
-`tests/preload.ts` is loaded before every test file (configured in `bunfig.toml`). It:
+`tests/preload.ts` is loaded before every test file (configured in `bunfig.toml`). It registers a DOM environment via `@happy-dom/global-registrator` and calls `cleanup()` from Testing Library after each test. It does **not** touch the database.
 
-- Registers a DOM environment via `@happy-dom/global-registrator`
-- Runs `prisma migrate reset --force` + `bun db:seed` once before the suite (skipped when `SKIP_DB_SETUP=1`)
-- Wraps each test in a PostgreSQL `SAVEPOINT` and rolls back after, so tests don't pollute each other
-- Calls `cleanup()` from Testing Library after each test
+`tests/integration-preload.ts` is loaded in addition, only for `bun run test:integration` (via `bun test --preload`). It:
 
-**Use `SKIP_DB_SETUP=1` for component and unit tests** — they don't need the database and the reset adds significant time.
+- Runs `prisma migrate reset --force` + `bun db:seed` once before the suite
+- Snapshots the seeded tables, then truncates and restores from that snapshot after every test so integration tests don't pollute each other
+
+Unit and component tests (`tests/unit`, `tests/component`) never load this file, so `bun run test:unit` skips the database entirely and runs fast. Integration tests (`tests/integration`) rely on it and must be run via `bun run test:integration` (or `bun run test:all`) — running them with plain `bun test` skips the reset/seed and will fail or corrupt shared state.
 
 ### Mocking in component tests
 

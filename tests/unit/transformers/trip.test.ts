@@ -14,6 +14,65 @@ function makeMealPlanDay() {
   };
 }
 
+function makeTripPackingList(tripId: string) {
+  const packingList = make("PackingList");
+  const tripPackingList = make("TripPackingList", {
+    tripId,
+    packingListId: packingList.id,
+  });
+  const section = make("PackingListSection", {
+    packingListId: packingList.id,
+  });
+  const item = make("PackingListItem", { packingListSectionId: section.id });
+  const status = make("TripPackingListItemStatus", {
+    tripPackingListId: tripPackingList.id,
+    packingListItemId: item.id,
+    packed: true,
+    notNeeded: false,
+  });
+
+  return {
+    input: {
+      ...tripPackingList,
+      packingList: {
+        ...packingList,
+        packingListSections: [
+          {
+            ...section,
+            items: [{ ...item, tripPackingListItemStatuses: [status] }],
+          },
+        ],
+      },
+    },
+    expected: {
+      id: tripPackingList.id,
+      tripId: tripPackingList.tripId,
+      packingListId: tripPackingList.packingListId,
+      name: packingList.name,
+      sections: [
+        {
+          id: section.id,
+          name: section.name,
+          sortPosition: section.sortPosition,
+          items: [
+            {
+              id: item.id,
+              name: item.name,
+              optional: item.optional,
+              quantity: item.quantity,
+              sortPosition: item.sortPosition,
+              status: {
+                packed: true,
+                notNeeded: false,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 describe("transform", () => {
   it("returns the expected shape", () => {
     const trip = make("Trip");
@@ -41,6 +100,8 @@ describe("transformFull", () => {
     const task2 = make("TripTask", { tripId: trip.id, phase: "after" });
     const day = makeMealPlanDay();
     const link = make("TripLink", { tripId: trip.id });
+    const { input: packingListInput, expected: expectedPackingList } =
+      makeTripPackingList(trip.id);
 
     expect(
       transformFull({
@@ -48,6 +109,7 @@ describe("transformFull", () => {
         tasks: [task1, task2],
         mealPlanDays: [day],
         links: [link],
+        packingList: packingListInput,
       }),
     ).toEqual({
       ...transform(trip),
@@ -93,16 +155,24 @@ describe("transformFull", () => {
           videoUrl: link.videoUrl,
         },
       ],
+      packingList: expectedPackingList,
     });
   });
 
   it("returns an empty tasks array when the trip has no tasks", () => {
     const trip = make("Trip");
     expect(
-      transformFull({ ...trip, tasks: [], mealPlanDays: [], links: [] }),
+      transformFull({
+        ...trip,
+        tasks: [],
+        mealPlanDays: [],
+        links: [],
+        packingList: null,
+      }),
     ).toMatchObject({
       tasks: [],
       links: [],
+      packingList: null,
     });
   });
 });

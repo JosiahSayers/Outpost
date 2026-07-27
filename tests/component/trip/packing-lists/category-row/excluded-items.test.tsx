@@ -1,25 +1,25 @@
 import ExcludedItems from "$/frontend/trip/packing-lists/category-row/excluded-items";
-import type { MergedPackingCategory } from "$/frontend/trip/placeholder-data";
+import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
 
-type Item = MergedPackingCategory["items"][number];
-
-function item(overrides: Partial<Item> = {}): Item {
+function item(
+  overrides: Partial<ClientTripPackingListItem> = {},
+): ClientTripPackingListItem {
   return {
     id: "item-1",
     name: "Gloves",
-    packed: false,
-    notNeeded: true,
-    listId: 101,
-    listName: "Wonderland Backpacking Kit",
+    optional: false,
+    quantity: 1,
+    sortPosition: 0,
+    status: { packed: false, notNeeded: true },
     ...overrides,
   };
 }
 
-function renderExcludedItems(items: Item[]) {
+function renderExcludedItems(items: ClientTripPackingListItem[]) {
   const onToggleNotNeeded = mock();
   render(
     <MantineProvider>

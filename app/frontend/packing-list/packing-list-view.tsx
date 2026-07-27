@@ -66,10 +66,19 @@ export default function PackingListView({ editable = false, list }: Props) {
 
   // The new row captures autoEdit on mount, so clear the one-shot signal once
   // consumed — otherwise the item re-enters edit mode whenever its row remounts
-  // (e.g. when toggling optional moves it between lists).
+  // (e.g. when toggling optional moves it between lists). Wait until the item
+  // actually shows up in `sections`: the mutation's onSuccess sets this state
+  // directly, but the item only appears once the list query's cache
+  // subscription re-renders — a separate, later commit — so clearing
+  // unconditionally on the first commit erases the flag before the row ever
+  // mounts with it set.
   useEffect(() => {
-    if (autoEditItemId != null) setAutoEditItemId(null);
-  }, [autoEditItemId]);
+    if (autoEditItemId == null) return;
+    const itemExists = sections.some((section) =>
+      section.items.some((item) => item.id === autoEditItemId),
+    );
+    if (itemExists) setAutoEditItemId(null);
+  }, [autoEditItemId, sections]);
 
   function handleMoveSection(index: number, direction: "up" | "down") {
     const targetIndex = direction === "up" ? index - 1 : index + 1;

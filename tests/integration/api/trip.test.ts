@@ -735,6 +735,7 @@ describe("GET /:id", () => {
         tasks: [],
         mealPlan: [],
         links: [],
+        packingList: null,
       },
     });
   });
@@ -911,6 +912,87 @@ describe("GET /:id", () => {
       .expect(200);
 
     expect(response.body.trip.links).toEqual([]);
+  });
+
+  it("returns the trip's assigned packing list", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+    const packingList = await db.packingList.create({
+      data: { name: "My Packing List", userId: user!.id },
+    });
+    const tripPackingList = await db.tripPackingList.create({
+      data: make("TripPackingList", {
+        tripId: trip.id,
+        packingListId: packingList.id,
+      }),
+    });
+    const section = await db.packingListSection.create({
+      data: {
+        name: "Shelter",
+        sortPosition: 1,
+        packingListId: packingList.id,
+      },
+    });
+    const item = await db.packingListItem.create({
+      data: { name: "Tent", sortPosition: 1, packingListSectionId: section.id },
+    });
+    await db.tripPackingListItemStatus.create({
+      data: make("TripPackingListItemStatus", {
+        tripPackingListId: tripPackingList.id,
+        packingListItemId: item.id,
+        packed: true,
+        notNeeded: false,
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.packingList).toEqual({
+      id: tripPackingList.id,
+      tripId: trip.id,
+      packingListId: packingList.id,
+      name: "My Packing List",
+      sections: [
+        {
+          id: section.id,
+          name: "Shelter",
+          sortPosition: 1,
+          items: [
+            {
+              id: item.id,
+              name: "Tent",
+              optional: false,
+              quantity: 1,
+              sortPosition: 1,
+              status: { packed: true, notNeeded: false },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("returns a null packingList when the trip has no packing list assigned", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.packingList).toBeNull();
   });
 });
 

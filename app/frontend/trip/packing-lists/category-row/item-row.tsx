@@ -1,19 +1,17 @@
-import type { MergedPackingCategory } from "$/frontend/trip/placeholder-data";
-import { ActionIcon, Badge, Checkbox, Group, Text } from "@mantine/core";
+import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
+import { ActionIcon, Checkbox, Group, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { ProhibitIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 interface Props {
-  item: MergedPackingCategory["items"][number];
-  multiList: boolean;
+  item: ClientTripPackingListItem;
   onTogglePacked: (itemId: string, packed: boolean) => void;
   onToggleNotNeeded: (itemId: string, notNeeded: boolean) => void;
 }
 
 export default function ItemRow({
   item,
-  multiList,
   onTogglePacked,
   onToggleNotNeeded,
 }: Props) {
@@ -35,23 +33,17 @@ export default function ItemRow({
     >
       <Checkbox
         aria-label={item.name}
-        checked={item.packed}
+        checked={item.status.packed}
         onChange={(e) => onTogglePacked(item.id, e.currentTarget.checked)}
       />
       <Text
         size="sm"
-        c={item.packed ? "dimmed" : undefined}
+        c={item.status.packed ? "dimmed" : undefined}
         style={{ flex: 1 }}
         truncate="end"
       >
         {item.name}
       </Text>
-
-      {multiList && (
-        <Badge color="gray" variant="light" size="xs" style={{ flexShrink: 0 }}>
-          {item.listName}
-        </Badge>
-      )}
 
       <ActionIcon
         variant="subtle"
