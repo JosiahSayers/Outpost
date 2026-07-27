@@ -4,7 +4,7 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 // Suppresses act() warnings from Mantine's Popover (used by the assign
 // drawer's search combobox) — see new-packing-list-drawer.test.tsx for the
@@ -81,6 +81,22 @@ function makePackingList(
     ...overrides,
   };
 }
+
+// AssignPackingListDrawer is always mounted and fires a background
+// packing-list search request regardless of whether it's open (see
+// waitForPatchCall below), so every test needs fetch mocked — otherwise that
+// background query hits real network, fails with ECONNREFUSED, and React
+// Query's default retry/backoff keeps re-firing it in the background for the
+// rest of the file, which can starve later tests' timers under CI load.
+const originalFetch = global.fetch;
+
+beforeEach(() => {
+  mockFetchOk({ packingLists: [] });
+});
+
+afterEach(() => {
+  global.fetch = originalFetch;
+});
 
 function renderSection(
   packingList: ClientTripPackingList | null = makePackingList(),
