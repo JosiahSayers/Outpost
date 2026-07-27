@@ -135,7 +135,7 @@ describe("rendering", () => {
   it("renders the section title", () => {
     renderSection();
     expect(
-      screen.getByRole("heading", { name: "Packing Lists" }),
+      screen.getByRole("heading", { name: "Packing List" }),
     ).toBeInTheDocument();
   });
 
