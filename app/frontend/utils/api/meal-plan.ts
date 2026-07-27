@@ -6,6 +6,7 @@ import type { ClientFullTrip } from "$/transformers/trip";
 import type {
   createMealPlanDay,
   createMealPlanItem,
+  editMealPlanDay,
   editMealPlanItem,
 } from "$/validation/trip/meal-plan";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +37,90 @@ export function useCreateMealPlanDay(tripId: string) {
             }
           : old,
       );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+export function useUpdateMealPlanDay(tripId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = tripKeys.detail(tripId);
+  return useMutation({
+    mutationFn: ({
+      dayNumber,
+      ...data
+    }: z.input<typeof editMealPlanDay> & { dayNumber: number }) =>
+      apiClient<{ mealPlanDay: ClientMealPlanDay }>(
+        `/api/trips/${tripId}/meal-plan/days/${dayNumber}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      ),
+    onMutate: async ({ dayNumber, ...data }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ trip: ClientFullTrip }>(
+        queryKey,
+      );
+      queryClient.setQueryData<{ trip: ClientFullTrip }>(queryKey, (old) =>
+        old
+          ? {
+              trip: {
+                ...old.trip,
+                mealPlan: old.trip.mealPlan.map((day) =>
+                  day.dayNumber === dayNumber ? { ...day, ...data } : day,
+                ),
+              },
+            }
+          : old,
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+export function useDeleteMealPlanDay(tripId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = tripKeys.detail(tripId);
+  return useMutation({
+    mutationFn: (dayNumber: number) =>
+      apiClient(`/api/trips/${tripId}/meal-plan/days/${dayNumber}`, {
+        method: "DELETE",
+      }),
+    onMutate: async (dayNumber) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ trip: ClientFullTrip }>(
+        queryKey,
+      );
+      queryClient.setQueryData<{ trip: ClientFullTrip }>(queryKey, (old) =>
+        old
+          ? {
+              trip: {
+                ...old.trip,
+                mealPlan: old.trip.mealPlan.filter(
+                  (day) => day.dayNumber !== dayNumber,
+                ),
+              },
+            }
+          : old,
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });

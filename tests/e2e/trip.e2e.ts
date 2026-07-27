@@ -665,6 +665,126 @@ test.describe("Trip Page", () => {
         );
       });
     });
+
+    test.describe("editing a day's date", () => {
+      test("sets the date and persists across a reload", async ({ page }) => {
+        await table(page).getByText("Day 1").click();
+        const drawer = page.getByRole("dialog");
+        await expect(
+          drawer.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+
+        // A trip with no start/end date seeds Day 1 with no date, so the
+        // drawer shows the "Add date" affordance instead of a formatted date.
+        await drawer.getByText("Add date").click();
+        const input = drawer.getByPlaceholder("Pick a date");
+        await input.fill("August 15, 2026");
+        await input.press("Escape");
+
+        await expect(drawer.getByText("Aug 15")).toBeVisible();
+        await expect(table(page).getByText("Aug 15")).toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Aug 15")).toBeVisible();
+      });
+
+      test("changing an existing date persists across a reload", async ({
+        page,
+      }) => {
+        await table(page).getByText("Day 1").click();
+        const drawer = page.getByRole("dialog");
+        await drawer.getByText("Add date").click();
+        const input = drawer.getByPlaceholder("Pick a date");
+        await input.fill("August 15, 2026");
+        await input.press("Escape");
+        await expect(drawer.getByText("Aug 15")).toBeVisible();
+
+        await drawer.getByText("Aug 15").click();
+        await drawer.getByPlaceholder("Pick a date").fill("August 20, 2026");
+        await drawer.getByPlaceholder("Pick a date").press("Escape");
+
+        await expect(drawer.getByText("Aug 20")).toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Aug 20")).toBeVisible();
+      });
+
+      test("shows an error notification when the date save fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/meal-plan/days/1`, (route) => {
+          if (route.request().method() === "PATCH") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await table(page).getByText("Day 1").click();
+        const drawer = page.getByRole("dialog");
+        await drawer.getByText("Add date").click();
+        await drawer.getByPlaceholder("Pick a date").fill("August 15, 2026");
+
+        await expect(
+          page.getByText("Couldn't update the day's date"),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("removing a day", () => {
+      test("removes the day and persists across a reload", async ({ page }) => {
+        await page.getByRole("button", { name: "Add day" }).click();
+        await expect(table(page).getByText("Day 2")).toBeVisible();
+
+        await table(page).getByText("Day 2").click();
+        const drawer = page.getByRole("dialog");
+        await expect(
+          drawer.getByRole("heading", { name: "Day 2" }),
+        ).toBeVisible();
+
+        await drawer.getByRole("button", { name: "Remove day" }).click();
+        await expect(page.getByText("Remove day?")).toBeVisible();
+        await page.getByRole("button", { name: "Remove", exact: true }).click();
+
+        await expect(table(page).getByText("Day 2")).not.toBeVisible();
+
+        await page.reload();
+        await expect(table(page).getByText("Day 2")).not.toBeVisible();
+      });
+
+      test("does not delete when cancelled", async ({ page }) => {
+        await table(page).getByText("Day 1").click();
+        const drawer = page.getByRole("dialog");
+        await expect(
+          drawer.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+
+        await drawer.getByRole("button", { name: "Remove day" }).click();
+        await page.getByRole("button", { name: "Cancel" }).click();
+
+        await expect(
+          drawer.getByRole("heading", { name: "Day 1" }),
+        ).toBeVisible();
+        await expect(table(page).getByText("Day 1")).toBeVisible();
+      });
+
+      test("shows an error notification when the removal fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/meal-plan/days/1`, (route) => {
+          if (route.request().method() === "DELETE") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await table(page).getByText("Day 1").click();
+        const drawer = page.getByRole("dialog");
+        await drawer.getByRole("button", { name: "Remove day" }).click();
+        await page.getByRole("button", { name: "Remove", exact: true }).click();
+
+        await expect(page.getByText("Couldn't remove day")).toBeVisible();
+      });
+    });
   });
 
   test.describe("links", () => {
@@ -1190,5 +1310,52 @@ test.describe("Trip Page", () => {
         });
       });
     });
+  });
+});
+
+test.describe("Trip Page - mobile meal plan", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  // The mobile card view and desktop table both render regardless of
+  // viewport (only hidden via a CSS media query), with the mobile card
+  // rendering after the table in the DOM, so `.last()` picks the visible one.
+  test.beforeEach(async ({ page, user }) => {
+    void user;
+    const tripId = await createTripViaApi(page, {
+      name: `E2E Mobile Trip ${Date.now()}`,
+    });
+    await page.goto(`/trips/${tripId}`);
+    await expect(page.getByText("Day 1").last()).toBeVisible();
+  });
+
+  test("editing a day's date works via the mobile card", async ({ page }) => {
+    await page.getByText("Day 1").last().click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByRole("heading", { name: "Day 1" })).toBeVisible();
+
+    await drawer.getByText("Add date").click();
+    const input = drawer.getByPlaceholder("Pick a date");
+    await input.fill("August 15, 2026");
+    await input.press("Escape");
+
+    await expect(drawer.getByText("Aug 15")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("Aug 15").last()).toBeVisible();
+  });
+
+  test("removing a day works via the mobile card", async ({ page }) => {
+    await page.getByText("Day 1").last().click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByRole("heading", { name: "Day 1" })).toBeVisible();
+
+    await drawer.getByRole("button", { name: "Remove day" }).click();
+    await expect(page.getByText("Remove day?")).toBeVisible();
+    await page.getByRole("button", { name: "Remove", exact: true }).click();
+
+    await expect(page.getByText("No meals planned yet.")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("No meals planned yet.")).toBeVisible();
   });
 });

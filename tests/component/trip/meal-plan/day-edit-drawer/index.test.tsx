@@ -127,6 +127,69 @@ describe("quick-add", () => {
   });
 });
 
+describe("editing the day's date", () => {
+  it("updates the date via PATCH when a new date is picked", async () => {
+    renderDrawer(day({ dayNumber: 2, date: "2026-08-15" }));
+
+    fireEvent.click(screen.getByText("Aug 15"));
+    fireEvent.change(screen.getByPlaceholderText("Pick a date"), {
+      target: { value: "August 20, 2026" },
+    });
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/meal-plan/days/2");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ date: "2026-08-20" });
+    await waitFor(() => {});
+  });
+
+  it("shows an 'Add date' affordance when the day has no date", () => {
+    renderDrawer(day({ date: null }));
+    expect(screen.getByText("Add date")).toBeInTheDocument();
+  });
+});
+
+describe("removing the day", () => {
+  async function openRemoveConfirm() {
+    fireEvent.click(screen.getByRole("button", { name: "Remove day" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Remove day?" }),
+      ).toBeInTheDocument(),
+    );
+  }
+
+  it("asks for confirmation before deleting", async () => {
+    renderDrawer(day({ dayNumber: 2 }));
+    await openRemoveConfirm();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("calls the delete API and closes the drawer on confirm", async () => {
+    renderDrawer(day({ dayNumber: 2 }));
+    await openRemoveConfirm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/meal-plan/days/2");
+    expect(init.method).toBe("DELETE");
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not delete when cancelled", async () => {
+    renderDrawer(day({ dayNumber: 2 }));
+    await openRemoveConfirm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
 describe("navigating to an item", () => {
   const breakfastDay = () =>
     day({
