@@ -64,6 +64,10 @@ function addUtcDays(date: string, days: number): string {
   return result.toISOString().slice(0, 10);
 }
 
+export function dayItems(day: ClientMealPlanDay): ClientMealPlanItem[] {
+  return MEAL_ORDER.flatMap((meal) => day.meals[meal]);
+}
+
 export function itemTotalCalories(item: ClientMealPlanItem): number {
   return item.calories * item.quantity;
 }

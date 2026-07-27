@@ -1,4 +1,5 @@
 import PackingListSection from "$/frontend/trip/packing-lists";
+import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import type { ClientTripPackingList } from "$/transformers/trip-packing-list";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -82,6 +83,34 @@ function makePackingList(
   };
 }
 
+function makeMealPlanDay(
+  overrides: Partial<ClientMealPlanDay> = {},
+): ClientMealPlanDay {
+  return {
+    id: "day-1",
+    dayNumber: 1,
+    date: "2026-08-14",
+    meals: {
+      breakfast: [
+        {
+          id: "meal-item-oatmeal",
+          name: "Instant Oatmeal",
+          calories: 200,
+          quantity: 2,
+          waterMl: 300,
+          dryWeightGrams: 50,
+          meal: "breakfast",
+          status: { purchased: false, packed: false },
+        },
+      ],
+      lunch: [],
+      dinner: [],
+      snacks: [],
+    },
+    ...overrides,
+  };
+}
+
 // AssignPackingListDrawer is always mounted and fires a background
 // packing-list search request regardless of whether it's open (see
 // waitForPatchCall below), so every test needs fetch mocked — otherwise that
@@ -100,11 +129,16 @@ afterEach(() => {
 
 function renderSection(
   packingList: ClientTripPackingList | null = makePackingList(),
+  mealPlan: ClientMealPlanDay[] = [],
 ) {
   return render(
     <QueryClientProvider client={new QueryClient()}>
       <MantineProvider theme={{ respectReducedMotion: true }}>
-        <PackingListSection tripId="trip-1" packingList={packingList} />
+        <PackingListSection
+          tripId="trip-1"
+          packingList={packingList}
+          mealPlan={mealPlan}
+        />
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -372,5 +406,85 @@ describe("removing a packing list assignment", () => {
         (call[1] as RequestInit | undefined)?.method === "DELETE",
     )! as [string, RequestInit];
     expect(deleteCall[0]).toBe("/api/trips/trip-1/packing-list/list-1");
+  });
+});
+
+describe("meal plan section", () => {
+  it("does not render when the trip has no meal plan items", () => {
+    renderSection(makePackingList(), [
+      makeMealPlanDay({
+        meals: {
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      }),
+    ]);
+    expect(screen.queryByText("Meal Plan")).not.toBeInTheDocument();
+  });
+
+  it("renders a pinned section above the regular sections when a list is assigned", () => {
+    renderSection(makePackingList(), [makeMealPlanDay()]);
+    expect(screen.getByText("Meal Plan")).toBeInTheDocument();
+    expect(screen.getByText("Auto-synced")).toBeInTheDocument();
+    expect(screen.getByText("Instant Oatmeal")).toBeInTheDocument();
+  });
+
+  it("still renders the full empty state (with its call to action) when no list is assigned", () => {
+    renderSection(null, [makeMealPlanDay()]);
+    expect(screen.getByText("Meal Plan")).toBeInTheDocument();
+    expect(screen.getByText("No packing list assigned")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Assign a packing list" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the progress overview even when no list is assigned", () => {
+    renderSection(null, [makeMealPlanDay()]);
+    expect(screen.getByText("Packing Progress")).toBeInTheDocument();
+    expect(screen.getByText("0%")).toBeInTheDocument();
+  });
+
+  it("PATCHes the item's status endpoint when purchased is toggled", async () => {
+    mockFetchOk({ item: {} });
+    renderSection(makePackingList(), [makeMealPlanDay()]);
+
+    fireEvent.click(screen.getByText("Meal Plan"));
+    await waitFor(() =>
+      screen.getByRole("checkbox", {
+        name: "Mark Instant Oatmeal as purchased",
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Mark Instant Oatmeal as purchased",
+      }),
+    );
+
+    const [url, init] = await waitForPatchCall();
+    expect(url).toBe(
+      "/api/trips/trip-1/meal-plan/days/1/items/meal-item-oatmeal/status",
+    );
+    expect(JSON.parse(init.body as string)).toEqual({ purchased: true });
+  });
+
+  it("PATCHes the item's status endpoint when packed is toggled", async () => {
+    mockFetchOk({ item: {} });
+    renderSection(makePackingList(), [makeMealPlanDay()]);
+
+    fireEvent.click(screen.getByText("Meal Plan"));
+    await waitFor(() =>
+      screen.getByRole("checkbox", { name: "Mark Instant Oatmeal as packed" }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Mark Instant Oatmeal as packed" }),
+    );
+
+    const [url, init] = await waitForPatchCall();
+    expect(url).toBe(
+      "/api/trips/trip-1/meal-plan/days/1/items/meal-item-oatmeal/status",
+    );
+    expect(JSON.parse(init.body as string)).toEqual({ packed: true });
   });
 });

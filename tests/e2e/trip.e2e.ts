@@ -1318,6 +1318,135 @@ test.describe("Trip Page", () => {
       });
     });
   });
+
+  test.describe("meal plan section on the packing list", () => {
+    // "Meal Plan" also labels the Meal Plan section's own <h3> higher on the
+    // page, so the pinned card (badged "Auto-synced") is targeted through
+    // that badge rather than by its ambiguous "Meal Plan" row text.
+    async function addMealPlanItemViaApi(
+      page: Page,
+      dayNumber: number,
+      name: string,
+    ): Promise<void> {
+      const response = await page.request.post(
+        `/api/trips/${tripId}/meal-plan/days/${dayNumber}/items`,
+        { data: { name, meal: "breakfast", quantity: 1 } },
+      );
+      expect(response.ok()).toBe(true);
+    }
+
+    async function createOwnedPackingList(
+      page: Page,
+      name: string,
+    ): Promise<string> {
+      const response = await page.request.post("/api/packing-lists", {
+        data: { name },
+      });
+      expect(response.ok()).toBe(true);
+      const { packingList } = await response.json();
+      return packingList.id;
+    }
+
+    async function assignPackingListViaApi(
+      page: Page,
+      listId: string,
+    ): Promise<void> {
+      const response = await page.request.post(
+        `/api/trips/${tripId}/packing-list`,
+        { data: { packingListId: listId } },
+      );
+      expect(response.ok()).toBe(true);
+    }
+
+    test.describe("with no packing list assigned", () => {
+      test("shows the pinned section alongside the full empty state and its call to action", async ({
+        page,
+      }) => {
+        await addMealPlanItemViaApi(page, 1, "Instant Oatmeal");
+        await page.reload();
+
+        await expect(page.getByText("Auto-synced")).toBeVisible();
+        await expect(page.getByText("No packing list assigned")).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Assign a packing list" }),
+        ).toBeVisible();
+      });
+
+      test("still renders the progress overview", async ({ page }) => {
+        await addMealPlanItemViaApi(page, 1, "Instant Oatmeal");
+        await page.reload();
+
+        await expect(page.getByText("Packing Progress")).toBeVisible();
+        await expect(page.getByText("0%")).toBeVisible();
+      });
+    });
+
+    test.describe("toggling purchased and packed", () => {
+      test("persists across a reload", async ({ page }) => {
+        await addMealPlanItemViaApi(page, 1, "Instant Oatmeal");
+        await page.reload();
+
+        await page.getByText("Auto-synced").click();
+        await page
+          .getByRole("checkbox", {
+            name: "Mark Instant Oatmeal as purchased",
+          })
+          .click();
+        await page
+          .getByRole("checkbox", { name: "Mark Instant Oatmeal as packed" })
+          .click();
+
+        await expect(
+          page.getByRole("checkbox", {
+            name: "Mark Instant Oatmeal as purchased",
+          }),
+        ).toBeChecked();
+        await expect(
+          page.getByRole("checkbox", {
+            name: "Mark Instant Oatmeal as packed",
+          }),
+        ).toBeChecked();
+
+        await page.reload();
+        await page.getByText("Auto-synced").click();
+        await expect(
+          page.getByRole("checkbox", {
+            name: "Mark Instant Oatmeal as purchased",
+          }),
+        ).toBeChecked();
+        await expect(
+          page.getByRole("checkbox", {
+            name: "Mark Instant Oatmeal as packed",
+          }),
+        ).toBeChecked();
+      });
+    });
+
+    test.describe("with a packing list assigned", () => {
+      test("keeps the pinned section and folds it into the combined progress", async ({
+        page,
+      }) => {
+        await addMealPlanItemViaApi(page, 1, "Instant Oatmeal");
+        const listId = await createOwnedPackingList(
+          page,
+          `E2E Meal Kit ${Date.now()}`,
+        );
+        await assignPackingListViaApi(page, listId);
+        await page.reload();
+
+        await expect(page.getByText("Auto-synced")).toBeVisible();
+
+        await page.getByText("Auto-synced").click();
+        await page
+          .getByRole("checkbox", { name: "Mark Instant Oatmeal as packed" })
+          .click();
+
+        // The meal item is the only trackable item on this otherwise-empty
+        // assigned list, so packing it brings the combined ring to 100%.
+        await expect(page.getByText("100%")).toBeVisible();
+      });
+    });
+  });
 });
 
 test.describe("Trip Page - mobile meal plan", () => {

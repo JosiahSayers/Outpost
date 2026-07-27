@@ -9,7 +9,7 @@ import ItemRow from "./item-row";
 
 // The dot is a status summary, not a category label: unstarted, in progress,
 // or fully packed, in the same three on-brand colors as everywhere else.
-function statusColor(packedCount: number, total: number): string {
+export function statusColor(packedCount: number, total: number): string {
   if (total > 0 && packedCount === total) return "trail-green";
   if (packedCount > 0) return "trail-dust";
   return "bark-brown";
@@ -31,6 +31,8 @@ export default function CategoryRow({
   const items = sortByPosition(section.items);
   const activeItems = items.filter((item) => !item.status.notNeeded);
   const excludedItems = items.filter((item) => item.status.notNeeded);
+  const requiredItems = activeItems.filter((item) => !item.optional);
+  const optionalItems = activeItems.filter((item) => item.optional);
   const packedCount = activeItems.filter((item) => item.status.packed).length;
 
   return (
@@ -88,7 +90,7 @@ export default function CategoryRow({
 
       <Collapse expanded={opened}>
         <Stack gap={2} mt="sm">
-          {activeItems.map((item) => (
+          {requiredItems.map((item) => (
             <ItemRow
               key={item.id}
               item={item}
@@ -96,6 +98,29 @@ export default function CategoryRow({
               onToggleNotNeeded={onToggleNotNeeded}
             />
           ))}
+
+          {optionalItems.length > 0 && (
+            <>
+              <Text
+                size="xs"
+                fw={700}
+                tt="uppercase"
+                c="dimmed"
+                mt="xs"
+                style={{ letterSpacing: "0.04em" }}
+              >
+                Optional
+              </Text>
+              {optionalItems.map((item) => (
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  onTogglePacked={onTogglePacked}
+                  onToggleNotNeeded={onToggleNotNeeded}
+                />
+              ))}
+            </>
+          )}
 
           {excludedItems.length > 0 && (
             <ExcludedItems

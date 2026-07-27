@@ -5,7 +5,7 @@ export const logger = winston.createLogger({
   format: getFormat(),
   defaultMeta: await getDefaultMeta(),
   exitOnError: false,
-  transports: getTransports("application"),
+  transports: getTransports(),
   silent: Bun.env.NODE_ENV === "test",
 });
 
@@ -14,7 +14,7 @@ export const jobLogger = winston.createLogger({
   format: getFormat(),
   defaultMeta: await getDefaultMeta(),
   exitOnError: false,
-  transports: getTransports("job"),
+  transports: getTransports(),
   silent: Bun.env.NODE_ENV === "test",
 });
 
@@ -30,39 +30,19 @@ async function getDefaultMeta() {
   return { version: (await Bun.file("./version").text())?.trim() };
 }
 
-function getTransports(loggerName: string) {
+function getTransports() {
   const transports: transport[] = [];
 
-  if (Bun.env.SKIP_LOG_WRITE !== "true") {
-    //
-    // - Write all logs with importance level of `error` or higher to `error.log`
-    //   (i.e., error, fatal, but not other levels)
-    //
-    transports.push(
-      new winston.transports.File({
-        filename: `${Bun.env.LOG_FOLDER}/${loggerName}.error.log`,
-        level: "error",
-        handleExceptions: true,
-      }),
-    );
-    //
-    // - Write all logs with importance level of `info` or higher to `combined.log`
-    //   (i.e., fatal, error, warn, and info, but not trace)
-    //
-    transports.push(
-      new winston.transports.File({
-        filename: `${Bun.env.LOG_FOLDER}/${loggerName}.combined.log`,
-      }),
-    );
-  }
-
-  if (Bun.env.NODE_ENV !== "production") {
-    transports.push(
-      new winston.transports.Console({
-        format: winston.format.simple(),
-      }),
-    );
-  }
+  // Logs are always written to stdout/stderr, never to disk. In production,
+  // Docker's logging driver handles rotation (see `logging:` in
+  // docker-compose.staging.yml).
+  transports.push(
+    new winston.transports.Console({
+      format:
+        Bun.env.NODE_ENV === "production" ? undefined : winston.format.simple(),
+      handleExceptions: true,
+    }),
+  );
 
   return transports;
 }

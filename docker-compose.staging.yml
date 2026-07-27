@@ -39,8 +39,11 @@ services:
   app:
     image: josiahsayers15/outpost:latest
     restart: unless-stopped
-    volumes:
-      - ./container_files/logs:/usr/src/log
+    logging:
+      driver: local
+      options:
+        max-size: "20m"
+        max-file: "5"
     env_file:
       - .env.staging
 
@@ -48,8 +51,11 @@ services:
     image: josiahsayers15/outpost:latest
     restart: unless-stopped
     entrypoint: ["bun", "run", "start:workers"]
-    volumes:
-      - ./container_files/logs:/usr/src/log
+    logging:
+      driver: local
+      options:
+        max-size: "20m"
+        max-file: "5"
     env_file:
       - .env.staging
 

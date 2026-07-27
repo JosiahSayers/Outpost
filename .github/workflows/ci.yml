@@ -35,7 +35,6 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/outpost
       REDIS_URL: valkey://localhost:6379
       PORT: 3000
-      SKIP_LOG_WRITE: "true"
       BETTER_AUTH_SECRET: really-bad-secret
       BETTER_AUTH_URL: http://localhost:3000
       RESEND_API_KEY: not-a-real-key
