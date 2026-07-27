@@ -1,46 +1,71 @@
 import CategoryRow from "$/frontend/trip/packing-lists/category-row";
-import type { MergedPackingCategory } from "$/frontend/trip/placeholder-data";
+import type { ClientPackingListSection } from "$/transformers/packing-list-section";
+import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
 
-type Item = MergedPackingCategory["items"][number];
+type Section = ClientPackingListSection & {
+  items: ClientTripPackingListItem[];
+};
 
-function makeItem(overrides: Partial<Item> = {}): Item {
+function makeItem(
+  overrides: Partial<ClientTripPackingListItem> = {},
+): ClientTripPackingListItem {
   return {
     id: "item-1",
     name: "Item",
-    packed: false,
-    notNeeded: false,
-    listId: 101,
-    listName: "Wonderland Backpacking Kit",
+    optional: false,
+    quantity: 1,
+    sortPosition: 0,
+    status: { packed: false, notNeeded: false },
     ...overrides,
   };
 }
 
-function category(
-  overrides: Partial<MergedPackingCategory> = {},
-): MergedPackingCategory {
+function section(overrides: Partial<Section> = {}): Section {
   return {
+    id: "section-1",
     name: "Clothing",
+    sortPosition: 0,
     items: [
-      makeItem({ id: "1", name: "Rain jacket", packed: true }),
-      makeItem({ id: "2", name: "Fleece", packed: true }),
-      makeItem({ id: "3", name: "Sun hat", packed: false }),
-      makeItem({ id: "4", name: "Gloves", packed: false, notNeeded: true }),
+      makeItem({
+        id: "1",
+        name: "Rain jacket",
+        sortPosition: 0,
+        status: { packed: true, notNeeded: false },
+      }),
+      makeItem({
+        id: "2",
+        name: "Fleece",
+        sortPosition: 1,
+        status: { packed: true, notNeeded: false },
+      }),
+      makeItem({
+        id: "3",
+        name: "Sun hat",
+        sortPosition: 2,
+        status: { packed: false, notNeeded: false },
+      }),
+      makeItem({
+        id: "4",
+        name: "Gloves",
+        sortPosition: 3,
+        status: { packed: false, notNeeded: true },
+      }),
     ],
     ...overrides,
   };
 }
 
-function renderRow(cat: MergedPackingCategory = category()) {
+function renderRow(sec: Section = section()) {
   const onTogglePacked = mock();
   const onToggleNotNeeded = mock();
   const utils = render(
     <MantineProvider>
       <CategoryRow
-        category={cat}
+        section={sec}
         onTogglePacked={onTogglePacked}
         onToggleNotNeeded={onToggleNotNeeded}
       />
@@ -57,7 +82,7 @@ async function openRow(name = "Clothing") {
 }
 
 describe("header", () => {
-  it("renders the category name", () => {
+  it("renders the section name", () => {
     renderRow();
     expect(screen.getByText("Clothing")).toBeInTheDocument();
   });
@@ -67,17 +92,17 @@ describe("header", () => {
     expect(screen.getByText("2/3")).toBeInTheDocument();
   });
 
-  it("renders a 'not needed' badge when the category has excluded items", () => {
+  it("renders a 'not needed' badge when the section has excluded items", () => {
     renderRow();
     expect(screen.getByText("1 not needed")).toBeInTheDocument();
   });
 
   it("does not render the badge when nothing is excluded", () => {
     renderRow(
-      category({
+      section({
         items: [
-          makeItem({ id: "1", packed: true }),
-          makeItem({ id: "2", packed: false }),
+          makeItem({ id: "1", status: { packed: true, notNeeded: false } }),
+          makeItem({ id: "2", status: { packed: false, notNeeded: false } }),
         ],
       }),
     );
@@ -92,10 +117,10 @@ describe("status dot", () => {
 
   it("is bark-brown when nothing is packed", () => {
     const { container } = renderRow(
-      category({
+      section({
         items: [
-          makeItem({ id: "1", packed: false }),
-          makeItem({ id: "2", packed: false }),
+          makeItem({ id: "1", status: { packed: false, notNeeded: false } }),
+          makeItem({ id: "2", status: { packed: false, notNeeded: false } }),
         ],
       }),
     );
@@ -113,11 +138,14 @@ describe("status dot", () => {
 
   it("is trail-green when every active item is packed", () => {
     const { container } = renderRow(
-      category({
+      section({
         items: [
-          makeItem({ id: "1", packed: true }),
-          makeItem({ id: "2", packed: true }),
-          makeItem({ id: "3", packed: false, notNeeded: true }),
+          makeItem({ id: "1", status: { packed: true, notNeeded: false } }),
+          makeItem({ id: "2", status: { packed: true, notNeeded: false } }),
+          makeItem({
+            id: "3",
+            status: { packed: false, notNeeded: true },
+          }),
         ],
       }),
     );
@@ -162,33 +190,30 @@ describe("toggling an item", () => {
   });
 });
 
-describe("multi-list categories", () => {
-  it("shows a source list badge on items when the category spans more than one list", () => {
+describe("item order", () => {
+  it("renders items sorted by sortPosition regardless of input order", async () => {
     renderRow(
-      category({
+      section({
         items: [
           makeItem({
-            id: "1",
-            name: "Stove",
-            listId: 101,
-            listName: "Wonderland Backpacking Kit",
+            id: "2",
+            name: "Second",
+            sortPosition: 1,
+            status: { packed: false, notNeeded: false },
           }),
           makeItem({
-            id: "2",
-            name: "Pot",
-            listId: 102,
-            listName: "Cook & Food Kit",
+            id: "1",
+            name: "First",
+            sortPosition: 0,
+            status: { packed: false, notNeeded: false },
           }),
         ],
       }),
     );
-    expect(screen.getByText("Cook & Food Kit")).toBeInTheDocument();
-  });
-
-  it("does not show a source badge when every item is from the same list", () => {
-    renderRow();
-    expect(
-      screen.queryByText("Wonderland Backpacking Kit"),
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Clothing"));
+    await waitFor(() => screen.getByRole("checkbox", { name: "First" }));
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toHaveAccessibleName("First");
+    expect(checkboxes[1]).toHaveAccessibleName("Second");
   });
 });

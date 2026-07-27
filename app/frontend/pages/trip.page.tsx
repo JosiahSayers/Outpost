@@ -61,7 +61,7 @@ export default function TripPage() {
 
       <Divider />
 
-      <PackingListSection tripId={trip.id} />
+      <PackingListSection tripId={trip.id} packingList={trip.packingList} />
 
       <Divider />
 

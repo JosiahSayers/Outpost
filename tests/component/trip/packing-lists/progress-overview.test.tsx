@@ -7,14 +7,14 @@ import { describe, expect, it } from "bun:test";
 interface Props {
   packed: number;
   total: number;
-  numberOfPackingLists: number;
+  packingListName: string;
 }
 
 function renderOverview(overrides: Partial<Props> = {}) {
   const props: Props = {
     packed: 18,
     total: 32,
-    numberOfPackingLists: 2,
+    packingListName: "Wonderland Backpacking Kit",
     ...overrides,
   };
   return render(
@@ -52,8 +52,8 @@ describe("summary text", () => {
     expect(screen.getByText("5/10 packed")).toBeInTheDocument();
   });
 
-  it("renders the number of assigned packing lists", () => {
-    renderOverview({ numberOfPackingLists: 3 });
-    expect(screen.getByText("across 3 lists")).toBeInTheDocument();
+  it("renders the assigned packing list's name", () => {
+    renderOverview({ packingListName: "Alpine Kit" });
+    expect(screen.getByText("Alpine Kit")).toBeInTheDocument();
   });
 });

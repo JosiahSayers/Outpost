@@ -1,5 +1,7 @@
 import ExcludedItems from "$/frontend/trip/packing-lists/category-row/excluded-items";
-import type { MergedPackingCategory } from "$/frontend/trip/placeholder-data";
+import { sortByPosition } from "$/frontend/utils/sort-by-position";
+import type { ClientPackingListSection } from "$/transformers/packing-list-section";
+import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { Badge, Card, Collapse, Group, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { CaretDownIcon } from "@phosphor-icons/react";
@@ -14,22 +16,22 @@ function statusColor(packedCount: number, total: number): string {
 }
 
 interface Props {
-  category: MergedPackingCategory;
+  section: ClientPackingListSection & { items: ClientTripPackingListItem[] };
   onTogglePacked: (itemId: string, packed: boolean) => void;
   onToggleNotNeeded: (itemId: string, notNeeded: boolean) => void;
 }
 
 export default function CategoryRow({
-  category,
+  section,
   onTogglePacked,
   onToggleNotNeeded,
 }: Props) {
   const [opened, { toggle }] = useDisclosure(false);
 
-  const activeItems = category.items.filter((item) => !item.notNeeded);
-  const excludedItems = category.items.filter((item) => item.notNeeded);
-  const packedCount = activeItems.filter((item) => item.packed).length;
-  const multiList = new Set(category.items.map((item) => item.listId)).size > 1;
+  const items = sortByPosition(section.items);
+  const activeItems = items.filter((item) => !item.status.notNeeded);
+  const excludedItems = items.filter((item) => item.status.notNeeded);
+  const packedCount = activeItems.filter((item) => item.status.packed).length;
 
   return (
     <Card withBorder padding="sm">
@@ -52,7 +54,7 @@ export default function CategoryRow({
             }}
           />
           <Text fw={600} size="sm" truncate="end">
-            {category.name}
+            {section.name}
           </Text>
           {excludedItems.length > 0 && (
             <Badge
@@ -90,7 +92,6 @@ export default function CategoryRow({
             <ItemRow
               key={item.id}
               item={item}
-              multiList={multiList}
               onTogglePacked={onTogglePacked}
               onToggleNotNeeded={onToggleNotNeeded}
             />

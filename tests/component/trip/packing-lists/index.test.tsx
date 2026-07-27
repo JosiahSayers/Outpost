@@ -1,9 +1,5 @@
 import PackingListSection from "$/frontend/trip/packing-lists";
-import {
-  mergeCategories,
-  packingCompletion,
-  placeholderPackingLists,
-} from "$/frontend/trip/placeholder-data";
+import type { ClientTripPackingList } from "$/transformers/trip-packing-list";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -26,25 +22,113 @@ window.matchMedia = (query: string) =>
     dispatchEvent: () => false,
   }) as MediaQueryList;
 
-function renderSection() {
+function makePackingList(
+  overrides: Partial<ClientTripPackingList> = {},
+): ClientTripPackingList {
+  return {
+    id: "tpl-1",
+    tripId: "trip-1",
+    packingListId: "list-1",
+    name: "Wonderland Backpacking Kit",
+    sections: [
+      {
+        id: "sec-shelter",
+        name: "Shelter",
+        sortPosition: 0,
+        items: [
+          {
+            id: "item-tent",
+            name: "Tent",
+            optional: false,
+            quantity: 1,
+            sortPosition: 0,
+            status: { packed: true, notNeeded: false },
+          },
+          {
+            id: "item-stakes",
+            name: "Stakes (8x)",
+            optional: false,
+            quantity: 1,
+            sortPosition: 1,
+            status: { packed: false, notNeeded: false },
+          },
+        ],
+      },
+      {
+        id: "sec-clothing",
+        name: "Clothing",
+        sortPosition: 1,
+        items: [
+          {
+            id: "item-rainjacket",
+            name: "Rain jacket",
+            optional: false,
+            quantity: 1,
+            sortPosition: 0,
+            status: { packed: true, notNeeded: false },
+          },
+          {
+            id: "item-gloves",
+            name: "Gloves",
+            optional: false,
+            quantity: 1,
+            sortPosition: 1,
+            status: { packed: false, notNeeded: true },
+          },
+        ],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+function renderSection(
+  packingList: ClientTripPackingList | null = makePackingList(),
+) {
   return render(
     <QueryClientProvider client={new QueryClient()}>
       <MantineProvider theme={{ respectReducedMotion: true }}>
-        <PackingListSection tripId="trip-1" />
+        <PackingListSection tripId="trip-1" packingList={packingList} />
       </MantineProvider>
     </QueryClientProvider>,
   );
 }
 
-function pct(packed: number, total: number) {
-  return total === 0 ? 0 : Math.round((packed / total) * 100);
+// Mantine's Collapse keeps a section's items mounted but `inert`/hidden until
+// it opens, so role-based item queries only resolve after expanding.
+async function openSection(sectionName: string, exampleItemName: string) {
+  fireEvent.click(screen.getByText(sectionName));
+  await waitFor(() => screen.getByRole("checkbox", { name: exampleItemName }));
 }
 
-// Mantine's Collapse keeps a category's items mounted but `inert`/hidden
-// until it opens, so role-based item queries only resolve after expanding.
-async function openCategory(categoryName: string, exampleItemName: string) {
-  fireEvent.click(screen.getByText(categoryName));
-  await waitFor(() => screen.getByRole("checkbox", { name: exampleItemName }));
+// The assign drawer is always mounted and fires a background packing-list
+// search request regardless of `opened`, so the PATCH call isn't necessarily
+// the first fetch call — find it by method instead.
+async function waitForPatchCall(): Promise<[string, RequestInit]> {
+  await waitFor(() => {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    const patchCall = fetchMock.mock.calls.find(
+      (call: unknown[]) =>
+        (call[1] as RequestInit | undefined)?.method === "PATCH",
+    );
+    expect(patchCall).toBeDefined();
+  });
+  const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+  return fetchMock.mock.calls.find(
+    (call: unknown[]) =>
+      (call[1] as RequestInit | undefined)?.method === "PATCH",
+  )! as [string, RequestInit];
+}
+
+function mockFetchOk(body: unknown = {}) {
+  global.fetch = mock(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ),
+  ) as unknown as typeof fetch;
 }
 
 describe("rendering", () => {
@@ -55,85 +139,83 @@ describe("rendering", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the overall packed percentage from the placeholder data", () => {
+  it("renders the overall packed percentage, excluding not-needed items", () => {
     renderSection();
-    const { packed, total } = packingCompletion(placeholderPackingLists);
-    expect(screen.getByText(`${pct(packed, total)}%`)).toBeInTheDocument();
+    // packed: Tent, Rain jacket (2); total, excluding Gloves: Tent, Stakes, Rain jacket (3)
+    expect(screen.getByText("67%")).toBeInTheDocument();
   });
 
-  it("renders one row per merged category", () => {
+  it("renders one row per section", () => {
     renderSection();
-    for (const category of mergeCategories(placeholderPackingLists)) {
-      expect(screen.getByText(category.name)).toBeInTheDocument();
-    }
+    expect(screen.getByText("Shelter")).toBeInTheDocument();
+    expect(screen.getByText("Clothing")).toBeInTheDocument();
   });
 
-  it("renders the assign-a-packing-list action", () => {
-    renderSection();
+  it("renders the assign-a-packing-list action when no list is assigned", () => {
+    renderSection(null);
     expect(
       screen.getByRole("button", { name: "Assign a packing list" }),
     ).toBeInTheDocument();
   });
+
+  it("renders the remove action when a list is assigned", () => {
+    renderSection();
+    expect(
+      screen.getByRole("button", { name: "Remove packing list assignment" }),
+    ).toBeInTheDocument();
+  });
 });
 
-describe("packing an item", () => {
-  it("increases the overall packed percentage", async () => {
+describe("toggling an item's packed state", () => {
+  it("PATCHes the item with the packing list id and new packed state", async () => {
+    mockFetchOk({ item: {} });
     renderSection();
-    const { packed, total } = packingCompletion(placeholderPackingLists);
 
-    await openCategory("Shelter", "Stakes (8x)");
+    await openSection("Shelter", "Stakes (8x)");
     fireEvent.click(screen.getByRole("checkbox", { name: "Stakes (8x)" }));
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(`${pct(packed + 1, total)}%`),
-      ).toBeInTheDocument(),
-    );
+    const [url, init] = await waitForPatchCall();
+    expect(url).toBe("/api/trips/trip-1/packing-list/list-1/item-stakes");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ packed: true });
   });
 });
 
 describe("marking an item as not needed", () => {
-  it("drops it from both sides of the packed fraction and its checkbox row", async () => {
+  it("PATCHes the item with notNeeded true", async () => {
+    mockFetchOk({ item: {} });
     renderSection();
-    const { packed, total } = packingCompletion(placeholderPackingLists);
 
-    await openCategory("Shelter", "Stakes (8x)");
+    await openSection("Shelter", "Stakes (8x)");
     fireEvent.click(
       document.querySelector(
         '[aria-label="Mark Stakes (8x) as not needed for this trip"]',
       )!,
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(`${pct(packed, total - 1)}%`),
-      ).toBeInTheDocument(),
-    );
-    expect(
-      screen.queryByRole("checkbox", { name: "Stakes (8x)" }),
-    ).not.toBeInTheDocument();
+    const [url, init] = await waitForPatchCall();
+    expect(url).toBe("/api/trips/trip-1/packing-list/list-1/item-stakes");
+    expect(JSON.parse(init.body as string)).toEqual({ notNeeded: true });
   });
 });
 
 describe("including a previously excluded item", () => {
-  it("adds it back into the denominator", async () => {
+  it("PATCHes the item with notNeeded false", async () => {
+    mockFetchOk({ item: {} });
     renderSection();
-    const { packed, total } = packingCompletion(placeholderPackingLists);
 
-    await openCategory("Clothing", "Rain jacket");
+    await openSection("Clothing", "Rain jacket");
     fireEvent.click(screen.getByText("Not needed for this trip (1)"));
     await waitFor(() => screen.getByRole("button", { name: "Include" }));
     fireEvent.click(screen.getByRole("button", { name: "Include" }));
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(`${pct(packed, total + 1)}%`),
-      ).toBeInTheDocument(),
-    );
+    const [url, init] = await waitForPatchCall();
+    expect(url).toBe("/api/trips/trip-1/packing-list/list-1/item-gloves");
+    expect(JSON.parse(init.body as string)).toEqual({ notNeeded: false });
   });
 });
 
-describe("assigning and removing a packing list", () => {
+describe("assigning a packing list", () => {
   function mockFetch() {
     global.fetch = mock((url: RequestInfo | URL, init?: RequestInit) => {
       const urlStr = String(url);
@@ -174,40 +256,26 @@ describe("assigning and removing a packing list", () => {
         );
       }
 
-      if (
-        urlStr === "/api/trips/trip-1/packing-list/list-1" &&
-        method === "DELETE"
-      ) {
-        return Promise.resolve(new Response(null, { status: 200 }));
-      }
-
       return Promise.resolve(new Response("{}", { status: 200 }));
     }) as unknown as typeof fetch;
   }
 
-  async function assignAlpineKit() {
+  async function selectAndSubmit() {
     fireEvent.click(
       screen.getByRole("button", { name: "Assign a packing list" }),
     );
     await waitFor(() => screen.getByRole("textbox", { name: /Packing list/i }));
-
     fireEvent.change(screen.getByRole("textbox", { name: /Packing list/i }), {
       target: { value: "Alpine" },
     });
     await waitFor(() => screen.getByText("Alpine Kit"));
     fireEvent.click(screen.getByText("Alpine Kit"));
     fireEvent.click(screen.getByRole("button", { name: "Assign list" }));
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Remove packing list assignment" }),
-      ).toBeInTheDocument(),
-    );
   }
 
   it("opens the assign drawer when clicked", async () => {
     mockFetch();
-    renderSection();
+    renderSection(null);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Assign a packing list" }),
@@ -220,17 +288,19 @@ describe("assigning and removing a packing list", () => {
     );
   });
 
-  it("renames the button to offer removal once a list is assigned", async () => {
-    mockFetch();
-    renderSection();
-    await assignAlpineKit();
-  });
-
   it("calls the assign API with the selected packing list id", async () => {
     mockFetch();
-    renderSection();
-    await assignAlpineKit();
+    renderSection(null);
+    await selectAndSubmit();
 
+    await waitFor(() => {
+      const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+      const postCall = fetchMock.mock.calls.find(
+        (call: unknown[]) =>
+          (call[1] as RequestInit | undefined)?.method === "POST",
+      );
+      expect(postCall).toBeDefined();
+    });
     const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
     const postCall = fetchMock.mock.calls.find(
       (call: unknown[]) =>
@@ -242,10 +312,22 @@ describe("assigning and removing a packing list", () => {
     });
   });
 
-  it("shows a confirmation modal explaining the effect of removal", async () => {
+  it("closes the drawer after a successful assignment", async () => {
     mockFetch();
+    renderSection(null);
+    await selectAndSubmit();
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("textbox", { name: /Packing list/i }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe("removing a packing list assignment", () => {
+  it("shows a confirmation modal explaining the effect of removal", async () => {
     renderSection();
-    await assignAlpineKit();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Remove packing list assignment" }),
@@ -262,17 +344,14 @@ describe("assigning and removing a packing list", () => {
     expect(screen.getByText(/won.t be affected/)).toBeInTheDocument();
   });
 
-  it("calls the remove API and reverts the button on confirm", async () => {
-    mockFetch();
+  it("calls the remove API with the packing list id on confirm", async () => {
+    mockFetchOk();
     renderSection();
-    await assignAlpineKit();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Remove packing list assignment" }),
     );
     await waitFor(() => screen.getByText("Remove packing list assignment?"));
-
-    (global.fetch as unknown as ReturnType<typeof mock>).mockClear();
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
 
     await waitFor(() => {
@@ -289,11 +368,5 @@ describe("assigning and removing a packing list", () => {
         (call[1] as RequestInit | undefined)?.method === "DELETE",
     )! as [string, RequestInit];
     expect(deleteCall[0]).toBe("/api/trips/trip-1/packing-list/list-1");
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Assign a packing list" }),
-      ).toBeInTheDocument(),
-    );
   });
 });
