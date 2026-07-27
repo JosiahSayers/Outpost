@@ -8,6 +8,7 @@ import type {
   createMealPlanItem,
   editMealPlanDay,
   editMealPlanItem,
+  editMealPlanItemStatus,
 } from "$/validation/trip/meal-plan";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { z } from "zod";
@@ -219,6 +220,57 @@ export function useUpdateMealPlanItem(tripId: string) {
               trip: updateDayItems(old.trip, dayNumber, (items) =>
                 items.map((item) =>
                   item.id === itemId ? { ...item, ...data } : item,
+                ),
+              ),
+            }
+          : old,
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+export function useUpdateMealPlanItemPackingStatus(tripId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = tripKeys.detail(tripId);
+  return useMutation({
+    mutationFn: ({
+      dayNumber,
+      itemId,
+      ...data
+    }: z.input<typeof editMealPlanItemStatus> & {
+      dayNumber: number;
+      itemId: string;
+    }) =>
+      apiClient<{ item: ClientMealPlanItem }>(
+        `/api/trips/${tripId}/meal-plan/days/${dayNumber}/items/${itemId}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      ),
+    onMutate: async ({ dayNumber, itemId, ...data }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ trip: ClientFullTrip }>(
+        queryKey,
+      );
+      queryClient.setQueryData<{ trip: ClientFullTrip }>(queryKey, (old) =>
+        old
+          ? {
+              trip: updateDayItems(old.trip, dayNumber, (items) =>
+                items.map((item) =>
+                  item.id === itemId
+                    ? { ...item, status: { ...item.status, ...data } }
+                    : item,
                 ),
               ),
             }

@@ -9,7 +9,7 @@ import ItemRow from "./item-row";
 
 // The dot is a status summary, not a category label: unstarted, in progress,
 // or fully packed, in the same three on-brand colors as everywhere else.
-function statusColor(packedCount: number, total: number): string {
+export function statusColor(packedCount: number, total: number): string {
   if (total > 0 && packedCount === total) return "trail-green";
   if (packedCount > 0) return "trail-dust";
   return "bark-brown";

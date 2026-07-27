@@ -7,7 +7,9 @@ import { describe, expect, it } from "bun:test";
 interface Props {
   packed: number;
   total: number;
-  packingListName: string;
+  packingListName?: string;
+  purchased?: number;
+  purchasedTotal?: number;
 }
 
 function renderOverview(overrides: Partial<Props> = {}) {
@@ -55,5 +57,30 @@ describe("summary text", () => {
   it("renders the assigned packing list's name", () => {
     renderOverview({ packingListName: "Alpine Kit" });
     expect(screen.getByText("Alpine Kit")).toBeInTheDocument();
+  });
+
+  it("omits the name line when no list is assigned", () => {
+    renderOverview({ packingListName: undefined });
+    expect(screen.queryByText("Alpine Kit")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Wonderland Backpacking Kit"),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("purchased segment", () => {
+  it("is omitted when purchasedTotal is not provided", () => {
+    renderOverview({ purchased: undefined, purchasedTotal: undefined });
+    expect(screen.queryByText(/purchased/)).not.toBeInTheDocument();
+  });
+
+  it("is omitted when purchasedTotal is 0", () => {
+    renderOverview({ purchased: 0, purchasedTotal: 0 });
+    expect(screen.queryByText(/purchased/)).not.toBeInTheDocument();
+  });
+
+  it("renders the purchased/purchasedTotal count when provided", () => {
+    renderOverview({ purchased: 3, purchasedTotal: 4 });
+    expect(screen.getByText("3/4 purchased")).toBeInTheDocument();
   });
 });
