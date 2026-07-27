@@ -190,6 +190,56 @@ describe("toggling an item", () => {
   });
 });
 
+describe("optional items", () => {
+  function sectionWithOptional() {
+    return section({
+      items: [
+        makeItem({
+          id: "1",
+          name: "Rain jacket",
+          sortPosition: 0,
+          optional: false,
+          status: { packed: false, notNeeded: false },
+        }),
+        makeItem({
+          id: "2",
+          name: "Hand warmers",
+          sortPosition: 1,
+          optional: true,
+          status: { packed: false, notNeeded: false },
+        }),
+      ],
+    });
+  }
+
+  it("renders an 'Optional' header above optional items", async () => {
+    renderRow(sectionWithOptional());
+    await openRow();
+    expect(screen.getByText("Optional")).toBeInTheDocument();
+  });
+
+  it("does not render the 'Optional' header when nothing is optional", async () => {
+    renderRow(
+      section({
+        items: [
+          makeItem({ id: "1", optional: false, name: "Rain jacket" }),
+          makeItem({ id: "2", optional: false, name: "Fleece" }),
+        ],
+      }),
+    );
+    await openRow();
+    expect(screen.queryByText("Optional")).not.toBeInTheDocument();
+  });
+
+  it("renders required items before the optional item", async () => {
+    renderRow(sectionWithOptional());
+    await openRow();
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toHaveAccessibleName("Rain jacket");
+    expect(checkboxes[1]).toHaveAccessibleName("Hand warmers");
+  });
+});
+
 describe("item order", () => {
   it("renders items sorted by sortPosition regardless of input order", async () => {
     renderRow(
