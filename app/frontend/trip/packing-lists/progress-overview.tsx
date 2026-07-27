@@ -29,10 +29,10 @@ export default function ProgressOverview({
 
   return (
     <Group gap="lg" wrap="nowrap" align="center">
-      <div style={{ position: "relative", width: 72, height: 72 }}>
+      <div style={{ position: "relative", width: 96, height: 96 }}>
         <RingProgress
-          size={72}
-          thickness={7}
+          size={96}
+          thickness={9}
           roundCaps
           sections={[{ value: pct, color: "trail-green" }]}
           label={
@@ -43,11 +43,11 @@ export default function ProgressOverview({
         />
         {hasPurchased && (
           <RingProgress
-            size={50}
-            thickness={6}
+            size={66}
+            thickness={8}
             roundCaps
             sections={[{ value: purchasedPct, color: "bark-brown" }]}
-            style={{ position: "absolute", top: 11, left: 11 }}
+            style={{ position: "absolute", top: 15, left: 15 }}
           />
         )}
       </div>
