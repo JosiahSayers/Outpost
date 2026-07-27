@@ -327,18 +327,6 @@ describe("assigning a packing list", () => {
       packingListId: "list-1",
     });
   });
-
-  it("closes the drawer after a successful assignment", async () => {
-    mockFetch();
-    renderSection(null);
-    await selectAndSubmit();
-
-    await waitFor(() =>
-      expect(
-        screen.queryByRole("textbox", { name: /Packing list/i }),
-      ).not.toBeInTheDocument(),
-    );
-  });
 });
 
 describe("removing a packing list assignment", () => {

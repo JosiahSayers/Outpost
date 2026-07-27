@@ -916,4 +916,281 @@ test.describe("Trip Page", () => {
       });
     });
   });
+
+  test.describe("packing list", () => {
+    async function createOwnedPackingList(
+      page: Page,
+      name: string,
+    ): Promise<string> {
+      const response = await page.request.post("/api/packing-lists", {
+        data: { name },
+      });
+      expect(response.ok()).toBe(true);
+      const { packingList } = await response.json();
+      return packingList.id;
+    }
+
+    async function addSectionViaApi(
+      page: Page,
+      listId: string,
+      name: string,
+    ): Promise<string> {
+      const response = await page.request.post(
+        `/api/packing-lists/${listId}/sections`,
+        { data: { name } },
+      );
+      expect(response.ok()).toBe(true);
+      const { section } = await response.json();
+      return section.id;
+    }
+
+    async function addItemViaApi(
+      page: Page,
+      listId: string,
+      sectionId: string,
+      name: string,
+      optional = false,
+    ): Promise<void> {
+      const response = await page.request.post(
+        `/api/packing-lists/${listId}/sections/${sectionId}/items`,
+        { data: { name, quantity: 1, optional } },
+      );
+      expect(response.ok()).toBe(true);
+    }
+
+    async function assignPackingListViaApi(
+      page: Page,
+      listId: string,
+    ): Promise<void> {
+      const response = await page.request.post(
+        `/api/trips/${tripId}/packing-list`,
+        { data: { packingListId: listId } },
+      );
+      expect(response.ok()).toBe(true);
+    }
+
+    test.describe("with no list assigned", () => {
+      test("shows the empty state", async ({ page }) => {
+        await expect(
+          page.getByText("No packing list assigned"),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Assign a packing list" }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Remove packing list assignment" }),
+        ).not.toBeVisible();
+      });
+    });
+
+    test.describe("assigning a packing list", () => {
+      test("shows it on the trip, closes the drawer, and persists across a reload", async ({
+        page,
+      }) => {
+        const listName = `E2E Packing List ${Date.now()}`;
+        await createOwnedPackingList(page, listName);
+
+        await page
+          .getByRole("button", { name: "Assign a packing list" })
+          .click();
+        await page
+          .getByRole("textbox", { name: /Packing list/i })
+          .fill(listName);
+        await page.getByRole("option", { name: listName }).click();
+        await page.getByRole("button", { name: "Assign list" }).click();
+
+        await expect(
+          page.getByRole("textbox", { name: /Packing list/i }),
+        ).not.toBeVisible();
+        await expect(page.getByText(listName)).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Remove packing list assignment" }),
+        ).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText(listName)).toBeVisible();
+      });
+
+      test("searches only lists the user owns", async ({ page }) => {
+        await page
+          .getByRole("button", { name: "Assign a packing list" })
+          .click();
+        await page
+          .getByRole("textbox", { name: /Packing list/i })
+          .fill("Definitely Not A Real List Name");
+        await expect(page.getByText("No packing lists found")).toBeVisible();
+      });
+    });
+
+    test.describe("with an assigned list", () => {
+      let listName: string;
+      let listId: string;
+      let sectionId: string;
+
+      test.beforeEach(async ({ page }) => {
+        listName = `E2E Kit ${Date.now()}`;
+        listId = await createOwnedPackingList(page, listName);
+        sectionId = await addSectionViaApi(page, listId, "Shelter");
+        await addItemViaApi(page, listId, sectionId, "Tent");
+        await addItemViaApi(page, listId, sectionId, "Stakes");
+        await assignPackingListViaApi(page, listId);
+        await page.reload();
+      });
+
+      test("shows the list name and its sections", async ({ page }) => {
+        await expect(page.getByText(listName)).toBeVisible();
+        await expect(page.getByText("Shelter")).toBeVisible();
+      });
+
+      test("shows the overall packed percentage, starting at 0%", async ({
+        page,
+      }) => {
+        await expect(page.getByText("0%")).toBeVisible();
+      });
+
+      test("expands a section to reveal its items", async ({ page }) => {
+        await page.getByText("Shelter").click();
+        await expect(
+          page.getByRole("checkbox", { name: "Tent" }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("checkbox", { name: "Stakes" }),
+        ).toBeVisible();
+      });
+
+      test.describe("toggling an item's packed state", () => {
+        test("checks the item, updates the percentage, and persists across a reload", async ({
+          page,
+        }) => {
+          await page.getByText("Shelter").click();
+          await page.getByRole("checkbox", { name: "Tent" }).click();
+          await expect(
+            page.getByRole("checkbox", { name: "Tent" }),
+          ).toBeChecked();
+          await expect(page.getByText("50%")).toBeVisible();
+
+          await page.reload();
+          await page.getByText("Shelter").click();
+          await expect(
+            page.getByRole("checkbox", { name: "Tent" }),
+          ).toBeChecked();
+          await expect(page.getByText("50%")).toBeVisible();
+        });
+
+        test("unchecking a packed item reverts the percentage", async ({
+          page,
+        }) => {
+          await page.getByText("Shelter").click();
+          const tent = page.getByRole("checkbox", { name: "Tent" });
+          await tent.click();
+          await expect(tent).toBeChecked();
+          await tent.click();
+          await expect(tent).not.toBeChecked();
+          await expect(page.getByText("0%")).toBeVisible();
+        });
+      });
+
+      test.describe("marking an item as not needed", () => {
+        test("excludes it from the progress count and lists it under 'not needed'", async ({
+          page,
+        }) => {
+          await page.getByText("Shelter").click();
+          await page.getByText("Tent").hover();
+          await page
+            .getByRole("button", {
+              name: "Mark Tent as not needed for this trip",
+            })
+            .click();
+
+          await expect(
+            page.getByText("Not needed for this trip (1)"),
+          ).toBeVisible();
+          // Tent is excluded, leaving only Stakes (unpacked) in the count.
+          await expect(page.getByText("0%")).toBeVisible();
+          await expect(
+            page.getByRole("checkbox", { name: "Tent" }),
+          ).not.toBeVisible();
+        });
+
+        test.describe("including it again", () => {
+          test("restores it to the active list and the progress count", async ({
+            page,
+          }) => {
+            await page.getByText("Shelter").click();
+            await page.getByText("Tent").hover();
+            await page
+              .getByRole("button", {
+                name: "Mark Tent as not needed for this trip",
+              })
+              .click();
+
+            await page.getByText("Not needed for this trip (1)").click();
+            await page.getByRole("button", { name: "Include" }).click();
+
+            await expect(
+              page.getByRole("checkbox", { name: "Tent" }),
+            ).toBeVisible();
+            await expect(
+              page.getByText("Not needed for this trip"),
+            ).not.toBeVisible();
+          });
+        });
+      });
+
+      test.describe("removing the assignment", () => {
+        test("shows a confirmation explaining the effect", async ({
+          page,
+        }) => {
+          await page
+            .getByRole("button", { name: "Remove packing list assignment" })
+            .click();
+
+          await expect(
+            page.getByRole("heading", {
+              name: "Remove packing list assignment?",
+            }),
+          ).toBeVisible();
+          await expect(
+            page.getByText(/all packing list item statuses/),
+          ).toBeVisible();
+          await expect(page.getByText(/won.t be affected/)).toBeVisible();
+        });
+
+        test("does not remove the assignment when cancelled", async ({
+          page,
+        }) => {
+          await page
+            .getByRole("button", { name: "Remove packing list assignment" })
+            .click();
+          await page.getByRole("button", { name: "Cancel" }).click();
+
+          await expect(
+            page.getByRole("heading", {
+              name: "Remove packing list assignment?",
+            }),
+          ).not.toBeVisible();
+          await expect(page.getByText(listName)).toBeVisible();
+        });
+
+        test("shows the empty state and persists across a reload when confirmed", async ({
+          page,
+        }) => {
+          await page
+            .getByRole("button", { name: "Remove packing list assignment" })
+            .click();
+          await page.getByRole("button", { name: "Remove", exact: true }).click();
+
+          await expect(
+            page.getByText("No packing list assigned"),
+          ).toBeVisible();
+          await expect(page.getByText(listName)).not.toBeVisible();
+
+          await page.reload();
+          await expect(
+            page.getByText("No packing list assigned"),
+          ).toBeVisible();
+        });
+      });
+    });
+  });
 });
