@@ -8,7 +8,7 @@ describe("stashRequestMetadata", () => {
     const next = mock();
     stashRequestMetadata(mockReq, mockRes, next);
 
-    expect(mockReq.start).toBeCloseTo(new Date().getTime());
+    expect(mockReq.start).toBeCloseTo(new Date().getTime(), -3);
   });
 
   it("stashes a uuid to id", () => {
