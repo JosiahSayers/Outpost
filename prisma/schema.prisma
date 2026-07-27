@@ -277,12 +277,12 @@ model Trip {
   start    DateTime?  @db.Date
   end      DateTime?  @db.Date
 
-  user         User              @relation(fields: [userId], references: [id])
+  user         User             @relation(fields: [userId], references: [id])
   userId       String
   tasks        TripTask[]
   mealPlanDays MealPlanDay[]
   links        TripLink[]
-  packingLists TripPackingList[]
+  packingList  TripPackingList?
 
   // Covers status alone or status + start
   @@index([status, start])
@@ -387,12 +387,11 @@ model TripPackingList {
   updatedAt DateTime @updatedAt
 
   trip                        Trip                        @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  tripId                      String
+  tripId                      String                      @unique
   packingList                 PackingList                 @relation(fields: [packingListId], references: [id], onDelete: Cascade)
   packingListId               String
   tripPackingListItemStatuses TripPackingListItemStatus[]
 
-  @@unique(tripId)
   @@index(packingListId)
 }
 

@@ -22,7 +22,7 @@ export type ClientTripPackingList = Omit<
   >;
 };
 
-type Input = TripPackingList & {
+export type TripPackingListInput = TripPackingList & {
   packingList: PackingList & {
     packingListSections: Array<
       PackingListSection & {
@@ -36,7 +36,7 @@ type Input = TripPackingList & {
   };
 };
 
-export function transform(item: Input): ClientTripPackingList {
+export function transform(item: TripPackingListInput): ClientTripPackingList {
   return {
     id: item.id,
     tripId: item.tripId,

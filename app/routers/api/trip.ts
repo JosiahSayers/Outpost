@@ -50,6 +50,23 @@ tripRouter.get(
         tasks: true,
         mealPlanDays: { include: { items: true } },
         links: true,
+        packingList: {
+          include: {
+            packingList: {
+              include: {
+                packingListSections: {
+                  include: {
+                    items: {
+                      include: {
+                        tripPackingListItemStatuses: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });

@@ -1,5 +1,10 @@
 import { toDateOnly } from "$/transformers/helpers";
 import {
+  transform as tripPackingListTransform,
+  type ClientTripPackingList,
+  type TripPackingListInput,
+} from "$/transformers/trip-packing-list";
+import {
   transform as tripTaskTransform,
   type ClientTripTask,
 } from "$/transformers/trip-task";
@@ -38,12 +43,14 @@ export type ClientFullTrip = ClientTrip & {
   tasks: ClientTripTask[];
   mealPlan: ClientMealPlanDay[];
   links: ClientTripLink[];
+  packingList: ClientTripPackingList | null;
 };
 
 type FullTrip = Trip & {
   tasks: TripTask[];
   mealPlanDays: FullMealPlanDayInput[];
   links: TripLink[];
+  packingList: TripPackingListInput | null;
 };
 
 export function transformFull(item: FullTrip): ClientFullTrip {
@@ -52,5 +59,8 @@ export function transformFull(item: FullTrip): ClientFullTrip {
     tasks: item.tasks.map(tripTaskTransform),
     mealPlan: item.mealPlanDays.map(mealPlanDayTransform),
     links: item.links.map(tripLinkTransform),
+    packingList: item.packingList
+      ? tripPackingListTransform(item.packingList)
+      : null,
   };
 }
