@@ -58,6 +58,53 @@ SELECT "Place".id
     .filter((place) => place !== undefined);
 }
 
+export interface SearchMealPlanItemsOptions {
+  // Exclude items belonging to this trip (typically the trip being edited),
+  // so "previous trips" doesn't just echo items already on the current one.
+  excludeTripId?: string;
+  limit?: number;
+}
+
+// Full-text autocomplete over a user's own previous MealPlanItem rows (BTP-77:
+// autocomplete meals from previous trips). Scoped to the requesting user via
+// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Ranked by text
+// relevance, then most recently created first, so a user's latest naming/entry
+// for a given meal wins ties. Two-step like searchCategories/searchPlaces:
+// rank ids in SQL, hydrate via Prisma, preserve the ranked order on the way out.
+export async function searchMealPlanItems(
+  searchQuery: string,
+  userId: string,
+  { excludeTripId, limit = 20 }: SearchMealPlanItemsOptions = {},
+) {
+  const formattedQuery = toPrefixTsQuery(searchQuery);
+  if (!formattedQuery) return [];
+
+  const excludeTripIdParam = excludeTripId ?? null;
+
+  const results = await db.$queryRaw<Array<{ id: string }>>`
+SELECT "MealPlanItem".id
+  FROM "MealPlanItem"
+  JOIN "MealPlanDay" ON "MealPlanDay".id = "MealPlanItem"."mealPlanDayId"
+  JOIN "Trip" ON "Trip".id = "MealPlanDay"."tripId"
+  WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+    AND "Trip"."userId" = ${userId}
+    AND (${excludeTripIdParam}::text IS NULL OR "Trip".id != ${excludeTripIdParam})
+  ORDER BY ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
+           "MealPlanItem"."createdAt" DESC
+  LIMIT ${limit};
+`;
+
+  const rankedIds = results.map((result) => result.id);
+  const items = await db.mealPlanItem.findMany({
+    where: { id: { in: rankedIds } },
+  });
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+
+  return rankedIds
+    .map((id) => itemsById.get(id))
+    .filter((item) => item !== undefined);
+}
+
 export async function searchCategories(
   searchQuery: string,
   forUserId: string | null = null,
