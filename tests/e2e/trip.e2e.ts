@@ -971,9 +971,7 @@ test.describe("Trip Page", () => {
 
     test.describe("with no list assigned", () => {
       test("shows the empty state", async ({ page }) => {
-        await expect(
-          page.getByText("No packing list assigned"),
-        ).toBeVisible();
+        await expect(page.getByText("No packing list assigned")).toBeVisible();
         await expect(
           page.getByRole("button", { name: "Assign a packing list" }),
         ).toBeVisible();
@@ -1138,9 +1136,7 @@ test.describe("Trip Page", () => {
       });
 
       test.describe("removing the assignment", () => {
-        test("shows a confirmation explaining the effect", async ({
-          page,
-        }) => {
+        test("shows a confirmation explaining the effect", async ({ page }) => {
           await page
             .getByRole("button", { name: "Remove packing list assignment" })
             .click();
@@ -1178,7 +1174,9 @@ test.describe("Trip Page", () => {
           await page
             .getByRole("button", { name: "Remove packing list assignment" })
             .click();
-          await page.getByRole("button", { name: "Remove", exact: true }).click();
+          await page
+            .getByRole("button", { name: "Remove", exact: true })
+            .click();
 
           await expect(
             page.getByText("No packing list assigned"),
