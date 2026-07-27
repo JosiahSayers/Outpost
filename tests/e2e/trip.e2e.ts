@@ -694,14 +694,21 @@ test.describe("Trip Page", () => {
         await table(page).getByText("Day 1").click();
         const drawer = page.getByRole("dialog");
         await drawer.getByText("Add date").click();
-        const input = drawer.getByPlaceholder("Pick a date");
-        await input.fill("August 15, 2026");
-        await input.press("Escape");
+        const firstInput = drawer.getByPlaceholder("Pick a date");
+        await firstInput.fill("August 15, 2026");
+        await firstInput.press("Escape");
         await expect(drawer.getByText("Aug 15")).toBeVisible();
 
+        // Reload before the second edit rather than immediately re-clicking
+        // the just-saved text: the first save's cache invalidation refetch
+        // re-renders that text node shortly after it appears, and clicking
+        // it mid-flight can hit it between detach and reattach.
+        await page.reload();
+        await table(page).getByText("Day 1").click();
         await drawer.getByText("Aug 15").click();
-        await drawer.getByPlaceholder("Pick a date").fill("August 20, 2026");
-        await drawer.getByPlaceholder("Pick a date").press("Escape");
+        const secondInput = drawer.getByPlaceholder("Pick a date");
+        await secondInput.fill("August 20, 2026");
+        await secondInput.press("Escape");
 
         await expect(drawer.getByText("Aug 20")).toBeVisible();
 
