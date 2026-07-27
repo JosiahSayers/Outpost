@@ -1,4 +1,12 @@
-import type { MealPlanItem } from "../../../generated/prisma/client";
+import type {
+  MealPlanItem,
+  MealPlanItemPackingStatus,
+} from "../../../generated/prisma/browser";
+
+export type ClientMealPlanItemPackingStatus = Omit<
+  MealPlanItemPackingStatus,
+  "id" | "createdAt" | "updatedAt" | "mealPlanItemId"
+>;
 
 export type ClientMealPlanItem = Pick<
   MealPlanItem,
@@ -9,9 +17,15 @@ export type ClientMealPlanItem = Pick<
   | "waterMl"
   | "dryWeightGrams"
   | "meal"
->;
+> & {
+  status: ClientMealPlanItemPackingStatus;
+};
 
-export function transform(item: MealPlanItem): ClientMealPlanItem {
+type Input = MealPlanItem & {
+  packingStatuses: MealPlanItemPackingStatus[];
+};
+
+export function transform(item: Input): ClientMealPlanItem {
   return {
     id: item.id,
     name: item.name,
@@ -20,5 +34,9 @@ export function transform(item: MealPlanItem): ClientMealPlanItem {
     waterMl: item.waterMl,
     dryWeightGrams: item.dryWeightGrams,
     meal: item.meal,
+    status: {
+      packed: item.packingStatuses[0]?.packed ?? false,
+      purchased: item.packingStatuses[0]?.purchased ?? false,
+    },
   };
 }

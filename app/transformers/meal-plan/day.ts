@@ -3,6 +3,7 @@ import type {
   MealName,
   MealPlanDay,
   MealPlanItem,
+  MealPlanItemPackingStatus,
 } from "../../../generated/prisma/browser";
 import { transform as itemTransform, type ClientMealPlanItem } from "./item";
 
@@ -13,8 +14,12 @@ export type ClientMealPlanDay = Pick<MealPlanDay, "id" | "dayNumber"> & {
   meals: Record<MealName, ClientMealPlanItem[]>;
 };
 
+type FullMealPlanItem = MealPlanItem & {
+  packingStatuses: MealPlanItemPackingStatus[];
+};
+
 export type FullMealPlanDayInput = MealPlanDay & {
-  items: MealPlanItem[];
+  items: FullMealPlanItem[];
 };
 
 export function transform(item: FullMealPlanDayInput): ClientMealPlanDay {
@@ -28,7 +33,7 @@ export function transform(item: FullMealPlanDayInput): ClientMealPlanDay {
   };
 }
 
-function getItems(items: MealPlanItem[], mealName: MealName) {
+function getItems(items: FullMealPlanItem[], mealName: MealName) {
   return items
     .filter((mealPlanItem) => mealPlanItem.meal === mealName)
     .map(itemTransform);

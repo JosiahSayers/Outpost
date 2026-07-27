@@ -549,6 +549,7 @@ describe("POST /days/:day/items", () => {
         quantity: 2,
         waterMl: 250,
         dryWeightGrams: 100,
+        status: { purchased: false, packed: false },
       },
     });
   });
@@ -568,6 +569,7 @@ describe("POST /days/:day/items", () => {
       quantity: 1,
       waterMl: null,
       dryWeightGrams: null,
+      status: { purchased: false, packed: false },
     });
   });
 
@@ -783,6 +785,7 @@ describe("PATCH /days/:day/items/:itemId", () => {
         quantity: 3,
         waterMl: 100,
         dryWeightGrams: 50,
+        status: { purchased: false, packed: false },
       },
     });
   });
@@ -803,6 +806,7 @@ describe("PATCH /days/:day/items/:itemId", () => {
         quantity: 1,
         waterMl: null,
         dryWeightGrams: null,
+        status: { purchased: false, packed: false },
       },
     });
   });
@@ -995,5 +999,250 @@ describe("DELETE /days/:day/items/:itemId", () => {
       where: { id: itemId },
     });
     expect(dbItem).not.toBeNull();
+  });
+});
+
+describe("PATCH /days/:day/items/:itemId/status", () => {
+  let itemId: string;
+  let expectedItem: Record<string, unknown>;
+
+  beforeEach(async () => {
+    const day = await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
+    });
+    const item = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Oatmeal",
+        meal: "breakfast",
+        calories: 300,
+        quantity: 2,
+        waterMl: 200,
+        dryWeightGrams: 50,
+      }),
+    });
+    itemId = item.id;
+    expectedItem = {
+      id: item.id,
+      name: item.name,
+      meal: item.meal,
+      calories: item.calories,
+      quantity: item.quantity,
+      waterMl: item.waterMl,
+      dryWeightGrams: item.dryWeightGrams,
+    };
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true })
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .patch(
+        `/api/trips/does-not-exist/meal-plan/days/1/items/${itemId}/status`,
+      )
+      .send({ purchased: true })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 404 when the day does not exist", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/99/items/${itemId}/status`)
+      .send({ purchased: true })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item does not exist", async () => {
+    await request(app)
+      .patch(
+        `/api/trips/${tripId}/meal-plan/days/1/items/does-not-exist/status`,
+      )
+      .send({ purchased: true })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different trip", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(
+        `/api/trips/${otherTrip.id}/meal-plan/days/1/items/${itemId}/status`,
+      )
+      .send({ purchased: true })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 404 when the item belongs to a different day on the same trip", async () => {
+    await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 2 }), date: null },
+    });
+
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/2/items/${itemId}/status`)
+      .send({ purchased: true })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("creates a status when none exists, returning the full meal plan item", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true, packed: false })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      item: {
+        ...expectedItem,
+        status: { purchased: true, packed: false },
+      },
+    });
+  });
+
+  it("persists the created status to the database", async () => {
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true, packed: false })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const dbStatus = await db.mealPlanItemPackingStatus.findUnique({
+      where: { mealPlanItemId: itemId },
+    });
+    expect(dbStatus).toMatchObject({ purchased: true, packed: false });
+  });
+
+  it("updates an existing status", async () => {
+    await db.mealPlanItemPackingStatus.create({
+      data: make("MealPlanItemPackingStatus", {
+        mealPlanItemId: itemId,
+        purchased: false,
+        packed: false,
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true, packed: true })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      item: {
+        ...expectedItem,
+        status: { purchased: true, packed: true },
+      },
+    });
+  });
+
+  it("allows a partial update, leaving other fields unchanged", async () => {
+    await db.mealPlanItemPackingStatus.create({
+      data: make("MealPlanItemPackingStatus", {
+        mealPlanItemId: itemId,
+        purchased: true,
+        packed: false,
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ packed: true })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      item: {
+        ...expectedItem,
+        status: { purchased: true, packed: true },
+      },
+    });
+  });
+
+  it("rejects a non-boolean purchased value", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: "yes" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [
+        expect.objectContaining({
+          path: ["purchased"],
+        }),
+      ],
+      type: "body",
+    });
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true, notAField: true })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("does not modify the status when the owning user check fails", async () => {
+    await db.mealPlanItemPackingStatus.create({
+      data: make("MealPlanItemPackingStatus", {
+        mealPlanItemId: itemId,
+        purchased: false,
+        packed: false,
+      }),
+    });
+
+    await request(app)
+      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
+      .send({ purchased: true, packed: true })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+
+    const dbStatus = await db.mealPlanItemPackingStatus.findUnique({
+      where: { mealPlanItemId: itemId },
+    });
+    expect(dbStatus).toMatchObject({ purchased: false, packed: false });
   });
 });

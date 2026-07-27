@@ -6,6 +6,7 @@ import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeMealPlanDay from "./generators/meal-plan-day";
 import makeMealPlanItem from "./generators/meal-plan-item";
+import makeMealPlanItemPackingStatus from "./generators/meal-plan-item-packing-status";
 import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
 import makePackingListSection from "./generators/packing-list-section";
@@ -36,6 +37,7 @@ type SupportedModels = PickStringLiteral<
   | "TripTask"
   | "MealPlanDay"
   | "MealPlanItem"
+  | "MealPlanItemPackingStatus"
   | "User"
 >;
 
@@ -56,6 +58,7 @@ const generators = {
   TripTask: makeTripTask,
   MealPlanDay: makeMealPlanDay,
   MealPlanItem: makeMealPlanItem,
+  MealPlanItemPackingStatus: makeMealPlanItemPackingStatus,
   User: makeUser,
 } as const;
 
