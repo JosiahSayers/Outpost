@@ -1,4 +1,5 @@
 import { db } from "$/utils/db";
+import type { MealName } from "../../generated/prisma/enums";
 
 // Turn free-text input into a prefix-match tsquery: each whitespace-delimited
 // token becomes a `token:*` prefix term, all required (`&`). Mirrors
@@ -62,24 +63,30 @@ export interface SearchMealPlanItemsOptions {
   // Exclude items belonging to this trip (typically the trip being edited),
   // so "previous trips" doesn't just echo items already on the current one.
   excludeTripId?: string;
+  // Boost rows whose meal matches this one, so e.g. searching from a
+  // breakfast slot surfaces the user's past breakfasts first. Rows with a
+  // different (or no) matching meal are still returned, just ranked lower.
+  meal?: MealName;
   limit?: number;
 }
 
 // Full-text autocomplete over a user's own previous MealPlanItem rows (BTP-77:
 // autocomplete meals from previous trips). Scoped to the requesting user via
-// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Ranked by text
-// relevance, then most recently created first, so a user's latest naming/entry
-// for a given meal wins ties. Two-step like searchCategories/searchPlaces:
-// rank ids in SQL, hydrate via Prisma, preserve the ranked order on the way out.
+// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Ranked by
+// meal match, then text relevance, then most recently created first, so a
+// user's latest naming/entry for a given meal wins ties. Two-step like
+// searchCategories/searchPlaces: rank ids in SQL, hydrate via Prisma,
+// preserve the ranked order on the way out.
 export async function searchMealPlanItems(
   searchQuery: string,
   userId: string,
-  { excludeTripId, limit = 20 }: SearchMealPlanItemsOptions = {},
+  { excludeTripId, meal, limit = 20 }: SearchMealPlanItemsOptions = {},
 ) {
   const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
 
   const excludeTripIdParam = excludeTripId ?? null;
+  const mealParam = meal ?? null;
 
   const results = await db.$queryRaw<Array<{ id: string }>>`
 SELECT "MealPlanItem".id
@@ -89,7 +96,8 @@ SELECT "MealPlanItem".id
   WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
     AND "Trip"."userId" = ${userId}
     AND (${excludeTripIdParam}::text IS NULL OR "Trip".id != ${excludeTripIdParam})
-  ORDER BY ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
+  ORDER BY ("MealPlanItem".meal = ${mealParam}::"MealName") DESC,
+           ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
            "MealPlanItem"."createdAt" DESC
   LIMIT ${limit};
 `;

@@ -1,0 +1,28 @@
+info:
+  name: Search
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/trips/00000000-0000-0000-0000-000000000000/meal-plan/items?query=oatmeal&limit=10"
+  params:
+    - name: query
+      value: oatmeal
+      type: query
+    - name: limit
+      value: "10"
+      type: query
+  auth: inherit
+
+docs: |
+  Full-text autocomplete over the current user's own MealPlanItem rows across
+  all of their trips (BTP-77), for carrying nutrition/quantity info forward
+  into a new item. Not scoped to the trip in the URL -- that's only used for
+  the ownership check. excludeTripId is accepted but not yet wired up.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

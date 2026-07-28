@@ -1,5 +1,6 @@
 import { db } from "$/utils/db";
 import { searchCategories, searchMealPlanItems } from "$/utils/search-helpers";
+import { faker } from "@faker-js/faker";
 import { beforeEach, describe, expect, it } from "bun:test";
 import type {
   GearCategory,
@@ -149,6 +150,64 @@ describe("searchMealPlanItems", () => {
       expect(results.some((item) => item.name === "Excludable Test Meal")).toBe(
         true,
       );
+    });
+  });
+
+  describe("meal option", () => {
+    let trip: Trip;
+    let mealPlanDay: MealPlanDay;
+
+    beforeEach(async () => {
+      trip = await db.trip.create({ data: make("Trip", { userId: user.id }) });
+      mealPlanDay = await db.mealPlanDay.create({
+        data: make("MealPlanDay", { tripId: trip.id, dayNumber: 1 }),
+      });
+      // Older row, but its meal matches -- should still rank first.
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          name: "Rankable Test Meal Dinner Version",
+          meal: "dinner",
+          mealPlanDayId: mealPlanDay.id,
+          createdAt: faker.date.past(),
+        }),
+      });
+      // Newer row, meal doesn't match.
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          name: "Rankable Test Meal Lunch Version",
+          meal: "lunch",
+          mealPlanDayId: mealPlanDay.id,
+          createdAt: faker.date.recent(),
+        }),
+      });
+    });
+
+    it("ranks a matching meal above a more recent non-matching meal", async () => {
+      const results = await searchMealPlanItems("rankable test meal", user.id, {
+        meal: "dinner",
+      });
+      expect(results.map((item) => item.name)).toEqual([
+        "Rankable Test Meal Dinner Version",
+        "Rankable Test Meal Lunch Version",
+      ]);
+    });
+
+    it("still returns non-matching meals when no meal matches", async () => {
+      const results = await searchMealPlanItems("rankable test meal", user.id, {
+        meal: "breakfast",
+      });
+      expect(results.map((item) => item.name).sort()).toEqual([
+        "Rankable Test Meal Dinner Version",
+        "Rankable Test Meal Lunch Version",
+      ]);
+    });
+
+    it("falls back to relevance/recency order when no meal is given", async () => {
+      const results = await searchMealPlanItems("rankable test meal", user.id);
+      expect(results.map((item) => item.name)).toEqual([
+        "Rankable Test Meal Lunch Version",
+        "Rankable Test Meal Dinner Version",
+      ]);
     });
   });
 });
