@@ -1,3 +1,4 @@
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Combobox,
   Group,
@@ -86,6 +87,7 @@ export default function SearchCombobox<T>({
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
+  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
 
   // A freeform commit (Enter/blur in a consumer's onKeyDown/onBlur) typically
   // clears the value without going through onOptionSubmit, which otherwise
@@ -126,7 +128,7 @@ export default function SearchCombobox<T>({
           autoFocus={autoFocus}
           value={value}
           aria-label={ariaLabel}
-          rightSection={isFetching ? <Loader size="xs" /> : undefined}
+          rightSection={showSpinner ? <Loader size="xs" /> : undefined}
           onChange={(e) => {
             onValueChange(e.currentTarget.value);
             combobox.openDropdown();
@@ -162,17 +164,19 @@ export default function SearchCombobox<T>({
             </Combobox.Option>
           ))}
           {results.length === 0 &&
-            (isFetching ? (
-              (renderLoading ?? (
-                <Combobox.Empty>
-                  <Group gap="xs" justify="center">
-                    <Loader size="xs" />
-                    <Text size="sm" c="dimmed">
-                      Searching…
-                    </Text>
-                  </Group>
-                </Combobox.Empty>
-              ))
+            (isLoading ? (
+              showSpinner ? (
+                (renderLoading ?? (
+                  <Combobox.Empty>
+                    <Group gap="xs" justify="center">
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">
+                        Searching…
+                      </Text>
+                    </Group>
+                  </Combobox.Empty>
+                ))
+              ) : null
             ) : (
               <Combobox.Empty>{emptyMessage}</Combobox.Empty>
             ))}

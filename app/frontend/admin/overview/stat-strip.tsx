@@ -1,3 +1,4 @@
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   useAdminDashboardStats,
   useAdminStatValues,
@@ -16,9 +17,46 @@ const TREND_COLOR: Record<NonNullable<AdminStat["trend"]>, string> = {
 // the same footprint as the loaded strip.
 const PLACEHOLDER_COUNT = 4;
 
+function StatCard({
+  data,
+  isPending,
+}: {
+  data: { stat: AdminStat } | undefined;
+  isPending: boolean;
+}) {
+  const { showSpinner } = useDelayedLoading(isPending);
+
+  return (
+    <Skeleton visible={showSpinner}>
+      <Card withBorder padding="sm" shadow="xs">
+        <Text
+          size="10px"
+          fw={700}
+          tt="uppercase"
+          c="dimmed"
+          style={{ letterSpacing: "0.06em" }}
+        >
+          {data?.stat.label ?? " "}
+        </Text>
+        <Text fz={24} fw={700} mt={2} ff="var(--mantine-font-family-headings)">
+          {data?.stat.value ?? " "}
+        </Text>
+        <Text
+          size="xs"
+          fw={600}
+          c={data?.stat.trend ? TREND_COLOR[data.stat.trend] : "dimmed"}
+        >
+          {data?.stat.delta ?? " "}
+        </Text>
+      </Card>
+    </Skeleton>
+  );
+}
+
 export default function StatStrip() {
   const { data: statsList, isPending: isStatsListPending } =
     useAdminDashboardStats();
+  const { isLoading, showSpinner } = useDelayedLoading(isStatsListPending);
 
   const sortedStats = useMemo(() => {
     if (!statsList) return [];
@@ -29,8 +67,8 @@ export default function StatStrip() {
 
   const statQueries = useAdminStatValues(sortedStats);
 
-  if (isStatsListPending) {
-    return (
+  if (isLoading) {
+    return showSpinner ? (
       <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
         {Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => (
           <Skeleton key={index} visible>
@@ -38,40 +76,13 @@ export default function StatStrip() {
           </Skeleton>
         ))}
       </SimpleGrid>
-    );
+    ) : null;
   }
 
   return (
     <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
       {statQueries.map(({ data, isPending }, index) => (
-        <Skeleton key={sortedStats[index]} visible={isPending}>
-          <Card withBorder padding="sm" shadow="xs">
-            <Text
-              size="10px"
-              fw={700}
-              tt="uppercase"
-              c="dimmed"
-              style={{ letterSpacing: "0.06em" }}
-            >
-              {data?.stat.label ?? " "}
-            </Text>
-            <Text
-              fz={24}
-              fw={700}
-              mt={2}
-              ff="var(--mantine-font-family-headings)"
-            >
-              {data?.stat.value ?? " "}
-            </Text>
-            <Text
-              size="xs"
-              fw={600}
-              c={data?.stat.trend ? TREND_COLOR[data.stat.trend] : "dimmed"}
-            >
-              {data?.stat.delta ?? " "}
-            </Text>
-          </Card>
-        </Skeleton>
+        <StatCard key={sortedStats[index]} data={data} isPending={isPending} />
       ))}
     </SimpleGrid>
   );

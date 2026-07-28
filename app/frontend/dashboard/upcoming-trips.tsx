@@ -1,6 +1,7 @@
 import NewTripDrawer from "$/frontend/dashboard/new-trip-drawer";
 import TripCard from "$/frontend/dashboard/trip-card";
 import { useTripsPage } from "$/frontend/utils/api/trip";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Button,
   Card,
@@ -31,6 +32,7 @@ export default function UpcomingTrips() {
   // never disagree.
   const skip = showAll ? (page - 1) * PAGE_SIZE : 0;
   const { data, isFetching } = useTripsPage(skip, PAGE_SIZE);
+  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
   const trips = data?.trips ?? [];
   const total = data?.total ?? 0;
 
@@ -58,16 +60,18 @@ export default function UpcomingTrips() {
 
       <NewTripDrawer opened={drawerOpened} onClose={closeDrawer} />
 
-      {isFetching ? (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          {Array.from({ length: showAll ? 6 : 3 }).map((_, i) => (
-            <Card key={i}>
-              <Skeleton height={24} width="60%" mb="xs" />
-              <Skeleton height={24} width="30%" mb="md" />
-              <Skeleton height={28} width={90} />
-            </Card>
-          ))}
-        </SimpleGrid>
+      {isLoading ? (
+        showSpinner ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            {Array.from({ length: showAll ? 6 : 3 }).map((_, i) => (
+              <Card key={i}>
+                <Skeleton height={24} width="60%" mb="xs" />
+                <Skeleton height={24} width="30%" mb="md" />
+                <Skeleton height={28} width={90} />
+              </Card>
+            ))}
+          </SimpleGrid>
+        ) : null
       ) : total === 0 ? (
         <Text c="dimmed">
           No upcoming trips. Start planning your next adventure!

@@ -1,19 +1,21 @@
 import SettingsShell from "$/frontend/account/settings-shell";
 import PageContainer from "$/frontend/layout/page-container";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { Center, Loader, Text, Title } from "@mantine/core";
 import { useParams } from "wouter";
 
 export default function AccountPage() {
   const session = useAuthenticatedGuard();
   const { tab } = useParams<{ tab?: string }>();
+  const { isLoading, showSpinner } = useDelayedLoading(session.isPending);
 
-  if (session.isPending) {
-    return (
+  if (isLoading) {
+    return showSpinner ? (
       <Center mih="calc(100vh - 60px)">
         <Loader />
       </Center>
-    );
+    ) : null;
   }
 
   return (

@@ -1,7 +1,7 @@
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
@@ -32,24 +32,32 @@ function renderPage(navigate: (to: string) => void = () => {}) {
 }
 
 describe("while the session is pending", () => {
-  it("shows a loader and not the admin shell", () => {
+  it("shows a loader and not the admin shell", async () => {
     sessionData = null;
     isPending = true;
     renderPage();
 
-    expect(document.querySelector(".mantine-Loader-root")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        document.querySelector(".mantine-Loader-root"),
+      ).toBeInTheDocument();
+    });
     expect(screen.queryByText("Overview")).not.toBeInTheDocument();
   });
 });
 
 describe("when there is no session", () => {
-  it("shows a loader while redirecting to sign-in", () => {
+  it("shows a loader while redirecting to sign-in", async () => {
     sessionData = null;
     isPending = false;
     const navigate = mock(() => {});
     renderPage(navigate);
 
-    expect(document.querySelector(".mantine-Loader-root")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        document.querySelector(".mantine-Loader-root"),
+      ).toBeInTheDocument();
+    });
     expect(navigate).toHaveBeenCalledWith(
       "/sign-in?redirect=%2Fconsole",
       undefined,
@@ -58,7 +66,7 @@ describe("when there is no session", () => {
 });
 
 describe("when signed in as a non-admin user", () => {
-  it("shows a loader while redirecting to the dashboard", () => {
+  it("shows a loader while redirecting to the dashboard", async () => {
     sessionData = {
       user: {
         name: "Josiah Sayers",
@@ -70,7 +78,11 @@ describe("when signed in as a non-admin user", () => {
     const navigate = mock(() => {});
     renderPage(navigate);
 
-    expect(document.querySelector(".mantine-Loader-root")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        document.querySelector(".mantine-Loader-root"),
+      ).toBeInTheDocument();
+    });
     expect(navigate).toHaveBeenCalledWith("/dashboard", undefined);
   });
 });

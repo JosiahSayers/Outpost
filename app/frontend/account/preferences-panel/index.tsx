@@ -4,6 +4,7 @@ import WeightUnitField from "$/frontend/account/preferences-panel/weight-unit-fi
 import { type FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import { type WeightUnit } from "$/frontend/shared-components/converter/weight-conversions";
 import { useUpdateAccountSetting } from "$/frontend/utils/api/account-settings";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { notifyError } from "$/frontend/utils/notify-error";
 import {
   Card,
@@ -22,6 +23,7 @@ export type WeightSettingSlug = "weight_viewing_unit" | "weight_entry_unit";
 
 export default function PreferencesPanel() {
   const { isPending } = useAccountSettingsContext();
+  const { isLoading, showSpinner } = useDelayedLoading(isPending);
   const updateSetting = useUpdateAccountSetting();
 
   const savePreference = (
@@ -34,12 +36,12 @@ export default function PreferencesPanel() {
     });
   };
 
-  if (isPending) {
-    return (
+  if (isLoading) {
+    return showSpinner ? (
       <Center py="xl">
         <Loader />
       </Center>
-    );
+    ) : null;
   }
 
   return (

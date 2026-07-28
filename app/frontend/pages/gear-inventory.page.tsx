@@ -7,6 +7,7 @@ import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Center, Loader, Stack } from "@mantine/core";
@@ -55,12 +56,15 @@ export default function GearInventoryPage() {
     );
   }, [data?.items]);
 
-  if (settingsPending) {
-    return (
+  const { isLoading: pageLoading, showSpinner } =
+    useDelayedLoading(settingsPending);
+
+  if (pageLoading) {
+    return showSpinner ? (
       <Center py="xl">
         <Loader />
       </Center>
-    );
+    ) : null;
   }
 
   const handleAdd = () => {
