@@ -8,6 +8,7 @@ import {
   type SessionStatusFilter,
 } from "$/frontend/utils/api/admin-sessions";
 import { ApiError } from "$/frontend/utils/api/client";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Anchor,
   Badge,
@@ -39,12 +40,14 @@ export default function UserSessions({ userId }: UserSessionsProps) {
   const [, navigate] = useLocation();
   const [status, setStatus] = useState<SessionStatusFilter>("active");
   const [page, setPage] = useState(1);
-  const { data, isPending, isFetching, isError, error } = useAdminUserSessions(
-    userId,
-    status,
-    (page - 1) * PAGE_SIZE,
-    PAGE_SIZE,
-  );
+  const {
+    data,
+    isPending: sessionsPending,
+    isFetching,
+    isError,
+    error,
+  } = useAdminUserSessions(userId, status, (page - 1) * PAGE_SIZE, PAGE_SIZE);
+  const { isLoading, showSpinner } = useDelayedLoading(sessionsPending);
   const notFound = error instanceof ApiError && error.status === 404;
 
   const sessions = data?.sessions ?? [];
@@ -110,13 +113,14 @@ export default function UserSessions({ userId }: UserSessionsProps) {
             w={{ base: "100%", sm: "auto" }}
           />
 
-          {isPending && (
-            <Center py="xl">
-              <Loader size="sm" />
-            </Center>
-          )}
+          {isLoading &&
+            (showSpinner ? (
+              <Center py="xl">
+                <Loader size="sm" />
+              </Center>
+            ) : null)}
 
-          {isError && (
+          {!isLoading && isError && (
             <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
               <Text ta="center" c="dimmed">
                 Couldn&rsquo;t load sessions for this account.
@@ -124,7 +128,7 @@ export default function UserSessions({ userId }: UserSessionsProps) {
             </Paper>
           )}
 
-          {!isPending && !isError && sessions.length === 0 && (
+          {!isLoading && !isError && sessions.length === 0 && (
             <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
               <Text ta="center" fw={700}>
                 No {status === "all" ? "" : status} sessions
@@ -136,7 +140,7 @@ export default function UserSessions({ userId }: UserSessionsProps) {
             </Paper>
           )}
 
-          {!isPending && !isError && sessions.length > 0 && (
+          {!isLoading && !isError && sessions.length > 0 && (
             <Paper withBorder>
               <Table.ScrollContainer minWidth={720}>
                 <Table highlightOnHover verticalSpacing="sm">
@@ -209,7 +213,7 @@ export default function UserSessions({ userId }: UserSessionsProps) {
             </Paper>
           )}
 
-          {!isPending && !isError && sessions.length > 0 && (
+          {!isLoading && !isError && sessions.length > 0 && (
             <AdminPagination
               page={page}
               pageSize={PAGE_SIZE}

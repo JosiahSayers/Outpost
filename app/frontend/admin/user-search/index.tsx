@@ -6,6 +6,7 @@ import PreSearchState from "$/frontend/admin/user-search/search-states/pre-searc
 import UserDetailPanel from "$/frontend/admin/user-search/user-detail-panel";
 import Error from "$/frontend/shared-components/error";
 import { useAdminUserSearch } from "$/frontend/utils/api/admin-users";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Anchor,
   Box,
@@ -80,7 +81,8 @@ export default function UserSearch() {
   const selectedUser =
     results.find((user) => user.id === selectedUserId) ?? null;
   const hasSearched = debouncedSearch.length > 0;
-  const isLoading = hasSearched && (isPending || isFetching);
+  const isSearching = hasSearched && (isPending || isFetching);
+  const { isLoading, showSpinner } = useDelayedLoading(isSearching);
 
   const showList = isWideLayout || !selectedUser;
 
@@ -115,7 +117,10 @@ export default function UserSearch() {
         <Error message={error instanceof Error ? error.message : undefined} />
       )}
 
-      {hasSearched && !isError && isLoading && <LoadingState />}
+      {hasSearched &&
+        !isError &&
+        isLoading &&
+        (showSpinner ? <LoadingState /> : null)}
 
       {hasSearched && !isError && !isLoading && results.length === 0 && (
         <NoResultsState searchTerm={debouncedSearch} />

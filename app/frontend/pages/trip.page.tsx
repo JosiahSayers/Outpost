@@ -8,21 +8,25 @@ import PackingListSection from "$/frontend/trip/packing-lists";
 import Tasks from "$/frontend/trip/tasks";
 import { useTrip } from "$/frontend/utils/api/trip";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { Alert, Center, Divider, Loader, Stack } from "@mantine/core";
 import { useParams } from "wouter";
 
 export default function TripPage() {
   useAuthenticatedGuard();
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, isError } = useTrip(id);
+  const { data, isLoading: tripLoading, isError } = useTrip(id);
   const { isPending: settingsPending } = useAccountSettingsContext();
+  const { isLoading, showSpinner } = useDelayedLoading(
+    tripLoading || settingsPending,
+  );
 
-  if (isLoading || settingsPending) {
-    return (
+  if (isLoading) {
+    return showSpinner ? (
       <Center py="xl">
         <Loader />
       </Center>
-    );
+    ) : null;
   }
 
   if (isError || !data) {

@@ -89,13 +89,19 @@ describe("the input", () => {
       target: { value: "Br" },
     });
     expect(onValueChange).toHaveBeenCalledWith("Br");
+    // The change also opens the dropdown (Popover positions async) — let
+    // that settle so it doesn't trigger a state update outside act().
+    await waitFor(() => {});
   });
 
   // The loader has no accessible role, so it's found by its Mantine class.
   it("shows a loader while fetching", async () => {
     const { container } = renderCombobox({ isFetching: true });
-    await waitFor(() => {});
-    expect(container.querySelector(".mantine-Loader-root")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        container.querySelector(".mantine-Loader-root"),
+      ).toBeInTheDocument();
+    });
   });
 
   it("does not show a loader when not fetching", async () => {
@@ -138,8 +144,23 @@ describe("the dropdown", () => {
   it("shows a searching state while fetching with no results yet", async () => {
     renderCombobox({ results: [], isFetching: true });
     await openDropdown();
-    expect(screen.getByText("Searching…")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Searching…")).toBeInTheDocument();
+    });
     expect(screen.queryByText("Nothing found")).not.toBeInTheDocument();
+  });
+
+  it("shows renderLoading instead of the default searching state when given", async () => {
+    renderCombobox({
+      results: [],
+      isFetching: true,
+      renderLoading: <Text>Custom loading</Text>,
+    });
+    await openDropdown();
+    await waitFor(() => {
+      expect(screen.getByText("Custom loading")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Searching…")).not.toBeInTheDocument();
   });
 
   it("does not show the empty message while results are present", async () => {

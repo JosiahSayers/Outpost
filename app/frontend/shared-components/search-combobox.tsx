@@ -1,3 +1,4 @@
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Combobox,
   Group,
@@ -7,7 +8,7 @@ import {
   type TextInputProps,
   useCombobox,
 } from "@mantine/core";
-import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 export interface SearchComboboxProps<T> {
   /** Field label; omit for a bare inline input. */
@@ -37,6 +38,12 @@ export interface SearchComboboxProps<T> {
   icon: ReactNode;
   /** Renders the text column of an option (right of the icon). */
   renderOption: (item: T) => ReactNode;
+  /**
+   * Overrides the default spinner + "Searching…" empty state shown while
+   * `isFetching` and no results have arrived yet — e.g. to render skeleton
+   * rows shaped like `renderOption`'s output instead.
+   */
+  renderLoading?: ReactNode;
   /** Shown when a completed search returns no results. */
   emptyMessage: string;
   /**
@@ -44,6 +51,7 @@ export interface SearchComboboxProps<T> {
    * until the user has typed a query.
    */
   hidden?: boolean;
+  "aria-label"?: string;
 }
 
 /**
@@ -71,12 +79,34 @@ export default function SearchCombobox<T>({
   onOptionSubmit,
   icon,
   renderOption,
+  renderLoading,
   emptyMessage,
   hidden = false,
+  "aria-label": ariaLabel,
 }: SearchComboboxProps<T>) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
+  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
+
+  // A freeform commit (Enter/blur in a consumer's onKeyDown/onBlur) typically
+  // clears the value without going through onOptionSubmit, which otherwise
+  // leaves Mantine's internal dropdown state "open" even though `hidden`
+  // hides it visually. That stale open state marks the target with
+  // data-mantine-stop-propagation, which swallows a later Escape keypress
+  // meant for an ancestor (e.g. a Drawer) instead of letting it bubble. Only
+  // close on a non-empty -> empty transition (an actual clear/commit), not
+  // whenever the value merely *is* empty — some consumers (e.g. a "copy from
+  // a public list" search) intentionally show results for an empty query as
+  // soon as the field is focused, and closing unconditionally on every
+  // empty-value render fought that open call and re-closed the dropdown.
+  const previousValueRef = useRef(value);
+  useEffect(() => {
+    if (value === "" && previousValueRef.current !== "") {
+      combobox.closeDropdown();
+    }
+    previousValueRef.current = value;
+  }, [value, combobox]);
 
   return (
     <Combobox
@@ -97,7 +127,8 @@ export default function SearchCombobox<T>({
           leftSection={leftSection}
           autoFocus={autoFocus}
           value={value}
-          rightSection={isFetching ? <Loader size="xs" /> : undefined}
+          aria-label={ariaLabel}
+          rightSection={showSpinner ? <Loader size="xs" /> : undefined}
           onChange={(e) => {
             onValueChange(e.currentTarget.value);
             combobox.openDropdown();
@@ -128,20 +159,24 @@ export default function SearchCombobox<T>({
                 >
                   {icon}
                 </span>
-                <div style={{ minWidth: 0 }}>{renderOption(item)}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>{renderOption(item)}</div>
               </Group>
             </Combobox.Option>
           ))}
           {results.length === 0 &&
-            (isFetching ? (
-              <Combobox.Empty>
-                <Group gap="xs" justify="center">
-                  <Loader size="xs" />
-                  <Text size="sm" c="dimmed">
-                    Searching…
-                  </Text>
-                </Group>
-              </Combobox.Empty>
+            (isLoading ? (
+              showSpinner ? (
+                (renderLoading ?? (
+                  <Combobox.Empty>
+                    <Group gap="xs" justify="center">
+                      <Loader size="xs" />
+                      <Text size="sm" c="dimmed">
+                        Searching…
+                      </Text>
+                    </Group>
+                  </Combobox.Empty>
+                ))
+              ) : null
             ) : (
               <Combobox.Empty>{emptyMessage}</Combobox.Empty>
             ))}

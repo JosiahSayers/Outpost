@@ -1,6 +1,7 @@
 import PackingListCard from "$/frontend/dashboard/packing-lists/packing-list-card";
 import NewPackingListDrawer from "$/frontend/dashboard/packing-lists/new-packing-list-drawer";
 import { usePackingLists } from "$/frontend/utils/api/packing-list";
+import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Button,
   Card,
@@ -16,6 +17,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 
 export default function PackingLists() {
   const { data: lists, isFetching } = usePackingLists();
+  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
   const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -36,14 +38,16 @@ export default function PackingLists() {
         </Button>
       </Group>
 
-      {isFetching ? (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          <Card>
-            <Skeleton height={16} width="60%" mb="xs" />
-            <Skeleton height={12} width="30%" mb="md" />
-            <Skeleton height={28} width={90} />
-          </Card>
-        </SimpleGrid>
+      {isLoading ? (
+        showSpinner ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            <Card>
+              <Skeleton height={16} width="60%" mb="xs" />
+              <Skeleton height={12} width="30%" mb="md" />
+              <Skeleton height={28} width={90} />
+            </Card>
+          </SimpleGrid>
+        ) : null
       ) : !lists || lists.length === 0 ? (
         <Text c="dimmed">
           No Packing lists yet. Create one to get started planning.
