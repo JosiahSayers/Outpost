@@ -1,5 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
+const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -13,6 +15,7 @@ export const queryClient = new QueryClient({
 
         return failureCount < 3;
       },
+      staleTime: minutesToMilliseconds(15),
     },
   },
 });

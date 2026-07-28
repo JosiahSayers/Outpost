@@ -15,6 +15,13 @@ export const baseAuthConfig = {
       sendResetPasswordEmailQueue.add(user.email, { user, url });
     },
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+      strategy: "compact",
+    },
+  },
   plugins: [admin()],
 } satisfies BetterAuthOptions;
 
