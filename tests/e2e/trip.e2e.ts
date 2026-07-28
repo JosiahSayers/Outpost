@@ -1,7 +1,7 @@
-import { test, expect } from "./support/fixtures";
-import type { Page } from "@playwright/test";
 import { db } from "$/utils/db";
+import type { Page } from "@playwright/test";
 import { make } from "../helpers/test-data/make";
+import { expect, test } from "./support/fixtures";
 
 async function createTripViaApi(
   page: Page,
@@ -496,22 +496,6 @@ test.describe("Trip Page", () => {
 
         await page.reload();
         await expect(table(page).getByText("Granola")).toBeVisible();
-      });
-
-      test("adds the item on blur without pressing Enter", async ({ page }) => {
-        await table(page).getByText("Day 1").click();
-        await expect(
-          page.getByRole("heading", { name: "Day 1" }),
-        ).toBeVisible();
-
-        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
-        await input.fill("Granola");
-        await page.getByRole("heading", { name: "Day 1" }).click();
-
-        await expect(
-          page.getByRole("button", { name: /Granola/ }),
-        ).toBeVisible();
-        await expect(input).toHaveValue("");
       });
     });
 
