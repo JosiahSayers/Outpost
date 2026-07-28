@@ -10,8 +10,14 @@ import type {
   editMealPlanItem,
   editMealPlanItemStatus,
 } from "$/validation/trip/meal-plan";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { z } from "zod";
+import type { MealName } from "../../../../generated/prisma/enums";
 import { apiClient } from "./client";
 
 export function useCreateMealPlanDay(tripId: string) {
@@ -153,6 +159,30 @@ function updateDayItems(
       };
     }),
   };
+}
+
+export const mealPlanItemSearchKeys = {
+  search: (tripId: string, query: string, meal: MealName) =>
+    ["trips", tripId, "meal-plan", "items", "search", query, meal] as const,
+};
+
+// Autocomplete over the user's own previously-entered meal plan items (BTP-77),
+// scoped to this trip's search endpoint and boosted toward the meal slot the
+// search was opened from.
+export function useMealPlanItemSearch(
+  tripId: string,
+  query: string,
+  meal: MealName,
+) {
+  return useQuery({
+    queryKey: mealPlanItemSearchKeys.search(tripId, query, meal),
+    queryFn: () =>
+      apiClient<{ items: ClientMealPlanItem[] }>(
+        `/api/trips/${tripId}/meal-plan/items?query=${encodeURIComponent(query)}&meal=${meal}`,
+      ).then((res) => res.items ?? []),
+    enabled: query.length > 0,
+    placeholderData: keepPreviousData,
+  });
 }
 
 export function useCreateMealPlanItem(tripId: string) {

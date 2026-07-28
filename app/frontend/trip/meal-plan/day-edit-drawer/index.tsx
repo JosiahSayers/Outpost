@@ -141,11 +141,23 @@ export default function DayEditDrawer({ day, tripId, opened, onClose }: Props) {
 
                   <QuickAddInput
                     meal={meal}
+                    tripId={tripId}
                     onAdd={(name) =>
                       createItem.mutate({
                         dayNumber: day.dayNumber,
                         name,
                         meal,
+                      })
+                    }
+                    onSelectExisting={(item) =>
+                      createItem.mutate({
+                        dayNumber: day.dayNumber,
+                        meal,
+                        name: item.name,
+                        calories: item.calories,
+                        quantity: item.quantity,
+                        waterMl: item.waterMl ?? undefined,
+                        dryWeightGrams: item.dryWeightGrams ?? undefined,
                       })
                     }
                   />

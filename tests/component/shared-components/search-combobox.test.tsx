@@ -142,6 +142,17 @@ describe("the dropdown", () => {
     expect(screen.queryByText("Nothing found")).not.toBeInTheDocument();
   });
 
+  it("shows renderLoading instead of the default searching state when given", async () => {
+    renderCombobox({
+      results: [],
+      isFetching: true,
+      renderLoading: <Text>Custom loading</Text>,
+    });
+    await openDropdown();
+    expect(screen.getByText("Custom loading")).toBeInTheDocument();
+    expect(screen.queryByText("Searching…")).not.toBeInTheDocument();
+  });
+
   it("does not show the empty message while results are present", async () => {
     renderCombobox();
     await openDropdown();

@@ -7,7 +7,7 @@ import {
   type TextInputProps,
   useCombobox,
 } from "@mantine/core";
-import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, type KeyboardEvent, type ReactNode } from "react";
 
 export interface SearchComboboxProps<T> {
   /** Field label; omit for a bare inline input. */
@@ -37,6 +37,12 @@ export interface SearchComboboxProps<T> {
   icon: ReactNode;
   /** Renders the text column of an option (right of the icon). */
   renderOption: (item: T) => ReactNode;
+  /**
+   * Overrides the default spinner + "Searching…" empty state shown while
+   * `isFetching` and no results have arrived yet — e.g. to render skeleton
+   * rows shaped like `renderOption`'s output instead.
+   */
+  renderLoading?: ReactNode;
   /** Shown when a completed search returns no results. */
   emptyMessage: string;
   /**
@@ -44,6 +50,7 @@ export interface SearchComboboxProps<T> {
    * until the user has typed a query.
    */
   hidden?: boolean;
+  "aria-label"?: string;
 }
 
 /**
@@ -71,12 +78,24 @@ export default function SearchCombobox<T>({
   onOptionSubmit,
   icon,
   renderOption,
+  renderLoading,
   emptyMessage,
   hidden = false,
+  "aria-label": ariaLabel,
 }: SearchComboboxProps<T>) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
+
+  // A freeform commit (Enter/blur in a consumer's onKeyDown/onBlur) typically
+  // clears the value without going through onOptionSubmit, which otherwise
+  // leaves Mantine's internal dropdown state "open" even though `hidden`
+  // hides it visually. That stale open state marks the target with
+  // data-mantine-stop-propagation, which swallows a later Escape keypress
+  // meant for an ancestor (e.g. a Drawer) instead of letting it bubble.
+  useEffect(() => {
+    if (value === "") combobox.closeDropdown();
+  }, [value, combobox]);
 
   return (
     <Combobox
@@ -97,6 +116,7 @@ export default function SearchCombobox<T>({
           leftSection={leftSection}
           autoFocus={autoFocus}
           value={value}
+          aria-label={ariaLabel}
           rightSection={isFetching ? <Loader size="xs" /> : undefined}
           onChange={(e) => {
             onValueChange(e.currentTarget.value);
@@ -134,14 +154,16 @@ export default function SearchCombobox<T>({
           ))}
           {results.length === 0 &&
             (isFetching ? (
-              <Combobox.Empty>
-                <Group gap="xs" justify="center">
-                  <Loader size="xs" />
-                  <Text size="sm" c="dimmed">
-                    Searching…
-                  </Text>
-                </Group>
-              </Combobox.Empty>
+              (renderLoading ?? (
+                <Combobox.Empty>
+                  <Group gap="xs" justify="center">
+                    <Loader size="xs" />
+                    <Text size="sm" c="dimmed">
+                      Searching…
+                    </Text>
+                  </Group>
+                </Combobox.Empty>
+              ))
             ) : (
               <Combobox.Empty>{emptyMessage}</Combobox.Empty>
             ))}

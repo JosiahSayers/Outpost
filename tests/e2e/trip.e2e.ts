@@ -515,6 +515,139 @@ test.describe("Trip Page", () => {
       });
     });
 
+    test.describe("searching past items from the quick-add box", () => {
+      // Every new trip seeds a dateless Day 1 (createDefaultMealPlan), so a
+      // freshly created "history" trip can immediately take a meal-plan-item
+      // POST without any extra setup.
+      async function createHistoryItemViaApi(
+        page: Page,
+        data: {
+          name: string;
+          calories: number;
+          meal: string;
+          waterMl?: number;
+          dryWeightGrams?: number;
+          quantity?: number;
+        },
+      ): Promise<void> {
+        const historyTripId = await createTripViaApi(page, {
+          name: `E2E History Trip ${Date.now()}`,
+        });
+        const response = await page.request.post(
+          `/api/trips/${historyTripId}/meal-plan/days/1/items`,
+          { data },
+        );
+        expect(response.ok()).toBe(true);
+      }
+
+      test("surfaces a past item's calories, water, weight, and meal at a glance", async ({
+        page,
+      }) => {
+        const itemName = `Ramen Bomb ${Date.now()}`;
+        await createHistoryItemViaApi(page, {
+          name: itemName,
+          calories: 890,
+          meal: "dinner",
+          waterMl: 500,
+          dryWeightGrams: 210,
+        });
+
+        await table(page).getByText("Day 1").click();
+        await page
+          .getByRole("textbox", { name: "Add to Dinner" })
+          .fill(itemName.slice(0, 6));
+
+        const option = page.getByRole("option", { name: itemName });
+        await expect(option).toBeVisible();
+        await expect(option.getByText("890")).toBeVisible();
+        await expect(option.getByText("500 mL")).toBeVisible();
+        await expect(option.getByText("210 g")).toBeVisible();
+        await expect(option.getByText("Dinner")).toBeVisible();
+      });
+
+      test("shows a message naming the query when no past item matches", async ({
+        page,
+      }) => {
+        await table(page).getByText("Day 1").click();
+        await page
+          .getByRole("textbox", { name: "Add to Breakfast" })
+          .fill("Nonexistent Meal Item ZZZ");
+
+        await expect(
+          page.getByText('No past items match "Nonexistent Meal Item ZZZ"'),
+        ).toBeVisible();
+      });
+
+      test("selecting a match creates a new item with its full data", async ({
+        page,
+      }) => {
+        const itemName = `Ramen Bomb ${Date.now()}`;
+        await createHistoryItemViaApi(page, {
+          name: itemName,
+          calories: 890,
+          meal: "dinner",
+          waterMl: 500,
+          dryWeightGrams: 210,
+          quantity: 2,
+        });
+
+        await table(page).getByText("Day 1").click();
+        const input = page.getByRole("textbox", { name: "Add to Dinner" });
+        await input.fill(itemName.slice(0, 6));
+        await page.getByRole("option", { name: itemName }).click();
+
+        await expect(input).toHaveValue("");
+        await expect(
+          page.getByRole("button", { name: itemName }),
+        ).toBeVisible();
+
+        // Water/dry weight render through a unit converter whose default
+        // unit depends on locale, so the created item's canonical values are
+        // checked via the API rather than the (unit-dependent) edit form.
+        const response = await page.request.get(`/api/trips/${tripId}`);
+        const { trip } = await response.json();
+        const created = trip.mealPlan[0].meals.dinner.find(
+          (item: { name: string }) => item.name === itemName,
+        );
+        expect(created).toMatchObject({
+          calories: 890,
+          quantity: 2,
+          waterMl: 500,
+          dryWeightGrams: 210,
+          meal: "dinner",
+        });
+      });
+
+      test("assigns the currently open meal, not the match's original meal", async ({
+        page,
+      }) => {
+        const itemName = `Snack Bar ${Date.now()}`;
+        await createHistoryItemViaApi(page, {
+          name: itemName,
+          calories: 250,
+          meal: "snacks",
+        });
+
+        await table(page).getByText("Day 1").click();
+        // Search from the Breakfast slot even though the match was
+        // historically logged as a snack.
+        const input = page.getByRole("textbox", { name: "Add to Breakfast" });
+        await input.fill(itemName.slice(0, 6));
+        await page.getByRole("option", { name: itemName }).click();
+
+        await expect(
+          page.getByRole("button", { name: itemName }),
+        ).toBeVisible();
+
+        const response = await page.request.get(`/api/trips/${tripId}`);
+        const { trip } = await response.json();
+        const created = trip.mealPlan[0].meals.breakfast.find(
+          (item: { name: string }) => item.name === itemName,
+        );
+        expect(created).toMatchObject({ meal: "breakfast" });
+      });
+    });
+
     test.describe("editing a meal item", () => {
       test("editing name, meal, and calories persists across a reload", async ({
         page,
