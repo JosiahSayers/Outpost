@@ -116,6 +116,7 @@ mealPlanRouter.get(
       req.session!.user.id,
       {
         limit: req.query.limit,
+        meal: req.query.meal,
       },
     );
 

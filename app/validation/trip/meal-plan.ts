@@ -46,4 +46,5 @@ export const mealPlanItemSearch = z.strictObject({
   query: z.string().min(1),
   limit: z.coerce.number().int().min(1).max(50).optional(),
   excludeTripId: z.string().optional(),
+  meal: z.enum(MealName).optional(),
 });

@@ -703,6 +703,62 @@ describe("GET /items", () => {
       expect.objectContaining({ id: itemId, name: "Freezedriedtestmeal" }),
     ]);
   });
+
+  it("rejects an invalid meal value", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, meal: "brunch" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_value",
+              "message": "Invalid option: expected one of "breakfast"|"lunch"|"dinner"|"snacks"",
+              "path": [
+                "meal",
+              ],
+              "values": [
+                "breakfast",
+                "lunch",
+                "dinner",
+                "snacks",
+              ],
+            },
+          ],
+          "type": "query",
+        },
+      ]
+    `);
+  });
+
+  it("ranks items matching the given meal above other matches", async () => {
+    const day = await db.mealPlanDay.findFirstOrThrow({ where: { tripId } });
+    // The seeded item is breakfast; add a lunch match too, so a "lunch"
+    // search should surface it first despite being created afterward.
+    const lunchItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Freezedriedtestmeal Lunch",
+        meal: "lunch",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, meal: "lunch" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.items.map((item: { id: string }) => item.id)).toEqual([
+      lunchItem.id,
+      itemId,
+    ]);
+  });
 });
 
 describe("POST /days/:day/items", () => {
