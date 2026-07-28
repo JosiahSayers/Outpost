@@ -472,6 +472,295 @@ describe("PATCH /days/:day", () => {
   });
 });
 
+describe("GET /items", () => {
+  // A word that doesn't appear anywhere in the seeded meal plan data (which
+  // includes several "Instant Oatmeal" etc. rows across the dev seed trips),
+  // so matches here are unambiguously the ones this test created.
+  const uniqueTerm = "freezedriedtestmeal";
+  let itemId: string;
+
+  beforeEach(async () => {
+    const day = await db.mealPlanDay.create({
+      data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
+    });
+    const item = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Freezedriedtestmeal",
+        meal: "breakfast",
+      }),
+    });
+    itemId = item.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm })
+      .expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .get("/api/trips/does-not-exist/meal-plan/items")
+      .query({ query: uniqueTerm })
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm })
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("rejects a missing query", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [expect.objectContaining({ path: ["query"] })],
+      type: "query",
+    });
+  });
+
+  it("rejects an empty query", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: "" })
+      .set("Cookie", authCookies)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [expect.objectContaining({ path: ["query"] })],
+      type: "query",
+    });
+  });
+
+  it("rejects a limit above 50", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, limit: "51" })
+      .set("Cookie", authCookies)
+      .expect(400);
+
+    expect(response.body[0]).toMatchObject({
+      errors: [expect.objectContaining({ path: ["limit"] })],
+      type: "query",
+    });
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, notAField: "true" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "query",
+        },
+      ]
+    `);
+  });
+
+  it("returns matching items", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body.items).toEqual([
+      expect.objectContaining({ id: itemId, name: "Freezedriedtestmeal" }),
+    ]);
+  });
+
+  it("returns an empty array when nothing matches", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: "nonexistent-food-xyz" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual([]);
+  });
+
+  it("returns items from the user's other trips too", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const otherTrip = await db.trip.create({
+      data: make("Trip", { userId: user!.id }),
+    });
+    const otherDay = await db.mealPlanDay.create({
+      data: {
+        ...make("MealPlanDay", { tripId: otherTrip.id, dayNumber: 1 }),
+        date: null,
+      },
+    });
+    await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: otherDay.id,
+        name: "Freezedriedtestmeal Deluxe",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(
+      response.body.items.map((item: { name: string }) => item.name),
+    ).toEqual(
+      expect.arrayContaining([
+        "Freezedriedtestmeal",
+        "Freezedriedtestmeal Deluxe",
+      ]),
+    );
+  });
+
+  it("does not return items belonging to another user", async () => {
+    const user2 = await db.user.findUnique({
+      where: { email: "user2@test.com" },
+    });
+    const user2Trip = await db.trip.create({
+      data: make("Trip", { userId: user2!.id }),
+    });
+    const user2Day = await db.mealPlanDay.create({
+      data: {
+        ...make("MealPlanDay", { tripId: user2Trip.id, dayNumber: 1 }),
+        date: null,
+      },
+    });
+    await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: user2Day.id,
+        name: "Freezedriedtestmeal User2",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(
+      response.body.items.map((item: { name: string }) => item.name),
+    ).not.toContain("Freezedriedtestmeal User2");
+  });
+
+  it("respects the limit parameter", async () => {
+    const day = await db.mealPlanDay.findFirstOrThrow({ where: { tripId } });
+    await db.mealPlanItem.createMany({
+      data: [0, 1, 2].map((i) =>
+        make("MealPlanItem", {
+          mealPlanDayId: day.id,
+          name: `Freezedriedtestmeal Variant ${i}`,
+        }),
+      ),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, limit: "2" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.items).toHaveLength(2);
+  });
+
+  it("ignores excludeTripId for now (not wired up yet)", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, excludeTripId: tripId })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual([
+      expect.objectContaining({ id: itemId, name: "Freezedriedtestmeal" }),
+    ]);
+  });
+
+  it("rejects an invalid meal value", async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, meal: "brunch" })
+      .set("Cookie", authCookies)
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_value",
+              "message": "Invalid option: expected one of "breakfast"|"lunch"|"dinner"|"snacks"",
+              "path": [
+                "meal",
+              ],
+              "values": [
+                "breakfast",
+                "lunch",
+                "dinner",
+                "snacks",
+              ],
+            },
+          ],
+          "type": "query",
+        },
+      ]
+    `);
+  });
+
+  it("ranks items matching the given meal above other matches", async () => {
+    const day = await db.mealPlanDay.findFirstOrThrow({ where: { tripId } });
+    // The seeded item is breakfast; add a lunch match too, so a "lunch"
+    // search should surface it first despite being created afterward.
+    const lunchItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        mealPlanDayId: day.id,
+        name: "Freezedriedtestmeal Lunch",
+        meal: "lunch",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, meal: "lunch" })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.items.map((item: { id: string }) => item.id)).toEqual([
+      lunchItem.id,
+      itemId,
+    ]);
+  });
+});
+
 describe("POST /days/:day/items", () => {
   beforeEach(async () => {
     await db.mealPlanDay.create({

@@ -379,7 +379,11 @@ model MealPlanItem {
   mealPlanDayId   String
   packingStatuses MealPlanItemPackingStatus[]
 
-  @@index([meal, mealPlanDayId])
+  // Full Text Search
+  data_fts Unsupported("tsvector")?
+
+  @@index([mealPlanDayId])
+  @@index([data_fts], type: Gin)
 }
 
 model TripPackingList {

@@ -4,6 +4,7 @@ import {
 } from "$/middleware/meal-plan-existence";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
+import { searchMealPlanItems } from "$/utils/search-helpers";
 import { idParam } from "$/validation/shared";
 import {
   createMealPlanDay,
@@ -13,6 +14,7 @@ import {
   editMealPlanItemStatus,
   mealPlanDayParams,
   mealPlanItemParams,
+  mealPlanItemSearch,
 } from "$/validation/trip/meal-plan";
 import { Router } from "express";
 import validate from "express-zod-safe";
@@ -102,6 +104,23 @@ mealPlanRouter.patch(
     });
 
     return res.json({ mealPlanDay: transformers.mealPlanDay(updatedDay) });
+  },
+);
+
+mealPlanRouter.get(
+  "/items",
+  validate({ params: idParam, query: mealPlanItemSearch }),
+  async (req, res) => {
+    const matchingItems = await searchMealPlanItems(
+      req.query.query,
+      req.session!.user.id,
+      {
+        limit: req.query.limit,
+        meal: req.query.meal,
+      },
+    );
+
+    return res.json({ items: matchingItems.map(transformers.mealPlanItem) });
   },
 );
 
