@@ -2,11 +2,13 @@ import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import { MEAL_LABEL } from "$/frontend/trip/meal-plan/helpers";
 import { useMealPlanItemSearch } from "$/frontend/utils/api/meal-plan";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
-import { Badge, Group, SimpleGrid, Skeleton, Stack, Text } from "@mantine/core";
+import { Badge, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { BowlFoodIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import type { MealName } from "../../../../../generated/prisma/enums";
+import type { MealName } from "../../../../../../generated/prisma/enums";
+import SearchSkeleton from "./skeleton";
+import StatCell from "./stat-cell";
 
 interface Props {
   meal: MealName;
@@ -90,51 +92,5 @@ export default function QuickAddInput({
       emptyMessage={`No past items match "${debouncedName}"`}
       hidden={debouncedName.length === 0}
     />
-  );
-}
-
-function StatCell({ label, value }: { label: string; value: string | null }) {
-  return (
-    <Stack gap={0}>
-      <Text
-        size="10px"
-        fw={700}
-        tt="uppercase"
-        c="dimmed"
-        style={{ letterSpacing: "0.06em" }}
-      >
-        {label}
-      </Text>
-      <Text
-        size="sm"
-        fw={600}
-        c={value ? undefined : "dimmed"}
-        style={{ fontVariantNumeric: "tabular-nums" }}
-      >
-        {value ?? "—"}
-      </Text>
-    </Stack>
-  );
-}
-
-// Mirrors renderOption's shape (name + meal pill, then a 3-up stat grid) so
-// the dropdown doesn't jump in height once real results arrive.
-function SearchSkeleton() {
-  return (
-    <Stack gap="xs" p={4}>
-      {[80, 60, 70].map((nameWidth, i) => (
-        <Stack gap={6} key={i}>
-          <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Skeleton height={13} width={`${nameWidth}%`} />
-            <Skeleton height={16} width={52} radius={2} />
-          </Group>
-          <SimpleGrid cols={3} spacing={10}>
-            <Skeleton height={26} />
-            <Skeleton height={26} />
-            <Skeleton height={26} />
-          </SimpleGrid>
-        </Stack>
-      ))}
-    </Stack>
   );
 }
