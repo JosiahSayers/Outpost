@@ -72,11 +72,13 @@ export interface SearchMealPlanItemsOptions {
 
 // Full-text autocomplete over a user's own previous MealPlanItem rows (BTP-77:
 // autocomplete meals from previous trips). Scoped to the requesting user via
-// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Ranked by
-// meal match, then text relevance, then most recently created first, so a
-// user's latest naming/entry for a given meal wins ties. Two-step like
-// searchCategories/searchPlaces: rank ids in SQL, hydrate via Prisma,
-// preserve the ranked order on the way out.
+// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Deduped by
+// exact name match first (DISTINCT ON, keeping the most recently created row
+// per name) so e.g. "Oatmeal" added on two different trips only shows up
+// once. The deduped rows are then ranked by meal match, then text relevance,
+// then most recently created first. Two-step like searchCategories/
+// searchPlaces: rank ids in SQL, hydrate via Prisma, preserve the ranked
+// order on the way out.
 export async function searchMealPlanItems(
   searchQuery: string,
   userId: string,
@@ -89,16 +91,23 @@ export async function searchMealPlanItems(
   const mealParam = meal ?? null;
 
   const results = await db.$queryRaw<Array<{ id: string }>>`
-SELECT "MealPlanItem".id
-  FROM "MealPlanItem"
-  JOIN "MealPlanDay" ON "MealPlanDay".id = "MealPlanItem"."mealPlanDayId"
-  JOIN "Trip" ON "Trip".id = "MealPlanDay"."tripId"
-  WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
-    AND "Trip"."userId" = ${userId}
-    AND (${excludeTripIdParam}::text IS NULL OR "Trip".id != ${excludeTripIdParam})
-  ORDER BY ("MealPlanItem".meal = ${mealParam}::"MealName") DESC,
-           ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
-           "MealPlanItem"."createdAt" DESC
+SELECT id FROM (
+  SELECT DISTINCT ON ("MealPlanItem".name)
+    "MealPlanItem".id,
+    "MealPlanItem".meal,
+    "MealPlanItem".data_fts,
+    "MealPlanItem"."createdAt"
+    FROM "MealPlanItem"
+    JOIN "MealPlanDay" ON "MealPlanDay".id = "MealPlanItem"."mealPlanDayId"
+    JOIN "Trip" ON "Trip".id = "MealPlanDay"."tripId"
+    WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+      AND "Trip"."userId" = ${userId}
+      AND (${excludeTripIdParam}::text IS NULL OR "Trip".id != ${excludeTripIdParam})
+    ORDER BY "MealPlanItem".name, "MealPlanItem"."createdAt" DESC
+) AS deduped
+  ORDER BY (meal = ${mealParam}::"MealName") DESC,
+           ts_rank(data_fts, to_tsquery('english', ${formattedQuery})) DESC,
+           "createdAt" DESC
   LIMIT ${limit};
 `;
 

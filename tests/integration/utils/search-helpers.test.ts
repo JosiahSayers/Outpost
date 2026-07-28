@@ -88,8 +88,11 @@ describe("searchMealPlanItems", () => {
   });
 
   it("returns a row for a full match", async () => {
+    // Seed data has multiple "Instant Oatmeal" rows across trips; dedup
+    // means only the most recently created one is returned.
     const expectedMatch = await db.mealPlanItem.findFirst({
       where: { name: "Instant Oatmeal" },
+      orderBy: { createdAt: "desc" },
     });
     const results = await searchMealPlanItems("instant oatmeal", user.id);
     expect(results).toContainEqual(expectedMatch!);
@@ -98,6 +101,7 @@ describe("searchMealPlanItems", () => {
   it("returns a row for a partial match", async () => {
     const expectedMatch = await db.mealPlanItem.findFirst({
       where: { name: "Instant Oatmeal" },
+      orderBy: { createdAt: "desc" },
     });
     const results = await searchMealPlanItems("oat", user.id);
     expect(results).toContainEqual(expectedMatch!);
@@ -106,6 +110,7 @@ describe("searchMealPlanItems", () => {
   it("returns a row for multiple word partial matches", async () => {
     const expectedMatch = await db.mealPlanItem.findFirst({
       where: { name: "Trail Mix" },
+      orderBy: { createdAt: "desc" },
     });
     const results = await searchMealPlanItems("tr mi", user.id);
     expect(results).toContainEqual(expectedMatch!);
@@ -150,6 +155,45 @@ describe("searchMealPlanItems", () => {
       expect(results.some((item) => item.name === "Excludable Test Meal")).toBe(
         true,
       );
+    });
+  });
+
+  describe("when the same item name appears more than once", () => {
+    let trip: Trip;
+    let mealPlanDay: MealPlanDay;
+
+    beforeEach(async () => {
+      trip = await db.trip.create({ data: make("Trip", { userId: user.id }) });
+      mealPlanDay = await db.mealPlanDay.create({
+        data: make("MealPlanDay", { tripId: trip.id, dayNumber: 1 }),
+      });
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          name: "Duplicate Test Meal",
+          mealPlanDayId: mealPlanDay.id,
+          createdAt: faker.date.past(),
+        }),
+      });
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          name: "Duplicate Test Meal",
+          mealPlanDayId: mealPlanDay.id,
+          createdAt: faker.date.recent(),
+        }),
+      });
+    });
+
+    it("only returns the most recently created row for each exact name", async () => {
+      const mostRecent = await db.mealPlanItem.findFirst({
+        where: { name: "Duplicate Test Meal" },
+        orderBy: { createdAt: "desc" },
+      });
+      const results = await searchMealPlanItems("duplicate test meal", user.id);
+      const matches = results.filter(
+        (item) => item.name === "Duplicate Test Meal",
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0]).toEqual(mostRecent!);
     });
   });
 
