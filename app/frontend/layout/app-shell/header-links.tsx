@@ -1,7 +1,10 @@
 import AppLink from "$/frontend/app-link";
 import AccountMenu from "$/frontend/layout/app-shell/account-menu";
 import { authClient } from "$/frontend/utils/auth-client";
+import { useSignOutContext } from "$/frontend/utils/sign-out-context";
 import { Group, Stack } from "@mantine/core";
+import { useLayoutEffect } from "react";
+import { useLocation } from "wouter";
 
 interface HeaderLinksProps {
   stacked?: boolean;
@@ -10,7 +13,43 @@ interface HeaderLinksProps {
 
 export default function HeaderLinks({ stacked, onNavigate }: HeaderLinksProps) {
   const session = authClient.useSession();
+  const [, navigate] = useLocation();
+  const { markSignOutInitiated, clearSignOutInitiated, isSignOutInitiated } =
+    useSignOutContext();
   const Wrapper = stacked ? Stack : Group;
+
+  // Navigate only once the session store actually reflects the signed-out
+  // state, not just once the sign-out request resolves — better-auth's
+  // client cache lags the request by a signal bump, so navigating
+  // immediately would land on /sign-in while it still looks authenticated
+  // and get bounced straight back by useUnauthenticatedGuard there.
+  //
+  // Deliberately does not clear the sign-out flag itself: better-auth's
+  // session store is an external store, and its change notifications aren't
+  // guaranteed to land in the same React commit as the authenticated-route
+  // guard on whatever page we're signing out from. Clearing here raced that
+  // guard's own read of the flag. Instead, SignInPage clears it once it
+  // actually mounts with `reason=signed-out` — by then the old page (and its
+  // guard) is gone, so there's nothing left to race.
+  useLayoutEffect(() => {
+    if (isSignOutInitiated() && !session.isPending && !session.data?.user) {
+      navigate("/sign-in?reason=signed-out");
+    }
+  }, [session.data, session.isPending]);
+
+  const handleSignOut = () => {
+    markSignOutInitiated();
+    authClient.signOut({
+      fetchOptions: {
+        // The sign-out never completed, so leave the authenticated-route
+        // guard doing its normal thing again instead of leaving it silently
+        // disabled on this page.
+        onError: () => {
+          clearSignOutInitiated();
+        },
+      },
+    });
+  };
 
   if (session.data) {
     return (
@@ -20,7 +59,7 @@ export default function HeaderLinks({ stacked, onNavigate }: HeaderLinksProps) {
         isAdmin={session.data.user.role === "admin"}
         stacked={stacked}
         onNavigate={onNavigate}
-        onSignOut={() => authClient.signOut()}
+        onSignOut={handleSignOut}
       />
     );
   }

@@ -36,6 +36,17 @@ test.describe("Sign in", () => {
       page.getByRole("heading", { name: "Reset your password" }),
     ).toBeVisible();
   });
+
+  test("shows a message when bounced here by a protected page, not the signed-out confirmation", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL("/sign-in?redirect=%2Fdashboard");
+    await expect(
+      page.getByText("You need to sign in to access that page."),
+    ).toBeVisible();
+    await expect(page.getByText("You've been signed out.")).not.toBeVisible();
+  });
 });
 
 test.describe("Registration", () => {
@@ -103,7 +114,12 @@ test.describe("Password reset", () => {
       .getByRole("menu")
       .getByRole("menuitem", { name: "Sign Out" })
       .click();
-    await expect(page.getByText("Welcome back")).toBeVisible();
+    // Sign-out waits for session confirmation before navigating, so wait for
+    // the actual URL rather than page text — the dashboard's own "Welcome
+    // back, ..." heading would otherwise satisfy a loose text match before
+    // the session has really cleared, and the next navigation below would
+    // race the still-in-flight sign-out.
+    await expect(page).toHaveURL("/sign-in?reason=signed-out");
 
     // Emails are skipped outside production (see
     // app/jobs/workers/email/reset-password.ts), so pull the token straight

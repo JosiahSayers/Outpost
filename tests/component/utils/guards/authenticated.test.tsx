@@ -13,8 +13,16 @@ mock.module("$/frontend/utils/auth-client", () => ({
 }));
 
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
+import {
+  SignOutProvider,
+  useSignOutContext,
+} from "$/frontend/utils/sign-out-context";
 
-function TestComponent() {
+function TestComponent({ initiateSignOut }: { initiateSignOut?: boolean }) {
+  const { markSignOutInitiated } = useSignOutContext();
+  if (initiateSignOut) {
+    markSignOutInitiated();
+  }
   useAuthenticatedGuard();
   return null;
 }
@@ -75,6 +83,27 @@ describe("when there is a valid session", () => {
   });
 
   it("does not navigate", () => {
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("when there is no session because a sign-out was initiated", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = null;
+    isPending = false;
+    navigate.mockClear();
+    render(
+      <SignOutProvider>
+        <Router hook={() => ["/dashboard", navigate]}>
+          <TestComponent initiateSignOut />
+        </Router>
+      </SignOutProvider>,
+    );
+  });
+
+  it("does not navigate, leaving the sign-out flow to handle it", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });

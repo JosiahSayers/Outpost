@@ -1,5 +1,5 @@
 import "$/frontend/global.css";
-import { AccountSettingsProvider } from "$/frontend/account/account-settings-context";
+import AppProviders from "$/frontend/app-providers";
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import AdminPage from "$/frontend/pages/admin.page";
@@ -16,65 +16,40 @@ import RegisterPage from "$/frontend/pages/register.page";
 import ResetPasswordPage from "$/frontend/pages/reset-password.page";
 import SignInPage from "$/frontend/pages/sign-in.page";
 import TripPage from "$/frontend/pages/trip.page";
-import { trailTheme } from "$/frontend/theme";
-import { queryClient } from "$/frontend/utils/api/query-client";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
-import { Notifications } from "@mantine/notifications";
 import "@mantine/notifications/styles.css";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
 
 export default function App() {
   return (
-    <>
-      <ColorSchemeScript />
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={trailTheme}>
-          <Notifications />
-          <AccountSettingsProvider>
+    <AppProviders>
+      <Switch>
+        <Route path="/console" component={AdminPage} />
+        <Route path="/console/users" component={AdminUsersPage} />
+        <Route
+          path="/console/users/:id/sessions"
+          component={AdminUserSessionsPage}
+        />
+        <Route path="/console/queues" component={AdminQueuesPage} />
+        <Route>
+          <AppShell>
             <Switch>
-              <Route path="/console" component={AdminPage} />
-              <Route path="/console/users" component={AdminUsersPage} />
-              <Route
-                path="/console/users/:id/sessions"
-                component={AdminUserSessionsPage}
-              />
-              <Route path="/console/queues" component={AdminQueuesPage} />
-              <Route>
-                <AppShell>
-                  <Switch>
-                    <Route path="/" component={MarketingPage} />
-                    <Route path="/account/:tab?" component={AccountPage} />
-                    <Route path="/dashboard" component={DashboardPage} />
-                    <Route
-                      path="/gear-inventory"
-                      component={GearInventoryPage}
-                    />
-                    <Route
-                      path="/packing-lists/:id"
-                      component={PackingListPage}
-                    />
-                    <Route path="/trips/:id" component={TripPage} />
-                    <Route path="/sign-in" component={SignInPage} />
-                    <Route path="/register" component={RegisterPage} />
-                    <Route
-                      path="/forgot-password"
-                      component={ForgotPasswordPage}
-                    />
-                    <Route
-                      path="/reset-password"
-                      component={ResetPasswordPage}
-                    />
-                    <Route component={NotFoundPage} />
-                  </Switch>
-                </AppShell>
-              </Route>
+              <Route path="/" component={MarketingPage} />
+              <Route path="/account/:tab?" component={AccountPage} />
+              <Route path="/dashboard" component={DashboardPage} />
+              <Route path="/gear-inventory" component={GearInventoryPage} />
+              <Route path="/packing-lists/:id" component={PackingListPage} />
+              <Route path="/trips/:id" component={TripPage} />
+              <Route path="/sign-in" component={SignInPage} />
+              <Route path="/register" component={RegisterPage} />
+              <Route path="/forgot-password" component={ForgotPasswordPage} />
+              <Route path="/reset-password" component={ResetPasswordPage} />
+              <Route component={NotFoundPage} />
             </Switch>
-          </AccountSettingsProvider>
-        </MantineProvider>
-      </QueryClientProvider>
-    </>
+          </AppShell>
+        </Route>
+      </Switch>
+    </AppProviders>
   );
 }
