@@ -41,3 +41,9 @@ export const editMealPlanItemStatus = z.strictObject({
   purchased: z.boolean().optional(),
   packed: z.boolean().optional(),
 });
+
+export const mealPlanItemSearch = z.strictObject({
+  query: z.string().min(1),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  excludeTripId: z.string().optional(),
+});

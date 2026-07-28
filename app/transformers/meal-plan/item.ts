@@ -22,7 +22,7 @@ export type ClientMealPlanItem = Pick<
 };
 
 type Input = MealPlanItem & {
-  packingStatuses: MealPlanItemPackingStatus[];
+  packingStatuses?: MealPlanItemPackingStatus[];
 };
 
 export function transform(item: Input): ClientMealPlanItem {
@@ -35,8 +35,8 @@ export function transform(item: Input): ClientMealPlanItem {
     dryWeightGrams: item.dryWeightGrams,
     meal: item.meal,
     status: {
-      packed: item.packingStatuses[0]?.packed ?? false,
-      purchased: item.packingStatuses[0]?.purchased ?? false,
+      packed: item.packingStatuses?.[0]?.packed ?? false,
+      purchased: item.packingStatuses?.[0]?.purchased ?? false,
     },
   };
 }
