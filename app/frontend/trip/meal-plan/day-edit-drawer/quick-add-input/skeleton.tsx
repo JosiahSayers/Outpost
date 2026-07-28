@@ -2,7 +2,7 @@ import { Group, SimpleGrid, Skeleton, Stack } from "@mantine/core";
 
 export default function SearchSkeleton() {
   return (
-    <Stack gap="xs" p={4}>
+    <Stack gap="xs" p={4} w="100%">
       {[80, 60, 70].map((nameWidth, i) => (
         <Stack gap={6} key={i}>
           <Group justify="space-between" wrap="nowrap" gap="xs">

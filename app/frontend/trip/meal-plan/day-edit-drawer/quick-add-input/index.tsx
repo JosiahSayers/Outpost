@@ -43,7 +43,6 @@ export default function QuickAddInput({
       placeholder={`Add to ${MEAL_LABEL[meal].toLowerCase()}…`}
       leftSection={<PlusIcon size={12} />}
       onValueChange={setName}
-      onBlur={commit}
       onKeyDown={(e) => {
         if (e.key !== "Enter") return;
         e.preventDefault();
@@ -89,7 +88,7 @@ export default function QuickAddInput({
         </Stack>
       )}
       renderLoading={<SearchSkeleton />}
-      emptyMessage={`No past items match "${debouncedName}"`}
+      emptyMessage={`No past items match "${debouncedName}" — press Enter to add it as a new item.`}
       hidden={debouncedName.length === 0}
     />
   );

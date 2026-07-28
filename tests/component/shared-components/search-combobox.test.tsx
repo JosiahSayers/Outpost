@@ -89,6 +89,9 @@ describe("the input", () => {
       target: { value: "Br" },
     });
     expect(onValueChange).toHaveBeenCalledWith("Br");
+    // The change also opens the dropdown (Popover positions async) — let
+    // that settle so it doesn't trigger a state update outside act().
+    await waitFor(() => {});
   });
 
   // The loader has no accessible role, so it's found by its Mantine class.

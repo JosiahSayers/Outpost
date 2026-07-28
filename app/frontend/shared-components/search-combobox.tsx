@@ -7,7 +7,7 @@ import {
   type TextInputProps,
   useCombobox,
 } from "@mantine/core";
-import { useEffect, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 export interface SearchComboboxProps<T> {
   /** Field label; omit for a bare inline input. */
@@ -92,9 +92,18 @@ export default function SearchCombobox<T>({
   // leaves Mantine's internal dropdown state "open" even though `hidden`
   // hides it visually. That stale open state marks the target with
   // data-mantine-stop-propagation, which swallows a later Escape keypress
-  // meant for an ancestor (e.g. a Drawer) instead of letting it bubble.
+  // meant for an ancestor (e.g. a Drawer) instead of letting it bubble. Only
+  // close on a non-empty -> empty transition (an actual clear/commit), not
+  // whenever the value merely *is* empty — some consumers (e.g. a "copy from
+  // a public list" search) intentionally show results for an empty query as
+  // soon as the field is focused, and closing unconditionally on every
+  // empty-value render fought that open call and re-closed the dropdown.
+  const previousValueRef = useRef(value);
   useEffect(() => {
-    if (value === "") combobox.closeDropdown();
+    if (value === "" && previousValueRef.current !== "") {
+      combobox.closeDropdown();
+    }
+    previousValueRef.current = value;
   }, [value, combobox]);
 
   return (
@@ -148,7 +157,7 @@ export default function SearchCombobox<T>({
                 >
                   {icon}
                 </span>
-                <div style={{ minWidth: 0 }}>{renderOption(item)}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>{renderOption(item)}</div>
               </Group>
             </Combobox.Option>
           ))}

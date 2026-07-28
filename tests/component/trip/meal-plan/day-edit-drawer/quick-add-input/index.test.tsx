@@ -136,7 +136,7 @@ describe("freeform entry", () => {
     expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it("calls onAdd with the trimmed name on blur and clears the input", async () => {
+  it("does not call onAdd on blur, leaving the typed text in place", async () => {
     renderInput();
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
 
@@ -144,18 +144,8 @@ describe("freeform entry", () => {
     fireEvent.blur(input);
     await waitFor(() => {});
 
-    expect(onAdd).toHaveBeenCalledWith("Pad Thai");
-    expect(input).toHaveValue("");
-  });
-
-  it("does not call onAdd on blur when the input is blank", async () => {
-    renderInput();
-    const input = screen.getByRole("textbox", { name: "Add to Dinner" });
-
-    fireEvent.blur(input);
-    await waitFor(() => {});
-
     expect(onAdd).not.toHaveBeenCalled();
+    expect(input).toHaveValue("  Pad Thai  ");
   });
 });
 
@@ -232,7 +222,9 @@ describe("searching", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText('No past items match "quinoa"'),
+        screen.getByText(
+          'No past items match "quinoa" — press Enter to add it as a new item.',
+        ),
       ).toBeInTheDocument(),
     );
   });
