@@ -111,7 +111,9 @@ test.describe("Header - authenticated", () => {
     );
   });
 
-  test("Sign Out ends the session and shows auth links", async ({ page }) => {
+  test("Sign Out ends the session, shows a confirmation, and shows auth links", async ({
+    page,
+  }) => {
     await page
       .locator("header")
       .getByRole("button", { name: "Account menu" })
@@ -120,6 +122,11 @@ test.describe("Header - authenticated", () => {
       .getByRole("menu")
       .getByRole("menuitem", { name: "Sign Out" })
       .click();
+    await expect(page).toHaveURL("/sign-in?reason=signed-out");
+    await expect(page.getByText("You've been signed out.")).toBeVisible();
+    await expect(
+      page.getByText("You need to sign in to access that page."),
+    ).not.toBeVisible();
     await expect(
       page.locator("header").getByRole("link", { name: "Sign In" }),
     ).toBeVisible();

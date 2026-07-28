@@ -1,5 +1,6 @@
 import { authClient } from "$/frontend/utils/auth-client";
 import { useUnauthenticatedGuard } from "$/frontend/utils/guards/unauthenticated.guard";
+import { useSignOutContext } from "$/frontend/utils/sign-out-context";
 import {
   Alert,
   Anchor,
@@ -14,7 +15,7 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "wouter";
 import { z } from "zod/v4";
 
@@ -28,9 +29,19 @@ type SignInValues = z.infer<typeof signInSchema>;
 export default function SignInPage() {
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect");
+  const justSignedOut = searchParams.get("reason") === "signed-out";
   useUnauthenticatedGuard(redirect ?? "/dashboard");
+  const { clearSignOutInitiated } = useSignOutContext();
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Only cleared once we've actually arrived here, rather than by the
+  // sign-out flow itself — see the comment in header-links.tsx for why.
+  useEffect(() => {
+    if (justSignedOut) {
+      clearSignOutInitiated();
+    }
+  }, []);
 
   const form = useForm<SignInValues>({
     initialValues: { email: "", password: "" },
@@ -73,10 +84,16 @@ export default function SignInPage() {
           Sign in to continue planning your next adventure
         </Text>
 
-        {redirect && (
-          <Alert color="yellow" mb="md">
-            You need to sign in to access that page.
+        {justSignedOut ? (
+          <Alert color="blue" mb="md">
+            You&apos;ve been signed out.
           </Alert>
+        ) : (
+          redirect && (
+            <Alert color="yellow" mb="md">
+              You need to sign in to access that page.
+            </Alert>
+          )
         )}
 
         <form onSubmit={form.onSubmit(handleSubmit)}>

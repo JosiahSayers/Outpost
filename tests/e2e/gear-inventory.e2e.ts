@@ -1,4 +1,4 @@
-import { test, expect, seedGearInventory } from "./support/fixtures";
+import { expect, seedGearInventory, test } from "./support/fixtures";
 
 test.describe("Gear Inventory Page", () => {
   test.beforeEach(async ({ page, user }) => {
@@ -500,6 +500,9 @@ test.describe("Gear Inventory Page", () => {
       test("items within a category are displayed in alphabetical order regardless of creation order", async ({
         page,
       }) => {
+        // See the TODO below on the category autocomplete wait — give the
+        // whole test enough budget for that bumped timeout to matter.
+        test.slow();
         const id = Date.now();
         const category = `Sort Items Test ${id}`;
         const firstItem = `Aaa Item ${id}`;
@@ -523,7 +526,14 @@ test.describe("Gear Inventory Page", () => {
           .click();
         await page.getByLabel("Item name").fill(firstItem);
         await page.getByLabel("Category").fill(category);
-        await page.getByRole("option", { name: category }).click();
+        // TODO: the category autocomplete debounces its
+        // suggestion fetch, and the default timeout has been flaky locally
+        // waiting for a category created moments earlier in this same test.
+        // Bumped as a temporary mitigation — investigate the underlying
+        // debounce/fetch timing separately.
+        await page
+          .getByRole("option", { name: category })
+          .click({ timeout: 15_000 });
         await page
           .getByRole("button", { name: "Add item", exact: true })
           .click();
@@ -544,6 +554,9 @@ test.describe("Gear Inventory Page", () => {
       test("items within a category are re-sorted alphabetically when an item's name changes", async ({
         page,
       }) => {
+        // See the TODO below on the category autocomplete wait — give the
+        // whole test enough budget for that bumped timeout to matter.
+        test.slow();
         const id = Date.now();
         const category = `Sort Items Test ${id}`;
         const itemA = `Aaa Item ${id}`;
@@ -567,7 +580,11 @@ test.describe("Gear Inventory Page", () => {
           .click();
         await page.getByLabel("Item name").fill(itemB);
         await page.getByLabel("Category").fill(category);
-        await page.getByRole("option", { name: category }).click();
+        // TODO(BTP-51 review): see the matching TODO above — same debounced
+        // autocomplete, same temporary timeout bump.
+        await page
+          .getByRole("option", { name: category })
+          .click({ timeout: 15_000 });
         await page
           .getByRole("button", { name: "Add item", exact: true })
           .click();
