@@ -382,7 +382,7 @@ model MealPlanItem {
   // Full Text Search
   data_fts Unsupported("tsvector")?
 
-  @@index([meal, mealPlanDayId])
+  @@index([mealPlanDayId])
   @@index([data_fts], type: Gin)
 }
 
