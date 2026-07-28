@@ -7,6 +7,20 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
+// matchMedia mock + respectReducedMotion keeps Mantine's Combobox popover on
+// the synchronous transition path — see search-combobox.test.tsx.
+window.matchMedia = (query: string) =>
+  ({
+    matches: query === "(prefers-reduced-motion: reduce)",
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }) as MediaQueryList;
+
 function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
   return {
     id: crypto.randomUUID(),
@@ -36,7 +50,7 @@ const onClose = mock(() => {});
 function renderDrawer(d: ClientMealPlanDay) {
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <MantineProvider>
+      <MantineProvider theme={{ respectReducedMotion: true }}>
         <DayEditDrawer day={d} tripId="trip-1" opened onClose={onClose} />
       </MantineProvider>
     </QueryClientProvider>,
@@ -61,13 +75,14 @@ beforeEach(() => {
 });
 
 describe("day header", () => {
-  it("shows the day number and date", () => {
+  it("shows the day number and date", async () => {
     renderDrawer(day({ dayNumber: 2, date: "2026-08-15" }));
+    await waitFor(() => {});
     expect(screen.getByText("Day 2")).toBeInTheDocument();
     expect(screen.getByText("Aug 15")).toBeInTheDocument();
   });
 
-  it("shows the total calories for the day", () => {
+  it("shows the total calories for the day", async () => {
     renderDrawer(
       day({
         meals: {
@@ -78,17 +93,19 @@ describe("day header", () => {
         },
       }),
     );
+    await waitFor(() => {});
     expect(screen.getByText("· 1,350 cal")).toBeInTheDocument();
   });
 
-  it("omits the day calorie count when the day has no items", () => {
+  it("omits the day calorie count when the day has no items", async () => {
     renderDrawer(day());
+    await waitFor(() => {});
     expect(screen.queryByText(/cal/)).not.toBeInTheDocument();
   });
 });
 
 describe("meal groups", () => {
-  it("shows a calorie count in each meal header that has items", () => {
+  it("shows a calorie count in each meal header that has items", async () => {
     renderDrawer(
       day({
         meals: {
@@ -99,12 +116,14 @@ describe("meal groups", () => {
         },
       }),
     );
+    await waitFor(() => {});
     // meal header total (360) is distinct from the day total in the drawer title
     expect(screen.getByText("360 cal")).toBeInTheDocument();
   });
 
-  it("omits the calorie count for meals with no items", () => {
+  it("omits the calorie count for meals with no items", async () => {
     renderDrawer(day());
+    await waitFor(() => {});
     expect(screen.queryByText(/cal/)).not.toBeInTheDocument();
   });
 });
@@ -145,8 +164,9 @@ describe("editing the day's date", () => {
     await waitFor(() => {});
   });
 
-  it("shows an 'Add date' affordance when the day has no date", () => {
+  it("shows an 'Add date' affordance when the day has no date", async () => {
     renderDrawer(day({ date: null }));
+    await waitFor(() => {});
     expect(screen.getByText("Add date")).toBeInTheDocument();
   });
 });

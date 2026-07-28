@@ -12,7 +12,5 @@ it("renders three placeholder rows", () => {
   );
 
   // 3 rows x (name + badge + 3 stat cells) = 15 skeleton placeholders
-  expect(document.querySelectorAll(".mantine-Skeleton-root")).toHaveLength(
-    15,
-  );
+  expect(document.querySelectorAll(".mantine-Skeleton-root")).toHaveLength(15);
 });

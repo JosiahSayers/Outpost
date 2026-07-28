@@ -119,6 +119,7 @@ describe("freeform entry", () => {
 
     fireEvent.change(input, { target: { value: "  Pad Thai  " } });
     fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => {});
 
     expect(onAdd).toHaveBeenCalledWith("Pad Thai");
     expect(input).toHaveValue("");
@@ -130,6 +131,7 @@ describe("freeform entry", () => {
 
     fireEvent.change(input, { target: { value: "   " } });
     fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => {});
 
     expect(onAdd).not.toHaveBeenCalled();
   });
@@ -140,6 +142,7 @@ describe("freeform entry", () => {
 
     fireEvent.change(input, { target: { value: "  Pad Thai  " } });
     fireEvent.blur(input);
+    await waitFor(() => {});
 
     expect(onAdd).toHaveBeenCalledWith("Pad Thai");
     expect(input).toHaveValue("");
@@ -150,6 +153,7 @@ describe("freeform entry", () => {
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
 
     fireEvent.blur(input);
+    await waitFor(() => {});
 
     expect(onAdd).not.toHaveBeenCalled();
   });
