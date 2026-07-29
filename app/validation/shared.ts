@@ -4,14 +4,23 @@ export const idParam = z.strictObject({
   id: z.string(),
 });
 
-export const numberQueryParam = (defaultValue: number) =>
-  z.preprocess((input) => {
+export const numberQueryParam = (
+  defaultValue: number,
+  { max, min }: { max?: number; min?: number } = {},
+) => {
+  const schema = z.coerce.number();
+  if (min) schema.min(min);
+  if (max) schema.max(max);
+  schema.default(defaultValue);
+
+  return z.preprocess((input) => {
     if (typeof input === "string" && input.trim().length === 0) {
       return undefined;
     }
 
     return input;
-  }, z.coerce.number().default(defaultValue));
+  }, schema);
+};
 
 // Prisma's own request validation rejects a bare "YYYY-MM-DD" string for a
 // DateTime field ("Expected ISO-8601 DateTime"), so the validated date string
