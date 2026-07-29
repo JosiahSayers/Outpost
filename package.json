@@ -21,7 +21,8 @@
     "format": "prettier . --write",
     "format:check": "prettier . -c",
     "deploy:staging": "ssh outpost-staging 'docker compose up -d --pull always'",
-    "typecheck": "bun tsc --noEmit"
+    "typecheck": "bun tsc --noEmit",
+    "branch:reset": "bun scripts/reset-branch-for-new-card.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
