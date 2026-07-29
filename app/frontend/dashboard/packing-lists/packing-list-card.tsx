@@ -32,7 +32,7 @@ export default function PackingListCard({ list }: Props) {
               component={Link}
               href={`/packing-lists/${list.id}`}
               fw={600}
-              c="dark"
+              c="var(--mantine-color-text)"
               underline="hover"
               lineClamp={2}
             >
