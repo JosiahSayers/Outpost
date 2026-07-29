@@ -50,6 +50,7 @@ model User {
   communicationAuditLogsInitiated CommunicationAuditLog[]  @relation("initiatedBy")
   communicationAuditLogsReceived  CommunicationAuditLog[]  @relation("recipient")
   protectedAreaIngestRuns         ProtectedAreaIngestRun[]
+  notifications                   Notification[]
 
   @@unique([email])
   @@map("user")
@@ -103,6 +104,33 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+//
+// user notifications
+//
+// Indexed via hand-written partial indexes in the
+// add_notification_indexes migration (Prisma's @@index doesn't support
+// WHERE clauses), scoped to the actual query patterns:
+//   - unread badge count:  userId          WHERE read = false AND dismissed = false
+//   - Unread tab:          userId, createdAt WHERE dismissed = false
+//   - History tab:         userId, createdAt WHERE dismissed = true
+// Review migration diffs on future schema changes to this model -- `prisma
+// migrate dev` will try to drop these since they aren't expressible here.
+model Notification {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String?
+  icon        String?
+
+  read      Boolean @default(false)
+  dismissed Boolean @default(false)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 }
 
 //
