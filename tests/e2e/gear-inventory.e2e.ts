@@ -218,9 +218,7 @@ test.describe("Gear Inventory Page", () => {
       );
 
       await page.getByRole("button", { name: "Add item", exact: true }).click();
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't add item")).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "Add item" }),
       ).toBeVisible();
@@ -375,9 +373,7 @@ test.describe("Gear Inventory Page", () => {
       );
 
       await page.getByRole("button", { name: "Save changes" }).click();
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't update item")).toBeVisible();
       await expect(page.getByText("Edit item")).toBeVisible();
     });
   });
@@ -443,9 +439,7 @@ test.describe("Gear Inventory Page", () => {
       await expect(page.getByText("Delete item?")).toBeVisible();
       await page.getByRole("button", { name: "Delete", exact: true }).click();
 
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't delete item")).toBeVisible();
       await expect(page.getByText("Delete item?")).toBeVisible();
       await expect(page.getByRole("main").getByText(itemName)).toBeVisible();
     });

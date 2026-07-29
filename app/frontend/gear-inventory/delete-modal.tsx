@@ -1,5 +1,5 @@
-import Error from "$/frontend/shared-components/error";
 import { useDeleteGearInventoryItem } from "$/frontend/utils/api/gear-inventory";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Button, Group, Modal, Text } from "@mantine/core";
 import { useLayoutEffect } from "react";
@@ -11,8 +11,7 @@ interface Props {
 }
 
 export default function DeleteModal({ opened, onClose, item }: Props) {
-  const { isPending, isError, isSuccess, mutate } =
-    useDeleteGearInventoryItem();
+  const { isPending, isSuccess, mutate } = useDeleteGearInventoryItem();
 
   useLayoutEffect(() => {
     if (isSuccess) {
@@ -22,7 +21,7 @@ export default function DeleteModal({ opened, onClose, item }: Props) {
 
   const handleDelete = async () => {
     if (!item) return;
-    mutate(item.id);
+    mutate(item.id, { onError: notifyError("Couldn't delete item") });
   };
 
   return (
@@ -37,8 +36,6 @@ export default function DeleteModal({ opened, onClose, item }: Props) {
         Remove <strong>{item?.name}</strong> from your gear inventory? This
         can&apos;t be undone.
       </Text>
-
-      {isError && <Error mb="md" />}
 
       <Group justify="flex-end">
         <Button disabled={isPending} variant="subtle" onClick={onClose}>
