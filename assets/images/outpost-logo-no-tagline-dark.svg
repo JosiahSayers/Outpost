@@ -1,0 +1,18 @@
+<svg width="430" height="107" viewBox="144 49 418 99" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&amp;display=swap');
+    </style>
+  </defs>
+
+  <g transform="translate(200, 100)">
+    <circle cx="0" cy="0" r="48" fill="none" stroke="#BA7517" stroke-width="2"/>
+    <circle cx="0" cy="0" r="6" fill="#BA7517"/>
+    <polygon points="0,-40 7,0 0,-6 -7,0" fill="#BA7517"/>
+    <polygon points="0,40 7,0 0,6 -7,0" fill="#D3D1C7"/>
+    <polygon points="-40,0 0,7 -6,0 0,-7" fill="#D3D1C7"/>
+    <polygon points="40,0 0,7 6,0 0,-7" fill="#D3D1C7"/>
+  </g>
+
+  <text x="272" y="118" font-family="'Playfair Display', Georgia, serif" font-size="58" font-weight="400" letter-spacing="3" fill="#F4F2EF">Outpost</text>
+</svg>

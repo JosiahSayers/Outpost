@@ -24,8 +24,11 @@ import {
   Select,
   TextInput,
   Textarea,
+  alpha,
   createTheme,
+  getPrimaryShade,
   rem,
+  type CSSVariablesResolver,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 
@@ -34,7 +37,7 @@ import { DateInput } from "@mantine/dates";
 // ---------------------------------------------------------------------------
 
 /** Forest green — primary brand color */
-const trailGreen = [
+export const trailGreen = [
   "#edf5ee", // 0 – near-white with green tint
   "#d2e8d4", // 1
   "#a9d1ae", // 2
@@ -48,7 +51,7 @@ const trailGreen = [
 ] as const;
 
 /** Bark brown — secondary / accent */
-const barkBrown = [
+export const barkBrown = [
   "#f5f0e8", // 0
   "#e8dcc8", // 1
   "#d4c0a0", // 2
@@ -62,7 +65,7 @@ const barkBrown = [
 ] as const;
 
 /** Stone gray — neutral UI surfaces */
-const stoneGray = [
+export const stoneGray = [
   "#f4f2ef", // 0 – warm off-white background
   "#e8e4de", // 1
   "#d3cdc4", // 2
@@ -76,7 +79,7 @@ const stoneGray = [
 ] as const;
 
 /** Trail dust — muted amber for warnings / highlights */
-const trailDust = [
+export const trailDust = [
   "#fdf6e8",
   "#f9eacc",
   "#f2d49c",
@@ -88,6 +91,16 @@ const trailDust = [
   "#7c4d11",
   "#56340a",
 ] as const;
+
+/** Lookup by theme color name — shared by the dark-mode CSS variables
+ * resolver below and by components that intentionally want a fixed shade
+ * regardless of color scheme (e.g. the marketing hero gradient). */
+export const customPalettes = {
+  "trail-green": trailGreen,
+  "bark-brown": barkBrown,
+  "stone-gray": stoneGray,
+  "trail-dust": trailDust,
+};
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -288,3 +301,73 @@ export const trailTheme = createTheme({
     }),
   },
 });
+
+// ---------------------------------------------------------------------------
+// Dark-mode CSS variables
+// ---------------------------------------------------------------------------
+
+// The palettes above were tuned for light backgrounds only. Rather than
+// hand-picking a second set of dark-mode colors, reuse the same 10-shade
+// ramp already designed for each palette: shade N in light mode becomes
+// shade (9 - N) in dark mode, so a near-white background (shade 0) becomes
+// near-black (shade 9), a dark accent text color (shade 7) becomes a light
+// one (shade 2), and so on. This covers every component that references an
+// explicit shade index (e.g. `bg="trail-green.0"`, `c="bark-brown.7"`)
+// without touching each call site individually.
+export const trailThemeCssVariablesResolver: CSSVariablesResolver = (theme) => {
+  const dark: Record<string, string> = {
+    // Warm, light-tuned shadows read as nearly invisible on dark surfaces —
+    // switch to black-based shadows at higher opacity for the same depth.
+    "--mantine-shadow-xs": "0 1px 2px rgba(0, 0, 0, 0.36)",
+    "--mantine-shadow-sm": "0 2px 6px rgba(0, 0, 0, 0.40)",
+    "--mantine-shadow-md": "0 4px 14px rgba(0, 0, 0, 0.44)",
+    "--mantine-shadow-lg": "0 8px 28px rgba(0, 0, 0, 0.48)",
+    "--mantine-shadow-xl": "0 16px 48px rgba(0, 0, 0, 0.55)",
+  };
+
+  // Mantine derives a few variant-specific variables by pointing at a raw
+  // shade index via CSS `var()` — e.g. dark-mode `-light-color` is literally
+  // `var(--mantine-color-{name}-0)`. The loop below repoints that raw index
+  // to a different literal color for dark mode, so anything that resolves
+  // *through* it (variant="light" text, variant="outline" text/border, bare
+  // `c="trail-green"` text) would silently inherit the wrong, near-invisible
+  // color unless pinned back to the original (un-reversed) shade here.
+  const darkPrimaryShade = getPrimaryShade(theme, "dark");
+
+  Object.entries(customPalettes).forEach(([name, shades]) => {
+    shades.forEach((_, index) => {
+      dark[`--mantine-color-${name}-${index}`] = shades[9 - index]!;
+    });
+
+    // Shade 0 is only ever used as a subtle "tinted card" background (trip
+    // header, meal-plan cards, admin row highlights) — never as text. The
+    // straight reversal above maps it to shade 9, the palette's most
+    // saturated tone, which reads as a vivid, attention-grabbing block
+    // instead of the barely-there tint it is in light mode. Use a
+    // low-opacity wash of the accent color instead, so it stays a subtle
+    // surface in dark mode too.
+    dark[`--mantine-color-${name}-0`] = alpha(shades[darkPrimaryShade]!, 0.1);
+
+    dark[`--mantine-color-${name}-text`] = shades[4]!;
+    dark[`--mantine-color-${name}-light-color`] = shades[0]!;
+    dark[`--mantine-color-${name}-outline`] =
+      shades[Math.max(darkPrimaryShade - 4, 0)]!;
+
+    // Mantine's default dark-mode `-light` background is
+    // `darken(shade[9], 0.5)` — since our shade 9 is already a near-black
+    // tone, that darkens it almost to solid black, reading as a harsh block
+    // against the app's softer dark-gray surfaces. Use a low-opacity tint of
+    // the dark-mode accent shade instead, so `variant="light"` reads as a
+    // colored chip rather than a near-opaque rectangle.
+    dark[`--mantine-color-${name}-light`] = alpha(
+      shades[darkPrimaryShade]!,
+      0.18,
+    );
+    dark[`--mantine-color-${name}-light-hover`] = alpha(
+      shades[darkPrimaryShade]!,
+      0.28,
+    );
+  });
+
+  return { variables: {}, light: {}, dark };
+};

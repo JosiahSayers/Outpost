@@ -1,7 +1,7 @@
-import logoSrc from "$/../assets/images/outpost-logo-no-tagline.svg";
+import AppLogo from "$/frontend/layout/app-shell/app-logo";
 import { authClient } from "$/frontend/utils/auth-client";
 import { getInitials } from "$/frontend/utils/get-initials";
-import { Avatar, Badge, Group, Image, Stack, Text } from "@mantine/core";
+import { Avatar, Badge, Group, Stack, Text } from "@mantine/core";
 import { Link } from "wouter";
 
 export default function Topbar() {
@@ -18,7 +18,7 @@ export default function Topbar() {
     >
       <Link href="/console">
         <Group gap={8} wrap="nowrap" style={{ cursor: "pointer" }}>
-          <Image src={logoSrc} alt="Outpost" w="auto" height={26} />
+          <AppLogo height={26} />
           <Badge color="bark-brown" variant="light" size="sm">
             Admin
           </Badge>

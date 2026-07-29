@@ -1,3 +1,4 @@
+import { customPalettes } from "$/frontend/theme";
 import {
   Box,
   Button,
@@ -9,12 +10,18 @@ import {
 } from "@mantine/core";
 import { Link } from "wouter";
 
+// This banner is a fixed, always-dark backdrop with fixed light text — it's
+// intentionally the same in light and dark mode, so it reads from the raw
+// palette values below rather than the `--mantine-color-*` CSS variables
+// (which flip per color scheme).
+const trailGreen = customPalettes["trail-green"];
+const barkBrown = customPalettes["bark-brown"];
+
 export default function Hero() {
   return (
     <Box
       style={{
-        background:
-          "linear-gradient(150deg, var(--mantine-color-trail-green-8) 0%, var(--mantine-color-trail-green-6) 60%, var(--mantine-color-bark-brown-6) 100%)",
+        background: `linear-gradient(150deg, ${trailGreen[8]} 0%, ${trailGreen[6]} 60%, ${barkBrown[6]} 100%)`,
         margin: "calc(-1 * var(--mantine-spacing-md))",
         padding: `calc(var(--mantine-spacing-xl) * 2) var(--mantine-spacing-md)`,
       }}
@@ -34,11 +41,7 @@ export default function Hero() {
               <br />
               Pack with purpose.
             </Title>
-            <Text
-              size="lg"
-              style={{ color: "var(--mantine-color-trail-green-1)" }}
-              maw={540}
-            >
+            <Text size="lg" style={{ color: trailGreen[1] }} maw={540}>
               Outpost is a backpacking planner that keeps your gear organized,
               your lists dialed in, and the people back home informed about your
               whereabouts.
@@ -50,7 +53,7 @@ export default function Hero() {
               href="/register"
               size="md"
               color="white"
-              c="trail-green.8"
+              c={trailGreen[8]}
             >
               Get started
             </Button>

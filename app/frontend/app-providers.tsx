@@ -1,5 +1,5 @@
 import { AccountSettingsProvider } from "$/frontend/account/account-settings-context";
-import { trailTheme } from "$/frontend/theme";
+import { trailTheme, trailThemeCssVariablesResolver } from "$/frontend/theme";
 import { queryClient } from "$/frontend/utils/api/query-client";
 import { SignOutProvider } from "$/frontend/utils/sign-out-context";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
@@ -14,7 +14,10 @@ export default function AppProviders({ children }: PropsWithChildren) {
     <>
       <ColorSchemeScript />
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={trailTheme}>
+        <MantineProvider
+          theme={trailTheme}
+          cssVariablesResolver={trailThemeCssVariablesResolver}
+        >
           <Notifications />
           <AccountSettingsProvider>
             <SignOutProvider>{children}</SignOutProvider>

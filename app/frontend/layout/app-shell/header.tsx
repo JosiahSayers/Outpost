@@ -1,4 +1,4 @@
-import logoSrc from "$/../assets/images/outpost-logo-no-tagline.svg";
+import AppLogo from "$/frontend/layout/app-shell/app-logo";
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
 import MarmotAvatar from "$/frontend/layout/app-shell/marmot-avatar";
 import { authClient } from "$/frontend/utils/auth-client";
@@ -7,7 +7,6 @@ import {
   Burger,
   Drawer,
   Group,
-  Image,
   Stack,
   UnstyledButton,
 } from "@mantine/core";
@@ -29,13 +28,7 @@ export default function Header() {
           h="100%"
         >
           <Link href={logoHref}>
-            <Image
-              src={logoSrc}
-              alt="Outpost"
-              w="auto"
-              height={50}
-              style={{ cursor: "pointer" }}
-            />
+            <AppLogo height={50} style={{ cursor: "pointer" }} />
           </Link>
           <Group visibleFrom="sm">
             <HeaderLinks />
