@@ -44,6 +44,29 @@ test.describe("Gear Inventory Page", () => {
     await expect(page.getByRole("table")).not.toBeVisible();
   });
 
+  test.describe("loading and error states", () => {
+    test("shows an error when the gear inventory fails to load", async ({
+      page,
+    }) => {
+      await page.route("**/api/gear-inventory", (route) => {
+        if (route.request().method() === "GET") {
+          return route.fulfill({ status: 500 });
+        }
+        return route.continue();
+      });
+
+      await page.reload();
+      // The query client retries 500s up to 3 times with backoff before
+      // surfacing the error, so this needs more than the default timeout.
+      await expect(
+        page.getByText("Couldn't load your gear inventory"),
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        page.getByText("Something went wrong. Please try refreshing the page."),
+      ).toBeVisible();
+    });
+  });
+
   test.describe("stat bar", () => {
     test("shows the correct total item count, respecting quantity", async ({
       page,
@@ -195,9 +218,7 @@ test.describe("Gear Inventory Page", () => {
       );
 
       await page.getByRole("button", { name: "Add item", exact: true }).click();
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't add item")).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "Add item" }),
       ).toBeVisible();
@@ -352,9 +373,7 @@ test.describe("Gear Inventory Page", () => {
       );
 
       await page.getByRole("button", { name: "Save changes" }).click();
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't update item")).toBeVisible();
       await expect(page.getByText("Edit item")).toBeVisible();
     });
   });
@@ -420,9 +439,7 @@ test.describe("Gear Inventory Page", () => {
       await expect(page.getByText("Delete item?")).toBeVisible();
       await page.getByRole("button", { name: "Delete", exact: true }).click();
 
-      await expect(
-        page.getByText("Something went wrong. Please try again."),
-      ).toBeVisible();
+      await expect(page.getByText("Couldn't delete item")).toBeVisible();
       await expect(page.getByText("Delete item?")).toBeVisible();
       await expect(page.getByRole("main").getByText(itemName)).toBeVisible();
     });

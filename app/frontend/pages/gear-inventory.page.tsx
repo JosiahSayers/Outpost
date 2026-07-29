@@ -10,15 +10,14 @@ import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.gua
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Center, Loader, Stack } from "@mantine/core";
+import { Alert, Center, Loader, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
 export default function GearInventoryPage() {
   useAuthenticatedGuard();
   const formatWeight = useWeightDisplay();
-  // TODO: Loading and error states
-  const { data, isLoading, isError } = useGearInventory();
+  const { data, isLoading: itemsLoading, isError } = useGearInventory();
   const { isPending: settingsPending } = useAccountSettingsContext();
   const [drawerOpen, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -56,15 +55,26 @@ export default function GearInventoryPage() {
     );
   }, [data?.items]);
 
-  const { isLoading: pageLoading, showSpinner } =
-    useDelayedLoading(settingsPending);
+  const { isLoading, showSpinner } = useDelayedLoading(
+    itemsLoading || settingsPending,
+  );
 
-  if (pageLoading) {
+  if (isLoading) {
     return showSpinner ? (
       <Center py="xl">
         <Loader />
       </Center>
     ) : null;
+  }
+
+  if (isError || !data) {
+    return (
+      <PageContainer>
+        <Alert color="red" title="Couldn't load your gear inventory">
+          Something went wrong. Please try refreshing the page.
+        </Alert>
+      </PageContainer>
+    );
   }
 
   const handleAdd = () => {
@@ -95,7 +105,7 @@ export default function GearInventoryPage() {
   return (
     <PageContainer gap="xl">
       <BackToDashboardLink />
-      <Header items={data?.items ?? []} onAdd={handleAdd} />
+      <Header items={data.items} onAdd={handleAdd} />
 
       <Stack gap="lg">
         {Object.entries(groupedItems).map(([name, items]) => (

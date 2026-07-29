@@ -3,14 +3,8 @@ import { transformers } from "$/transformers";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, expect, it, mock } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 
 const onClose = mock(() => {});
@@ -60,23 +54,4 @@ it("calls onClose when Cancel is clicked", () => {
 it("calls onClose after successful delete", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Delete" }));
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-});
-
-describe("when delete fails", () => {
-  beforeEach(() => {
-    cleanup();
-    onClose.mockReset();
-    renderModal(
-      new Response(null, { status: 500, statusText: "Internal Server Error" }),
-    );
-  });
-
-  it("shows an error message", async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
-    await waitFor(() =>
-      expect(
-        screen.getByText("Something went wrong. Please try again."),
-      ).toBeInTheDocument(),
-    );
-  });
 });

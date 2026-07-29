@@ -1,10 +1,10 @@
 import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
-import Error from "$/frontend/shared-components/error";
 import { useGearCategorySearch } from "$/frontend/utils/api/gear-categories";
 import {
   useCreateGearInventoryItem,
   useUpdateGearInventoryItem,
 } from "$/frontend/utils/api/gear-inventory";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import {
   Button,
@@ -39,7 +39,6 @@ interface Props {
 export default function EditDrawer({ opened, onClose, item }: Props) {
   const createItem = useCreateGearInventoryItem();
   const updateItem = useUpdateGearInventoryItem();
-  const isError = createItem.isError || updateItem.isError;
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
@@ -90,9 +89,16 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
     if (item === null) {
       createItem.mutate(data, {
         onSuccess: handleClose,
+        onError: notifyError("Couldn't add item"),
       });
     } else {
-      updateItem.mutate({ ...data, id: item.id }, { onSuccess: handleClose });
+      updateItem.mutate(
+        { ...data, id: item.id },
+        {
+          onSuccess: handleClose,
+          onError: notifyError("Couldn't update item"),
+        },
+      );
     }
   });
 
@@ -169,7 +175,6 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
             {...gramsInputProps}
             value={gramsInputProps.value}
           />
-          {isError && <Error />}
           <Group justify="flex-end" mt="sm">
             <Button variant="subtle" onClick={handleClose}>
               Cancel
