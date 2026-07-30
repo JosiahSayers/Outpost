@@ -83,3 +83,4 @@ export type { TestUser } from "./auth";
 export { uniqueEmail } from "./auth";
 export { seedGearInventory } from "../../helpers/test-data/seed-gear";
 export { seedActiveSessions } from "../../helpers/test-data/seed-sessions";
+export { seedNotification } from "../../helpers/test-data/seed-notifications";
