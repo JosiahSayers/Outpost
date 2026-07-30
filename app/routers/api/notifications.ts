@@ -25,6 +25,7 @@ notificationsRouter.get(
         where,
         take: req.query.take,
         skip: req.query.skip,
+        orderBy: { createdAt: "desc" },
       }),
       db.notification.count({ where }),
     ]);

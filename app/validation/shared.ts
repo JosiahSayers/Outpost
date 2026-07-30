@@ -8,10 +8,9 @@ export const numberQueryParam = (
   defaultValue: number,
   { max, min }: { max?: number; min?: number } = {},
 ) => {
-  const schema = z.coerce.number();
-  if (min) schema.min(min);
-  if (max) schema.max(max);
-  schema.default(defaultValue);
+  let schema = z.coerce.number();
+  if (min !== undefined) schema = schema.min(min);
+  if (max !== undefined) schema = schema.max(max);
 
   return z.preprocess((input) => {
     if (typeof input === "string" && input.trim().length === 0) {
@@ -19,7 +18,18 @@ export const numberQueryParam = (
     }
 
     return input;
-  }, schema);
+  }, schema.default(defaultValue));
+};
+
+// Query params arrive as strings, and z.coerce.boolean() treats any
+// non-empty string (including "false") as true, so only the literal
+// "true"/"false" strings are coerced here.
+export const booleanQueryParam = () => {
+  return z.preprocess((input) => {
+    if (input === "true") return true;
+    if (input === "false") return false;
+    return input;
+  }, z.boolean().optional());
 };
 
 // Prisma's own request validation rejects a bare "YYYY-MM-DD" string for a
