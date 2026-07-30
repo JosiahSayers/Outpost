@@ -57,3 +57,33 @@
     transform: scale(1) rotate(0deg);
   }
 }
+
+/*
+ * Notification bell (notification-bell-icon.tsx), fired once when the unread
+ * count refetches higher than it was — same fire-and-forget approach as
+ * marmot-pop above, just triggered by a query result instead of a prop.
+ */
+.notification-bell--ring {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: notification-bell-ring 0.6s ease-in-out;
+}
+
+@keyframes notification-bell-ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-15deg);
+  }
+  40% {
+    transform: rotate(12deg);
+  }
+  60% {
+    transform: rotate(-8deg);
+  }
+  80% {
+    transform: rotate(4deg);
+  }
+}

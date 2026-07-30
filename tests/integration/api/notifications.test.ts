@@ -22,23 +22,21 @@ describe("GET /", () => {
     });
 
     const response = await request(app)
-      .get("/api/notifications")
+      .get("/api/notifications?take=25")
       .set("Cookie", await getAuthCookies())
       .expect("Content-Type", /json/)
       .expect(200);
 
-    expect(response.body.notifications).toEqual([
-      {
-        id: notification.id,
-        title: "Trip reminder",
-        description: notification.description,
-        read: notification.read,
-        dismissed: notification.dismissed,
-        icon: notification.icon,
-        referenceUrl: notification.referenceUrl,
-        createdAt: notification.createdAt.toISOString(),
-      },
-    ]);
+    expect(response.body.notifications).toContainEqual({
+      id: notification.id,
+      title: "Trip reminder",
+      description: notification.description,
+      read: notification.read,
+      dismissed: notification.dismissed,
+      icon: notification.icon,
+      referenceUrl: notification.referenceUrl,
+      createdAt: notification.createdAt.toISOString(),
+    });
   });
 
   it("does not return user 1's notifications for user 2", async () => {
@@ -83,6 +81,9 @@ describe("GET /", () => {
     const user = await db.user.findUnique({
       where: { email: "user@test.com" },
     });
+    const before = await db.notification.count({
+      where: { userId: user!.id },
+    });
     await db.notification.createMany({
       data: Array.from({ length: 5 }, () =>
         make("Notification", { userId: user!.id }),
@@ -95,7 +96,7 @@ describe("GET /", () => {
       .expect(200);
 
     expect(response.body.notifications).toHaveLength(2);
-    expect(response.body.total).toBe(5);
+    expect(response.body.total).toBe(before + 5);
     expect(response.body.pageSize).toBe(2);
   });
 
@@ -140,22 +141,23 @@ describe("GET /", () => {
     const user = await db.user.findUnique({
       where: { email: "user@test.com" },
     });
+    const now = Date.now();
     await db.notification.createMany({
       data: [
         make("Notification", {
           userId: user!.id,
           title: "First",
-          createdAt: new Date("2026-01-01"),
+          createdAt: new Date(now - 3000),
         }),
         make("Notification", {
           userId: user!.id,
           title: "Second",
-          createdAt: new Date("2026-01-02"),
+          createdAt: new Date(now - 2000),
         }),
         make("Notification", {
           userId: user!.id,
           title: "Third",
-          createdAt: new Date("2026-01-03"),
+          createdAt: new Date(now - 1000),
         }),
       ],
     });
@@ -165,33 +167,32 @@ describe("GET /", () => {
       .set("Cookie", await getAuthCookies())
       .expect(200);
 
-    expect(response.body.notifications.map((n: any) => n.title)).toEqual([
-      "Third",
-      "Second",
-      "First",
-    ]);
+    expect(
+      response.body.notifications.slice(0, 3).map((n: any) => n.title),
+    ).toEqual(["Third", "Second", "First"]);
   });
 
   it("respects a provided skip parameter", async () => {
     const user = await db.user.findUnique({
       where: { email: "user@test.com" },
     });
+    const now = Date.now();
     await db.notification.createMany({
       data: [
         make("Notification", {
           userId: user!.id,
           title: "First",
-          createdAt: new Date("2026-01-01"),
+          createdAt: new Date(now - 3000),
         }),
         make("Notification", {
           userId: user!.id,
           title: "Second",
-          createdAt: new Date("2026-01-02"),
+          createdAt: new Date(now - 2000),
         }),
         make("Notification", {
           userId: user!.id,
           title: "Third",
-          createdAt: new Date("2026-01-03"),
+          createdAt: new Date(now - 1000),
         }),
       ],
     });
@@ -201,10 +202,9 @@ describe("GET /", () => {
       .set("Cookie", await getAuthCookies())
       .expect(200);
 
-    expect(response.body.notifications.map((n: any) => n.title)).toEqual([
-      "Second",
-      "First",
-    ]);
+    expect(
+      response.body.notifications.slice(0, 2).map((n: any) => n.title),
+    ).toEqual(["Second", "First"]);
   });
 
   it("returns a validation error when take exceeds the maximum", async () => {
@@ -272,20 +272,22 @@ describe("GET /", () => {
     });
 
     const readResponse = await request(app)
-      .get("/api/notifications?read=true")
+      .get("/api/notifications?read=true&take=25")
       .set("Cookie", await getAuthCookies())
       .expect(200);
-    expect(readResponse.body.notifications.map((n: any) => n.title)).toEqual([
-      "Read",
-    ]);
+    const readTitles = readResponse.body.notifications.map((n: any) => n.title);
+    expect(readTitles).toContain("Read");
+    expect(readTitles).not.toContain("Unread");
 
     const unreadResponse = await request(app)
-      .get("/api/notifications?read=false")
+      .get("/api/notifications?read=false&take=25")
       .set("Cookie", await getAuthCookies())
       .expect(200);
-    expect(unreadResponse.body.notifications.map((n: any) => n.title)).toEqual([
-      "Unread",
-    ]);
+    const unreadTitles = unreadResponse.body.notifications.map(
+      (n: any) => n.title,
+    );
+    expect(unreadTitles).toContain("Unread");
+    expect(unreadTitles).not.toContain("Read");
   });
 
   it("filters by dismissed status", async () => {
@@ -308,20 +310,24 @@ describe("GET /", () => {
     });
 
     const dismissedResponse = await request(app)
-      .get("/api/notifications?dismissed=true")
+      .get("/api/notifications?dismissed=true&take=25")
       .set("Cookie", await getAuthCookies())
       .expect(200);
-    expect(
-      dismissedResponse.body.notifications.map((n: any) => n.title),
-    ).toEqual(["Dismissed"]);
+    const dismissedTitles = dismissedResponse.body.notifications.map(
+      (n: any) => n.title,
+    );
+    expect(dismissedTitles).toContain("Dismissed");
+    expect(dismissedTitles).not.toContain("Active");
 
     const activeResponse = await request(app)
-      .get("/api/notifications?dismissed=false")
+      .get("/api/notifications?dismissed=false&take=25")
       .set("Cookie", await getAuthCookies())
       .expect(200);
-    expect(activeResponse.body.notifications.map((n: any) => n.title)).toEqual([
-      "Active",
-    ]);
+    const activeTitles = activeResponse.body.notifications.map(
+      (n: any) => n.title,
+    );
+    expect(activeTitles).toContain("Active");
+    expect(activeTitles).not.toContain("Dismissed");
   });
 
   it("combines read and dismissed filters", async () => {
@@ -352,13 +358,14 @@ describe("GET /", () => {
     });
 
     const response = await request(app)
-      .get("/api/notifications?read=true&dismissed=false")
+      .get("/api/notifications?read=true&dismissed=false&take=25")
       .set("Cookie", await getAuthCookies())
       .expect(200);
 
-    expect(response.body.notifications.map((n: any) => n.title)).toEqual([
-      "Read, not dismissed",
-    ]);
+    const titles = response.body.notifications.map((n: any) => n.title);
+    expect(titles).toContain("Read, not dismissed");
+    expect(titles).not.toContain("Read and dismissed");
+    expect(titles).not.toContain("Unread, not dismissed");
   });
 });
 

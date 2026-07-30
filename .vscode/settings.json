@@ -2,5 +2,14 @@
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
+  },
+  "files.watcherExclude": {
+    "**/container_files/**": true
+  },
+  "files.exclude": {
+    "**/container_files": true
+  },
+  "search.exclude": {
+    "**/container_files": true
   }
 }

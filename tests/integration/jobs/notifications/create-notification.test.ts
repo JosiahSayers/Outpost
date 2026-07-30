@@ -37,6 +37,7 @@ describe("createNotification", () => {
 
     const notification = await db.notification.findFirstOrThrow({
       where: { userId },
+      orderBy: { createdAt: "desc" },
     });
     expect(notification).toMatchObject({
       title: "Trip reminder",
@@ -56,6 +57,7 @@ describe("createNotification", () => {
 
     const notification = await db.notification.findFirstOrThrow({
       where: { userId },
+      orderBy: { createdAt: "desc" },
     });
     expect(notification.read).toBe(false);
     expect(notification.dismissed).toBe(false);
@@ -73,6 +75,7 @@ describe("createNotification", () => {
 
     const notification = await db.notification.findFirstOrThrow({
       where: { userId },
+      orderBy: { createdAt: "desc" },
     });
     expect(notification.read).toBe(true);
     expect(notification.dismissed).toBe(true);
@@ -84,9 +87,11 @@ describe("createNotification", () => {
       userId: "does-not-exist",
     });
 
+    const before = await db.notification.count();
+
     await expect(createNotification(job)).rejects.toThrow();
 
     const count = await db.notification.count();
-    expect(count).toBe(0);
+    expect(count).toBe(before);
   });
 });

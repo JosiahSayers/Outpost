@@ -1,8 +1,13 @@
 import AppLogo from "$/frontend/layout/app-shell/app-logo";
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
 import MarmotAvatar from "$/frontend/layout/app-shell/marmot-avatar";
+import NotificationBell from "$/frontend/layout/app-shell/notification-bell";
+import NotificationBellIcon from "$/frontend/layout/app-shell/notification-bell-icon";
+import NotificationPanelContent from "$/frontend/layout/app-shell/notification-panel-content";
 import { authClient } from "$/frontend/utils/auth-client";
+import { useNotificationArrivalAlert } from "$/frontend/utils/hooks/use-notification-arrival-alert";
 import {
+  ActionIcon,
   AppShellHeader,
   Burger,
   Drawer,
@@ -15,8 +20,16 @@ import { Link } from "wouter";
 
 export default function Header() {
   const [opened, { toggle, close }] = useDisclosure(false);
+  // Deliberately opposite the account/menu drawer above, which opens from
+  // the right — a separate trigger and panel so the two don't fight over
+  // the same drawer instance or open state.
+  const [
+    notificationsOpened,
+    { toggle: toggleNotifications, close: closeNotifications },
+  ] = useDisclosure(false);
   const session = authClient.useSession();
   const logoHref = session.data ? "/dashboard" : "/";
+  const { pulsing } = useNotificationArrivalAlert(!!session.data);
 
   return (
     <>
@@ -31,8 +44,21 @@ export default function Header() {
             <AppLogo height={50} style={{ cursor: "pointer" }} />
           </Link>
           <Group visibleFrom="sm">
+            {session.data && <NotificationBell pulse={pulsing} />}
             <HeaderLinks />
           </Group>
+          {session.data && (
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="lg"
+              hiddenFrom="sm"
+              aria-label="Notifications"
+              onClick={toggleNotifications}
+            >
+              <NotificationBellIcon pulse={pulsing} />
+            </ActionIcon>
+          )}
           {session.data ? (
             <UnstyledButton
               onClick={toggle}
@@ -53,10 +79,24 @@ export default function Header() {
           )}
         </Group>
       </AppShellHeader>
-      <Drawer opened={opened} onClose={close} title="Menu" size="xs">
+      <Drawer
+        opened={opened}
+        onClose={close}
+        title="Menu"
+        position="right"
+        size="xs"
+      >
         <Stack>
           <HeaderLinks stacked onNavigate={close} />
         </Stack>
+      </Drawer>
+      <Drawer
+        opened={notificationsOpened}
+        onClose={closeNotifications}
+        position="left"
+        size="xs"
+      >
+        <NotificationPanelContent onNavigate={closeNotifications} />
       </Drawer>
     </>
   );

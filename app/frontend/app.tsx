@@ -11,6 +11,7 @@ import ForgotPasswordPage from "$/frontend/pages/forgot-password.page";
 import GearInventoryPage from "$/frontend/pages/gear-inventory.page";
 import MarketingPage from "$/frontend/pages/marketing.page";
 import NotFoundPage from "$/frontend/pages/not-found.page";
+import NotificationsPage from "$/frontend/pages/notifications.page";
 import PackingListPage from "$/frontend/pages/packing-list.page";
 import RegisterPage from "$/frontend/pages/register.page";
 import ResetPasswordPage from "$/frontend/pages/reset-password.page";
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/account/:tab?" component={AccountPage} />
               <Route path="/dashboard" component={DashboardPage} />
               <Route path="/gear-inventory" component={GearInventoryPage} />
+              <Route path="/notifications" component={NotificationsPage} />
               <Route path="/packing-lists/:id" component={PackingListPage} />
               <Route path="/trips/:id" component={TripPage} />
               <Route path="/sign-in" component={SignInPage} />
