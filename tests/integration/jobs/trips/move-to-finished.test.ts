@@ -183,7 +183,7 @@ describe("moveTripsToFinished", () => {
 
   it("enqueues a finished-trip notification for a moved trip", async () => {
     const now = new Date("2026-06-15T12:00:00.000Z");
-    await db.trip.create({
+    const trip = await db.trip.create({
       data: make("Trip", {
         userId,
         status: "in_progress",
@@ -203,6 +203,7 @@ describe("moveTripsToFinished", () => {
       "We've automatically marked your trip as completed.",
     );
     expect(job!.data.icon).toBe("FlagCheckeredIcon");
+    expect(job!.data.referenceUrl).toBe(`/trips/${trip.id}`);
     expect(FINISHED_NOTIFICATION_TITLES).toContain(job!.data.title);
   });
 
@@ -211,7 +212,7 @@ describe("moveTripsToFinished", () => {
     const otherUser = await db.user.findUniqueOrThrow({
       where: { email: "user2@test.com" },
     });
-    await Promise.all([
+    const [trip, otherTrip] = await Promise.all([
       db.trip.create({
         data: make("Trip", {
           userId,
@@ -235,6 +236,9 @@ describe("moveTripsToFinished", () => {
     expect(jobs).toHaveLength(2);
     expect(jobs.map((job) => job.data.userId).sort()).toEqual(
       [userId, otherUser.id].sort(),
+    );
+    expect(jobs.map((job) => job.data.referenceUrl).sort()).toEqual(
+      [`/trips/${trip.id}`, `/trips/${otherTrip.id}`].sort(),
     );
   });
 

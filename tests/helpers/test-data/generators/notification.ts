@@ -12,6 +12,7 @@ export default function makeNotification(
     title: faker.lorem.words(3),
     description: faker.lorem.sentence(),
     icon: faker.lorem.word(),
+    referenceUrl: faker.internet.url(),
     read: false,
     dismissed: false,
     userId: faker.string.uuid(),

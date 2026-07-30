@@ -122,9 +122,10 @@ model Notification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  title       String
-  description String?
-  icon        String?
+  title        String
+  description  String?
+  icon         String?
+  referenceUrl String?
 
   read      Boolean @default(false)
   dismissed Boolean @default(false)

@@ -6,6 +6,7 @@ CREATE TABLE "Notification" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "icon" TEXT,
+    "referenceUrl" TEXT,
     "read" BOOLEAN NOT NULL DEFAULT false,
     "dismissed" BOOLEAN NOT NULL DEFAULT false,
     "userId" TEXT NOT NULL,

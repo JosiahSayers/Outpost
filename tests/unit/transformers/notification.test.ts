@@ -13,6 +13,7 @@ describe("transform", () => {
       dismissed: notification.dismissed,
       createdAt: notification.createdAt,
       icon: notification.icon,
+      referenceUrl: notification.referenceUrl,
     });
   });
 
@@ -27,10 +28,12 @@ describe("transform", () => {
     const notification = make("Notification", {
       description: null,
       icon: null,
+      referenceUrl: null,
     });
     expect(transformers.notification(notification)).toMatchObject({
       description: null,
       icon: null,
+      referenceUrl: null,
     });
   });
 });

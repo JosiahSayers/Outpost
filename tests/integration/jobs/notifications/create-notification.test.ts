@@ -3,9 +3,9 @@ import {
   createNotification,
 } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
-import type { NotificationCreateInput } from "../../../../generated/prisma/models";
 import type { Job } from "bullmq";
 import { beforeEach, describe, expect, it } from "bun:test";
+import type { NotificationUncheckedCreateInput } from "../../../../generated/prisma/models";
 
 let userId: string;
 
@@ -16,12 +16,12 @@ beforeEach(async () => {
   userId = user.id;
 });
 
-function makeJob(data: NotificationCreateInput) {
+function makeJob(data: NotificationUncheckedCreateInput) {
   return {
     id: "test-job-id",
     name: NOTIFICATIONS__CREATE_NOTIFICATION,
     data,
-  } as unknown as Job<NotificationCreateInput>;
+  } as unknown as Job<NotificationUncheckedCreateInput>;
 }
 
 describe("createNotification", () => {
@@ -30,7 +30,7 @@ describe("createNotification", () => {
       title: "Trip reminder",
       description: "Your trip starts tomorrow",
       icon: "calendar",
-      user: { connect: { id: userId } },
+      userId,
     });
 
     await createNotification(job);
@@ -49,7 +49,7 @@ describe("createNotification", () => {
   it("defaults read and dismissed to false when not provided", async () => {
     const job = makeJob({
       title: "Trip reminder",
-      user: { connect: { id: userId } },
+      userId,
     });
 
     await createNotification(job);
@@ -66,7 +66,7 @@ describe("createNotification", () => {
       title: "Trip reminder",
       read: true,
       dismissed: true,
-      user: { connect: { id: userId } },
+      userId,
     });
 
     await createNotification(job);
@@ -81,7 +81,7 @@ describe("createNotification", () => {
   it("throws and does not create a row when the referenced user does not exist", async () => {
     const job = makeJob({
       title: "Trip reminder",
-      user: { connect: { id: "does-not-exist" } },
+      userId: "does-not-exist",
     });
 
     await expect(createNotification(job)).rejects.toThrow();

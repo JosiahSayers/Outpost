@@ -35,6 +35,7 @@ describe("GET /", () => {
         read: notification.read,
         dismissed: notification.dismissed,
         icon: notification.icon,
+        referenceUrl: notification.referenceUrl,
         createdAt: notification.createdAt.toISOString(),
       },
     ]);
@@ -447,6 +448,7 @@ describe("PATCH /:id", () => {
         read: true,
         dismissed: true,
         icon: notification.icon,
+        referenceUrl: notification.referenceUrl,
         createdAt: notification.createdAt.toISOString(),
       },
     });
