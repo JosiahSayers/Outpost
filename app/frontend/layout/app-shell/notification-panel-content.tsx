@@ -6,6 +6,7 @@ import {
   useNotificationList,
 } from "$/frontend/utils/api/notifications";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
+import { useDismissAnimation } from "$/frontend/utils/hooks/use-dismiss-animation";
 import { useUnreadNotificationCount } from "$/frontend/utils/hooks/use-unread-notification-count";
 import { Anchor, Center, Group, Loader, Stack, Text } from "@mantine/core";
 import { Link } from "wouter";
@@ -33,6 +34,9 @@ export default function NotificationPanelContent({
   const dismiss = useDismissNotification(queryKey);
   const markRead = useMarkNotificationsRead();
   const { count } = useUnreadNotificationCount();
+  const { dismissingIds, beginDismiss } = useDismissAnimation((id) =>
+    dismiss.mutate(id),
+  );
 
   const handleOpen = (notificationId: string, read: boolean) => {
     if (!read) {
@@ -78,8 +82,9 @@ export default function NotificationPanelContent({
           <NotificationRow
             key={notification.id}
             notification={notification}
+            dismissing={dismissingIds.has(notification.id)}
             onOpen={() => handleOpen(notification.id, notification.read)}
-            onDismiss={() => dismiss.mutate(notification.id)}
+            onDismiss={() => beginDismiss(notification.id)}
           />
         ))}
 

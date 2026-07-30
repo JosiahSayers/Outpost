@@ -3,11 +3,16 @@ import NotificationPanelContent from "$/frontend/layout/app-shell/notification-p
 import { ActionIcon, Menu } from "@mantine/core";
 import { useState } from "react";
 
+interface NotificationBellProps {
+  /** Forwarded to the bell icon — see NotificationBellIcon. */
+  pulse?: boolean;
+}
+
 // Desktop-only: popover anchored under the bell, same mechanism as the
 // account menu. The mobile equivalent (own trigger + left-side Drawer) lives
 // in header.tsx directly, reusing NotificationPanelContent the same way
 // HeaderLinks' stacked mode reuses AccountMenu's content.
-export default function NotificationBell() {
+export default function NotificationBell({ pulse }: NotificationBellProps) {
   const [opened, setOpened] = useState(false);
 
   return (
@@ -25,7 +30,7 @@ export default function NotificationBell() {
           size="lg"
           aria-label="Notifications"
         >
-          <NotificationBellIcon />
+          <NotificationBellIcon pulse={pulse} />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>

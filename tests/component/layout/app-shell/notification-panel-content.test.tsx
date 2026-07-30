@@ -1,5 +1,6 @@
 import NotificationPanelContent from "$/frontend/layout/app-shell/notification-panel-content";
 import { notificationKeys } from "$/frontend/utils/api/notifications";
+import { UNREAD_NOTIFICATIONS_PARAMS } from "$/frontend/utils/hooks/use-unread-notification-count";
 import type { ClientNotification } from "$/transformers/notification";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
 const PANEL_PARAMS = { dismissed: false, take: 5 };
-const COUNT_PARAMS = { read: false, dismissed: false, take: 1 };
+const COUNT_PARAMS = UNREAD_NOTIFICATIONS_PARAMS;
 
 const onNavigate = mock(() => {});
 
@@ -146,9 +147,9 @@ describe("clicking an unread row", () => {
     await waitFor(() => {
       const patchCall = findPatchCall();
       expect(patchCall).toBeDefined();
-      expect(
-        JSON.parse((patchCall![1] as RequestInit).body as string),
-      ).toEqual({ read: true });
+      expect(JSON.parse((patchCall![1] as RequestInit).body as string)).toEqual(
+        { read: true },
+      );
     });
   });
 });

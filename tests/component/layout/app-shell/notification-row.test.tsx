@@ -26,12 +26,18 @@ function makeNotification(
   };
 }
 
-function renderRow(overrides: Partial<ClientNotification> = {}) {
+function renderRow(
+  overrides: Partial<ClientNotification> = {},
+  dismissing = false,
+  dismissible = true,
+) {
   render(
     <MantineProvider>
       <Router hook={() => ["/dashboard", navigate]}>
         <NotificationRow
           notification={makeNotification(overrides)}
+          dismissing={dismissing}
+          dismissible={dismissible}
           onOpen={onOpen}
           onDismiss={onDismiss}
         />
@@ -101,5 +107,31 @@ describe("dismiss control", () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(onOpen).not.toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("while dismissing", () => {
+  it("ignores row clicks instead of opening", () => {
+    renderRow({ referenceUrl: "/trips/42" }, true);
+    fireEvent.click(getRow());
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("disables the dismiss button", () => {
+    renderRow({}, true);
+    const dismissButton = document.querySelector(
+      '[aria-label="Dismiss notification"]',
+    )!;
+    expect(dismissButton).toBeDisabled();
+  });
+});
+
+describe("when not dismissible", () => {
+  it("does not render the dismiss button", () => {
+    renderRow({}, false, false);
+    expect(
+      document.querySelector('[aria-label="Dismiss notification"]'),
+    ).not.toBeInTheDocument();
   });
 });

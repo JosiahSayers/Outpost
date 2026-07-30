@@ -5,6 +5,7 @@ import NotificationBell from "$/frontend/layout/app-shell/notification-bell";
 import NotificationBellIcon from "$/frontend/layout/app-shell/notification-bell-icon";
 import NotificationPanelContent from "$/frontend/layout/app-shell/notification-panel-content";
 import { authClient } from "$/frontend/utils/auth-client";
+import { useNotificationArrivalAlert } from "$/frontend/utils/hooks/use-notification-arrival-alert";
 import {
   ActionIcon,
   AppShellHeader,
@@ -28,6 +29,7 @@ export default function Header() {
   ] = useDisclosure(false);
   const session = authClient.useSession();
   const logoHref = session.data ? "/dashboard" : "/";
+  const { pulsing } = useNotificationArrivalAlert(!!session.data);
 
   return (
     <>
@@ -42,7 +44,7 @@ export default function Header() {
             <AppLogo height={50} style={{ cursor: "pointer" }} />
           </Link>
           <Group visibleFrom="sm">
-            {session.data && <NotificationBell />}
+            {session.data && <NotificationBell pulse={pulsing} />}
             <HeaderLinks />
           </Group>
           {session.data && (
@@ -54,7 +56,7 @@ export default function Header() {
               aria-label="Notifications"
               onClick={toggleNotifications}
             >
-              <NotificationBellIcon />
+              <NotificationBellIcon pulse={pulsing} />
             </ActionIcon>
           )}
           {session.data ? (

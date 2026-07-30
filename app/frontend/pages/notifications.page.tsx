@@ -10,6 +10,7 @@ import {
 } from "$/frontend/utils/api/notifications";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
+import { useDismissAnimation } from "$/frontend/utils/hooks/use-dismiss-animation";
 import {
   Alert,
   Center,
@@ -44,6 +45,9 @@ export default function NotificationsPage() {
   const { isLoading, showSpinner } = useDelayedLoading(rawIsLoading);
   const dismiss = useDismissNotification(queryKey);
   const markRead = useMarkNotificationsRead();
+  const { dismissingIds, beginDismiss } = useDismissAnimation((id) =>
+    dismiss.mutate(id),
+  );
 
   const handleOpen = (notificationId: string, read: boolean) => {
     if (!read) {
@@ -97,8 +101,10 @@ export default function NotificationsPage() {
             <NotificationRow
               key={notification.id}
               notification={notification}
+              dismissing={dismissingIds.has(notification.id)}
+              dismissible={tab !== "history"}
               onOpen={() => handleOpen(notification.id, notification.read)}
-              onDismiss={() => dismiss.mutate(notification.id)}
+              onDismiss={() => beginDismiss(notification.id)}
             />
           ))}
         </Stack>

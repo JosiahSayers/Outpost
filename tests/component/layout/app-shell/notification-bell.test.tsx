@@ -1,5 +1,6 @@
 import NotificationBell from "$/frontend/layout/app-shell/notification-bell";
 import { notificationKeys } from "$/frontend/utils/api/notifications";
+import { UNREAD_NOTIFICATIONS_PARAMS } from "$/frontend/utils/hooks/use-unread-notification-count";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -15,10 +16,11 @@ function renderBell() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  queryClient.setQueryData(
-    notificationKeys.list({ read: false, dismissed: false, take: 1 }),
-    { notifications: [], total: 2, pageSize: 1 },
-  );
+  queryClient.setQueryData(notificationKeys.list(UNREAD_NOTIFICATIONS_PARAMS), {
+    notifications: [],
+    total: 2,
+    pageSize: UNREAD_NOTIFICATIONS_PARAMS.take,
+  });
 
   return render(
     <QueryClientProvider client={queryClient}>

@@ -52,7 +52,15 @@ function patchNotification(
   );
 }
 
-export function useNotificationList(params: NotificationListParams) {
+// Shorter than the app-wide default (15 min, see query-client.ts) — just
+// needs to cover the gap between polls (below) so a refetch from some other
+// trigger (remount, reconnect) doesn't skip a beat.
+const STALE_TIME_MS = 5 * 60 * 1000;
+
+export function useNotificationList(
+  params: NotificationListParams,
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: notificationKeys.list(params),
     queryFn: () =>
@@ -60,6 +68,15 @@ export function useNotificationList(params: NotificationListParams) {
         `/api/notifications?${buildQueryString(params)}`,
       ),
     placeholderData: keepPreviousData,
+    staleTime: STALE_TIME_MS,
+    // Polls so the badge/panel picks up new arrivals without a manual
+    // refresh. `refetchIntervalInBackground` defaults to false, which is
+    // enough to stop this while the tab is hidden/backgrounded — React
+    // Query's focus manager keys off `document.visibilityState`, not OS
+    // window focus, so switching to another app with the tab still visible
+    // (e.g. DevTools undocked) doesn't pause it.
+    refetchInterval: 1 * 60 * 1000,
+    enabled: options.enabled,
   });
 }
 
