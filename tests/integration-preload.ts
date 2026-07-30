@@ -1,4 +1,5 @@
 import { db } from "$/utils/db";
+import { RedisClient } from "bun";
 import { afterAll, afterEach, beforeAll } from "bun:test";
 
 // Loaded in addition to tests/preload.ts (via --preload) only for
@@ -16,6 +17,10 @@ const AUTH_TABLES = ["user", "session", "account", "verification"];
 // so we don't re-query the catalog on every reset.
 let domainTables: string[] = [];
 let sequenceColumns: Array<{ table: string; column: string }> = [];
+
+// Redis (queues/jobs) holds nothing worth preserving between tests, so we
+// just wipe it entirely rather than snapshot/restore like the DB tables.
+const redis = new RedisClient();
 
 async function getDomainTables() {
   const rows = await db.$queryRaw<Array<{ tablename: string }>>`
@@ -62,6 +67,10 @@ afterAll(async () => {
   for (const table of domainTables) {
     await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "__snap__${table}"`);
   }
+});
+
+afterEach(async () => {
+  await redis.send("FLUSHDB", []);
 });
 
 // Reset the database to the seeded baseline after every test. We truncate and
