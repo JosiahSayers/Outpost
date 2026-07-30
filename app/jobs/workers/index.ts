@@ -1,10 +1,11 @@
 import { moveToFinishedQueue, moveToInProgressQueue } from "$/jobs/queues";
 import { sendResetPasswordEmailWorker } from "$/jobs/workers/email/reset-password";
+import { createNotificationWorker } from "$/jobs/workers/notifications/create-notification";
 import { cleanupOrphanedPadUsRuns } from "$/jobs/workers/protected-areas/cleanup-orphaned-runs";
 import { deriveCanonicalEntitiesWorker } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { finalizePadUsIngestWorker } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
-import { ingestPadUsChunkWorker } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { ingestPadUsWorker } from "$/jobs/workers/protected-areas/ingest-padus";
+import { ingestPadUsChunkWorker } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { moveToFinishedWorker } from "$/jobs/workers/trip-status/move-to-finished";
 import { moveToInProgressWorker } from "$/jobs/workers/trip-status/move-to-in-progress";
 import { logger } from "$/utils/logger";
@@ -18,6 +19,7 @@ const workers: Worker[] = [
   ingestPadUsChunkWorker,
   finalizePadUsIngestWorker,
   deriveCanonicalEntitiesWorker,
+  createNotificationWorker,
 ];
 
 await cleanupOrphanedPadUsRuns();
