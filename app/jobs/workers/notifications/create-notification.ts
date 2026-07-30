@@ -2,14 +2,14 @@ import { getLogger } from "$/jobs/utils/logger-setup";
 import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
 import { Worker, type Job } from "bullmq";
-import type { NotificationCreateInput } from "../../../../generated/prisma/models";
+import type { NotificationUncheckedCreateInput } from "../../../../generated/prisma/models";
 
 export const NOTIFICATIONS__CREATE_NOTIFICATION =
   "notifications__create_notification";
 
-interface JobData extends NotificationCreateInput {}
+export interface CreateNotificationJobData extends NotificationUncheckedCreateInput {}
 
-export async function createNotification(job: Job<JobData>) {
+export async function createNotification(job: Job<CreateNotificationJobData>) {
   const logger = getLogger(job);
   try {
     await db.notification.create({ data: job.data });
@@ -19,7 +19,7 @@ export async function createNotification(job: Job<JobData>) {
   }
 }
 
-export const createNotificationWorker = new Worker<JobData>(
+export const createNotificationWorker = new Worker<CreateNotificationJobData>(
   NOTIFICATIONS__CREATE_NOTIFICATION,
   createNotification,
   defaultWorkerOptions,
