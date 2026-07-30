@@ -1,5 +1,6 @@
 import NotificationPanelContent from "$/frontend/layout/app-shell/notification-panel-content";
 import { notificationKeys } from "$/frontend/utils/api/notifications";
+import { DISMISS_ANIMATION_MS } from "$/frontend/utils/hooks/use-dismiss-animation";
 import { UNREAD_NOTIFICATIONS_PARAMS } from "$/frontend/utils/hooks/use-unread-notification-count";
 import type { ClientNotification } from "$/transformers/notification";
 import { MantineProvider } from "@mantine/core";
@@ -174,10 +175,18 @@ describe("dismissing a row", () => {
     )!;
     fireEvent.click(dismissButton);
 
-    await waitFor(() =>
-      expect(
-        screen.queryByText("Rae added 4 gear items to the shared list"),
-      ).not.toBeInTheDocument(),
+    // Beyond the real DISMISS_ANIMATION_MS timer, removal also depends on an
+    // async mutation round trip (cancelQueries, the mocked PATCH fetch,
+    // optimistic cache write, re-render) — testing-library's default 1000ms
+    // waitFor budget is comfortable locally but has been observed to time
+    // out on CI's slower/shared runners, so this gets a generous explicit
+    // budget instead.
+    await waitFor(
+      () =>
+        expect(
+          screen.queryByText("Rae added 4 gear items to the shared list"),
+        ).not.toBeInTheDocument(),
+      { timeout: DISMISS_ANIMATION_MS + 4000 },
     );
     expect(onNavigate).not.toHaveBeenCalled();
   });
