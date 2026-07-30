@@ -360,3 +360,205 @@ describe("GET /", () => {
     ]);
   });
 });
+
+describe("PATCH /:id", () => {
+  it("requires a valid session", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true })
+      .expect(401);
+  });
+
+  it("returns 404 when the notification does not exist", async () => {
+    await request(app)
+      .patch("/api/notifications/does-not-exist")
+      .send({ read: true })
+      .set("Cookie", await getAuthCookies())
+      .expect(404);
+  });
+
+  it("returns 403 when the notification belongs to another user", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id }),
+    });
+
+    await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true })
+      .set("Cookie", await getAuthCookies("user2@test.com"))
+      .expect(403);
+  });
+
+  it("does not modify the notification when the owning user check fails", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id, read: false }),
+    });
+
+    await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true })
+      .set("Cookie", await getAuthCookies("user2@test.com"))
+      .expect(403);
+
+    const dbNotification = await db.notification.findUnique({
+      where: { id: notification.id },
+    });
+    expect(dbNotification?.read).toBe(false);
+  });
+
+  it("updates the provided fields", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", {
+        userId: user!.id,
+        title: "Trip reminder",
+        read: false,
+        dismissed: false,
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true, dismissed: true })
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body).toEqual({
+      notification: {
+        id: notification.id,
+        title: "Trip reminder",
+        description: notification.description,
+        read: true,
+        dismissed: true,
+        icon: notification.icon,
+        createdAt: notification.createdAt.toISOString(),
+      },
+    });
+  });
+
+  it("persists the update to the database", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id, read: false }),
+    });
+
+    await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true })
+      .set("Cookie", await getAuthCookies())
+      .expect(200);
+
+    const dbNotification = await db.notification.findUnique({
+      where: { id: notification.id },
+    });
+    expect(dbNotification?.read).toBe(true);
+  });
+
+  it("allows a partial update, leaving other fields unchanged", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", {
+        userId: user!.id,
+        read: false,
+        dismissed: false,
+      }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: true })
+      .set("Cookie", await getAuthCookies())
+      .expect(200);
+
+    expect(response.body.notification.read).toBe(true);
+    expect(response.body.notification.dismissed).toBe(false);
+  });
+
+  it("rejects a non-boolean read value", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ read: "yes" })
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "invalid_type",
+              "expected": "boolean",
+              "message": "Invalid input: expected boolean, received string",
+              "path": [
+                "read",
+              ],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+
+  it("rejects unrecognized fields", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const notification = await db.notification.create({
+      data: make("Notification", { userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .patch(`/api/notifications/${notification.id}`)
+      .send({ notAField: true })
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(400);
+
+    expect(response.body).toMatchInlineSnapshot(`
+      [
+        {
+          "errors": [
+            {
+              "code": "unrecognized_keys",
+              "keys": [
+                "notAField",
+              ],
+              "message": "Unrecognized key: "notAField"",
+              "path": [],
+            },
+          ],
+          "type": "body",
+        },
+      ]
+    `);
+  });
+});

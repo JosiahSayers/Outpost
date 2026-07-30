@@ -1,8 +1,13 @@
+import { userCanEditNotification } from "$/middleware/authorization/notification";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
-import { notificationSearch } from "$/validation/notification";
+import {
+  editNotification,
+  notificationSearch,
+} from "$/validation/notification";
+import { idParam } from "$/validation/shared";
 import { Router } from "express";
 import validate from "express-zod-safe";
 
@@ -41,6 +46,27 @@ notificationsRouter.get(
       notifications: page.items,
       pageSize: page.pageSize,
       total: page.total,
+    });
+  },
+);
+
+notificationsRouter.patch(
+  "/:id",
+  validate({ params: idParam, body: editNotification }),
+  userCanEditNotification,
+  async (req, res) => {
+    const updatedNotification = await db.notification.update({
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        read: req.body.read,
+        dismissed: req.body.dismissed,
+      },
+    });
+
+    return res.json({
+      notification: transformers.notification(updatedNotification),
     });
   },
 );

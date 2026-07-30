@@ -7,3 +7,8 @@ export const notificationSearch = z.strictObject({
   read: booleanQueryParam(),
   dismissed: booleanQueryParam(),
 });
+
+export const editNotification = z.strictObject({
+  read: z.boolean().optional(),
+  dismissed: z.boolean().optional(),
+});
