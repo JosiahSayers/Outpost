@@ -4,14 +4,33 @@ export const idParam = z.strictObject({
   id: z.string(),
 });
 
-export const numberQueryParam = (defaultValue: number) =>
-  z.preprocess((input) => {
+export const numberQueryParam = (
+  defaultValue: number,
+  { max, min }: { max?: number; min?: number } = {},
+) => {
+  let schema = z.coerce.number();
+  if (min !== undefined) schema = schema.min(min);
+  if (max !== undefined) schema = schema.max(max);
+
+  return z.preprocess((input) => {
     if (typeof input === "string" && input.trim().length === 0) {
       return undefined;
     }
 
     return input;
-  }, z.coerce.number().default(defaultValue));
+  }, schema.default(defaultValue));
+};
+
+// Query params arrive as strings, and z.coerce.boolean() treats any
+// non-empty string (including "false") as true, so only the literal
+// "true"/"false" strings are coerced here.
+export const booleanQueryParam = () => {
+  return z.preprocess((input) => {
+    if (input === "true") return true;
+    if (input === "false") return false;
+    return input;
+  }, z.boolean().optional());
+};
 
 // Prisma's own request validation rejects a bare "YYYY-MM-DD" string for a
 // DateTime field ("Expected ISO-8601 DateTime"), so the validated date string

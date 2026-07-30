@@ -1,10 +1,38 @@
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import {
+  defaultWorkerOptions,
+  redisConnection,
+} from "$/jobs/workers/default-options";
+import {
+  NOTIFICATIONS__CREATE_NOTIFICATION,
+  type CreateNotificationJobData,
+} from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
-import { Worker } from "bullmq";
+import { Queue, Worker } from "bullmq";
 
 export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_finished";
 
+const createNotificationQueue = new Queue<CreateNotificationJobData>(
+  NOTIFICATIONS__CREATE_NOTIFICATION,
+  {
+    connection: redisConnection,
+  },
+);
+
 const BATCH_SIZE = 1000;
+
+export const FINISHED_NOTIFICATION_TITLES = [
+  "Trip complete!",
+  "Your trip has wrapped up",
+  "Welcome back!",
+  "That's a wrap on your trip",
+  "Trip's all done",
+  "Another one in the books",
+];
+
+function randomFinishedNotificationTitle() {
+  const index = Math.floor(Math.random() * FINISHED_NOTIFICATION_TITLES.length);
+  return FINISHED_NOTIFICATION_TITLES[index]!;
+}
 
 export async function moveTripsToFinished(now: Date = new Date()) {
   // Runs against jobs that ended yesterday
@@ -24,6 +52,7 @@ export async function moveTripsToFinished(now: Date = new Date()) {
     const tripsToMove = await db.trip.findMany({
       select: {
         id: true,
+        userId: true,
       },
       where: {
         status: "in_progress",
@@ -42,6 +71,19 @@ export async function moveTripsToFinished(now: Date = new Date()) {
     });
 
     changedTripIds.push(...tripIdsToMove);
+
+    await createNotificationQueue.addBulk(
+      tripsToMove.map(({ id, userId }) => ({
+        name: "trip-moved-to-finished-notification",
+        data: {
+          userId,
+          title: randomFinishedNotificationTitle(),
+          description: "We've automatically marked your trip as completed.",
+          icon: "FlagCheckeredIcon",
+          referenceUrl: `/trips/${id}`,
+        },
+      })),
+    );
 
     if (tripsToMove.length === BATCH_SIZE) {
       await processBatch();
