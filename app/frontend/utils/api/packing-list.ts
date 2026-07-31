@@ -29,6 +29,7 @@ export const packingListKeys = {
   detail: (id: string) => ["packing-list", id] as const,
   all: () => ["packing-lists"],
   search: (query: string) => ["packing-lists", "search", query] as const,
+  mineSearchAll: ["packing-lists", "mine-search"] as const,
   mineSearch: (query: string) =>
     ["packing-lists", "mine-search", query] as const,
 };

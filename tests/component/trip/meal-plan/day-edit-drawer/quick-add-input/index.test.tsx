@@ -55,9 +55,11 @@ function makeQueryClient() {
 }
 
 // Stands in for the React Query cache owner: seeds the item search so the
-// hook resolves from cache (no network) when a seed is given. Any
-// un-seeded query hits the network via a mocked fetch that resolves empty,
-// unless a pending fetch is supplied instead.
+// hook can resolve from cache, and backs a mocked fetch with the same seed so
+// results are also correct when SearchCombobox's focus-triggered invalidation
+// (see search-combobox.tsx) forces a real refetch instead of trusting the
+// cache. Any un-seeded query hits the network via a mocked fetch that
+// resolves empty, unless a pending fetch is supplied instead.
 function renderInput({
   seedQuery,
   seedItems,
@@ -76,14 +78,20 @@ function renderInput({
   }
   global.fetch =
     fetchImpl ??
-    (mock(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ items: [] }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }),
-      ),
-    ) as unknown as typeof fetch);
+    (mock((url: string) => {
+      const matchesSeed =
+        seedQuery !== undefined &&
+        url.includes(`query=${encodeURIComponent(seedQuery)}`);
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({ items: matchesSeed ? (seedItems ?? []) : [] }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
+    }) as unknown as typeof fetch);
 
   render(
     <QueryClientProvider client={queryClient}>

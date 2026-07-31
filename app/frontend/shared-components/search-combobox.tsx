@@ -8,6 +8,7 @@ import {
   type TextInputProps,
   useCombobox,
 } from "@mantine/core";
+import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 export interface SearchComboboxProps<T> {
@@ -30,6 +31,16 @@ export interface SearchComboboxProps<T> {
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   results: T[];
   isFetching: boolean;
+  /**
+   * Query-key prefix for the search this combobox is backed by. When
+   * provided, focusing the input invalidates every cached query under this
+   * prefix — so results already fetched during the current focus session
+   * (e.g. backspacing to a substring searched moments ago) stay instant, but
+   * refocusing the field (reopening the drawer, tabbing back in) always
+   * forces a fresh fetch instead of trusting a cache that might have gone
+   * stale from a mutation elsewhere (e.g. the value just got created).
+   */
+  searchKeyPrefix?: QueryKey;
   /** Stable, unique string key for an item (also used as the option value). */
   getOptionValue: (item: T) => string;
   /** Called with the picked item when an option is selected. */
@@ -83,11 +94,13 @@ export default function SearchCombobox<T>({
   emptyMessage,
   hidden = false,
   "aria-label": ariaLabel,
+  searchKeyPrefix,
 }: SearchComboboxProps<T>) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
   const { isLoading, showSpinner } = useDelayedLoading(isFetching);
+  const queryClient = useQueryClient();
 
   // A freeform commit (Enter/blur in a consumer's onKeyDown/onBlur) typically
   // clears the value without going through onOptionSubmit, which otherwise
@@ -134,7 +147,12 @@ export default function SearchCombobox<T>({
             combobox.openDropdown();
           }}
           onClick={() => combobox.openDropdown()}
-          onFocus={() => combobox.openDropdown()}
+          onFocus={() => {
+            if (searchKeyPrefix) {
+              queryClient.invalidateQueries({ queryKey: searchKeyPrefix });
+            }
+            combobox.openDropdown();
+          }}
           onBlur={() => {
             combobox.closeDropdown();
             onBlur?.();
