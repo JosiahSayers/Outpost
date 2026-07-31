@@ -70,7 +70,7 @@ function renderInput({
   const queryClient = makeQueryClient();
   if (seedQuery !== undefined) {
     queryClient.setQueryData(
-      mealPlanItemSearchKeys.search(tripId, seedQuery, "dinner"),
+      mealPlanItemSearchKeys.search(seedQuery),
       seedItems ?? [],
     );
   }
