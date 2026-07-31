@@ -52,7 +52,7 @@ test.describe("New notification arrival", () => {
     await seedNotification(user.id, {
       title: "Rae added 4 gear items to the shared list",
       description: "Tent stakes, water filter, and 2 more were added.",
-      icon: "BackpackIcon",
+      icon: "PersonSimpleHikeIcon",
       read: false,
       dismissed: false,
       createdAt: new Date(),

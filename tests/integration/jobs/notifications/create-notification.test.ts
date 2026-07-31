@@ -1,6 +1,7 @@
 import {
   NOTIFICATIONS__CREATE_NOTIFICATION,
   createNotification,
+  type CreateNotificationJobData,
 } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
 import type { Job } from "bullmq";
@@ -16,12 +17,18 @@ beforeEach(async () => {
   userId = user.id;
 });
 
+// createNotification writes whatever it's given straight to the DB -- it
+// doesn't validate `icon` against NotificationIconName, only the frontend
+// map does. Typed as the broader Prisma input (not CreateNotificationJobData)
+// so tests below can exercise that pass-through with an arbitrary icon
+// string, then cast at the job boundary the same way a real malformed job
+// payload would arrive.
 function makeJob(data: NotificationUncheckedCreateInput) {
   return {
     id: "test-job-id",
     name: NOTIFICATIONS__CREATE_NOTIFICATION,
     data,
-  } as unknown as Job<NotificationUncheckedCreateInput>;
+  } as unknown as Job<CreateNotificationJobData>;
 }
 
 describe("createNotification", () => {
