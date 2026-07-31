@@ -68,6 +68,14 @@ beforeEach(() => {
 
 describe("when opened", () => {
   beforeEach(async () => {
+    global.fetch = mock(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ packingLists: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    ) as unknown as typeof fetch;
     renderDrawer();
     await waitFor(() => {});
   });
@@ -97,6 +105,12 @@ describe("when opened", () => {
       screen.getByRole("button", { name: "Create list" }),
     ).toBeInTheDocument();
   });
+
+  it("prefetches the public packing list search", () => {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    expect(fetchMock).toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0]![0])).toContain("publicOnly=true");
+  });
 });
 
 describe("when opened is false", () => {
@@ -111,6 +125,27 @@ describe("when opened is false", () => {
       </QueryClientProvider>,
     );
     expect(screen.queryByText("New packing list")).not.toBeInTheDocument();
+  });
+
+  // The drawer stays mounted (controlled via `opened`, not mount/unmount) so
+  // its close transition can play, so the "copy from" search must not fetch
+  // until it's actually opened — otherwise every dashboard load would fetch
+  // public packing lists on the off chance the user opens this drawer.
+  it("does not prefetch the public packing list search", async () => {
+    global.fetch = mock(() =>
+      Promise.resolve(new Response("{}", { status: 200 })),
+    ) as unknown as typeof fetch;
+    render(
+      <QueryClientProvider client={makeQueryClient()}>
+        <MantineProvider theme={{ respectReducedMotion: true }}>
+          <Router hook={() => ["/dashboard", () => {}]}>
+            <NewPackingListDrawer opened={false} onClose={onClose} />
+          </Router>
+        </MantineProvider>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => {});
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
 

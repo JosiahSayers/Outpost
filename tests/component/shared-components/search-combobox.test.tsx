@@ -2,6 +2,7 @@ import SearchCombobox, {
   type SearchComboboxProps,
 } from "$/frontend/shared-components/search-combobox";
 import { MantineProvider, Text } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -51,10 +52,15 @@ function renderCombobox(
     emptyMessage: "Nothing found",
     ...overrides,
   };
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <MantineProvider theme={{ respectReducedMotion: true }}>
-      <SearchCombobox {...props} />
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={{ respectReducedMotion: true }}>
+        <SearchCombobox {...props} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

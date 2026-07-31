@@ -6,6 +6,7 @@ import type { NotificationData } from "@mantine/notifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -269,8 +270,11 @@ describe("when the list changes but nothing is newer", () => {
       resultOf([notification]),
     );
 
-    // Give any (incorrect) effect a moment to fire before asserting it didn't.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    // Give any (incorrect) effect a moment to fire before asserting it
+    // didn't. Wrapped in act since the query cache's own notify (even for
+    // this deliberate setQueryData above) is delivered via a macrotask, not
+    // synchronously.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
     expect(screen.getByTestId("state")).toHaveTextContent("idle");
     expect(showToast).not.toHaveBeenCalled();
   });
@@ -279,7 +283,7 @@ describe("when the list changes but nothing is newer", () => {
 describe("when disabled", () => {
   it("never fetches, pulses, or toasts", async () => {
     renderDisplay([], false);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
     expect(screen.getByTestId("state")).toHaveTextContent("idle");
     expect(showToast).not.toHaveBeenCalled();
   });

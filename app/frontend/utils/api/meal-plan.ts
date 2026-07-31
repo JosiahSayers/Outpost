@@ -162,20 +162,22 @@ function updateDayItems(
 }
 
 export const mealPlanItemSearchKeys = {
-  search: (tripId: string, query: string, meal: MealName) =>
-    ["trips", tripId, "meal-plan", "items", "search", query, meal] as const,
+  all: ["meal-plan-items", "search"] as const,
+  search: (query: string) => ["meal-plan-items", "search", query] as const,
 };
 
 // Autocomplete over the user's own previously-entered meal plan items (BTP-77),
-// scoped to this trip's search endpoint and boosted toward the meal slot the
-// search was opened from.
+// across all of the user's trips — the endpoint lives under this trip's route
+// for convenience, but the search itself isn't scoped to it. `meal` only
+// boosts items from that meal slot toward the top; it doesn't filter results,
+// so it's not part of the cache key.
 export function useMealPlanItemSearch(
   tripId: string,
   query: string,
   meal: MealName,
 ) {
   return useQuery({
-    queryKey: mealPlanItemSearchKeys.search(tripId, query, meal),
+    queryKey: mealPlanItemSearchKeys.search(query),
     queryFn: () =>
       apiClient<{ items: ClientMealPlanItem[] }>(
         `/api/trips/${tripId}/meal-plan/items?query=${encodeURIComponent(query)}&meal=${meal}`,
@@ -212,6 +214,9 @@ export function useCreateMealPlanItem(tripId: string) {
             }
           : old,
       );
+      queryClient.invalidateQueries({
+        queryKey: mealPlanItemSearchKeys.all,
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -264,6 +269,9 @@ export function useUpdateMealPlanItem(tripId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({
+        queryKey: mealPlanItemSearchKeys.all,
+      });
     },
   });
 }

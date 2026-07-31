@@ -1,6 +1,9 @@
 import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import { MEAL_LABEL } from "$/frontend/trip/meal-plan/helpers";
-import { useMealPlanItemSearch } from "$/frontend/utils/api/meal-plan";
+import {
+  mealPlanItemSearchKeys,
+  useMealPlanItemSearch,
+} from "$/frontend/utils/api/meal-plan";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
 import { Badge, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -50,6 +53,7 @@ export default function QuickAddInput({
       }}
       results={results}
       isFetching={search.isFetching}
+      searchKeyPrefix={mealPlanItemSearchKeys.all}
       getOptionValue={(item) => item.id}
       onOptionSubmit={(item) => {
         onSelectExisting(item);

@@ -29,6 +29,7 @@ export const packingListKeys = {
   detail: (id: string) => ["packing-list", id] as const,
   all: () => ["packing-lists"],
   search: (query: string) => ["packing-lists", "search", query] as const,
+  mineSearchAll: ["packing-lists", "mine-search"] as const,
   mineSearch: (query: string) =>
     ["packing-lists", "mine-search", query] as const,
 };
@@ -78,27 +79,39 @@ function sortPackingList<T extends ClientFullPackingList>(list: T): T {
   };
 }
 
-export function usePackingListSearch(query: string, publicOnly = false) {
+// `enabled` defaults to true for standalone use, but callers whose combobox
+// lives in an always-mounted drawer (open/closed via a prop, not
+// mount/unmount, so its close transition can play) should pass the drawer's
+// `opened` state — otherwise this fires as soon as the *page* loads rather
+// than when the drawer actually opens.
+export function usePackingListSearch(
+  query: string,
+  publicOnly = false,
+  enabled = true,
+) {
   return useQuery({
     queryKey: packingListKeys.search(query),
     queryFn: () =>
       apiClient<{ packingLists: ClientPackingList[] }>(
         `/api/packing-lists?query=${encodeURIComponent(query)}&publicOnly=${encodeURIComponent(publicOnly.toString())}`,
       ).then((res) => res.packingLists ?? []),
-    enabled: query.length > 0 || publicOnly,
+    enabled: enabled && (query.length > 0 || publicOnly),
     placeholderData: keepPreviousData,
   });
 }
 
 // Search scoped to lists the current user owns, excluding public lists —
 // used by flows that assign an existing list rather than copy from one.
-export function useMyPackingListSearch(query: string) {
+// See `usePackingListSearch` above on why `enabled` defaults to true but
+// should be passed the owning drawer's `opened` state.
+export function useMyPackingListSearch(query: string, enabled = true) {
   return useQuery({
     queryKey: packingListKeys.mineSearch(query),
     queryFn: () =>
       apiClient<{ packingLists: ClientPackingList[] }>(
         `/api/packing-lists?query=${encodeURIComponent(query)}&mineOnly=true`,
       ).then((res) => res.packingLists ?? []),
+    enabled,
     placeholderData: keepPreviousData,
   });
 }
@@ -182,6 +195,10 @@ export function useUpdatePackingList(listId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      // Renaming can change which search results this list matches. Those
+      // queries live under the "packing-lists" (plural) root, a different
+      // key space than this list's own "packing-list" (singular) detail key.
+      queryClient.invalidateQueries({ queryKey: packingListKeys.all() });
     },
   });
 }

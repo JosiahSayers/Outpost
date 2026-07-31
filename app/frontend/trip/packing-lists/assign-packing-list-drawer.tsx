@@ -1,6 +1,9 @@
 import Error from "$/frontend/shared-components/error";
 import SearchCombobox from "$/frontend/shared-components/search-combobox";
-import { useMyPackingListSearch } from "$/frontend/utils/api/packing-list";
+import {
+  packingListKeys,
+  useMyPackingListSearch,
+} from "$/frontend/utils/api/packing-list";
 import { useAssignTripPackingList } from "$/frontend/utils/api/trip-packing-list";
 import type { ClientTripPackingList } from "$/transformers/trip-packing-list";
 import { Button, Drawer, Group, Stack, Text } from "@mantine/core";
@@ -26,7 +29,7 @@ export default function AssignPackingListDrawer({
   const [selectedId, setSelectedId] = useState<string | undefined>();
 
   const [debouncedQuery] = useDebouncedValue(query, 200);
-  const search = useMyPackingListSearch(debouncedQuery);
+  const search = useMyPackingListSearch(debouncedQuery, opened);
   const searchResults = search.data ?? [];
 
   const handleClose = () => {
@@ -76,6 +79,7 @@ export default function AssignPackingListDrawer({
             }}
             results={searchResults}
             isFetching={search.isFetching}
+            searchKeyPrefix={packingListKeys.mineSearchAll}
             getOptionValue={(list) => list.id}
             onOptionSubmit={(list) => {
               setQuery(list.name);

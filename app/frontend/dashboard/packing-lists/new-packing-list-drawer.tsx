@@ -37,7 +37,7 @@ export default function NewPackingListDrawer({ opened, onClose }: Props) {
   });
 
   const [debouncedQuery] = useDebouncedValue(form.values.copyFromName, 200);
-  const search = usePackingListSearch(debouncedQuery, true);
+  const search = usePackingListSearch(debouncedQuery, true, opened);
   const searchResults = search.data ?? [];
 
   const handleClose = () => {
