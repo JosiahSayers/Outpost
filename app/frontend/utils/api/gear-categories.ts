@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "./client";
 
 export const gearCategoryKeys = {
+  all: ["gear-categories"] as const,
   search: (query: string) => ["gear-categories", "search", query] as const,
 };
 
