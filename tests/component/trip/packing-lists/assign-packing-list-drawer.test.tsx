@@ -86,6 +86,12 @@ describe("when opened", () => {
   it("renders a disabled Assign list button until a list is selected", () => {
     expect(screen.getByRole("button", { name: "Assign list" })).toBeDisabled();
   });
+
+  it("prefetches the user's packing lists", () => {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    expect(fetchMock).toHaveBeenCalled();
+    expect(String(fetchMock.mock.calls[0]![0])).toContain("mineOnly=true");
+  });
 });
 
 describe("when opened is false", () => {
@@ -103,6 +109,27 @@ describe("when opened is false", () => {
       </QueryClientProvider>,
     );
     expect(screen.queryByText("Assign a packing list")).not.toBeInTheDocument();
+  });
+
+  // The drawer stays mounted (controlled via `opened`, not mount/unmount) so
+  // its close transition can play, so the user's own packing lists must not
+  // be fetched until it's actually opened — otherwise every trip page load
+  // would fetch them on the off chance the user opens this drawer.
+  it("does not prefetch the user's packing lists", async () => {
+    render(
+      <QueryClientProvider client={makeQueryClient()}>
+        <MantineProvider theme={{ respectReducedMotion: true }}>
+          <AssignPackingListDrawer
+            tripId="trip-1"
+            opened={false}
+            onClose={onClose}
+            onAssigned={onAssigned}
+          />
+        </MantineProvider>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => {});
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
 

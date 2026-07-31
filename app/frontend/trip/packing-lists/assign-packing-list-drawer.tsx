@@ -29,7 +29,7 @@ export default function AssignPackingListDrawer({
   const [selectedId, setSelectedId] = useState<string | undefined>();
 
   const [debouncedQuery] = useDebouncedValue(query, 200);
-  const search = useMyPackingListSearch(debouncedQuery);
+  const search = useMyPackingListSearch(debouncedQuery, opened);
   const searchResults = search.data ?? [];
 
   const handleClose = () => {
