@@ -1,6 +1,11 @@
+import type { NotificationIconName } from "$/transformers/notification";
 import { ThemeIcon } from "@mantine/core";
-import { BellIcon, type Icon } from "@phosphor-icons/react";
-import * as PhosphorIcons from "@phosphor-icons/react";
+import {
+  BellIcon,
+  FlagCheckeredIcon,
+  PersonSimpleHikeIcon,
+  type Icon,
+} from "@phosphor-icons/react";
 
 interface NotificationIconProps {
   icon: string | null;
@@ -8,16 +13,27 @@ interface NotificationIconProps {
 }
 
 // `icon` is a raw Phosphor component name written by whichever job created
-// the notification (e.g. "FlagCheckeredIcon"); look it up dynamically rather
-// than maintaining a fixed enum, so new producers can use any Phosphor icon
-// without a frontend change. Falls back to a bell for unknown/missing names.
+// the notification (e.g. "FlagCheckeredIcon", one of NOTIFICATION_ICON_NAMES
+// in $/transformers/notification). These must be statically imported and
+// registered here rather than looked up dynamically off a
+// `import * as PhosphorIcons` namespace object -- Bun's browser bundler
+// doesn't reliably include icons from this package when they're only ever
+// referenced via a dynamic string key (some render fine, others silently
+// resolve to `undefined` at runtime), so a notification producer job adding
+// a new icon name must add it here *and* to NOTIFICATION_ICON_NAMES --
+// `satisfies` below fails to compile if the two lists drift in either
+// direction. Falls back to a bell for unknown/missing names.
+const ICONS = {
+  FlagCheckeredIcon,
+  PersonSimpleHikeIcon,
+} satisfies Record<NotificationIconName, Icon>;
+
 export default function NotificationIcon({
   icon,
   size = 18,
 }: NotificationIconProps) {
   const IconComponent =
-    (icon && (PhosphorIcons as unknown as Record<string, Icon>)[icon]) ||
-    BellIcon;
+    (icon && ICONS[icon as NotificationIconName]) || BellIcon;
 
   return (
     <ThemeIcon variant="light" color="stone-gray" size={32} radius="xl">

@@ -42,7 +42,7 @@ test.describe("Notifications Page", () => {
     await seedNotification(user.id, {
       title: "Trip reminder",
       description: "Your trip starts tomorrow",
-      icon: "CalendarIcon",
+      icon: "FlagCheckeredIcon",
       referenceUrl: null,
       read: false,
       dismissed: false,
