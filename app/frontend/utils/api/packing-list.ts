@@ -182,6 +182,10 @@ export function useUpdatePackingList(listId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      // Renaming can change which search results this list matches. Those
+      // queries live under the "packing-lists" (plural) root, a different
+      // key space than this list's own "packing-list" (singular) detail key.
+      queryClient.invalidateQueries({ queryKey: packingListKeys.all() });
     },
   });
 }
