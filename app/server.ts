@@ -8,6 +8,7 @@ import { emailAssetsRouter } from "$/routers/email-assets";
 import { frontendRouter } from "$/routers/frontend";
 import { healthRouter } from "$/routers/health";
 import { auth } from "$/utils/auth";
+import * as Sentry from "@sentry/bun";
 import { toNodeHandler } from "better-auth/node";
 import express from "express";
 
@@ -29,3 +30,5 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/email-assets", emailAssetsRouter);
   app.use(frontendRouter); // Needs to be the final router
 }
+
+Sentry.setupExpressErrorHandler(app);
