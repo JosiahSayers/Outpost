@@ -25,6 +25,7 @@ const requiredItem: ClientPackingListItem = {
   optional: false,
   quantity: 1,
   sortPosition: 1,
+  assignedGear: null,
 };
 
 const optionalItem: ClientPackingListItem = {
@@ -33,6 +34,7 @@ const optionalItem: ClientPackingListItem = {
   optional: true,
   quantity: 1,
   sortPosition: 2,
+  assignedGear: null,
 };
 
 const baseSection: ClientPackingListSection & {
@@ -75,6 +77,7 @@ function renderSection(editable: boolean, section = baseSection) {
                   optional: false,
                   quantity: 1,
                   sortPosition: prev.length + 1,
+                  assignedGear: null,
                 },
               ]);
               setAutoEditItemId(id);

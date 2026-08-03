@@ -937,8 +937,25 @@ describe("GET /:id", () => {
         packingListId: packingList.id,
       },
     });
+    const category = (await db.gearCategory.findFirst({
+      where: { public: true, name: "Backpacks" },
+    }))!;
+    const gear = await db.gearInventoryItem.create({
+      data: {
+        name: "My Backpack",
+        quantity: 1,
+        grams: 900,
+        userId: user!.id,
+        gearCategoryId: category.id,
+      },
+    });
     const item = await db.packingListItem.create({
-      data: { name: "Tent", sortPosition: 1, packingListSectionId: section.id },
+      data: {
+        name: "Tent",
+        sortPosition: 1,
+        packingListSectionId: section.id,
+        assignedGearId: gear.id,
+      },
     });
     await db.tripPackingListItemStatus.create({
       data: make("TripPackingListItemStatus", {
@@ -971,6 +988,17 @@ describe("GET /:id", () => {
               optional: false,
               quantity: 1,
               sortPosition: 1,
+              assignedGear: {
+                id: gear.id,
+                name: gear.name,
+                quantity: gear.quantity,
+                grams: gear.grams,
+                category: {
+                  id: category.id,
+                  name: category.name,
+                  public: category.public,
+                },
+              },
               status: { packed: true, notNeeded: false },
             },
           ],

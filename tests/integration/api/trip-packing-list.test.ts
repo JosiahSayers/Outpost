@@ -420,6 +420,7 @@ describe("PATCH /:listId/:itemId", () => {
         optional: false,
         quantity: 1,
         sortPosition: 1,
+        assignedGear: null,
         status: {
           packed: true,
           notNeeded: false,
@@ -437,6 +438,49 @@ describe("PATCH /:listId/:itemId", () => {
     });
     expect(dbStatus?.packed).toBe(true);
     expect(dbStatus?.notNeeded).toBe(false);
+  });
+
+  it("includes the assigned gear when the item has one", async () => {
+    const category = (await db.gearCategory.findFirst({
+      where: { public: true, name: "Backpacks" },
+    }))!;
+    const gear = await db.gearInventoryItem.create({
+      data: {
+        name: "My Backpack",
+        quantity: 1,
+        grams: 900,
+        userId,
+        gearCategoryId: category.id,
+      },
+    });
+    const itemWithGear = await db.packingListItem.create({
+      data: {
+        name: "Backpack Item",
+        sortPosition: 2,
+        packingListSectionId: sectionId,
+        assignedGearId: gear.id,
+      },
+    });
+
+    const response = await request(app)
+      .patch(
+        `/api/trips/${tripId}/packing-list/${packingListId}/${itemWithGear.id}`,
+      )
+      .send({ packed: true, notNeeded: false })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.item.assignedGear).toEqual({
+      id: gear.id,
+      name: gear.name,
+      quantity: gear.quantity,
+      grams: gear.grams,
+      category: {
+        id: category.id,
+        name: category.name,
+        public: category.public,
+      },
+    });
   });
 
   it("updates an existing status", async () => {

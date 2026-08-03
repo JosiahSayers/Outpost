@@ -54,6 +54,11 @@ tripPackingListRouter.post(
                 items: {
                   include: {
                     tripPackingListItemStatuses: true,
+                    assignedGear: {
+                      include: {
+                        category: true,
+                      },
+                    },
                   },
                 },
               },
@@ -155,6 +160,11 @@ tripPackingListRouter.patch(
       where: { id: newItemStatus.packingListItemId },
       include: {
         tripPackingListItemStatuses: true,
+        assignedGear: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
 

@@ -11,9 +11,14 @@ describe("transform", () => {
     const section = make("PackingListSection", {
       packingListId: packingList.id,
     });
-    const item = make("PackingListItem", {
-      packingListSectionId: section.id,
+    const gearCategory = make("GearCategory");
+    const gearInventoryItem = make("GearInventoryItem", {
+      gearCategoryId: gearCategory.id,
     });
+    const item = {
+      ...make("PackingListItem", { packingListSectionId: section.id }),
+      assignedGear: { ...gearInventoryItem, category: gearCategory },
+    };
     const status = make("TripPackingListItemStatus", {
       tripPackingListId: tripPackingList.id,
       packingListItemId: item.id,
@@ -51,6 +56,17 @@ describe("transform", () => {
               optional: item.optional,
               quantity: item.quantity,
               sortPosition: item.sortPosition,
+              assignedGear: {
+                id: gearInventoryItem.id,
+                name: gearInventoryItem.name,
+                quantity: gearInventoryItem.quantity,
+                grams: gearInventoryItem.grams,
+                category: {
+                  id: gearCategory.id,
+                  name: gearCategory.name,
+                  public: gearCategory.public,
+                },
+              },
               status: {
                 packed: true,
                 notNeeded: false,

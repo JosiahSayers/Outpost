@@ -57,7 +57,15 @@ packingListRouter.get(
       include: {
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -81,7 +89,15 @@ packingListRouter.get(
       include: {
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -177,7 +193,15 @@ packingListRouter.post(
       include: {
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -228,7 +252,15 @@ packingListRouter.get(
         owner: true,
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -253,7 +285,15 @@ packingListRouter.patch(
       include: {
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

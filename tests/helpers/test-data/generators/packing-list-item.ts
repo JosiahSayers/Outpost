@@ -10,7 +10,7 @@ export default function makePackingListItem(
     name: faker.commerce.productName(),
     sortPosition: faker.number.int(),
     gearCategoryId: faker.string.uuid(),
-    gearInventoryItemId: faker.string.uuid(),
+    assignedGearId: faker.string.uuid(),
     packingListSectionId: faker.string.uuid(),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),

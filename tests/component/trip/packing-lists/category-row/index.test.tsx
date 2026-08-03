@@ -19,6 +19,7 @@ function makeItem(
     optional: false,
     quantity: 1,
     sortPosition: 0,
+    assignedGear: null,
     status: { packed: false, notNeeded: false },
     ...overrides,
   };

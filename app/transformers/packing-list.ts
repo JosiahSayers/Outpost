@@ -1,8 +1,10 @@
-import type { ClientPackingListItem } from "$/transformers/packing-list-item";
+import type {
+  ClientPackingListItem,
+  PackingListItemTransformerInput,
+} from "$/transformers/packing-list-item";
 import type { ClientPackingListSection } from "$/transformers/packing-list-section";
 import type {
   PackingList,
-  PackingListItem,
   PackingListSection,
 } from "../../generated/prisma/browser";
 import { transform as transformItem } from "./packing-list-item";
@@ -30,7 +32,7 @@ export type ClientFullPackingList = ClientPackingList & {
 
 export type FullPackingList = PackingList & {
   packingListSections: Array<
-    PackingListSection & { items: Array<PackingListItem> }
+    PackingListSection & { items: Array<PackingListItemTransformerInput> }
   >;
 };
 

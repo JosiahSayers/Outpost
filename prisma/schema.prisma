@@ -285,8 +285,8 @@ model PackingListItem {
 
   category                    GearCategory?               @relation(fields: [gearCategoryId], references: [id])
   gearCategoryId              String?
-  assignedGear                GearInventoryItem?          @relation(fields: [gearInventoryItemId], references: [id])
-  gearInventoryItemId         String?
+  assignedGear                GearInventoryItem?          @relation(fields: [assignedGearId], references: [id])
+  assignedGearId              String?
   packingListSection          PackingListSection?         @relation(fields: [packingListSectionId], references: [id], onDelete: Cascade)
   packingListSectionId        String?
   tripPackingListItemStatuses TripPackingListItemStatus[]

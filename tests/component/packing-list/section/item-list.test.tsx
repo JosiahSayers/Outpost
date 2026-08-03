@@ -18,8 +18,16 @@ const items: ClientPackingListItem[] = [
     optional: false,
     quantity: 1,
     sortPosition: 1,
+    assignedGear: null,
   },
-  { id: "2", name: "Tent", optional: false, quantity: 1, sortPosition: 2 },
+  {
+    id: "2",
+    name: "Tent",
+    optional: false,
+    quantity: 1,
+    sortPosition: 2,
+    assignedGear: null,
+  },
 ];
 
 function renderList(editable: boolean) {
