@@ -197,6 +197,38 @@ describe("POST /", () => {
       }
     `);
   });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // that belongs to user2's packing list instead.
+    await supertest(app)
+      .post(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Injected Item", quantity: 1 })
+      .expect(404);
+
+    const items = await db.packingListItem.findMany({
+      where: { packingListSectionId: otherSectionId },
+    });
+    expect(items).toHaveLength(0);
+  });
 });
 
 describe("DELETE /:itemId", () => {
@@ -268,6 +300,45 @@ describe("DELETE /:itemId", () => {
       where: { id: itemId },
     });
     expect(deleted).toBeNull();
+  });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    const otherItem = await db.packingListItem.create({
+      data: {
+        name: "User2's Item",
+        packingListSectionId: otherSectionId,
+        sortPosition: 1,
+      },
+    });
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // and item that belong to user2's packing list instead.
+    await supertest(app)
+      .delete(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items/${otherItem.id}`,
+      )
+      .set("Cookie", authCookies)
+      .expect(404);
+
+    const stillExists = await db.packingListItem.findUnique({
+      where: { id: otherItem.id },
+    });
+    expect(stillExists).not.toBeNull();
   });
 });
 
@@ -447,5 +518,45 @@ describe("PATCH /:itemId", () => {
     expect(refreshed1?.sortPosition).toBe(2);
     expect(refreshed2?.sortPosition).toBe(3);
     expect(refreshed3?.sortPosition).toBe(1);
+  });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    const otherItem = await db.packingListItem.create({
+      data: {
+        name: "User2's Item",
+        packingListSectionId: otherSectionId,
+        sortPosition: 1,
+      },
+    });
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // and item that belong to user2's packing list instead.
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items/${otherItem.id}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Tampered Name", sortPosition: 1 })
+      .expect(404);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: otherItem.id },
+    });
+    expect(unchanged?.name).toBe("User2's Item");
   });
 });

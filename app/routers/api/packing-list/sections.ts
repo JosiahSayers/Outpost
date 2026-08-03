@@ -1,3 +1,4 @@
+import { requireSectionBelongsToPackingList } from "$/middleware/authorization/packing-list";
 import { itemsRouter } from "$/routers/api/packing-list/section-items";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
@@ -136,4 +137,8 @@ sectionsRouter.patch(
   },
 );
 
-sectionsRouter.use("/:sectionId/items", itemsRouter);
+sectionsRouter.use(
+  "/:sectionId/items",
+  requireSectionBelongsToPackingList,
+  itemsRouter,
+);
