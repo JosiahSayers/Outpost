@@ -1,6 +1,65 @@
 import type { FullPackingList } from "$/transformers/packing-list";
+import type { PackingListItemTransformerInput } from "$/transformers/packing-list-item";
 import PDFDocument from "pdfkit";
 import type { User } from "../../../generated/prisma/client";
+
+// pdfkit positions text by the top of the font's ascender box, which varies
+// by font. This returns the offset that centers the font's cap-height
+// (rather than its full ascender) inside a box of `boxSize`, so item text
+// lines up with its checkbox regardless of the active font's metrics.
+export function capHeightCenterOffset(
+  boxSize: number,
+  font: { ascender: number; capHeight: number; fontSize: number },
+): number {
+  const scale = font.fontSize / 1000;
+  const ascender = font.ascender * scale;
+  const capHeight = font.capHeight * scale;
+  return boxSize / 2 + capHeight / 2 - ascender;
+}
+
+// Same ascender-box quirk as above: returns how far the active font's
+// cap-height sits below the nominal text-box top, so text set in a
+// different font/size can have its cap-height aligned with a reference
+// font's cap-height at the same nominal y.
+export function capHeightTopOffset(font: {
+  ascender: number;
+  capHeight: number;
+  fontSize: number;
+}): number {
+  const scale = font.fontSize / 1000;
+  return (font.ascender - font.capHeight) * scale;
+}
+
+// A packing list item shows its assigned gear's name in place of its own
+// name once one has been linked from the user's inventory.
+export function getItemDisplayName(
+  item: Pick<PackingListItemTransformerInput, "name" | "assignedGear">,
+): string {
+  return item.assignedGear?.name ?? item.name;
+}
+
+export function getQuantityLabel(
+  item: Pick<PackingListItemTransformerInput, "quantity">,
+): string {
+  return item.quantity > 1 ? `  ×${item.quantity}` : "";
+}
+
+// Optional items always sort after required ones; within each group, items
+// keep their manually-assigned sortPosition order.
+export function compareItemsForDisplay(
+  a: Pick<PackingListItemTransformerInput, "optional" | "sortPosition">,
+  b: Pick<PackingListItemTransformerInput, "optional" | "sortPosition">,
+): number {
+  if (a.optional && !b.optional) {
+    return 1;
+  }
+
+  if (!a.optional && b.optional) {
+    return -1;
+  }
+
+  return a.sortPosition - b.sortPosition;
+}
 
 export async function generatePackingListPdf(
   packingList: FullPackingList & { owner: User | null },
@@ -96,36 +155,24 @@ export async function generatePackingListPdf(
 
   document.fillColor("black");
 
-  // pdfkit positions text by the top of the font's ascender box, which
-  // varies by font. Compute the offset that centers the font's cap-height
-  // (rather than its full ascender) inside a box of `boxSize`, so item text
-  // lines up with its checkbox regardless of the active font's metrics.
-  const capHeightCenterOffset = (boxSize: number) => {
+  // pdfkit doesn't expose the active font's metrics publicly; read them off
+  // its private fields so capHeightCenterOffset/capHeightTopOffset can stay
+  // pure, plain-argument functions.
+  const currentFontMetrics = () => {
     const internal = document as unknown as {
       _font: { ascender: number; capHeight: number };
       _fontSize: number;
     };
-    const scale = internal._fontSize / 1000;
-    const ascender = internal._font.ascender * scale;
-    const capHeight = internal._font.capHeight * scale;
-    return boxSize / 2 + capHeight / 2 - ascender;
-  };
-
-  // Same ascender-box quirk as above: returns how far the active font's
-  // cap-height sits below the nominal text-box top, so text set in a
-  // different font/size can have its cap-height aligned with a reference
-  // font's cap-height at the same nominal y.
-  const capHeightTopOffset = () => {
-    const internal = document as unknown as {
-      _font: { ascender: number; capHeight: number };
-      _fontSize: number;
+    return {
+      ascender: internal._font.ascender,
+      capHeight: internal._font.capHeight,
+      fontSize: internal._fontSize,
     };
-    const scale = internal._fontSize / 1000;
-    return (internal._font.ascender - internal._font.capHeight) * scale;
   };
 
   document.font("Playfair Display Bold").fontSize(12);
-  const sectionTitleCapHeightTopOffset = capHeightTopOffset();
+  const sectionTitleCapHeightTopOffset =
+    capHeightTopOffset(currentFontMetrics());
 
   let checkboxX = document.x;
   const startingY = document.y;
@@ -197,7 +244,9 @@ export async function generatePackingListPdf(
       const drawContinuationLabel = () => {
         document.fontSize(9).font("Source Sans 3 SemiBold");
         const y =
-          document.y + sectionTitleCapHeightTopOffset - capHeightTopOffset();
+          document.y +
+          sectionTitleCapHeightTopOffset -
+          capHeightTopOffset(currentFontMetrics());
         document
           .fillColor([130, 130, 130])
           .text(`${section.name} (continued)`, checkboxX, y, {
@@ -231,58 +280,48 @@ export async function generatePackingListPdf(
       document.fontSize(8).font("Source Sans 3").lineGap(lineGap);
 
       let lastItemWasOptional = false;
-      section.items
-        .sort((a, b) => {
-          if (a.optional && !b.optional) {
-            return 1;
-          }
-
-          if (!a.optional && b.optional) {
-            return -1;
-          }
-
-          return a.sortPosition - b.sortPosition;
-        })
-        .forEach((item) => {
-          if (item.optional && !lastItemWasOptional) {
-            const didMove = columnCalculations("Optional:", columnWidth, 12);
-            if (didMove) drawContinuationLabel();
-            document
-              .font("Source Sans 3 SemiBold")
-              .fontSize(10)
-              .lineGap(lineGap * 2)
-              .text("Optional:", checkboxX, document.y + (didMove ? 0 : 12), {
-                width: columnWidth,
-              });
-            lastItemWasOptional = true;
-            document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
-          }
-
-          const quantityLabel = item.quantity > 1 ? `  ×${item.quantity}` : "";
-
-          const didMove = columnCalculations(
-            item.name + quantityLabel,
-            columnTextWidth,
-            1,
-          );
+      section.items.sort(compareItemsForDisplay).forEach((item) => {
+        if (item.optional && !lastItemWasOptional) {
+          const didMove = columnCalculations("Optional:", columnWidth, 12);
           if (didMove) drawContinuationLabel();
-
           document
-            .rect(checkboxX, document.y, checkboxSize, checkboxSize)
-            .stroke();
-          document.text(
-            item.name,
-            checkboxX + checkboxGap,
-            document.y + capHeightCenterOffset(checkboxSize),
-            { width: columnTextWidth, continued: !!quantityLabel },
-          );
-          if (quantityLabel) {
-            document
-              .fillColor([130, 130, 130])
-              .text(quantityLabel)
-              .fillColor("black");
-          }
-        });
+            .font("Source Sans 3 SemiBold")
+            .fontSize(10)
+            .lineGap(lineGap * 2)
+            .text("Optional:", checkboxX, document.y + (didMove ? 0 : 12), {
+              width: columnWidth,
+            });
+          lastItemWasOptional = true;
+          document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
+        }
+
+        const quantityLabel = getQuantityLabel(item);
+        const displayName = getItemDisplayName(item);
+
+        const didMove = columnCalculations(
+          displayName + quantityLabel,
+          columnTextWidth,
+          1,
+        );
+        if (didMove) drawContinuationLabel();
+
+        document
+          .rect(checkboxX, document.y, checkboxSize, checkboxSize)
+          .stroke();
+        document.text(
+          displayName,
+          checkboxX + checkboxGap,
+          document.y +
+            capHeightCenterOffset(checkboxSize, currentFontMetrics()),
+          { width: columnTextWidth, continued: !!quantityLabel },
+        );
+        if (quantityLabel) {
+          document
+            .fillColor([130, 130, 130])
+            .text(quantityLabel)
+            .fillColor("black");
+        }
+      });
     });
 
   document.end();
