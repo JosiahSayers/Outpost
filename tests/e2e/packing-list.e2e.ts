@@ -575,15 +575,7 @@ test.describe("Packing List Page", () => {
           ).not.toBeVisible();
         });
 
-        // ── Blocked on backend work ──────────────────────────────────────
-        // `assignedGearId` is `z.string().optional()` in
-        // $/validation/packing-list/item, and the PATCH route hands it
-        // straight to Prisma — so omitting it means "leave unchanged" and no
-        // value means "unset". Clearing is mocked in the client for now, so
-        // it survives until a refetch and no further. Unskip once the
-        // validator accepts `null` and the route distinguishes it from
-        // `undefined`.
-        test.skip("removing an assignment clears it and persists", async ({
+        test("removing an assignment clears it and persists", async ({
           page,
         }) => {
           await page.getByText("Tent Body").click();
@@ -591,6 +583,10 @@ test.describe("Packing List Page", () => {
             .getByRole("button", { name: /Durston X-Mid 1/ })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
+          // See the note in "assigning gear shows it on the item and
+          // persists" — the drawer's own gear chip/list lingers through its
+          // close transition and would otherwise double-match this text.
+          await expect(drawer(page)).toBeHidden();
           await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
 
           await page.getByText("Tent Body").click();
@@ -598,6 +594,7 @@ test.describe("Packing List Page", () => {
             .getByRole("button", { name: "Remove assigned gear" })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
+          await expect(drawer(page)).toBeHidden();
 
           await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
 

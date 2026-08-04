@@ -207,7 +207,10 @@ function ItemDrawerForm({
           { onError: notifyError("Couldn't assign gear") },
         );
       } else {
-        clearGear(item.id);
+        clearGear.mutate(
+          { sectionId, item },
+          { onError: notifyError("Couldn't clear gear") },
+        );
       }
     }
 

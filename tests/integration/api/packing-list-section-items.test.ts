@@ -684,4 +684,56 @@ describe("PATCH /:itemId", () => {
       },
     });
   });
+
+  it("clears the assigned gear when assignedGearId is null", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { assignedGearId: gear.id },
+    });
+
+    const { body } = await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ assignedGearId: null, sortPosition: 1 })
+      .expect(200);
+
+    expect(body.item.assignedGear).toBeNull();
+
+    const unassigned = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unassigned?.assignedGearId).toBeNull();
+  });
+
+  it("leaves the assigned gear unchanged when assignedGearId is omitted", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { assignedGearId: gear.id },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Renamed", sortPosition: 1 })
+      .expect(200);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unchanged?.assignedGearId).toBe(gear.id);
+  });
 });

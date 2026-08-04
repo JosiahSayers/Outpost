@@ -23,6 +23,6 @@ export const updateItem = z.strictObject({
   quantity: quantity.optional(),
   optional: z.boolean().optional(),
   sortPosition: sortPosition.optional(),
-  assignedGearId: z.string().optional(),
+  assignedGearId: z.string().optional().nullable(),
   gearCategoryId: z.string().optional(),
 });

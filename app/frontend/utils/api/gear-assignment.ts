@@ -15,20 +15,18 @@ import { apiClient } from "./client";
  * Gear assignment for packing list items (BTP-45).
  *
  * ────────────────────────────────────────────────────────────────────────────
- * BACKEND STATUS — one of the three operations below is real, two are mocked.
+ * BACKEND STATUS — ASSIGN and CLEAR are both real; TRACK / DON'T TRACK is
+ * still mocked.
  *
  *   ✅ ASSIGN gear .......... real. `updateItem` already accepts
  *                            `assignedGearId` and the PATCH route validates
  *                            that the gear belongs to the session user.
  *
- *   ⚠️  CLEAR an assignment . MOCKED. `assignedGearId` is typed
- *                            `z.string().optional()` in
- *                            `$/validation/packing-list/item`, and the route
- *                            passes it straight to Prisma — so omitting it
- *                            means "leave unchanged" and there is no value
- *                            that means "unset". Needs `.nullable()` on the
- *                            validator plus a route that distinguishes
- *                            `null` from `undefined`.
+ *   ✅ CLEAR an assignment .. real. `assignedGearId` is `.nullable()` in
+ *                            `$/validation/packing-list/item`, and the PATCH
+ *                            route passes `null` straight to Prisma to unset
+ *                            the column (omitting the field still means
+ *                            "leave unchanged").
  *
  *   ⚠️  TRACK / DON'T TRACK . MOCKED. There is no column for it. Needs
  *                            `PackingListItem.trackGear Boolean @default(true)`
@@ -36,11 +34,11 @@ import { apiClient } from "./client";
  *                            `$/transformers/packing-list-item`, and
  *                            `trackGear` accepted by `updateItem`.
  *
- * The mocked operations write to the React Query cache and never hit the
- * network, so they behave correctly within a session but do not survive a
- * reload. Everything below is written against the shape the real endpoints
- * should return, so landing the backend should mean deleting the mock
- * branches rather than reworking callers.
+ * The mocked operation writes to a plain external store and never hits the
+ * network, so it behaves correctly within a session but does not survive a
+ * reload. It's written against the shape the real endpoint should return, so
+ * landing the backend should mean deleting the mock rather than reworking
+ * callers.
  * ────────────────────────────────────────────────────────────────────────────
  */
 
@@ -193,26 +191,42 @@ export function useAssignGear(listId: string) {
   });
 }
 
-/**
- * MOCK: clears an assignment.
- *
- * Deliberately does not call the API — see the note at the top of this file.
- * Because there is no request to reconcile against, this must not invalidate
- * the list query either: a refetch would resurrect the assignment from the
- * server. Once the validator accepts `null`, replace the body of this hook
- * with the same shape as `useAssignGear` (PATCH `assignedGearId: null`, plus
- * `sortPosition`) and restore the `onSettled` invalidation.
- */
+/** REAL: clears a packing list item's assigned gear. */
 export function useClearGear(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
 
-  return useCallback(
-    (itemId: string) => {
-      queryClient.setQueryData<ClientFullPackingList>(queryKey, (list) =>
-        list ? setItem(list, itemId, { assignedGear: null }) : list,
-      );
+  return useMutation({
+    mutationFn: ({
+      sectionId,
+      item,
+    }: {
+      sectionId: string;
+      item: ClientPackingListItem;
+    }) =>
+      apiClient<{ item: ClientPackingListItem }>(
+        `/api/packing-lists/${listId}/sections/${sectionId}/items/${item.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            assignedGearId: null,
+            // Same reasoning as `useAssignGear`: omitting `sortPosition` would
+            // silently move the item to the end of its section.
+            sortPosition: item.sortPosition,
+          }),
+        },
+      ),
+    onMutate: ({ item }) =>
+      snapshotList(queryClient, queryKey, (list) =>
+        setItem(list, item.id, { assignedGear: null }),
+      ),
+    onError: (_error, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(queryKey, context.previous);
     },
-    [queryClient, queryKey],
-  );
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 }
