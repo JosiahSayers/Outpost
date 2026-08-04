@@ -1,9 +1,6 @@
 import { usePackingList } from "$/frontend/packing-list/packing-list-context";
 import StaticItemRow from "$/frontend/packing-list/section/static-item-row";
-import {
-  gearStateFor,
-  useGearTrackedMap,
-} from "$/frontend/utils/api/gear-assignment";
+import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { useDndContext } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
@@ -33,7 +30,6 @@ export default function EditableItemRow({
   onToggleOptional,
 }: Props) {
   const { openItem } = usePackingList();
-  const gearTracked = useGearTrackedMap();
   const [hovered, setHovered] = useState(false);
   // Touch devices can't hover, so the drag handle must stay visible
   // unconditionally rather than waiting for a mouseenter that never fires.
@@ -51,7 +47,7 @@ export default function EditableItemRow({
 
   const showControls =
     (hovered || isTouchDevice) && !isDragging && dndActive === null;
-  const gearState = gearStateFor(item, gearTracked);
+  const gearState = gearStateFor(item);
   const open = openItem ? () => openItem(sectionId, item) : undefined;
 
   return (

@@ -1,11 +1,11 @@
 import GearProgress from "$/frontend/packing-list/section/gear-progress";
-import { resetGearTrackedMock } from "$/frontend/utils/api/gear-assignment";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 function gear(
   overrides: Partial<ClientGearInventoryItem> = {},
@@ -36,14 +36,17 @@ function item(
 }
 
 function renderProgress(items: ClientPackingListItem[]) {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
   render(
-    <MantineProvider>
-      <GearProgress items={items} />
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <GearProgress listId="list-1" sectionId="section-1" items={items} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
-
-beforeEach(() => resetGearTrackedMock());
 
 describe("GearProgress", () => {
   it("spells out the invitation while nothing has been assigned", () => {

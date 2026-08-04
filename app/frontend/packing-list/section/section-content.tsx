@@ -8,6 +8,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import SectionHeader from "./section-header";
 
 interface Props {
+  listId: string;
   section: ClientPackingListSection & { items: ClientPackingListItem[] };
   isFirst: boolean;
   isLast: boolean;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function SectionContent({
+  listId,
   section,
   isFirst,
   isLast,
@@ -45,6 +47,8 @@ export default function SectionContent({
   return (
     <Stack gap="xs" pb="xl" style={{ breakInside: "avoid" }}>
       <SectionHeader
+        listId={listId}
+        sectionId={section.id}
         name={section.name}
         items={section.items}
         isFirst={isFirst}

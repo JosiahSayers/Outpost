@@ -3,6 +3,7 @@ import { PackingListProvider } from "$/frontend/packing-list/packing-list-contex
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import type { ClientPackingListSection } from "$/transformers/packing-list-section";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -54,48 +55,55 @@ const baseSection: ClientPackingListSection & {
 function renderSection(editable: boolean, section = baseSection) {
   function Wrapper() {
     const [items, setItems] = useState(section.items);
+    const [queryClient] = useState(
+      () =>
+        new QueryClient({ defaultOptions: { mutations: { retry: false } } }),
+    );
 
     return (
-      <MantineProvider>
-        <PackingListProvider
-          value={{ editable, openItem: editable ? openItem : undefined }}
-        >
-          <SectionContent
-            section={{ ...section, items }}
-            isFirst={false}
-            isLast={false}
-            onMoveUp={onMoveUp}
-            onMoveDown={onMoveDown}
-            onRename={onRename}
-            onDelete={onDelete}
-            autoEdit={false}
-            onAddItem={() => {
-              onAddItem();
-              setItems((prev) => [
-                ...prev,
-                {
-                  id: crypto.randomUUID(),
-                  name: "New item",
-                  optional: false,
-                  quantity: 1,
-                  sortPosition: prev.length + 1,
-                  trackGearAssignment: true,
-                  assignedGear: null,
-                },
-              ]);
-            }}
-            onToggleOptional={(item) => {
-              onToggleOptional(item);
-              setItems((prev) =>
-                prev.map((i) =>
-                  i.id === item.id ? { ...i, optional: !i.optional } : i,
-                ),
-              );
-            }}
-            onReorderItem={onReorderItem}
-          />
-        </PackingListProvider>
-      </MantineProvider>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <PackingListProvider
+            value={{ editable, openItem: editable ? openItem : undefined }}
+          >
+            <SectionContent
+              listId="list-1"
+              section={{ ...section, items }}
+              isFirst={false}
+              isLast={false}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
+              onRename={onRename}
+              onDelete={onDelete}
+              autoEdit={false}
+              onAddItem={() => {
+                onAddItem();
+                setItems((prev) => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    name: "New item",
+                    optional: false,
+                    quantity: 1,
+                    sortPosition: prev.length + 1,
+                    trackGearAssignment: true,
+                    assignedGear: null,
+                  },
+                ]);
+              }}
+              onToggleOptional={(item) => {
+                onToggleOptional(item);
+                setItems((prev) =>
+                  prev.map((i) =>
+                    i.id === item.id ? { ...i, optional: !i.optional } : i,
+                  ),
+                );
+              }}
+              onReorderItem={onReorderItem}
+            />
+          </PackingListProvider>
+        </MantineProvider>
+      </QueryClientProvider>
     );
   }
 

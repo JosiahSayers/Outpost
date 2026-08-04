@@ -25,14 +25,13 @@ export interface SectionGearSummary {
 
 export function buildSectionGearSummary(
   items: ClientPackingListItem[],
-  tracked: Record<string, boolean>,
 ): SectionGearSummary {
   let assigned = 0;
   let undecided = 0;
   let grams = 0;
 
   for (const item of items) {
-    const state = gearStateFor(item, tracked);
+    const state = gearStateFor(item);
     if (state === "assigned") {
       assigned += 1;
       grams += (item.assignedGear?.grams ?? 0) * item.quantity;

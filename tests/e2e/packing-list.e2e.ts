@@ -602,13 +602,7 @@ test.describe("Packing List Page", () => {
           await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
         });
 
-        // ── Blocked on backend work ──────────────────────────────────────
-        // The "not tracking" disposition has no column behind it. It needs
-        // `PackingListItem.trackGear Boolean @default(true)`, the field added
-        // to $/transformers/packing-list-item, and `trackGear` accepted by
-        // `updateItem`. Until then it lives in a client-side store and is
-        // lost on reload.
-        test.skip("marking an item as not tracking gear persists", async ({
+        test("marking an item as not tracking gear persists", async ({
           page,
         }) => {
           await page.getByText("Quilt").click();
@@ -629,11 +623,10 @@ test.describe("Packing List Page", () => {
           ).toHaveCount(1);
         });
 
-        // ── Blocked on backend work ──────────────────────────────────────
-        // Same missing `trackGear` column. Dismissing is meant to be progress
-        // in the same way assigning is: it leaves the denominator rather than
-        // adding to the numerator, so "0 of 2" becomes "0 of 1".
-        test.skip("dismissed items leave the section's denominator", async ({
+        // Dismissing is meant to be progress in the same way assigning is: it
+        // leaves the denominator rather than adding to the numerator, so
+        // "0 of 2" becomes "0 of 1".
+        test("dismissed items leave the section's denominator", async ({
           page,
         }) => {
           await expect(sectionGearCount(page)).toHaveText(/0 of 2 assigned/);
@@ -650,11 +643,9 @@ test.describe("Packing List Page", () => {
           await expect(sectionGearCount(page)).toHaveText(/0 of 1 assigned/);
         });
 
-        // ── Blocked on backend work ──────────────────────────────────────
-        // Same missing `trackGear` column. The bulk action is what makes a
-        // long imported list finishable without opening a drawer per row, so
-        // it should land with the column.
-        test.skip("the section menu can stop tracking the remaining items", async ({
+        // The bulk action is what makes a long imported list finishable
+        // without opening a drawer per row.
+        test("the section menu can stop tracking the remaining items", async ({
           page,
         }) => {
           await sectionGearCount(page).click();

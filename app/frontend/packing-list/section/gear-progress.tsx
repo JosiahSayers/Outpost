@@ -1,8 +1,7 @@
 import {
-  useGearTrackedMap,
-  useSetGearTracked,
+  gearStateFor,
+  useSetTrackGearAssignment,
 } from "$/frontend/utils/api/gear-assignment";
-import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
 import { buildSectionGearSummary } from "$/frontend/utils/build-section-gear-summary";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
@@ -10,6 +9,8 @@ import { Group, Menu, Text, UnstyledButton } from "@mantine/core";
 import { BackpackIcon, MinusCircleIcon, PlusIcon } from "@phosphor-icons/react";
 
 interface Props {
+  listId: string;
+  sectionId: string;
   items: ClientPackingListItem[];
 }
 
@@ -27,11 +28,10 @@ interface Props {
  * Dismissing an item leaves the denominator rather than adding to the
  * numerator, so both answers move the section toward the same finished state.
  */
-export default function GearProgress({ items }: Props) {
-  const tracked = useGearTrackedMap();
-  const setGearTracked = useSetGearTracked();
+export default function GearProgress({ listId, sectionId, items }: Props) {
+  const setTrackGearAssignment = useSetTrackGearAssignment(listId);
   const formatWeight = useWeightDisplay({ rollUp: true });
-  const summary = buildSectionGearSummary(items, tracked);
+  const summary = buildSectionGearSummary(items);
 
   // A section with nothing to track has nothing to report.
   if (items.length === 0) return null;
@@ -53,15 +53,21 @@ export default function GearProgress({ items }: Props) {
     if (weight) label += ` · ${weight}`;
   }
 
-  const undecidedIds = items
-    .filter((item) => gearStateFor(item, tracked) === "undecided")
-    .map((item) => item.id);
-  const untrackedIds = items
-    .filter((item) => gearStateFor(item, tracked) === "untracked")
-    .map((item) => item.id);
+  const undecidedItems = items.filter(
+    (item) => gearStateFor(item) === "undecided",
+  );
+  const untrackedItems = items.filter(
+    (item) => gearStateFor(item) === "untracked",
+  );
 
-  const setAll = (ids: string[], value: boolean) =>
-    setGearTracked(Object.fromEntries(ids.map((id) => [id, value])));
+  const setAll = (
+    targets: ClientPackingListItem[],
+    trackGearAssignment: boolean,
+  ) => {
+    for (const item of targets) {
+      setTrackGearAssignment.mutate({ sectionId, item, trackGearAssignment });
+    }
+  };
 
   return (
     <Menu position="bottom-end" withinPortal>
@@ -95,23 +101,23 @@ export default function GearProgress({ items }: Props) {
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
-        {undecidedIds.length > 0 && (
+        {undecidedItems.length > 0 && (
           <Menu.Item
             leftSection={<MinusCircleIcon size={14} />}
-            onClick={() => setAll(undecidedIds, false)}
+            onClick={() => setAll(undecidedItems, false)}
           >
-            Stop tracking the remaining {undecidedIds.length}
+            Stop tracking the remaining {undecidedItems.length}
           </Menu.Item>
         )}
-        {untrackedIds.length > 0 && (
+        {untrackedItems.length > 0 && (
           <Menu.Item
             leftSection={<PlusIcon size={14} />}
-            onClick={() => setAll(untrackedIds, true)}
+            onClick={() => setAll(untrackedItems, true)}
           >
             Track all items in this section
           </Menu.Item>
         )}
-        {undecidedIds.length === 0 && untrackedIds.length === 0 && (
+        {undecidedItems.length === 0 && untrackedItems.length === 0 && (
           <Menu.Item disabled>Every item has gear assigned</Menu.Item>
         )}
       </Menu.Dropdown>

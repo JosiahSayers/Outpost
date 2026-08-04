@@ -1,9 +1,5 @@
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
 import EditableItemRow from "$/frontend/packing-list/section/editable-item-row";
-import {
-  resetGearTrackedMock,
-  setGearTrackedMock,
-} from "$/frontend/utils/api/gear-assignment";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { DndContext } from "@dnd-kit/core";
@@ -69,7 +65,6 @@ function byLabel(label: string) {
 beforeEach(() => {
   onToggleOptional.mockReset();
   openItem.mockReset();
-  resetGearTrackedMock();
 });
 
 describe("the row as a whole", () => {
@@ -151,8 +146,7 @@ describe("gear state", () => {
   });
 
   it("drops the marker once the item is marked as not tracked", () => {
-    setGearTrackedMock({ [baseItem.id]: false });
-    renderRow();
+    renderRow({ ...baseItem, trackGearAssignment: false });
 
     // A dismissed row goes back to looking exactly like it did before the
     // feature existed.

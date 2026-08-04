@@ -3,8 +3,7 @@ import {
   gearStateFor,
   useAssignGear,
   useClearGear,
-  useGearTrackedMap,
-  useSetGearTracked,
+  useSetTrackGearAssignment,
 } from "$/frontend/utils/api/gear-assignment";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useCreateItem } from "$/frontend/utils/api/packing-list";
@@ -128,7 +127,6 @@ function ItemDrawerForm({
   onDelete,
 }: Props & { target: ItemDrawerTarget }) {
   const { sectionId, item } = target;
-  const tracked = useGearTrackedMap();
 
   const [name, setName] = useState(item.name);
   const [quantity, setQuantity] = useState(item.quantity);
@@ -136,7 +134,7 @@ function ItemDrawerForm({
     item.assignedGear,
   );
   const [isTracked, setIsTracked] = useState(
-    gearStateFor(item, tracked) !== "untracked",
+    gearStateFor(item) !== "untracked",
   );
   const [query, setQuery] = useState("");
   const [confirmOpened, confirm] = useDisclosure(false);
@@ -146,7 +144,7 @@ function ItemDrawerForm({
   const inventory = useGearInventory(opened);
   const assignGear = useAssignGear(listId);
   const clearGear = useClearGear(listId);
-  const setGearTracked = useSetGearTracked();
+  const setTrackGearAssignment = useSetTrackGearAssignment(listId);
   const createItem = useCreateItem(listId);
   const formatWeight = useWeightDisplay();
 
@@ -186,7 +184,13 @@ function ItemDrawerForm({
         },
         {
           onSuccess: ({ item: created }) => {
-            if (!isTracked) setGearTracked({ [created.id]: false });
+            if (!isTracked) {
+              setTrackGearAssignment.mutate({
+                sectionId,
+                item: created,
+                trackGearAssignment: false,
+              });
+            }
           },
           onError: notifyError("Couldn't add item"),
         },
@@ -214,8 +218,11 @@ function ItemDrawerForm({
       }
     }
 
-    if (isTracked !== (gearStateFor(item, tracked) !== "untracked")) {
-      setGearTracked({ [item.id]: isTracked });
+    if (isTracked !== (gearStateFor(item) !== "untracked")) {
+      setTrackGearAssignment.mutate(
+        { sectionId, item, trackGearAssignment: isTracked },
+        { onError: notifyError("Couldn't update gear tracking") },
+      );
     }
 
     onClose();

@@ -8,6 +8,8 @@ import { CaretDownIcon, CaretUpIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
 interface Props {
+  listId: string;
+  sectionId: string;
   name: string;
   items: ClientPackingListItem[];
   isFirst: boolean;
@@ -20,6 +22,8 @@ interface Props {
 }
 
 export default function SectionHeader({
+  listId,
+  sectionId,
   name,
   items,
   isFirst,
@@ -108,7 +112,7 @@ export default function SectionHeader({
           running weight cost no vertical space. Editable lists only: on a list
           you can't change, "0 of 4 assigned" would invite an action that isn't
           available. */}
-      <GearProgress items={items} />
+      <GearProgress listId={listId} sectionId={sectionId} items={items} />
       <Group
         gap={2}
         style={{

@@ -260,6 +260,7 @@ export default function PackingListView({ editable = false, list }: Props) {
               style={{ breakInside: "avoid" }}
             >
               <SectionContent
+                listId={list.id}
                 section={section}
                 isFirst={index === 0}
                 isLast={index === sections.length - 1}

@@ -1,6 +1,7 @@
 import SectionHeader from "$/frontend/packing-list/section/section-header";
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -11,6 +12,8 @@ const onRename = mock(() => {});
 const onDelete = mock(() => {});
 
 const defaultProps = {
+  listId: "list-1",
+  sectionId: "section-1",
   name: "Sleep system",
   isFirst: false,
   isLast: false,
@@ -26,12 +29,17 @@ function renderHeader(
   editable: boolean,
   overrides: Partial<typeof defaultProps> = {},
 ) {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
   render(
-    <MantineProvider>
-      <PackingListProvider value={{ editable }}>
-        <SectionHeader {...defaultProps} {...overrides} />
-      </PackingListProvider>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <PackingListProvider value={{ editable }}>
+          <SectionHeader {...defaultProps} {...overrides} />
+        </PackingListProvider>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 
