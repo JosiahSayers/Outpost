@@ -52,8 +52,6 @@ describe("transform", () => {
       ...make("PackingListItem", { trackGearAssignment: false }),
       assignedGear: null,
     };
-    expect(transformers.packingListItem(item).trackGearAssignment).toBe(
-      false,
-    );
+    expect(transformers.packingListItem(item).trackGearAssignment).toBe(false);
   });
 });
