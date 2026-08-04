@@ -3,7 +3,6 @@ import PackingListDescription from "$/frontend/packing-list/header/packing-list-
 import PackingListTitle from "$/frontend/packing-list/header/packing-list-title";
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
 import {
-  useCreateItem,
   useCreatePackingList,
   useCreateSection,
   useDeleteItem,
@@ -56,7 +55,6 @@ export default function PackingListView({ editable = false, list }: Props) {
   const createSection = useCreateSection(list.id);
   const updateSection = useUpdateSection(list.id);
   const deleteSection = useDeleteSection(list.id);
-  const createItem = useCreateItem(list.id);
   const updateItem = useUpdateItem(list.id);
   const deleteItem = useDeleteItem(list.id);
 
@@ -127,20 +125,22 @@ export default function PackingListView({ editable = false, list }: Props) {
   }
 
   function handleAddItem(sectionId: string) {
-    createItem.mutate(
-      { sectionId, name: "New item", quantity: 1 },
-      {
-        // Open the persisted item in the drawer once it has an id, with its
-        // placeholder name selected. This is also where someone building a
-        // list by hand first meets gear assignment, since the drawer carries
-        // name, quantity and gear together.
-        onSuccess: ({ item }) => {
-          setItemTarget({ sectionId, item, isNew: true });
-          setItemDrawerOpen(true);
-        },
-        onError: notifyError("Couldn't add item"),
+    // Nothing is persisted until the drawer's Save is clicked — the drawer
+    // itself creates the item (see item-drawer.tsx), so Cancel here just
+    // discards this draft rather than leaving an orphaned "New item" row.
+    setItemTarget({
+      sectionId,
+      item: {
+        id: crypto.randomUUID(),
+        name: "New item",
+        quantity: 1,
+        optional: false,
+        sortPosition: 0,
+        assignedGear: null,
       },
-    );
+      isNew: true,
+    });
+    setItemDrawerOpen(true);
   }
 
   function handleEditItem(sectionId: string, item: ClientPackingListItem) {

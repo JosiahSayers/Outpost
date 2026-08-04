@@ -327,6 +327,32 @@ test.describe("Packing List Page", () => {
         await expect(page.getByText("Headlamp")).toBeVisible();
       });
 
+      test("canceling a new item discards it instead of leaving a stray row", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "Add item" }).click();
+
+        const input = page.getByRole("textbox", { name: /^Name/ });
+        await expect(input).toHaveValue("New item");
+        // Nothing is persisted yet, so there is nothing to delete.
+        await expect(
+          page.getByRole("button", { name: "Delete item", exact: true }),
+        ).not.toBeVisible();
+
+        await page.getByRole("button", { name: "Cancel" }).click();
+        await expect(page.getByText("New item")).not.toBeVisible();
+
+        // A leftover draft from the canceled attempt would collide on this
+        // placeholder name and make the second "Add item" fail.
+        await page.getByRole("button", { name: "Add item" }).click();
+        await expect(input).toHaveValue("New item");
+        await page.getByRole("button", { name: "Save" }).click();
+
+        await expect(page.getByText("New item")).toBeVisible();
+        await page.reload();
+        await expect(page.getByText("New item")).toBeVisible();
+      });
+
       test("editing an item's name persists across a reload", async ({
         page,
       }) => {
@@ -470,6 +496,12 @@ test.describe("Packing List Page", () => {
             .click();
           await page.getByRole("button", { name: "Save" }).click();
 
+          // The assigned-gear optimistic update lands on the row underneath
+          // as soon as Save is clicked, but the drawer's own gear chip and
+          // inventory list (both showing the same name) are still mid-close
+          // transition — an unscoped match on the page would see both and
+          // hit a strict-mode violation.
+          await expect(drawer(page)).toBeHidden();
           await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
 
           await page.reload();
@@ -503,6 +535,10 @@ test.describe("Packing List Page", () => {
             .getByRole("button", { name: /Durston X-Mid 1/ })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
+          // See the note in "assigning gear shows it on the item and
+          // persists" — the drawer's own gear chip/list lingers through its
+          // close transition and would otherwise double-match this text.
+          await expect(drawer(page)).toBeHidden();
           await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
 
           await page.getByText("Tent Body").click();
@@ -510,6 +546,7 @@ test.describe("Packing List Page", () => {
             .getByRole("button", { name: /Gergory Zulu 45/ })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
+          await expect(drawer(page)).toBeHidden();
 
           await expect(page.getByText("Gergory Zulu 45")).toBeVisible();
           await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();

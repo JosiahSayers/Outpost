@@ -7,6 +7,7 @@ import {
   useSetGearTracked,
 } from "$/frontend/utils/api/gear-assignment";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
+import { useCreateItem } from "$/frontend/utils/api/packing-list";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
@@ -75,6 +76,10 @@ function groupByCategory(items: ClientGearInventoryItem[]) {
  * Name, quantity and gear are all staged locally and committed together by
  * Save, so picking gear can't discard a half-typed name. Delete is the one
  * exception: it applies straight away, behind a confirmation.
+ *
+ * A new item isn't persisted until Save — `target.isNew` means the drawer is
+ * holding a local draft with no row in the database yet, so Cancel/Escape can
+ * just close without leaving anything behind to clean up.
  */
 export default function ItemDrawer({
   listId,
@@ -142,6 +147,7 @@ function ItemDrawerForm({
   const assignGear = useAssignGear(listId);
   const clearGear = useClearGear(listId);
   const setGearTracked = useSetGearTracked();
+  const createItem = useCreateItem(listId);
   const formatWeight = useWeightDisplay();
 
   const inventoryItems = inventory.data?.items ?? [];
@@ -166,6 +172,28 @@ function ItemDrawerForm({
 
   const handleSave = () => {
     if (!canSave) return;
+
+    if (target.isNew) {
+      // Nothing exists server-side yet — one create call carries name,
+      // quantity and gear together instead of an update plus a separate
+      // assign call.
+      createItem.mutate(
+        {
+          sectionId,
+          name: trimmedName,
+          quantity,
+          assignedGearId: gear?.id,
+        },
+        {
+          onSuccess: ({ item: created }) => {
+            if (!isTracked) setGearTracked({ [created.id]: false });
+          },
+          onError: notifyError("Couldn't add item"),
+        },
+      );
+      onClose();
+      return;
+    }
 
     if (trimmedName !== item.name || quantity !== item.quantity) {
       onSave(sectionId, { ...item, name: trimmedName, quantity });
@@ -375,15 +403,20 @@ function ItemDrawerForm({
 
       <Group justify="space-between">
         {/* "Delete item", not "Delete": the page also carries a "Delete list"
-            control, and this drawer sits next to Cancel and Save. */}
-        <Button
-          variant="subtle"
-          color="red"
-          leftSection={<TrashIcon size={14} />}
-          onClick={confirm.open}
-        >
-          Delete item
-        </Button>
+            control, and this drawer sits next to Cancel and Save. Nothing to
+            delete yet for a draft that was never saved — Cancel covers it. */}
+        {target.isNew ? (
+          <div />
+        ) : (
+          <Button
+            variant="subtle"
+            color="red"
+            leftSection={<TrashIcon size={14} />}
+            onClick={confirm.open}
+          >
+            Delete item
+          </Button>
+        )}
         <Group gap="xs">
           <Button variant="subtle" onClick={onClose}>
             Cancel
@@ -394,15 +427,17 @@ function ItemDrawerForm({
         </Group>
       </Group>
 
-      <ConfirmDeleteModal
-        opened={confirmOpened}
-        onClose={confirm.close}
-        onConfirm={handleDelete}
-        title="Delete item?"
-      >
-        Remove <strong>{item.name}</strong> from this section? This can&apos;t
-        be undone.
-      </ConfirmDeleteModal>
+      {!target.isNew && (
+        <ConfirmDeleteModal
+          opened={confirmOpened}
+          onClose={confirm.close}
+          onConfirm={handleDelete}
+          title="Delete item?"
+        >
+          Remove <strong>{item.name}</strong> from this section? This can&apos;t
+          be undone.
+        </ConfirmDeleteModal>
+      )}
     </Stack>
   );
 }
