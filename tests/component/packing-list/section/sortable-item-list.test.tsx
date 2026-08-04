@@ -7,8 +7,6 @@ import { beforeEach, expect, it, mock } from "bun:test";
 
 const onReorder = mock(() => {});
 const onToggleOptional = mock(() => {});
-const onEditItem = mock(() => {});
-const onDeleteItem = mock(() => {});
 
 const items: ClientPackingListItem[] = [
   {
@@ -37,9 +35,6 @@ beforeEach(() => {
         sectionId="section-1"
         onReorder={onReorder}
         onToggleOptional={onToggleOptional}
-        onEditItem={onEditItem}
-        onDeleteItem={onDeleteItem}
-        autoEditItemId={null}
       />
     </MantineProvider>,
   );
@@ -50,6 +45,6 @@ it("renders each item name", () => {
   expect(screen.getByText("Tent")).toBeInTheDocument();
 });
 
-it("does not render any item in edit mode when autoEditItemId is null", () => {
+it("never edits in place — naming happens in the item drawer", () => {
   expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
 });

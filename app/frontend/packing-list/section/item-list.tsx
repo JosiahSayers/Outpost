@@ -10,9 +10,6 @@ export default function ItemList({
   sectionId,
   onReorder,
   onToggleOptional,
-  onEditItem,
-  onDeleteItem,
-  autoEditItemId,
 }: SortableItemListProps) {
   const { editable } = usePackingList();
 
@@ -22,9 +19,6 @@ export default function ItemList({
       sectionId={sectionId}
       onReorder={onReorder}
       onToggleOptional={onToggleOptional}
-      onEditItem={onEditItem}
-      onDeleteItem={onDeleteItem}
-      autoEditItemId={autoEditItemId}
     />
   ) : (
     items.map((item) => (

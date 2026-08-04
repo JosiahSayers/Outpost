@@ -12,8 +12,8 @@ const onMoveUp = mock(() => {});
 const onMoveDown = mock(() => {});
 const onRename = mock(() => {});
 const onDelete = mock(() => {});
-const onEditItem = mock((_item: ClientPackingListItem) => {});
-const onDeleteItem = mock((_item: ClientPackingListItem) => {});
+const onAddItem = mock(() => {});
+const openItem = mock((_sectionId: string, _item: ClientPackingListItem) => {});
 const onToggleOptional = mock((_item: ClientPackingListItem) => {});
 const onReorderItem = mock(
   (_item: ClientPackingListItem, _sortPosition: number) => {},
@@ -52,11 +52,12 @@ const baseSection: ClientPackingListSection & {
 function renderSection(editable: boolean, section = baseSection) {
   function Wrapper() {
     const [items, setItems] = useState(section.items);
-    const [autoEditItemId, setAutoEditItemId] = useState<string | null>(null);
 
     return (
       <MantineProvider>
-        <PackingListProvider value={{ editable }}>
+        <PackingListProvider
+          value={{ editable, openItem: editable ? openItem : undefined }}
+        >
           <SectionContent
             section={{ ...section, items }}
             isFirst={false}
@@ -66,13 +67,12 @@ function renderSection(editable: boolean, section = baseSection) {
             onRename={onRename}
             onDelete={onDelete}
             autoEdit={false}
-            autoEditItemId={autoEditItemId}
             onAddItem={() => {
-              const id = crypto.randomUUID();
+              onAddItem();
               setItems((prev) => [
                 ...prev,
                 {
-                  id,
+                  id: crypto.randomUUID(),
                   name: "New item",
                   optional: false,
                   quantity: 1,
@@ -80,17 +80,6 @@ function renderSection(editable: boolean, section = baseSection) {
                   assignedGear: null,
                 },
               ]);
-              setAutoEditItemId(id);
-            }}
-            onEditItem={(updated) => {
-              onEditItem(updated);
-              setItems((prev) =>
-                prev.map((i) => (i.id === updated.id ? updated : i)),
-              );
-            }}
-            onDeleteItem={(item) => {
-              onDeleteItem(item);
-              setItems((prev) => prev.filter((i) => i.id !== item.id));
             }}
             onToggleOptional={(item) => {
               onToggleOptional(item);
@@ -115,8 +104,8 @@ beforeEach(() => {
   onMoveDown.mockReset();
   onRename.mockReset();
   onDelete.mockReset();
-  onEditItem.mockReset();
-  onDeleteItem.mockReset();
+  onAddItem.mockReset();
+  openItem.mockReset();
   onToggleOptional.mockReset();
   onReorderItem.mockReset();
 });
@@ -166,28 +155,22 @@ describe("'Add item' button", () => {
     ).toBeInTheDocument();
   });
 
-  it("clicking it adds a new item in edit mode", () => {
+  it("clicking it adds a new item to the section", () => {
     renderSection(true);
     fireEvent.click(screen.getByRole("button", { name: /add item/i }));
-    expect(
-      screen.getByRole("textbox", { name: "Item name" }),
-    ).toBeInTheDocument();
+    expect(onAddItem).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("New item")).toBeInTheDocument();
   });
 });
 
 describe("editing an item", () => {
-  beforeEach(() => renderSection(true));
+  it("hands the item off to the drawer rather than editing in place", () => {
+    renderSection(true);
 
-  it("clicking an item and committing updates its name in the list", () => {
     fireEvent.click(screen.getByText("Sleeping bag"));
-    fireEvent.change(screen.getByRole("textbox", { name: "Item name" }), {
-      target: { value: "Sleeping bag liner" },
-    });
-    fireEvent.keyDown(screen.getByRole("textbox", { name: "Item name" }), {
-      key: "Enter",
-    });
-    expect(onEditItem).toHaveBeenCalled();
-    expect(screen.getByText("Sleeping bag liner")).toBeInTheDocument();
+
+    expect(openItem).toHaveBeenCalledWith("1", requiredItem);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 });
 

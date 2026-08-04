@@ -8,8 +8,7 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const onReorder = mock(() => {});
 const onToggleOptional = mock(() => {});
-const onEditItem = mock(() => {});
-const onDeleteItem = mock(() => {});
+const openItem = mock(() => {});
 
 const items: ClientPackingListItem[] = [
   {
@@ -33,15 +32,14 @@ const items: ClientPackingListItem[] = [
 function renderList(editable: boolean) {
   render(
     <MantineProvider>
-      <PackingListProvider value={{ editable }}>
+      <PackingListProvider
+        value={{ editable, openItem: editable ? openItem : undefined }}
+      >
         <ItemList
           items={items}
           sectionId="section-1"
           onReorder={onReorder}
           onToggleOptional={onToggleOptional}
-          onEditItem={onEditItem}
-          onDeleteItem={onDeleteItem}
-          autoEditItemId={null}
         />
       </PackingListProvider>
     </MantineProvider>,
@@ -69,10 +67,9 @@ describe("when editable", () => {
     expect(screen.getByText("Tent")).toBeInTheDocument();
   });
 
-  it("clicking an item enters edit mode", () => {
+  it("clicking an item hands it to the drawer", () => {
     fireEvent.click(screen.getByText("Sleeping bag"));
-    expect(
-      screen.getByRole("textbox", { name: "Item name" }),
-    ).toBeInTheDocument();
+    expect(openItem).toHaveBeenCalledWith("section-1", items[0]);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 });

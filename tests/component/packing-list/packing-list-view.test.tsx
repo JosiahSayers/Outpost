@@ -57,7 +57,7 @@ function renderPage() {
 }
 
 describe("adding an item", () => {
-  it("mounts the new row in edit mode", async () => {
+  it("opens the new item in the drawer, ready to be renamed", async () => {
     const jsonHeaders = { "Content-Type": "application/json" };
     // Mutates on POST so the subsequent invalidate-triggered refetch (a
     // separate query-cache commit from the mutation's own onSuccess) returns
@@ -100,12 +100,14 @@ describe("adding an item", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Add item" }));
 
+    // Items are no longer edited in place; the drawer is where naming,
+    // quantity, gear and delete all live.
     await waitFor(() =>
       expect(
-        screen.getByRole("textbox", { name: "Item name" }),
+        screen.getByRole("textbox", { name: /name/i }),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByRole("textbox", { name: "Item name" })).toHaveValue(
+    expect(screen.getByRole("textbox", { name: /name/i })).toHaveValue(
       "New item",
     );
   });

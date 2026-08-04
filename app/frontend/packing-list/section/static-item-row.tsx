@@ -4,11 +4,6 @@ import { Text } from "@mantine/core";
 
 interface Props {
   item: ClientPackingListItem;
-  /**
-   * Opens the assign-gear drawer. Omitted on read-only lists, where the gear
-   * line is a label rather than a control.
-   */
-  onGearClick?: () => void;
 }
 
 /**
@@ -19,7 +14,7 @@ interface Props {
  * read-only rows lay gear out identically, and so the row's own controls stay
  * siblings of the whole block instead of the name alone.
  */
-export default function StaticItemRow({ item, onGearClick }: Props) {
+export default function StaticItemRow({ item }: Props) {
   return (
     <div
       style={{
@@ -48,11 +43,7 @@ export default function StaticItemRow({ item, onGearClick }: Props) {
         )}
       </div>
       {item.assignedGear && (
-        <GearLine
-          gear={item.assignedGear}
-          quantity={item.quantity}
-          onClick={onGearClick}
-        />
+        <GearLine gear={item.assignedGear} quantity={item.quantity} />
       )}
     </div>
   );

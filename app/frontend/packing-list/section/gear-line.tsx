@@ -1,14 +1,12 @@
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Group, Text, UnstyledButton } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { BackpackIcon } from "@phosphor-icons/react";
 
 interface Props {
   gear: ClientGearInventoryItem;
   /** Packing list quantity, so the line shows this item's real contribution. */
   quantity: number;
-  /** Omitted on read-only lists, where the line is just a label. */
-  onClick?: () => void;
 }
 
 /**
@@ -20,13 +18,17 @@ interface Props {
  * line leaves the gear name a couple of characters. Nothing here is
  * hover-gated: on touch there is no hover, so anything hidden behind it would
  * be unreachable.
+ *
+ * Purely a label. Changing the assignment happens in the item drawer, which
+ * the whole row opens — a tap target of its own here would be one more small
+ * thing to miss on a phone.
  */
-export default function GearLine({ gear, quantity, onClick }: Props) {
+export default function GearLine({ gear, quantity }: Props) {
   const formatWeight = useWeightDisplay();
   const grams = gear.grams === null ? null : gear.grams * quantity;
   const weight = formatWeight(grams);
 
-  const content = (
+  return (
     <Group gap={4} wrap="nowrap" c="bark-brown.7" style={{ minWidth: 0 }}>
       <BackpackIcon
         size={11}
@@ -42,21 +44,5 @@ export default function GearLine({ gear, quantity, onClick }: Props) {
         </Text>
       )}
     </Group>
-  );
-
-  if (!onClick) return content;
-
-  return (
-    <UnstyledButton
-      onClick={(e) => {
-        // The row itself opens the name/quantity editor on click.
-        e.stopPropagation();
-        onClick();
-      }}
-      aria-label={`Change gear assigned to ${gear.name}`}
-      style={{ minWidth: 0, cursor: "pointer" }}
-    >
-      {content}
-    </UnstyledButton>
   );
 }
