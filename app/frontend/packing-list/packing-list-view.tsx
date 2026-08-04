@@ -22,6 +22,9 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import ConfirmDeleteModal from "./confirm-delete-modal";
+import AssignGearDrawer, {
+  type AssignGearTarget,
+} from "./section/assign-gear-drawer";
 import SectionContent from "./section/section-content";
 import { useFlipReorder } from "./use-flip-reorder";
 
@@ -45,6 +48,11 @@ export default function PackingListView({ editable = false, list }: Props) {
   const [, navigate] = useLocation();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  // One drawer for the whole list rather than one per row. `target` is kept
+  // after closing so the drawer keeps rendering its item's name while the
+  // close transition plays.
+  const [gearTarget, setGearTarget] = useState<AssignGearTarget | null>(null);
+  const [gearDrawerOpen, setGearDrawerOpen] = useState(false);
 
   const updateList = useUpdatePackingList(list.id);
   const deleteList = useDeletePackingList(list.id);
@@ -190,8 +198,21 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
+  function handleOpenAssignGear(
+    sectionId: string,
+    item: ClientPackingListItem,
+  ) {
+    setGearTarget({ sectionId, item });
+    setGearDrawerOpen(true);
+  }
+
   return (
-    <PackingListProvider value={{ editable }}>
+    <PackingListProvider
+      value={{
+        editable,
+        openAssignGear: editable ? handleOpenAssignGear : undefined,
+      }}
+    >
       <Stack gap="xl" maw={1100} mx="auto">
         <Stack gap="xs">
           <Flex
@@ -278,6 +299,12 @@ export default function PackingListView({ editable = false, list }: Props) {
           ))}
         </div>
       </Stack>
+      <AssignGearDrawer
+        listId={list.id}
+        opened={gearDrawerOpen}
+        target={gearTarget}
+        onClose={() => setGearDrawerOpen(false)}
+      />
       <ConfirmDeleteModal
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

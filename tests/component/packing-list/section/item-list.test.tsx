@@ -36,6 +36,7 @@ function renderList(editable: boolean) {
       <PackingListProvider value={{ editable }}>
         <ItemList
           items={items}
+          sectionId="section-1"
           onReorder={onReorder}
           onToggleOptional={onToggleOptional}
           onEditItem={onEditItem}

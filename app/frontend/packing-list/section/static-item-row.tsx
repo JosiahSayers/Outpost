@@ -1,21 +1,59 @@
+import GearLine from "$/frontend/packing-list/section/gear-line";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { Text } from "@mantine/core";
 
 interface Props {
   item: ClientPackingListItem;
+  /**
+   * Opens the assign-gear drawer. Omitted on read-only lists, where the gear
+   * line is a label rather than a control.
+   */
+  onGearClick?: () => void;
 }
 
-export default function StaticItemRow({ item }: Props) {
+/**
+ * An item's name, quantity, and — when gear is assigned — the gear line
+ * beneath it.
+ *
+ * This owns the vertical stack (rather than its callers) so the editable and
+ * read-only rows lay gear out identically, and so the row's own controls stay
+ * siblings of the whole block instead of the name alone.
+ */
+export default function StaticItemRow({ item, onGearClick }: Props) {
   return (
-    <>
-      <Text size="sm" flex={1}>
-        {item.name}
-      </Text>
-      {item.quantity > 1 && (
-        <Text size="xs" c="dimmed">
-          ×{item.quantity}
+    <div
+      style={{
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          minWidth: 0,
+        }}
+      >
+        <Text size="sm" style={{ flex: 1, minWidth: 0 }} truncate="end">
+          {item.name}
         </Text>
+        {item.quantity > 1 && (
+          <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+            ×{item.quantity}
+          </Text>
+        )}
+      </div>
+      {item.assignedGear && (
+        <GearLine
+          gear={item.assignedGear}
+          quantity={item.quantity}
+          onClick={onGearClick}
+        />
       )}
-    </>
+    </div>
   );
 }

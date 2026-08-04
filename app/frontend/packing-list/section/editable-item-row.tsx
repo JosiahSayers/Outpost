@@ -1,5 +1,11 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import { usePackingList } from "$/frontend/packing-list/packing-list-context";
+import GearLine from "$/frontend/packing-list/section/gear-line";
 import StaticItemRow from "$/frontend/packing-list/section/static-item-row";
+import {
+  gearStateFor,
+  useGearTrackedMap,
+} from "$/frontend/utils/api/gear-assignment";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { useDndContext } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
@@ -11,11 +17,16 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { DotsSixVerticalIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  DotsSixVerticalIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
 interface Props {
   item: ClientPackingListItem;
+  sectionId: string;
   onToggleOptional: () => void;
   onEdit: (item: ClientPackingListItem) => void;
   onDelete: () => void;
@@ -24,11 +35,14 @@ interface Props {
 
 export default function EditableItemRow({
   item,
+  sectionId,
   onToggleOptional,
   onEdit,
   onDelete,
   autoEdit,
 }: Props) {
+  const { openAssignGear } = usePackingList();
+  const gearTracked = useGearTrackedMap();
   const [hovered, setHovered] = useState(false);
   // Touch devices can't hover, so CRUD controls and the drag handle must stay
   // visible unconditionally rather than waiting for a mouseenter that never fires.
@@ -109,13 +123,16 @@ export default function EditableItemRow({
 
   const showControls =
     (hovered || isTouchDevice) && !isDragging && dndActive === null;
+  const gearState = gearStateFor(item, gearTracked);
 
   return (
     <div
       ref={setNodeRef}
       style={{
         display: "flex",
-        alignItems: "center",
+        // An assigned row is two lines tall; keep the handle and the controls
+        // beside the name rather than floating them against the gear line.
+        alignItems: gearState === "assigned" ? "flex-start" : "center",
         gap: 4,
         paddingTop: 4,
         paddingBottom: 4,
@@ -159,7 +176,12 @@ export default function EditableItemRow({
       >
         <DotsSixVerticalIcon size={12} />
       </ActionIcon>
-      <StaticItemRow item={item} />
+      <StaticItemRow
+        item={item}
+        onGearClick={
+          openAssignGear ? () => openAssignGear(sectionId, item) : undefined
+        }
+      />
       <Badge
         variant={
           item.optional && !showControls
@@ -184,6 +206,30 @@ export default function EditableItemRow({
       >
         {item.optional && showControls ? "Optional ×" : "optional"}
       </Badge>
+      {/* The empty gear slot. Unlike the drag handle and delete button this is
+          never hover-gated: it is the only thing telling someone the feature
+          exists, and a list where nothing is assigned yet would otherwise show
+          no trace of it. It costs 18px of width rather than a line of height,
+          and disappears for good once the item is assigned or dismissed. */}
+      {gearState === "undecided" && openAssignGear && (
+        <ActionIcon
+          variant="default"
+          size="xs"
+          aria-label={`Assign gear to ${item.name}`}
+          title="Assign gear"
+          style={{
+            flexShrink: 0,
+            borderStyle: "dashed",
+            background: "transparent",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            openAssignGear(sectionId, item);
+          }}
+        >
+          <PlusIcon size={10} />
+        </ActionIcon>
+      )}
       <ActionIcon
         variant="subtle"
         color="red"

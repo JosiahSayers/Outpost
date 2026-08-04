@@ -7,6 +7,7 @@ import { Group } from "@mantine/core";
 
 export default function ItemList({
   items,
+  sectionId,
   onReorder,
   onToggleOptional,
   onEditItem,
@@ -18,6 +19,7 @@ export default function ItemList({
   return editable ? (
     <SortableItemList
       items={items}
+      sectionId={sectionId}
       onReorder={onReorder}
       onToggleOptional={onToggleOptional}
       onEditItem={onEditItem}

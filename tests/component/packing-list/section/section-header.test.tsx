@@ -19,6 +19,7 @@ const defaultProps = {
   onRename,
   onDelete,
   autoEdit: false,
+  items: [],
 };
 
 function renderHeader(

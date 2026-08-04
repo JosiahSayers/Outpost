@@ -52,6 +52,7 @@ export default function SectionContent({
     <Stack gap="xs" pb="xl" style={{ breakInside: "avoid" }}>
       <SectionHeader
         name={section.name}
+        items={section.items}
         isFirst={isFirst}
         isLast={isLast}
         onMoveUp={onMoveUp}
@@ -63,6 +64,7 @@ export default function SectionContent({
       <Divider />
       <ItemList
         items={requiredItems}
+        sectionId={section.id}
         onReorder={onReorderItem}
         onToggleOptional={onToggleOptional}
         onEditItem={onEditItem}
@@ -77,6 +79,7 @@ export default function SectionContent({
           </Text>
           <ItemList
             items={optionalItems}
+            sectionId={section.id}
             onReorder={onReorderItem}
             onToggleOptional={onToggleOptional}
             onEditItem={onEditItem}

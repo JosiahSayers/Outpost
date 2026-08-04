@@ -34,6 +34,7 @@ beforeEach(() => {
     <MantineProvider>
       <SortableItemList
         items={items}
+        sectionId="section-1"
         onReorder={onReorder}
         onToggleOptional={onToggleOptional}
         onEditItem={onEditItem}

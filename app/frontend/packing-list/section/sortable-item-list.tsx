@@ -17,6 +17,7 @@ import EditableItemRow from "./editable-item-row";
 
 export interface SortableItemListProps {
   items: ClientPackingListItem[];
+  sectionId: string;
   onReorder: (item: ClientPackingListItem, sortPosition: number) => void;
   onToggleOptional: (item: ClientPackingListItem) => void;
   onEditItem: (item: ClientPackingListItem) => void;
@@ -26,6 +27,7 @@ export interface SortableItemListProps {
 
 export default function SortableItemList({
   items,
+  sectionId,
   onReorder,
   onToggleOptional,
   onEditItem,
@@ -69,6 +71,7 @@ export default function SortableItemList({
           <EditableItemRow
             key={item.id}
             item={item}
+            sectionId={sectionId}
             onToggleOptional={() => onToggleOptional(item)}
             onEdit={onEditItem}
             onDelete={() => onDeleteItem(item)}
