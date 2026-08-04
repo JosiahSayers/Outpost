@@ -43,3 +43,25 @@ export const userCanEditPackingList: RequestHandler = async (
 
   return next();
 };
+
+// `req.params.id` (the packing list) is already verified as owned/editable
+// by this point via `userCanEditPackingList`. This guards against a caller
+// swapping in a `sectionId` that belongs to a different packing list.
+export const requireSectionBelongsToPackingList: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  const section = await db.packingListSection.findUnique({
+    where: {
+      id: String(req.params.sectionId),
+      packingListId: String(req.params.id),
+    },
+  });
+
+  if (!section) {
+    return res.sendStatus(404);
+  }
+
+  return next();
+};

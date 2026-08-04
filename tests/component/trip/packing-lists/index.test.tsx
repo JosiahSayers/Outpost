@@ -43,6 +43,7 @@ function makePackingList(
             optional: false,
             quantity: 1,
             sortPosition: 0,
+            assignedGear: null,
             status: { packed: true, notNeeded: false },
           },
           {
@@ -51,6 +52,7 @@ function makePackingList(
             optional: false,
             quantity: 1,
             sortPosition: 1,
+            assignedGear: null,
             status: { packed: false, notNeeded: false },
           },
         ],
@@ -66,6 +68,7 @@ function makePackingList(
             optional: false,
             quantity: 1,
             sortPosition: 0,
+            assignedGear: null,
             status: { packed: true, notNeeded: false },
           },
           {
@@ -74,6 +77,7 @@ function makePackingList(
             optional: false,
             quantity: 1,
             sortPosition: 1,
+            assignedGear: null,
             status: { packed: false, notNeeded: true },
           },
         ],

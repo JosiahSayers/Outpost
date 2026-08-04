@@ -14,6 +14,7 @@ function item(
     optional: false,
     quantity: 1,
     sortPosition: 0,
+    assignedGear: null,
     status: { packed: false, notNeeded: true },
     ...overrides,
   };

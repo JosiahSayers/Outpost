@@ -1,8 +1,8 @@
-import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import type {
-  PackingListItem,
-  TripPackingListItemStatus,
-} from "../../../generated/prisma/browser";
+  ClientPackingListItem,
+  PackingListItemTransformerInput,
+} from "$/transformers/packing-list-item";
+import type { TripPackingListItemStatus } from "../../../generated/prisma/browser";
 import { transform as packingListItemTransfrom } from "../packing-list-item";
 
 type ClientTripPackingListItemStatus = Omit<
@@ -15,7 +15,7 @@ export type ClientTripPackingListItem = ClientPackingListItem & {
 };
 
 export function transform(
-  item: PackingListItem & {
+  item: PackingListItemTransformerInput & {
     tripPackingListItemStatuses: TripPackingListItemStatus[];
   },
 ): ClientTripPackingListItem {

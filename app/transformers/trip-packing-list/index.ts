@@ -1,10 +1,10 @@
+import type { PackingListItemTransformerInput } from "$/transformers/packing-list-item";
 import type { ClientPackingListSection } from "$/transformers/packing-list-section";
 import { transform as transformSection } from "$/transformers/packing-list-section";
 import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { transform as transformItem } from "$/transformers/trip-packing-list/item";
 import type {
   PackingList,
-  PackingListItem,
   PackingListSection,
   TripPackingList,
   TripPackingListItemStatus,
@@ -27,7 +27,7 @@ export type TripPackingListInput = TripPackingList & {
     packingListSections: Array<
       PackingListSection & {
         items: Array<
-          PackingListItem & {
+          PackingListItemTransformerInput & {
             tripPackingListItemStatuses: TripPackingListItemStatus[];
           }
         >;

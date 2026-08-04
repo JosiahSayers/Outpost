@@ -13,6 +13,10 @@ import {
 import { sectionParams } from "$/validation/packing-list/section";
 import { Router } from "express";
 import validate from "express-zod-safe";
+import type {
+  GearCategory,
+  GearInventoryItem,
+} from "../../../../generated/prisma/browser";
 import type { PackingListItem } from "../../../../generated/prisma/client";
 
 export const itemsRouter = Router({ mergeParams: true });
@@ -45,6 +49,19 @@ itemsRouter.post(
       });
     }
 
+    if (req.body.assignedGearId) {
+      const userOwnedGear = await db.gearInventoryItem.findUnique({
+        where: {
+          id: req.body.assignedGearId,
+          userId: req.session!.user.id,
+        },
+      });
+
+      if (!userOwnedGear) {
+        return res.sendStatus(404);
+      }
+    }
+
     const newItem = await db.packingListItem.create({
       data: {
         name: req.body.name,
@@ -52,8 +69,15 @@ itemsRouter.post(
         optional: req.body.optional,
         sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
         packingListSectionId: req.params.sectionId,
-        gearInventoryItemId: req.body.assignedGearId,
+        assignedGearId: req.body.assignedGearId,
         gearCategoryId: req.body.gearCategoryId,
+      },
+      include: {
+        assignedGear: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
 
@@ -104,8 +128,23 @@ itemsRouter.patch(
       return res.sendStatus(404);
     }
 
+    if (req.body.assignedGearId) {
+      const userOwnedGear = await db.gearInventoryItem.findUnique({
+        where: {
+          id: req.body.assignedGearId,
+          userId: req.session!.user.id,
+        },
+      });
+
+      if (!userOwnedGear) {
+        return res.sendStatus(404);
+      }
+    }
+
     const currentHighestSort = getHighestSort(existingItems);
-    let updatedItem: PackingListItem;
+    let updatedItem: PackingListItem & {
+      assignedGear: (GearInventoryItem & { category: GearCategory }) | null;
+    };
 
     await db.$transaction(async (tx) => {
       if (
@@ -125,13 +164,20 @@ itemsRouter.patch(
       updatedItem = await tx.packingListItem.update({
         where: { id: req.params.itemId },
         data: {
+          assignedGearId: req.body.assignedGearId,
           name: req.body.name,
           quantity: req.body.quantity,
           optional: req.body.optional,
           sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
           packingListSectionId: req.params.sectionId,
-          gearInventoryItemId: req.body.assignedGearId,
           gearCategoryId: req.body.gearCategoryId,
+        },
+        include: {
+          assignedGear: {
+            include: {
+              category: true,
+            },
+          },
         },
       });
     });

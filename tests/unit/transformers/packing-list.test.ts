@@ -62,19 +62,27 @@ describe("transform", () => {
     it("returns the expected shape", () => {
       const list = make("PackingList");
       const section1 = make("PackingListSection", { packingListId: list.id });
-      const item1_1 = make("PackingListItem", {
-        packingListSectionId: section1.id,
+      const gearCategory = make("GearCategory");
+      const gearInventoryItem = make("GearInventoryItem", {
+        gearCategoryId: gearCategory.id,
       });
-      const item1_2 = make("PackingListItem", {
-        packingListSectionId: section1.id,
-      });
-      const item1_3 = make("PackingListItem", {
-        packingListSectionId: section1.id,
-      });
+      const item1_1 = {
+        ...make("PackingListItem", { packingListSectionId: section1.id }),
+        assignedGear: { ...gearInventoryItem, category: gearCategory },
+      };
+      const item1_2 = {
+        ...make("PackingListItem", { packingListSectionId: section1.id }),
+        assignedGear: null,
+      };
+      const item1_3 = {
+        ...make("PackingListItem", { packingListSectionId: section1.id }),
+        assignedGear: null,
+      };
       const section2 = make("PackingListSection", { packingListId: list.id });
-      const item2_1 = make("PackingListItem", {
-        packingListSectionId: section2.id,
-      });
+      const item2_1 = {
+        ...make("PackingListItem", { packingListSectionId: section2.id }),
+        assignedGear: null,
+      };
       const input = {
         ...list,
         packingListSections: [
@@ -109,6 +117,17 @@ describe("transform", () => {
                 optional: item1_1.optional,
                 quantity: item1_1.quantity,
                 sortPosition: item1_1.sortPosition,
+                assignedGear: {
+                  id: gearInventoryItem.id,
+                  name: gearInventoryItem.name,
+                  quantity: gearInventoryItem.quantity,
+                  grams: gearInventoryItem.grams,
+                  category: {
+                    id: gearCategory.id,
+                    name: gearCategory.name,
+                    public: gearCategory.public,
+                  },
+                },
               },
               {
                 id: item1_2.id,
@@ -116,6 +135,7 @@ describe("transform", () => {
                 optional: item1_2.optional,
                 quantity: item1_2.quantity,
                 sortPosition: item1_2.sortPosition,
+                assignedGear: null,
               },
               {
                 id: item1_3.id,
@@ -123,6 +143,7 @@ describe("transform", () => {
                 optional: item1_3.optional,
                 quantity: item1_3.quantity,
                 sortPosition: item1_3.sortPosition,
+                assignedGear: null,
               },
             ],
           },
@@ -137,6 +158,7 @@ describe("transform", () => {
                 optional: item2_1.optional,
                 quantity: item2_1.quantity,
                 sortPosition: item2_1.sortPosition,
+                assignedGear: null,
               },
             ],
           },

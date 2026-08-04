@@ -63,6 +63,11 @@ tripRouter.get(
                     items: {
                       include: {
                         tripPackingListItemStatuses: true,
+                        assignedGear: {
+                          include: {
+                            category: true,
+                          },
+                        },
                       },
                     },
                   },

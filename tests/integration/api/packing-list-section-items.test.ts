@@ -12,6 +12,26 @@ beforeAll(async () => {
   authCookies = await getAuthCookies();
 });
 
+async function createGearItem(
+  userId: string,
+  overrides: { name?: string; quantity?: number; grams?: number | null } = {},
+) {
+  const category = await db.gearCategory.findFirst({
+    where: { public: true, name: "Backpacks" },
+  });
+  return db.gearInventoryItem.create({
+    data: {
+      name: "My Backpack",
+      quantity: 1,
+      grams: 900,
+      ...overrides,
+      userId,
+      gearCategoryId: category!.id,
+    },
+    include: { category: true },
+  });
+}
+
 // The database is reset to the seeded baseline after every test, so the list
 // and section fixtures are recreated per-test rather than once in beforeAll.
 beforeEach(async () => {
@@ -145,6 +165,7 @@ describe("POST /", () => {
         quantity: 2,
         optional: false,
         sortPosition: 1,
+        assignedGear: null,
       },
     });
   });
@@ -196,6 +217,94 @@ describe("POST /", () => {
         "error": ""sortPosition" should be higher than the current highest sort position. You provided: 1, currentHighest: 1",
       }
     `);
+  });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // that belongs to user2's packing list instead.
+    await supertest(app)
+      .post(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Injected Item", quantity: 1 })
+      .expect(404);
+
+    const items = await db.packingListItem.findMany({
+      where: { packingListSectionId: otherSectionId },
+    });
+    expect(items).toHaveLength(0);
+  });
+
+  it("returns 404 when assignedGearId belongs to a different user", async () => {
+    const user2 = await db.user.findUnique({
+      where: { email: "user2@test.com" },
+    });
+    const otherUsersGear = await createGearItem(user2!.id);
+
+    await supertest(app)
+      .post(`/api/packing-lists/${packingListId}/sections/${sectionId}/items`)
+      .set("Cookie", authCookies)
+      .send({
+        name: "My Item",
+        quantity: 1,
+        assignedGearId: otherUsersGear.id,
+      })
+      .expect(404);
+
+    const items = await db.packingListItem.findMany({
+      where: { packingListSectionId: sectionId },
+    });
+    expect(items).toHaveLength(0);
+  });
+
+  it("creates an item with the assigned gear and returns its transformed shape", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    const { body } = await supertest(app)
+      .post(`/api/packing-lists/${packingListId}/sections/${sectionId}/items`)
+      .set("Cookie", authCookies)
+      .send({ name: "My Item", quantity: 1, assignedGearId: gear.id })
+      .expect(201);
+
+    expect(body).toEqual({
+      item: {
+        id: expect.any(String),
+        name: "My Item",
+        quantity: 1,
+        optional: false,
+        sortPosition: 1,
+        assignedGear: {
+          id: gear.id,
+          name: gear.name,
+          quantity: gear.quantity,
+          grams: gear.grams,
+          category: {
+            id: gear.category.id,
+            name: gear.category.name,
+            public: gear.category.public,
+          },
+        },
+      },
+    });
   });
 });
 
@@ -268,6 +377,45 @@ describe("DELETE /:itemId", () => {
       where: { id: itemId },
     });
     expect(deleted).toBeNull();
+  });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    const otherItem = await db.packingListItem.create({
+      data: {
+        name: "User2's Item",
+        packingListSectionId: otherSectionId,
+        sortPosition: 1,
+      },
+    });
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // and item that belong to user2's packing list instead.
+    await supertest(app)
+      .delete(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items/${otherItem.id}`,
+      )
+      .set("Cookie", authCookies)
+      .expect(404);
+
+    const stillExists = await db.packingListItem.findUnique({
+      where: { id: otherItem.id },
+    });
+    expect(stillExists).not.toBeNull();
   });
 });
 
@@ -388,6 +536,7 @@ describe("PATCH /:itemId", () => {
         quantity: expect.any(Number),
         optional: expect.any(Boolean),
         sortPosition: 1,
+        assignedGear: null,
       },
     });
   });
@@ -447,5 +596,92 @@ describe("PATCH /:itemId", () => {
     expect(refreshed1?.sortPosition).toBe(2);
     expect(refreshed2?.sortPosition).toBe(3);
     expect(refreshed3?.sortPosition).toBe(1);
+  });
+
+  it("returns 404 when the section belongs to a packing list the user doesn't own", async () => {
+    const user2Cookies = await getAuthCookies("user2@test.com");
+    const otherListRes = await supertest(app)
+      .post("/api/packing-lists")
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's List" })
+      .expect(201);
+    const otherListId = otherListRes.body.packingList.id;
+
+    const otherSectionRes = await supertest(app)
+      .post(`/api/packing-lists/${otherListId}/sections`)
+      .set("Cookie", user2Cookies)
+      .send({ name: "User2's Section" })
+      .expect(201);
+    const otherSectionId = otherSectionRes.body.section.id;
+
+    const otherItem = await db.packingListItem.create({
+      data: {
+        name: "User2's Item",
+        packingListSectionId: otherSectionId,
+        sortPosition: 1,
+      },
+    });
+
+    // Authenticated as the owner of `packingListId`, but targeting a section
+    // and item that belong to user2's packing list instead.
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${otherSectionId}/items/${otherItem.id}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Tampered Name", sortPosition: 1 })
+      .expect(404);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: otherItem.id },
+    });
+    expect(unchanged?.name).toBe("User2's Item");
+  });
+
+  it("returns 404 when assignedGearId belongs to a different user", async () => {
+    const user2 = await db.user.findUnique({
+      where: { email: "user2@test.com" },
+    });
+    const otherUsersGear = await createGearItem(user2!.id);
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ assignedGearId: otherUsersGear.id, sortPosition: 1 })
+      .expect(404);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unchanged?.assignedGearId).toBeNull();
+  });
+
+  it("updates the assigned gear and returns the updated item", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    const { body } = await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ assignedGearId: gear.id, sortPosition: 1 })
+      .expect(200);
+
+    expect(body.item.assignedGear).toEqual({
+      id: gear.id,
+      name: gear.name,
+      quantity: gear.quantity,
+      grams: gear.grams,
+      category: {
+        id: gear.category.id,
+        name: gear.category.name,
+        public: gear.category.public,
+      },
+    });
   });
 });

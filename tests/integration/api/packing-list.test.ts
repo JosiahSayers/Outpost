@@ -363,6 +363,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Backpack",
                   "optional": false,
@@ -370,6 +371,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Backpacking tent",
                   "optional": false,
@@ -377,6 +379,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sleeping bag",
                   "optional": false,
@@ -384,6 +387,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sleeping pad",
                   "optional": false,
@@ -391,6 +395,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Headlamp or flashlight (with extra batteries)",
                   "optional": false,
@@ -398,6 +403,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Trekking poles",
                   "optional": true,
@@ -405,6 +411,7 @@ describe("GET /:id", () => {
                   "sortPosition": 6,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Packable lantern",
                   "optional": true,
@@ -412,6 +419,7 @@ describe("GET /:id", () => {
                   "sortPosition": 7,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Tent footprint",
                   "optional": true,
@@ -419,6 +427,7 @@ describe("GET /:id", () => {
                   "sortPosition": 8,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Pillow",
                   "optional": true,
@@ -426,6 +435,7 @@ describe("GET /:id", () => {
                   "sortPosition": 9,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Bear spray",
                   "optional": true,
@@ -440,6 +450,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Map (in waterproof sleeve)",
                   "optional": false,
@@ -447,6 +458,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Compass",
                   "optional": false,
@@ -454,6 +466,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Route description/guidebook",
                   "optional": true,
@@ -461,6 +474,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Altimeter Watch",
                   "optional": true,
@@ -468,6 +482,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "GPS",
                   "optional": true,
@@ -475,6 +490,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Satellite messenger and/or personal locator beacon",
                   "optional": true,
@@ -489,6 +505,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Moisture-wicking underwear",
                   "optional": false,
@@ -496,6 +513,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Moisture-wicking T-shirts",
                   "optional": false,
@@ -503,6 +521,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Quick-drying pants/shorts",
                   "optional": false,
@@ -510,6 +529,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Long-sleeve shirts (for sun and bugs)",
                   "optional": false,
@@ -517,6 +537,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Lightweight fleece or jacket",
                   "optional": false,
@@ -524,6 +545,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Boots or shoes suited to terrain",
                   "optional": false,
@@ -531,6 +553,7 @@ describe("GET /:id", () => {
                   "sortPosition": 6,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Socks (synthetic or wool)",
                   "optional": false,
@@ -538,6 +561,7 @@ describe("GET /:id", () => {
                   "sortPosition": 7,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Extra clothes (beyond the minimum expectation)",
                   "optional": false,
@@ -545,6 +569,7 @@ describe("GET /:id", () => {
                   "sortPosition": 8,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Rainwear (jacket and pants)",
                   "optional": true,
@@ -552,6 +577,7 @@ describe("GET /:id", () => {
                   "sortPosition": 9,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Long underwear",
                   "optional": true,
@@ -559,6 +585,7 @@ describe("GET /:id", () => {
                   "sortPosition": 10,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Warm insulated jacket or vest",
                   "optional": true,
@@ -566,6 +593,7 @@ describe("GET /:id", () => {
                   "sortPosition": 11,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Fleece pants",
                   "optional": true,
@@ -573,6 +601,7 @@ describe("GET /:id", () => {
                   "sortPosition": 12,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Gloves or mittens",
                   "optional": true,
@@ -580,6 +609,7 @@ describe("GET /:id", () => {
                   "sortPosition": 13,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Warm hat",
                   "optional": true,
@@ -587,6 +617,7 @@ describe("GET /:id", () => {
                   "sortPosition": 14,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sandals (for fording streams and/or camp shoes)",
                   "optional": true,
@@ -594,6 +625,7 @@ describe("GET /:id", () => {
                   "sortPosition": 15,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Bandana or Buff",
                   "optional": true,
@@ -601,6 +633,7 @@ describe("GET /:id", () => {
                   "sortPosition": 16,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Gaiters (for rainy, snowy, or muddy conditions)",
                   "optional": true,
@@ -615,6 +648,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Backpacking stove",
                   "optional": false,
@@ -622,6 +656,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Fuel",
                   "optional": false,
@@ -629,6 +664,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Cookset",
                   "optional": false,
@@ -636,6 +672,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Dishes/bowls",
                   "optional": false,
@@ -643,6 +680,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Eating utensils",
                   "optional": false,
@@ -650,6 +688,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Mug/cup",
                   "optional": false,
@@ -657,6 +696,7 @@ describe("GET /:id", () => {
                   "sortPosition": 6,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Biodegradable soap",
                   "optional": false,
@@ -664,6 +704,7 @@ describe("GET /:id", () => {
                   "sortPosition": 7,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Small quick-dry towel",
                   "optional": false,
@@ -671,6 +712,7 @@ describe("GET /:id", () => {
                   "sortPosition": 8,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Collapsible water container",
                   "optional": false,
@@ -678,6 +720,7 @@ describe("GET /:id", () => {
                   "sortPosition": 9,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Bear canister/food sack; or hang bag + 50’ nylon cord",
                   "optional": false,
@@ -692,6 +735,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Water bottles and/or reservoir ",
                   "optional": false,
@@ -699,6 +743,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Water filter/purifier or chemical treatment",
                   "optional": false,
@@ -706,6 +751,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Meals",
                   "optional": false,
@@ -713,6 +759,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Energy food and drinks (bars, gels, chews, trail mix, drink mix)",
                   "optional": false,
@@ -720,6 +767,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Extra day’s supply of food",
                   "optional": false,
@@ -734,6 +782,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Hand sanitizer",
                   "optional": false,
@@ -741,6 +790,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Toothbrush and toothpaste",
                   "optional": false,
@@ -748,6 +798,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sanitation trowel",
                   "optional": false,
@@ -755,6 +806,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Toilet paper/wipes and sealable bag (to pack it out)",
                   "optional": false,
@@ -762,6 +814,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Menstrual products",
                   "optional": false,
@@ -769,6 +822,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Prescription medications",
                   "optional": false,
@@ -776,6 +830,7 @@ describe("GET /:id", () => {
                   "sortPosition": 6,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Prescription glasses",
                   "optional": false,
@@ -783,6 +838,7 @@ describe("GET /:id", () => {
                   "sortPosition": 7,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sunglasses (+ retainer leash)",
                   "optional": false,
@@ -790,6 +846,7 @@ describe("GET /:id", () => {
                   "sortPosition": 8,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sunscreen",
                   "optional": false,
@@ -797,6 +854,7 @@ describe("GET /:id", () => {
                   "sortPosition": 9,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "SPF-rated lip balm ",
                   "optional": false,
@@ -804,6 +862,7 @@ describe("GET /:id", () => {
                   "sortPosition": 10,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Sun hat",
                   "optional": false,
@@ -811,6 +870,7 @@ describe("GET /:id", () => {
                   "sortPosition": 11,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Insect repellent",
                   "optional": true,
@@ -818,6 +878,7 @@ describe("GET /:id", () => {
                   "sortPosition": 12,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Urinary products",
                   "optional": true,
@@ -825,6 +886,7 @@ describe("GET /:id", () => {
                   "sortPosition": 13,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Additional blister treatment supplies",
                   "optional": true,
@@ -839,6 +901,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Knife or multi-tool",
                   "optional": false,
@@ -846,6 +909,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Repair kit for mattress, stove",
                   "optional": false,
@@ -853,6 +917,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Duct tape strips",
                   "optional": false,
@@ -867,6 +932,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "First-aid kit or supplies ",
                   "optional": false,
@@ -874,6 +940,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Whistle",
                   "optional": false,
@@ -881,6 +948,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Lighter/matches (in waterproof container)",
                   "optional": false,
@@ -888,6 +956,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Fire starter (for emergency survival fire)",
                   "optional": false,
@@ -895,6 +964,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Emergency shelter",
                   "optional": false,
@@ -902,6 +972,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Two itineraries: 1 left with friend + 1 under car seat",
                   "optional": false,
@@ -916,6 +987,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Permits (if needed)",
                   "optional": false,
@@ -923,6 +995,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Credit card and/or cash",
                   "optional": false,
@@ -930,6 +1003,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "ID",
                   "optional": false,
@@ -937,6 +1011,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Car keys",
                   "optional": false,
@@ -944,6 +1019,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Cellphone",
                   "optional": false,
@@ -958,6 +1034,7 @@ describe("GET /:id", () => {
               "id": "<uuid>",
               "items": [
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Daypack (for day trips away from camp)",
                   "optional": true,
@@ -965,6 +1042,7 @@ describe("GET /:id", () => {
                   "sortPosition": 1,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Camera or action cam (with extra memory cards)",
                   "optional": true,
@@ -972,6 +1050,7 @@ describe("GET /:id", () => {
                   "sortPosition": 2,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Interpretive field guide(s)",
                   "optional": true,
@@ -979,6 +1058,7 @@ describe("GET /:id", () => {
                   "sortPosition": 3,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Star chart/night-sky identifier",
                   "optional": true,
@@ -986,6 +1066,7 @@ describe("GET /:id", () => {
                   "sortPosition": 4,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Outdoor journal or sketchbook with pen/pencil",
                   "optional": true,
@@ -993,6 +1074,7 @@ describe("GET /:id", () => {
                   "sortPosition": 5,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Book/reading material",
                   "optional": true,
@@ -1000,6 +1082,7 @@ describe("GET /:id", () => {
                   "sortPosition": 6,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Cards or games",
                   "optional": true,
@@ -1007,6 +1090,7 @@ describe("GET /:id", () => {
                   "sortPosition": 7,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Compact binoculars",
                   "optional": true,
@@ -1014,6 +1098,7 @@ describe("GET /:id", () => {
                   "sortPosition": 8,
                 },
                 {
+                  "assignedGear": null,
                   "id": "<uuid>",
                   "name": "Two-way radios",
                   "optional": true,
@@ -1078,6 +1163,57 @@ describe("GET /:id", () => {
     const response = await supertest(app)
       .get(`/api/packing-lists/${existingPackingList!.id}`)
       .expect(401);
+  });
+
+  it("includes the assigned gear for an item that has one", async () => {
+    const user = (await db.user.findUnique({
+      where: { email: "user@test.com" },
+    }))!;
+    const category = (await db.gearCategory.findFirst({
+      where: { public: true, name: "Backpacks" },
+    }))!;
+    const gear = await db.gearInventoryItem.create({
+      data: {
+        name: "My Backpack",
+        quantity: 1,
+        grams: 900,
+        userId: user.id,
+        gearCategoryId: category.id,
+      },
+    });
+    const list = await db.packingList.create({
+      data: { name: "List With Assigned Gear", userId: user.id },
+    });
+    const section = await db.packingListSection.create({
+      data: { name: "Section", sortPosition: 1, packingListId: list.id },
+    });
+    await db.packingListItem.create({
+      data: {
+        name: "Item With Gear",
+        sortPosition: 1,
+        packingListSectionId: section.id,
+        assignedGearId: gear.id,
+      },
+    });
+
+    const response = await supertest(app)
+      .get(`/api/packing-lists/${list.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.packingList.sections[0].items[0].assignedGear).toEqual(
+      {
+        id: gear.id,
+        name: gear.name,
+        quantity: gear.quantity,
+        grams: gear.grams,
+        category: {
+          id: category.id,
+          name: category.name,
+          public: category.public,
+        },
+      },
+    );
   });
 });
 
@@ -1220,7 +1356,15 @@ describe("POST /", () => {
       include: {
         packingListSections: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignedGear: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

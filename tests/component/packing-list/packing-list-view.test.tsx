@@ -73,6 +73,7 @@ describe("adding an item", () => {
           optional: false,
           quantity: 1,
           sortPosition: 1,
+          assignedGear: null,
         };
         serverList.sections[0]!.items.push(newItem);
         return Promise.resolve(
