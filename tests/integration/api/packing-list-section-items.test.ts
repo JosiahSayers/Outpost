@@ -736,4 +736,66 @@ describe("PATCH /:itemId", () => {
     });
     expect(unchanged?.assignedGearId).toBe(gear.id);
   });
+
+  it("defaults trackGearAssignment to true for newly created items", async () => {
+    const created = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(created?.trackGearAssignment).toBe(true);
+  });
+
+  it("disables trackGearAssignment and persists it", async () => {
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ trackGearAssignment: false, sortPosition: 1 })
+      .expect(200);
+
+    const updated = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(updated?.trackGearAssignment).toBe(false);
+  });
+
+  it("re-enables trackGearAssignment and persists it", async () => {
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { trackGearAssignment: false },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ trackGearAssignment: true, sortPosition: 1 })
+      .expect(200);
+
+    const updated = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(updated?.trackGearAssignment).toBe(true);
+  });
+
+  it("leaves trackGearAssignment unchanged when omitted", async () => {
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { trackGearAssignment: false },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Renamed", sortPosition: 1 })
+      .expect(200);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unchanged?.trackGearAssignment).toBe(false);
+  });
 });

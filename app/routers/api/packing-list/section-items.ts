@@ -171,6 +171,7 @@ itemsRouter.patch(
           sortPosition: req.body.sortPosition ?? currentHighestSort + 1,
           packingListSectionId: req.params.sectionId,
           gearCategoryId: req.body.gearCategoryId,
+          trackGearAssignment: req.body.trackGearAssignment,
         },
         include: {
           assignedGear: {

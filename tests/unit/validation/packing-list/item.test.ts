@@ -9,7 +9,11 @@ describe("createItem", () => {
 
   it("accepts a minimal valid payload", () => {
     const result = createItem.parse(validInput);
-    expect(result).toMatchObject({ name: "Tent", quantity: 1, optional: false });
+    expect(result).toMatchObject({
+      name: "Tent",
+      quantity: 1,
+      optional: false,
+    });
   });
 
   it("defaults optional to false when omitted", () => {
@@ -25,7 +29,9 @@ describe("createItem", () => {
   it("trims and requires a minimum length name", () => {
     expect(() => createItem.parse({ ...validInput, name: "  " })).toThrow();
     expect(() => createItem.parse({ ...validInput, name: "ab" })).toThrow();
-    expect(createItem.parse({ ...validInput, name: "  Tent  " }).name).toBe("Tent");
+    expect(createItem.parse({ ...validInput, name: "  Tent  " }).name).toBe(
+      "Tent",
+    );
   });
 
   it("requires quantity to be a positive integer", () => {
@@ -96,12 +102,17 @@ describe("updateItem", () => {
         assignedGearId: null,
         trackGearAssignment: false,
       });
-      expect(result).toEqual({ assignedGearId: null, trackGearAssignment: false });
+      expect(result).toEqual({
+        assignedGearId: null,
+        trackGearAssignment: false,
+      });
     });
   });
 
   it("allows assignedGearId to be explicitly nulled", () => {
-    expect(updateItem.parse({ assignedGearId: null })).toEqual({ assignedGearId: null });
+    expect(updateItem.parse({ assignedGearId: null })).toEqual({
+      assignedGearId: null,
+    });
   });
 
   it("rejects unknown fields", () => {
