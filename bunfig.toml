@@ -7,3 +7,6 @@ coveragePathIgnorePatterns = [
   "generated/**/*"
 ]
 coverageThreshold = 0.9
+
+[serve.static]
+env = "BUN_PUBLIC_*"

@@ -19,10 +19,11 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS prerelease
+ARG COMMIT_SHA
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 RUN bunx --bun prisma generate
-RUN bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend
+RUN BUN_PUBLIC_SHA=$COMMIT_SHA bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend --env='BUN_PUBLIC_*'
 
 # [optional] tests & build
 ENV NODE_ENV=ci
