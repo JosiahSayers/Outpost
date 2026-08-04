@@ -1,9 +1,8 @@
-import {
-  gearStateFor,
-  useSetTrackGearAssignment,
-} from "$/frontend/utils/api/gear-assignment";
+import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
+import { useUpdateItem } from "$/frontend/utils/api/packing-list";
 import { buildSectionGearSummary } from "$/frontend/utils/build-section-gear-summary";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
+import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { Group, Menu, Text, UnstyledButton } from "@mantine/core";
 import { BackpackIcon, MinusCircleIcon, PlusIcon } from "@phosphor-icons/react";
@@ -29,7 +28,7 @@ interface Props {
  * numerator, so both answers move the section toward the same finished state.
  */
 export default function GearProgress({ listId, sectionId, items }: Props) {
-  const setTrackGearAssignment = useSetTrackGearAssignment(listId);
+  const updateItem = useUpdateItem(listId);
   const formatWeight = useWeightDisplay({ rollUp: true });
   const summary = buildSectionGearSummary(items);
 
@@ -65,7 +64,15 @@ export default function GearProgress({ listId, sectionId, items }: Props) {
     trackGearAssignment: boolean,
   ) => {
     for (const item of targets) {
-      setTrackGearAssignment.mutate({ sectionId, item, trackGearAssignment });
+      updateItem.mutate(
+        {
+          sectionId,
+          itemId: item.id,
+          trackGearAssignment,
+          sortPosition: item.sortPosition,
+        },
+        { onError: notifyError("Couldn't update gear tracking") },
+      );
     }
   };
 

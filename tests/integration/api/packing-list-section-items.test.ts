@@ -180,6 +180,15 @@ describe("POST /", () => {
     expect(body.item.optional).toBe(true);
   });
 
+  it("persists an explicit trackGearAssignment when creating an item", async () => {
+    const { body } = await supertest(app)
+      .post(`/api/packing-lists/${packingListId}/sections/${sectionId}/items`)
+      .set("Cookie", authCookies)
+      .send({ name: "Untracked Item", quantity: 1, trackGearAssignment: false })
+      .expect(201);
+    expect(body.item.trackGearAssignment).toBe(false);
+  });
+
   it("returns 400 when an item with the same name already exists in the section", async () => {
     await db.packingListItem.create({
       data: {

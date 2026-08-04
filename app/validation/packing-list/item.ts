@@ -16,6 +16,7 @@ export const createItem = z.strictObject({
   sortPosition: sortPosition.optional(),
   assignedGearId: z.string().optional(),
   gearCategoryId: z.string().optional(),
+  trackGearAssignment: z.boolean().optional(),
 });
 
 export const updateItem = z.strictObject({

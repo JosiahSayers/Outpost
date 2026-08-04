@@ -144,19 +144,6 @@ export default function PackingListView({ editable = false, list }: Props) {
     setItemDrawerOpen(true);
   }
 
-  function handleEditItem(sectionId: string, item: ClientPackingListItem) {
-    updateItem.mutate(
-      {
-        sectionId,
-        itemId: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        sortPosition: item.sortPosition,
-      },
-      { onError: notifyError("Couldn't update item") },
-    );
-  }
-
   function handleDeleteItem(sectionId: string, item: ClientPackingListItem) {
     deleteItem.mutate(
       { sectionId, itemId: item.id },
@@ -286,7 +273,6 @@ export default function PackingListView({ editable = false, list }: Props) {
         opened={itemDrawerOpen}
         target={itemTarget}
         onClose={() => setItemDrawerOpen(false)}
-        onSave={handleEditItem}
         onDelete={handleDeleteItem}
       />
       <ConfirmDeleteModal

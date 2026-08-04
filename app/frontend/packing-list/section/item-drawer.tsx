@@ -1,12 +1,10 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
-import {
-  gearStateFor,
-  useAssignGear,
-  useClearGear,
-  useSetTrackGearAssignment,
-} from "$/frontend/utils/api/gear-assignment";
+import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
-import { useCreateItem } from "$/frontend/utils/api/packing-list";
+import {
+  useCreateItem,
+  useUpdateItem,
+} from "$/frontend/utils/api/packing-list";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
@@ -46,7 +44,6 @@ interface Props {
   opened: boolean;
   target: ItemDrawerTarget | null;
   onClose: () => void;
-  onSave: (sectionId: string, item: ClientPackingListItem) => void;
   onDelete: (sectionId: string, item: ClientPackingListItem) => void;
 }
 
@@ -85,7 +82,6 @@ export default function ItemDrawer({
   opened,
   target,
   onClose,
-  onSave,
   onDelete,
 }: Props) {
   return (
@@ -110,7 +106,6 @@ export default function ItemDrawer({
           opened={opened}
           target={target}
           onClose={onClose}
-          onSave={onSave}
           onDelete={onDelete}
         />
       )}
@@ -123,7 +118,6 @@ function ItemDrawerForm({
   opened,
   target,
   onClose,
-  onSave,
   onDelete,
 }: Props & { target: ItemDrawerTarget }) {
   const { sectionId, item } = target;
@@ -142,10 +136,8 @@ function ItemDrawerForm({
   // Only fetch once the drawer is open; the packing list page would otherwise
   // pull the whole inventory on every load.
   const inventory = useGearInventory(opened);
-  const assignGear = useAssignGear(listId);
-  const clearGear = useClearGear(listId);
-  const setTrackGearAssignment = useSetTrackGearAssignment(listId);
   const createItem = useCreateItem(listId);
+  const updateItem = useUpdateItem(listId);
   const formatWeight = useWeightDisplay();
 
   const inventoryItems = inventory.data?.items ?? [];
@@ -168,65 +160,50 @@ function ItemDrawerForm({
       : null;
   const canSave = trimmedName.length >= MIN_NAME_LENGTH;
 
+  // Name, quantity, gear and tracking all land in the same PATCH/POST body —
+  // one request against one endpoint, so a failure can't leave the item
+  // half-saved. The drawer only closes once that request has actually
+  // succeeded; on error it stays open with the entered data intact so the
+  // user can retry instead of redoing it from scratch.
   const handleSave = () => {
     if (!canSave) return;
 
     if (target.isNew) {
-      // Nothing exists server-side yet — one create call carries name,
-      // quantity and gear together instead of an update plus a separate
-      // assign call.
       createItem.mutate(
         {
           sectionId,
           name: trimmedName,
           quantity,
           assignedGearId: gear?.id,
+          trackGearAssignment: isTracked,
         },
         {
-          onSuccess: ({ item: created }) => {
-            if (!isTracked) {
-              setTrackGearAssignment.mutate({
-                sectionId,
-                item: created,
-                trackGearAssignment: false,
-              });
-            }
-          },
+          onSuccess: onClose,
           onError: notifyError("Couldn't add item"),
         },
       );
-      onClose();
       return;
     }
 
-    if (trimmedName !== item.name || quantity !== item.quantity) {
-      onSave(sectionId, { ...item, name: trimmedName, quantity });
-    }
-
-    const currentGearId = item.assignedGear?.id ?? null;
-    if ((gear?.id ?? null) !== currentGearId) {
-      if (gear) {
-        assignGear.mutate(
-          { sectionId, item, gear },
-          { onError: notifyError("Couldn't assign gear") },
-        );
-      } else {
-        clearGear.mutate(
-          { sectionId, item },
-          { onError: notifyError("Couldn't clear gear") },
-        );
-      }
-    }
-
-    if (isTracked !== (gearStateFor(item) !== "untracked")) {
-      setTrackGearAssignment.mutate(
-        { sectionId, item, trackGearAssignment: isTracked },
-        { onError: notifyError("Couldn't update gear tracking") },
-      );
-    }
-
-    onClose();
+    updateItem.mutate(
+      {
+        sectionId,
+        itemId: item.id,
+        name: trimmedName,
+        quantity,
+        assignedGearId: gear?.id ?? null,
+        assignedGear: gear,
+        trackGearAssignment: isTracked,
+        sortPosition: item.sortPosition,
+      },
+      {
+        onSuccess: onClose,
+        onError: notifyError("Couldn't update item"),
+      },
+    );
   };
+
+  const isSaving = createItem.isPending || updateItem.isPending;
 
   const handleDelete = () => {
     onDelete(sectionId, item);
@@ -249,7 +226,7 @@ function ItemDrawerForm({
           if (target.isNew) e.currentTarget.select();
         }}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && canSave) handleSave();
+          if (e.key === "Enter" && canSave && !isSaving) handleSave();
         }}
       />
       <NumberInput
@@ -436,7 +413,7 @@ function ItemDrawerForm({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!canSave}>
+          <Button onClick={handleSave} disabled={!canSave} loading={isSaving}>
             Save
           </Button>
         </Group>

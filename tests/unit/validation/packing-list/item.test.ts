@@ -53,10 +53,14 @@ describe("createItem", () => {
     });
   });
 
-  it("does not accept a trackGearAssignment field", () => {
-    expect(() =>
-      createItem.parse({ ...validInput, trackGearAssignment: true }),
-    ).toThrow();
+  it("accepts an explicit trackGearAssignment flag", () => {
+    // Lets the item drawer set tracking in the same request that creates the
+    // item, instead of a create followed by a separate patch.
+    const result = createItem.parse({
+      ...validInput,
+      trackGearAssignment: false,
+    });
+    expect(result.trackGearAssignment).toBe(false);
   });
 
   it("rejects unknown fields", () => {

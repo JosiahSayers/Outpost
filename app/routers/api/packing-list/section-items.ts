@@ -71,6 +71,7 @@ itemsRouter.post(
         packingListSectionId: req.params.sectionId,
         assignedGearId: req.body.assignedGearId,
         gearCategoryId: req.body.gearCategoryId,
+        trackGearAssignment: req.body.trackGearAssignment,
       },
       include: {
         assignedGear: {
