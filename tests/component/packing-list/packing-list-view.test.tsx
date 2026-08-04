@@ -57,22 +57,21 @@ function renderPage() {
 }
 
 describe("adding an item", () => {
-  it("mounts the new row in edit mode", async () => {
+  // Mutates on POST so the subsequent invalidate-triggered refetch (a
+  // separate query-cache commit from the mutation's own onSuccess) returns
+  // the item too, matching how the real API behaves.
+  function mockPackingListApi(serverList: ClientFullPackingList) {
     const jsonHeaders = { "Content-Type": "application/json" };
-    // Mutates on POST so the subsequent invalidate-triggered refetch (a
-    // separate query-cache commit from the mutation's own onSuccess) returns
-    // the item too, matching how the real API behaves.
-    const serverList: ClientFullPackingList = JSON.parse(
-      JSON.stringify(baseList),
-    );
     global.fetch = mock((url: string, init?: RequestInit) => {
       if (init?.method === "POST" && url.includes("/items")) {
+        const body = JSON.parse(init.body as string);
         const newItem = {
           id: "item-1",
-          name: "New item",
+          name: body.name,
           optional: false,
-          quantity: 1,
+          quantity: body.quantity,
           sortPosition: 1,
+          trackGearAssignment: true,
           assignedGear: null,
         };
         serverList.sections[0]!.items.push(newItem);
@@ -90,9 +89,17 @@ describe("adding an item", () => {
         }),
       );
     }) as unknown as typeof fetch;
+  }
 
+  function postCalls() {
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock>;
+    return fetchMock.mock.calls.filter(
+      (c: unknown[]) => (c[1] as RequestInit | undefined)?.method === "POST",
+    );
+  }
+
+  async function openDrawer() {
     renderPage();
-
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: "Add item" }),
@@ -100,13 +107,52 @@ describe("adding an item", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Add item" }));
 
+    // Items are no longer edited in place; the drawer is where naming,
+    // quantity, gear and delete all live.
     await waitFor(() =>
       expect(
-        screen.getByRole("textbox", { name: "Item name" }),
+        screen.getByRole("textbox", { name: /name/i }),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByRole("textbox", { name: "Item name" })).toHaveValue(
+  }
+
+  it("opens a local draft in the drawer, ready to be renamed", async () => {
+    mockPackingListApi(JSON.parse(JSON.stringify(baseList)));
+
+    await openDrawer();
+
+    expect(screen.getByRole("textbox", { name: /name/i })).toHaveValue(
       "New item",
     );
+    // Nothing is created until Save — opening the drawer must not hit the
+    // items endpoint.
+    expect(postCalls()).toHaveLength(0);
+  });
+
+  it("does not create anything when canceled", async () => {
+    mockPackingListApi(JSON.parse(JSON.stringify(baseList)));
+
+    await openDrawer();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByText("New item")).not.toBeInTheDocument();
+    expect(postCalls()).toHaveLength(0);
+  });
+
+  it("creates the item on save", async () => {
+    mockPackingListApi(JSON.parse(JSON.stringify(baseList)));
+
+    await openDrawer();
+    fireEvent.change(screen.getByRole("textbox", { name: /name/i }), {
+      target: { value: "Headlamp" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(postCalls()).toHaveLength(1));
+    const [, init] = postCalls()[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      name: "Headlamp",
+      quantity: 1,
+    });
   });
 });

@@ -3,7 +3,6 @@ import PackingListDescription from "$/frontend/packing-list/header/packing-list-
 import PackingListTitle from "$/frontend/packing-list/header/packing-list-title";
 import { PackingListProvider } from "$/frontend/packing-list/packing-list-context";
 import {
-  useCreateItem,
   useCreatePackingList,
   useCreateSection,
   useDeleteItem,
@@ -22,6 +21,7 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import ConfirmDeleteModal from "./confirm-delete-modal";
+import ItemDrawer, { type ItemDrawerTarget } from "./section/item-drawer";
 import SectionContent from "./section/section-content";
 import { useFlipReorder } from "./use-flip-reorder";
 
@@ -38,13 +38,16 @@ export default function PackingListView({ editable = false, list }: Props) {
   const [autoEditSectionId, setAutoEditSectionId] = useState<string | null>(
     null,
   );
-  // Item the user just added, so its row mounts directly in edit mode.
-  const [autoEditItemId, setAutoEditItemId] = useState<string | null>(null);
   const columnsRef = useRef<HTMLDivElement>(null);
   const { register: registerSection, markMoved } = useFlipReorder();
   const [, navigate] = useLocation();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  // One drawer for the whole list rather than one per row. `target` is kept
+  // after closing so the drawer keeps rendering its item while the close
+  // transition plays.
+  const [itemTarget, setItemTarget] = useState<ItemDrawerTarget | null>(null);
+  const [itemDrawerOpen, setItemDrawerOpen] = useState(false);
 
   const updateList = useUpdatePackingList(list.id);
   const deleteList = useDeletePackingList(list.id);
@@ -52,7 +55,6 @@ export default function PackingListView({ editable = false, list }: Props) {
   const createSection = useCreateSection(list.id);
   const updateSection = useUpdateSection(list.id);
   const deleteSection = useDeleteSection(list.id);
-  const createItem = useCreateItem(list.id);
   const updateItem = useUpdateItem(list.id);
   const deleteItem = useDeleteItem(list.id);
 
@@ -63,22 +65,6 @@ export default function PackingListView({ editable = false, list }: Props) {
       ?.querySelector(`[data-section-id="${autoEditSectionId}"]`)
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [autoEditSectionId]);
-
-  // The new row captures autoEdit on mount, so clear the one-shot signal once
-  // consumed — otherwise the item re-enters edit mode whenever its row remounts
-  // (e.g. when toggling optional moves it between lists). Wait until the item
-  // actually shows up in `sections`: the mutation's onSuccess sets this state
-  // directly, but the item only appears once the list query's cache
-  // subscription re-renders — a separate, later commit — so clearing
-  // unconditionally on the first commit erases the flag before the row ever
-  // mounts with it set.
-  useEffect(() => {
-    if (autoEditItemId == null) return;
-    const itemExists = sections.some((section) =>
-      section.items.some((item) => item.id === autoEditItemId),
-    );
-    if (itemExists) setAutoEditItemId(null);
-  }, [autoEditItemId, sections]);
 
   function handleMoveSection(index: number, direction: "up" | "down") {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
@@ -139,27 +125,23 @@ export default function PackingListView({ editable = false, list }: Props) {
   }
 
   function handleAddItem(sectionId: string) {
-    createItem.mutate(
-      { sectionId, name: "New item", quantity: 1 },
-      {
-        // Reveal the persisted item in edit mode once it has an id.
-        onSuccess: ({ item }) => setAutoEditItemId(item.id),
-        onError: notifyError("Couldn't add item"),
+    // Nothing is persisted until the drawer's Save is clicked — the drawer
+    // itself creates the item (see item-drawer.tsx), so Cancel here just
+    // discards this draft rather than leaving an orphaned "New item" row.
+    setItemTarget({
+      sectionId,
+      item: {
+        id: crypto.randomUUID(),
+        name: "New item",
+        quantity: 1,
+        optional: false,
+        sortPosition: 0,
+        trackGearAssignment: true,
+        assignedGear: null,
       },
-    );
-  }
-
-  function handleEditItem(sectionId: string, item: ClientPackingListItem) {
-    updateItem.mutate(
-      {
-        sectionId,
-        itemId: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        sortPosition: item.sortPosition,
-      },
-      { onError: notifyError("Couldn't update item") },
-    );
+      isNew: true,
+    });
+    setItemDrawerOpen(true);
   }
 
   function handleDeleteItem(sectionId: string, item: ClientPackingListItem) {
@@ -190,8 +172,18 @@ export default function PackingListView({ editable = false, list }: Props) {
     );
   }
 
+  function handleOpenItem(sectionId: string, item: ClientPackingListItem) {
+    setItemTarget({ sectionId, item });
+    setItemDrawerOpen(true);
+  }
+
   return (
-    <PackingListProvider value={{ editable }}>
+    <PackingListProvider
+      value={{
+        editable,
+        openItem: editable ? handleOpenItem : undefined,
+      }}
+    >
       <Stack gap="xl" maw={1100} mx="auto">
         <Stack gap="xs">
           <Flex
@@ -255,6 +247,7 @@ export default function PackingListView({ editable = false, list }: Props) {
               style={{ breakInside: "avoid" }}
             >
               <SectionContent
+                listId={list.id}
                 section={section}
                 isFirst={index === 0}
                 isLast={index === sections.length - 1}
@@ -263,10 +256,7 @@ export default function PackingListView({ editable = false, list }: Props) {
                 onRename={(name) => handleRenameSection(section.id, name)}
                 onDelete={() => handleDeleteSection(section.id)}
                 autoEdit={section.id === autoEditSectionId}
-                autoEditItemId={autoEditItemId}
                 onAddItem={() => handleAddItem(section.id)}
-                onEditItem={(item) => handleEditItem(section.id, item)}
-                onDeleteItem={(item) => handleDeleteItem(section.id, item)}
                 onToggleOptional={(item) =>
                   handleToggleOptional(section.id, item)
                 }
@@ -278,6 +268,13 @@ export default function PackingListView({ editable = false, list }: Props) {
           ))}
         </div>
       </Stack>
+      <ItemDrawer
+        listId={list.id}
+        opened={itemDrawerOpen}
+        target={itemTarget}
+        onClose={() => setItemDrawerOpen(false)}
+        onDelete={handleDeleteItem}
+      />
       <ConfirmDeleteModal
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

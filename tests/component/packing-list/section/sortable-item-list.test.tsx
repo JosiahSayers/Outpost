@@ -7,8 +7,6 @@ import { beforeEach, expect, it, mock } from "bun:test";
 
 const onReorder = mock(() => {});
 const onToggleOptional = mock(() => {});
-const onEditItem = mock(() => {});
-const onDeleteItem = mock(() => {});
 
 const items: ClientPackingListItem[] = [
   {
@@ -17,6 +15,7 @@ const items: ClientPackingListItem[] = [
     optional: false,
     quantity: 1,
     sortPosition: 1,
+    trackGearAssignment: true,
     assignedGear: null,
   },
   {
@@ -25,6 +24,7 @@ const items: ClientPackingListItem[] = [
     optional: false,
     quantity: 1,
     sortPosition: 2,
+    trackGearAssignment: true,
     assignedGear: null,
   },
 ];
@@ -34,11 +34,9 @@ beforeEach(() => {
     <MantineProvider>
       <SortableItemList
         items={items}
+        sectionId="section-1"
         onReorder={onReorder}
         onToggleOptional={onToggleOptional}
-        onEditItem={onEditItem}
-        onDeleteItem={onDeleteItem}
-        autoEditItemId={null}
       />
     </MantineProvider>,
   );
@@ -49,6 +47,6 @@ it("renders each item name", () => {
   expect(screen.getByText("Tent")).toBeInTheDocument();
 });
 
-it("does not render any item in edit mode when autoEditItemId is null", () => {
+it("never edits in place — naming happens in the item drawer", () => {
   expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
 });

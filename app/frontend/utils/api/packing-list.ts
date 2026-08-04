@@ -1,4 +1,5 @@
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
+import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import type {
   ClientFullPackingList,
   ClientPackingList,
@@ -343,8 +344,16 @@ export function useUpdateItem(listId: string) {
     mutationFn: ({
       sectionId,
       itemId,
+      assignedGear: _assignedGear,
       ...data
-    }: z.input<typeof updateItem> & { sectionId: string; itemId: string }) =>
+    }: z.input<typeof updateItem> & {
+      sectionId: string;
+      itemId: string;
+      // Optimistic-only: the API takes `assignedGearId`, but the row needs
+      // the full gear object to render a name and weight before the
+      // invalidate-triggered refetch lands. Stripped out of the request body.
+      assignedGear?: ClientGearInventoryItem | null;
+    }) =>
       apiClient<{ item: ClientPackingListItem }>(
         `/api/packing-lists/${listId}/sections/${sectionId}/items/${itemId}`,
         {
@@ -353,7 +362,7 @@ export function useUpdateItem(listId: string) {
           body: JSON.stringify(data),
         },
       ),
-    onMutate: ({ sectionId, itemId, ...data }) =>
+    onMutate: ({ sectionId, itemId, assignedGear, ...data }) =>
       snapshotList(queryClient, queryKey, (list) => ({
         ...list,
         sections: list.sections.map((section) => {
@@ -371,9 +380,15 @@ export function useUpdateItem(listId: string) {
           }
           return {
             ...section,
-            items: items.map((item) =>
-              item.id === itemId ? { ...item, ...data } : item,
-            ),
+            items: items.map((item) => {
+              if (item.id !== itemId) return item;
+              const { assignedGearId: _assignedGearId, ...rest } = data;
+              return {
+                ...item,
+                ...rest,
+                ...(assignedGear !== undefined ? { assignedGear } : {}),
+              };
+            }),
           };
         }),
       })),

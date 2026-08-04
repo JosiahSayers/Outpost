@@ -1,45 +1,39 @@
-import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
+import { usePackingList } from "$/frontend/packing-list/packing-list-context";
 import StaticItemRow from "$/frontend/packing-list/section/static-item-row";
+import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { useDndContext } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
-import {
-  ActionIcon,
-  Badge,
-  Group,
-  NumberInput,
-  TextInput,
-} from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { DotsSixVerticalIcon, TrashIcon } from "@phosphor-icons/react";
-import { useRef, useState } from "react";
+import { ActionIcon, Badge } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+import { DotsSixVerticalIcon, PlusIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 
 interface Props {
   item: ClientPackingListItem;
+  sectionId: string;
   onToggleOptional: () => void;
-  onEdit: (item: ClientPackingListItem) => void;
-  onDelete: () => void;
-  autoEdit: boolean;
 }
 
+/**
+ * One row of an editable packing list.
+ *
+ * The row itself is a single tap target that opens the item drawer; renaming,
+ * quantity, gear and delete all live there. Only two things are handled in
+ * place — dragging to reorder, and the optional badge — because those are
+ * quick, repeated passes down a list where opening a drawer each time would be
+ * worse. Everything else was too small to hit reliably on a phone.
+ */
 export default function EditableItemRow({
   item,
+  sectionId,
   onToggleOptional,
-  onEdit,
-  onDelete,
-  autoEdit,
 }: Props) {
+  const { openItem } = usePackingList();
   const [hovered, setHovered] = useState(false);
-  // Touch devices can't hover, so CRUD controls and the drag handle must stay
-  // visible unconditionally rather than waiting for a mouseenter that never fires.
+  // Touch devices can't hover, so the drag handle must stay visible
+  // unconditionally rather than waiting for a mouseenter that never fires.
   const isTouchDevice = useMediaQuery("(hover: none)");
-  const [confirmOpened, confirm] = useDisclosure(false);
-  const [editing, setEditing] = useState(autoEdit);
-  const [draftName, setDraftName] = useState(item.name);
-  const [draftQuantity, setDraftQuantity] = useState(item.quantity);
-  // Select the placeholder name only on the initial auto-edit of a new item,
-  // not on subsequent manual edits.
-  const selectOnFocus = useRef(autoEdit);
   const { active: dndActive } = useDndContext();
 
   const {
@@ -51,71 +45,22 @@ export default function EditableItemRow({
     isDragging,
   } = useSortable({ id: item.id });
 
-  const startEditing = () => {
-    setDraftName(item.name);
-    setDraftQuantity(item.quantity);
-    setEditing(true);
-  };
-  const commit = () => {
-    const name = draftName.trim();
-    if (name) onEdit({ ...item, name, quantity: draftQuantity });
-    setEditing(false);
-  };
-  const cancel = () => setEditing(false);
-
-  if (editing) {
-    return (
-      <Group
-        gap={4}
-        my={2}
-        onBlur={(e) => {
-          // Commit only when focus leaves the row entirely (e.g. tabbing from
-          // the name field to the quantity stepper should not commit).
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) commit();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit();
-          if (e.key === "Escape") cancel();
-        }}
-      >
-        <TextInput
-          value={draftName}
-          onChange={(e) => setDraftName(e.currentTarget.value)}
-          autoFocus
-          onFocus={(e) => {
-            if (selectOnFocus.current) {
-              e.currentTarget.select();
-              selectOnFocus.current = false;
-            }
-          }}
-          size="xs"
-          flex={1}
-          aria-label="Item name"
-        />
-        <NumberInput
-          value={draftQuantity}
-          onChange={(val) =>
-            setDraftQuantity(typeof val === "number" ? val : 1)
-          }
-          min={1}
-          allowDecimal={false}
-          size="xs"
-          w={70}
-          aria-label="Quantity"
-        />
-      </Group>
-    );
-  }
-
   const showControls =
     (hovered || isTouchDevice) && !isDragging && dndActive === null;
+  const gearState = gearStateFor(item);
+  const open = openItem ? () => openItem(sectionId, item) : undefined;
 
   return (
     <div
       ref={setNodeRef}
+      role={open ? "button" : undefined}
+      tabIndex={open ? 0 : undefined}
+      aria-label={open ? `Edit ${item.name}` : undefined}
       style={{
         display: "flex",
-        alignItems: "center",
+        // An assigned row is two lines tall; keep the handle and the badge
+        // beside the name rather than floating them against the gear line.
+        alignItems: gearState === "assigned" ? "flex-start" : "center",
         gap: 4,
         paddingTop: 4,
         paddingBottom: 4,
@@ -128,7 +73,7 @@ export default function EditableItemRow({
           : undefined,
         transition,
         opacity: isDragging ? 0.4 : 1,
-        cursor: "pointer",
+        cursor: open ? "pointer" : undefined,
         borderRadius: "var(--mantine-radius-sm)",
         background:
           showControls && !isTouchDevice
@@ -138,7 +83,14 @@ export default function EditableItemRow({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={startEditing}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (!open) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
     >
       <ActionIcon
         variant="transparent"
@@ -184,32 +136,29 @@ export default function EditableItemRow({
       >
         {item.optional && showControls ? "Optional ×" : "optional"}
       </Badge>
-      <ActionIcon
-        variant="subtle"
-        color="red"
-        size="xs"
-        aria-label="Delete item"
-        style={{
-          visibility: showControls ? "visible" : "hidden",
-          flexShrink: 0,
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          confirm.open();
-        }}
-      >
-        <TrashIcon size={12} />
-      </ActionIcon>
-
-      <ConfirmDeleteModal
-        opened={confirmOpened}
-        onClose={confirm.close}
-        onConfirm={onDelete}
-        title="Delete item?"
-      >
-        Remove <strong>{item.name}</strong> from this section? This can&apos;t
-        be undone.
-      </ConfirmDeleteModal>
+      {/* An indicator, not a control: it marks a row that still owes a gear
+          decision, which is the only sign the feature exists on a list where
+          nothing is assigned yet. Tapping it just opens the drawer along with
+          the rest of the row, so it costs no extra touch target. */}
+      {gearState === "undecided" && open && (
+        <span
+          role="img"
+          aria-label="No gear assigned"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 18,
+            height: 18,
+            flexShrink: 0,
+            borderRadius: "var(--mantine-radius-sm)",
+            border: "1px dashed var(--mantine-color-default-border)",
+            color: "var(--mantine-color-dimmed)",
+          }}
+        >
+          <PlusIcon size={10} />
+        </span>
+      )}
     </div>
   );
 }

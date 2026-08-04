@@ -29,5 +29,12 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-      - name: Deploy
-        run: bun run deploy:staging
+      - name: Pull latest images
+        run: ssh outpost-staging 'docker compose pull'
+
+      - name: Start new images
+        run: ssh outpost-staging 'docker compose up -d'
+
+      - name: Prune dangling images
+        if: always()
+        run: ssh outpost-staging 'docker image prune -f'

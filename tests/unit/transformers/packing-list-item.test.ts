@@ -11,6 +11,7 @@ describe("transform", () => {
       optional: item.optional,
       quantity: item.quantity,
       sortPosition: item.sortPosition,
+      trackGearAssignment: item.trackGearAssignment,
       assignedGear: null,
     });
   });
@@ -31,6 +32,7 @@ describe("transform", () => {
       optional: item.optional,
       quantity: item.quantity,
       sortPosition: item.sortPosition,
+      trackGearAssignment: item.trackGearAssignment,
       assignedGear: {
         id: gearInventoryItem.id,
         name: gearInventoryItem.name,
@@ -43,5 +45,13 @@ describe("transform", () => {
         },
       },
     });
+  });
+
+  it("passes through trackGearAssignment when false", () => {
+    const item = {
+      ...make("PackingListItem", { trackGearAssignment: false }),
+      assignedGear: null,
+    };
+    expect(transformers.packingListItem(item).trackGearAssignment).toBe(false);
   });
 });

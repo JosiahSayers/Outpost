@@ -3,6 +3,7 @@ import { PackingListProvider } from "$/frontend/packing-list/packing-list-contex
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import type { ClientPackingListSection } from "$/transformers/packing-list-section";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -12,8 +13,8 @@ const onMoveUp = mock(() => {});
 const onMoveDown = mock(() => {});
 const onRename = mock(() => {});
 const onDelete = mock(() => {});
-const onEditItem = mock((_item: ClientPackingListItem) => {});
-const onDeleteItem = mock((_item: ClientPackingListItem) => {});
+const onAddItem = mock(() => {});
+const openItem = mock((_sectionId: string, _item: ClientPackingListItem) => {});
 const onToggleOptional = mock((_item: ClientPackingListItem) => {});
 const onReorderItem = mock(
   (_item: ClientPackingListItem, _sortPosition: number) => {},
@@ -25,6 +26,7 @@ const requiredItem: ClientPackingListItem = {
   optional: false,
   quantity: 1,
   sortPosition: 1,
+  trackGearAssignment: true,
   assignedGear: null,
 };
 
@@ -34,6 +36,7 @@ const optionalItem: ClientPackingListItem = {
   optional: true,
   quantity: 1,
   sortPosition: 2,
+  trackGearAssignment: true,
   assignedGear: null,
 };
 
@@ -52,58 +55,55 @@ const baseSection: ClientPackingListSection & {
 function renderSection(editable: boolean, section = baseSection) {
   function Wrapper() {
     const [items, setItems] = useState(section.items);
-    const [autoEditItemId, setAutoEditItemId] = useState<string | null>(null);
+    const [queryClient] = useState(
+      () =>
+        new QueryClient({ defaultOptions: { mutations: { retry: false } } }),
+    );
 
     return (
-      <MantineProvider>
-        <PackingListProvider value={{ editable }}>
-          <SectionContent
-            section={{ ...section, items }}
-            isFirst={false}
-            isLast={false}
-            onMoveUp={onMoveUp}
-            onMoveDown={onMoveDown}
-            onRename={onRename}
-            onDelete={onDelete}
-            autoEdit={false}
-            autoEditItemId={autoEditItemId}
-            onAddItem={() => {
-              const id = crypto.randomUUID();
-              setItems((prev) => [
-                ...prev,
-                {
-                  id,
-                  name: "New item",
-                  optional: false,
-                  quantity: 1,
-                  sortPosition: prev.length + 1,
-                  assignedGear: null,
-                },
-              ]);
-              setAutoEditItemId(id);
-            }}
-            onEditItem={(updated) => {
-              onEditItem(updated);
-              setItems((prev) =>
-                prev.map((i) => (i.id === updated.id ? updated : i)),
-              );
-            }}
-            onDeleteItem={(item) => {
-              onDeleteItem(item);
-              setItems((prev) => prev.filter((i) => i.id !== item.id));
-            }}
-            onToggleOptional={(item) => {
-              onToggleOptional(item);
-              setItems((prev) =>
-                prev.map((i) =>
-                  i.id === item.id ? { ...i, optional: !i.optional } : i,
-                ),
-              );
-            }}
-            onReorderItem={onReorderItem}
-          />
-        </PackingListProvider>
-      </MantineProvider>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <PackingListProvider
+            value={{ editable, openItem: editable ? openItem : undefined }}
+          >
+            <SectionContent
+              listId="list-1"
+              section={{ ...section, items }}
+              isFirst={false}
+              isLast={false}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
+              onRename={onRename}
+              onDelete={onDelete}
+              autoEdit={false}
+              onAddItem={() => {
+                onAddItem();
+                setItems((prev) => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    name: "New item",
+                    optional: false,
+                    quantity: 1,
+                    sortPosition: prev.length + 1,
+                    trackGearAssignment: true,
+                    assignedGear: null,
+                  },
+                ]);
+              }}
+              onToggleOptional={(item) => {
+                onToggleOptional(item);
+                setItems((prev) =>
+                  prev.map((i) =>
+                    i.id === item.id ? { ...i, optional: !i.optional } : i,
+                  ),
+                );
+              }}
+              onReorderItem={onReorderItem}
+            />
+          </PackingListProvider>
+        </MantineProvider>
+      </QueryClientProvider>
     );
   }
 
@@ -115,8 +115,8 @@ beforeEach(() => {
   onMoveDown.mockReset();
   onRename.mockReset();
   onDelete.mockReset();
-  onEditItem.mockReset();
-  onDeleteItem.mockReset();
+  onAddItem.mockReset();
+  openItem.mockReset();
   onToggleOptional.mockReset();
   onReorderItem.mockReset();
 });
@@ -166,28 +166,22 @@ describe("'Add item' button", () => {
     ).toBeInTheDocument();
   });
 
-  it("clicking it adds a new item in edit mode", () => {
+  it("clicking it adds a new item to the section", () => {
     renderSection(true);
     fireEvent.click(screen.getByRole("button", { name: /add item/i }));
-    expect(
-      screen.getByRole("textbox", { name: "Item name" }),
-    ).toBeInTheDocument();
+    expect(onAddItem).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("New item")).toBeInTheDocument();
   });
 });
 
 describe("editing an item", () => {
-  beforeEach(() => renderSection(true));
+  it("hands the item off to the drawer rather than editing in place", () => {
+    renderSection(true);
 
-  it("clicking an item and committing updates its name in the list", () => {
     fireEvent.click(screen.getByText("Sleeping bag"));
-    fireEvent.change(screen.getByRole("textbox", { name: "Item name" }), {
-      target: { value: "Sleeping bag liner" },
-    });
-    fireEvent.keyDown(screen.getByRole("textbox", { name: "Item name" }), {
-      key: "Enter",
-    });
-    expect(onEditItem).toHaveBeenCalled();
-    expect(screen.getByText("Sleeping bag liner")).toBeInTheDocument();
+
+    expect(openItem).toHaveBeenCalledWith("1", requiredItem);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 });
 

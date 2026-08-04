@@ -420,6 +420,7 @@ describe("PATCH /:listId/:itemId", () => {
         optional: false,
         quantity: 1,
         sortPosition: 1,
+        trackGearAssignment: true,
         assignedGear: null,
         status: {
           packed: true,

@@ -278,10 +278,11 @@ model PackingListItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name         String
-  quantity     Int     @default(1)
-  optional     Boolean @default(false)
-  sortPosition Int
+  name                String
+  quantity            Int     @default(1)
+  optional            Boolean @default(false)
+  sortPosition        Int
+  trackGearAssignment Boolean @default(true)
 
   category                    GearCategory?               @relation(fields: [gearCategoryId], references: [id])
   gearCategoryId              String?

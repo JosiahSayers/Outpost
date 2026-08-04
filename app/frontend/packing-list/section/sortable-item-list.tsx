@@ -17,20 +17,16 @@ import EditableItemRow from "./editable-item-row";
 
 export interface SortableItemListProps {
   items: ClientPackingListItem[];
+  sectionId: string;
   onReorder: (item: ClientPackingListItem, sortPosition: number) => void;
   onToggleOptional: (item: ClientPackingListItem) => void;
-  onEditItem: (item: ClientPackingListItem) => void;
-  onDeleteItem: (item: ClientPackingListItem) => void;
-  autoEditItemId: string | null;
 }
 
 export default function SortableItemList({
   items,
+  sectionId,
   onReorder,
   onToggleOptional,
-  onEditItem,
-  onDeleteItem,
-  autoEditItemId,
 }: SortableItemListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -69,10 +65,8 @@ export default function SortableItemList({
           <EditableItemRow
             key={item.id}
             item={item}
+            sectionId={sectionId}
             onToggleOptional={() => onToggleOptional(item)}
-            onEdit={onEditItem}
-            onDelete={() => onDeleteItem(item)}
-            autoEdit={item.id === autoEditItemId}
           />
         ))}
       </SortableContext>

@@ -1,12 +1,17 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
 import { usePackingList } from "$/frontend/packing-list/packing-list-context";
+import GearProgress from "$/frontend/packing-list/section/gear-progress";
+import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { ActionIcon, Group, TextInput, Title } from "@mantine/core";
 import { useDisclosure, useHover, useMediaQuery } from "@mantine/hooks";
 import { CaretDownIcon, CaretUpIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
 interface Props {
+  listId: string;
+  sectionId: string;
   name: string;
+  items: ClientPackingListItem[];
   isFirst: boolean;
   isLast: boolean;
   onMoveUp: () => void;
@@ -17,7 +22,10 @@ interface Props {
 }
 
 export default function SectionHeader({
+  listId,
+  sectionId,
   name,
+  items,
   isFirst,
   isLast,
   onMoveUp,
@@ -77,20 +85,40 @@ export default function SectionHeader({
   }
 
   return (
-    <Group ref={ref} justify="space-between" align="center">
+    <Group
+      ref={ref}
+      justify="space-between"
+      align="center"
+      gap="xs"
+      wrap="nowrap"
+    >
       <Title
         order={5}
         onClick={() => {
           setDraft(name);
           setEditing(true);
         }}
-        style={{ cursor: "pointer" }}
+        style={{
+          cursor: "pointer",
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
         {name}
       </Title>
+      {/* Sits in the row the header already occupies, so the count and the
+          running weight cost no vertical space. Editable lists only: on a list
+          you can't change, "0 of 4 assigned" would invite an action that isn't
+          available. */}
+      <GearProgress listId={listId} sectionId={sectionId} items={items} />
       <Group
         gap={2}
-        style={{ visibility: hovered || isTouchDevice ? "visible" : "hidden" }}
+        style={{
+          visibility: hovered || isTouchDevice ? "visible" : "hidden",
+          flexShrink: 0,
+        }}
       >
         <ActionIcon
           variant="subtle"

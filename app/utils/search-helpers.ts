@@ -126,15 +126,14 @@ export async function searchCategories(
   searchQuery: string,
   forUserId: string | null = null,
 ) {
-  const formattedQuery = searchQuery
-    .split(" ")
-    .map((word) => `${word}:*`) // Make each word a partial match
-    .join(" & "); // Require all words in row
+  const formattedQuery = toPrefixTsQuery(searchQuery);
+  if (!formattedQuery) return [];
 
   const results = await db.$queryRaw<Array<{ id: string }>>`
 SELECT "GearCategory".id
   FROM "GearCategory"
-  WHERE "GearCategory".data_fts @@ to_tsquery('english', ${formattedQuery}) AND (public=TRUE OR "userId"=${forUserId});
+  WHERE "GearCategory".data_fts @@ to_tsquery('english', ${formattedQuery})
+    AND (public=TRUE OR "userId"=${forUserId});
 `;
 
   return db.gearCategory.findMany({

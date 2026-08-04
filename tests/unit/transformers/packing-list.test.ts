@@ -117,6 +117,7 @@ describe("transform", () => {
                 optional: item1_1.optional,
                 quantity: item1_1.quantity,
                 sortPosition: item1_1.sortPosition,
+                trackGearAssignment: item1_1.trackGearAssignment,
                 assignedGear: {
                   id: gearInventoryItem.id,
                   name: gearInventoryItem.name,
@@ -135,6 +136,7 @@ describe("transform", () => {
                 optional: item1_2.optional,
                 quantity: item1_2.quantity,
                 sortPosition: item1_2.sortPosition,
+                trackGearAssignment: item1_2.trackGearAssignment,
                 assignedGear: null,
               },
               {
@@ -143,6 +145,7 @@ describe("transform", () => {
                 optional: item1_3.optional,
                 quantity: item1_3.quantity,
                 sortPosition: item1_3.sortPosition,
+                trackGearAssignment: item1_3.trackGearAssignment,
                 assignedGear: null,
               },
             ],
@@ -158,6 +161,7 @@ describe("transform", () => {
                 optional: item2_1.optional,
                 quantity: item2_1.quantity,
                 sortPosition: item2_1.sortPosition,
+                trackGearAssignment: item2_1.trackGearAssignment,
                 assignedGear: null,
               },
             ],

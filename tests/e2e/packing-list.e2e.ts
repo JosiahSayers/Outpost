@@ -1,4 +1,4 @@
-import { test, expect } from "./support/fixtures";
+import { expect, seedGearInventory, test } from "./support/fixtures";
 import type { Page } from "@playwright/test";
 
 // There is no create-list UI yet, so seed an owned (editable) list straight
@@ -309,20 +309,48 @@ test.describe("Packing List Page", () => {
         ).toBeVisible();
       });
 
-      test("adding an item reveals it in edit mode and persists", async ({
+      test("adding an item opens it in the drawer and persists", async ({
         page,
       }) => {
         await page.getByRole("button", { name: "Add item" }).click();
 
-        const input = page.getByRole("textbox", { name: "Item name" });
+        // Items are created named "New item" and opened in the drawer, which
+        // owns naming, quantity, gear and delete.
+        const input = page.getByRole("textbox", { name: /^Name/ });
         await expect(input).toHaveValue("New item");
         await input.fill("Headlamp");
-        await input.press("Enter");
+        await page.getByRole("button", { name: "Save" }).click();
 
         await expect(page.getByText("Headlamp")).toBeVisible();
 
         await page.reload();
         await expect(page.getByText("Headlamp")).toBeVisible();
+      });
+
+      test("canceling a new item discards it instead of leaving a stray row", async ({
+        page,
+      }) => {
+        await page.getByRole("button", { name: "Add item" }).click();
+
+        const input = page.getByRole("textbox", { name: /^Name/ });
+        await expect(input).toHaveValue("New item");
+        // Nothing is persisted yet, so there is nothing to delete.
+        await expect(
+          page.getByRole("button", { name: "Delete item", exact: true }),
+        ).not.toBeVisible();
+
+        await page.getByRole("button", { name: "Cancel" }).click();
+        await expect(page.getByText("New item")).not.toBeVisible();
+
+        // A leftover draft from the canceled attempt would collide on this
+        // placeholder name and make the second "Add item" fail.
+        await page.getByRole("button", { name: "Add item" }).click();
+        await expect(input).toHaveValue("New item");
+        await page.getByRole("button", { name: "Save" }).click();
+
+        await expect(page.getByText("New item")).toBeVisible();
+        await page.reload();
+        await expect(page.getByText("New item")).toBeVisible();
       });
 
       test("editing an item's name persists across a reload", async ({
@@ -332,9 +360,9 @@ test.describe("Packing List Page", () => {
         await page.reload();
 
         await page.getByText("Original Item").click();
-        const input = page.getByRole("textbox", { name: "Item name" });
+        const input = page.getByRole("textbox", { name: /^Name/ });
         await input.fill("Renamed Item");
-        await input.press("Enter");
+        await page.getByRole("button", { name: "Save" }).click();
 
         await expect(page.getByText("Renamed Item")).toBeVisible();
 
@@ -342,12 +370,34 @@ test.describe("Packing List Page", () => {
         await expect(page.getByText("Renamed Item")).toBeVisible();
       });
 
+      test("editing an item's quantity persists across a reload", async ({
+        page,
+      }) => {
+        await addItemViaApi(page, listId, sectionId, "Tent Stakes");
+        await page.reload();
+
+        await page.getByText("Tent Stakes").click();
+        await page.getByRole("textbox", { name: /^Quantity/ }).fill("8");
+        await page.getByRole("button", { name: "Save" }).click();
+
+        await expect(page.getByText("×8")).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText("×8")).toBeVisible();
+      });
+
       test("deleting an item removes it and persists", async ({ page }) => {
         await addItemViaApi(page, listId, sectionId, "Doomed Item");
         await page.reload();
 
-        await page.getByText("Doomed Item").hover();
-        await page.getByRole("button", { name: "Delete item" }).click();
+        await page.getByText("Doomed Item").click();
+        // Accessible-name matching is substring-based unless `exact`, so a
+        // bare "Delete" would also catch the page's "Delete list" control and
+        // the drawer's own "Delete item". `exact` keeps each click on the one
+        // button it means.
+        await page
+          .getByRole("button", { name: "Delete item", exact: true })
+          .click();
 
         await expect(page.getByText("Delete item?")).toBeVisible();
         await page.getByRole("button", { name: "Delete", exact: true }).click();
@@ -405,6 +455,212 @@ test.describe("Packing List Page", () => {
         expect(await itemY(page, "Ccc Item")).toBeLessThan(
           await itemY(page, "Aaa Item"),
         );
+      });
+
+      // Gear assignment (BTP-45). The canonical seeded inventory is
+      // "Durston X-Mid 1" (Tents), "Gergory Zulu 45" (Backpacks) and
+      // "Platypus QuickDraw" (Water Filters).
+      //
+      // Weights are deliberately never asserted here: `useWeightDisplay`
+      // resolves the unit from the user's account setting, falling back to
+      // locale detection, which makes en-US render ounces rather than grams.
+      // The gear-inventory suite covers that formatting; these tests assert
+      // names and counts, which are unit-independent.
+      test.describe("assigning gear", () => {
+        // Scoping to the drawer keeps these off the row underneath it, which
+        // renders the same gear name once something is assigned.
+        function drawer(page: Page) {
+          return page.getByRole("dialog", { name: "Edit item" });
+        }
+
+        function sectionGearCount(page: Page) {
+          return page.getByRole("button", {
+            name: "Gear assignment for this section",
+          });
+        }
+
+        test.beforeEach(async ({ page, user }) => {
+          await seedGearInventory(user.id);
+          await addItemViaApi(page, listId, sectionId, "Tent Body");
+          await addItemViaApi(page, listId, sectionId, "Quilt");
+          await page.reload();
+          await expect(page.getByText("Tent Body")).toBeVisible();
+        });
+
+        test("assigning gear shows it on the item and persists", async ({
+          page,
+        }) => {
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: /Durston X-Mid 1/ })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+
+          // The assigned-gear optimistic update lands on the row underneath
+          // as soon as Save is clicked, but the drawer's own gear chip and
+          // inventory list (both showing the same name) are still mid-close
+          // transition — an unscoped match on the page would see both and
+          // hit a strict-mode violation.
+          await expect(drawer(page)).toBeHidden();
+          await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+        });
+
+        test("the section count tracks how much of the section is assigned", async ({
+          page,
+        }) => {
+          // Spelled out while the count is still zero — this is the state an
+          // imported or copied list opens in.
+          await expect(sectionGearCount(page)).toHaveText(/0 of 2 assigned/);
+
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: /Durston X-Mid 1/ })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+
+          await expect(sectionGearCount(page)).toHaveText(/1 of 2/);
+
+          await page.reload();
+          await expect(sectionGearCount(page)).toHaveText(/1 of 2/);
+        });
+
+        test("changing the assigned gear replaces it and persists", async ({
+          page,
+        }) => {
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: /Durston X-Mid 1/ })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+          // See the note in "assigning gear shows it on the item and
+          // persists" — the drawer's own gear chip/list lingers through its
+          // close transition and would otherwise double-match this text.
+          await expect(drawer(page)).toBeHidden();
+          await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: /Gergory Zulu 45/ })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+          await expect(drawer(page)).toBeHidden();
+
+          await expect(page.getByText("Gergory Zulu 45")).toBeVisible();
+          await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("Gergory Zulu 45")).toBeVisible();
+          await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+        });
+
+        test("searching narrows the inventory to matching gear", async ({
+          page,
+        }) => {
+          await page.getByText("Tent Body").click();
+
+          // The whole inventory arrives in one request, so the filter is
+          // client-side and needs no debounce wait.
+          await expect(drawer(page).getByText("Gergory Zulu 45")).toBeVisible();
+
+          await drawer(page)
+            .getByRole("textbox", { name: "Search your gear inventory" })
+            .fill("Durston");
+
+          await expect(drawer(page).getByText("Durston X-Mid 1")).toBeVisible();
+          await expect(
+            drawer(page).getByText("Gergory Zulu 45"),
+          ).not.toBeVisible();
+        });
+
+        test("removing an assignment clears it and persists", async ({
+          page,
+        }) => {
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: /Durston X-Mid 1/ })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+          // See the note in "assigning gear shows it on the item and
+          // persists" — the drawer's own gear chip/list lingers through its
+          // close transition and would otherwise double-match this text.
+          await expect(drawer(page)).toBeHidden();
+          await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+
+          await page.getByText("Tent Body").click();
+          await drawer(page)
+            .getByRole("button", { name: "Remove assigned gear" })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+          await expect(drawer(page)).toBeHidden();
+
+          await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+        });
+
+        test("marking an item as not tracking gear persists", async ({
+          page,
+        }) => {
+          await page.getByText("Quilt").click();
+          await drawer(page)
+            .getByRole("button", { name: "Stop tracking gear for this item" })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+
+          // A dismissed row shows no gear marker at all — it looks exactly as
+          // it did before the feature existed.
+          await expect(
+            page.getByRole("img", { name: "No gear assigned" }),
+          ).toHaveCount(1);
+
+          await page.reload();
+          await expect(
+            page.getByRole("img", { name: "No gear assigned" }),
+          ).toHaveCount(1);
+        });
+
+        // Dismissing is meant to be progress in the same way assigning is: it
+        // leaves the denominator rather than adding to the numerator, so
+        // "0 of 2" becomes "0 of 1".
+        test("dismissed items leave the section's denominator", async ({
+          page,
+        }) => {
+          await expect(sectionGearCount(page)).toHaveText(/0 of 2 assigned/);
+
+          await page.getByText("Quilt").click();
+          await drawer(page)
+            .getByRole("button", { name: "Stop tracking gear for this item" })
+            .click();
+          await page.getByRole("button", { name: "Save" }).click();
+
+          await expect(sectionGearCount(page)).toHaveText(/0 of 1 assigned/);
+
+          await page.reload();
+          await expect(sectionGearCount(page)).toHaveText(/0 of 1 assigned/);
+        });
+
+        // The bulk action is what makes a long imported list finishable
+        // without opening a drawer per row.
+        test("the section menu can stop tracking the remaining items", async ({
+          page,
+        }) => {
+          await sectionGearCount(page).click();
+          await page
+            .getByRole("menuitem", { name: /Stop tracking the remaining 2/ })
+            .click();
+
+          await expect(sectionGearCount(page)).toHaveText(/No gear tracked/);
+          await expect(
+            page.getByRole("img", { name: "No gear assigned" }),
+          ).toHaveCount(0);
+
+          await page.reload();
+          await expect(sectionGearCount(page)).toHaveText(/No gear tracked/);
+        });
       });
     });
 

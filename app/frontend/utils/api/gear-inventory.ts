@@ -9,11 +9,17 @@ export const gearInventoryKeys = {
   all: ["gear-inventory"] as const,
 };
 
-export function useGearInventory() {
+// `enabled` defaults to true for the gear inventory page, which always wants
+// the data. Callers that only need it once a surface opens (e.g. the packing
+// list's assign-gear drawer) should pass that surface's `opened` state, so a
+// page that merely *contains* the drawer doesn't fetch the whole inventory on
+// load.
+export function useGearInventory(enabled = true) {
   return useQuery({
     queryKey: gearInventoryKeys.all,
     queryFn: () =>
       apiClient<{ items: ClientGearInventoryItem[] }>("/api/gear-inventory"),
+    enabled,
   });
 }
 

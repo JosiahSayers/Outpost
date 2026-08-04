@@ -7,22 +7,18 @@ import { Group } from "@mantine/core";
 
 export default function ItemList({
   items,
+  sectionId,
   onReorder,
   onToggleOptional,
-  onEditItem,
-  onDeleteItem,
-  autoEditItemId,
 }: SortableItemListProps) {
   const { editable } = usePackingList();
 
   return editable ? (
     <SortableItemList
       items={items}
+      sectionId={sectionId}
       onReorder={onReorder}
       onToggleOptional={onToggleOptional}
-      onEditItem={onEditItem}
-      onDeleteItem={onDeleteItem}
-      autoEditItemId={autoEditItemId}
     />
   ) : (
     items.map((item) => (

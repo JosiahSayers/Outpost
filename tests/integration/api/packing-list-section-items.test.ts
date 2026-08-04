@@ -165,6 +165,7 @@ describe("POST /", () => {
         quantity: 2,
         optional: false,
         sortPosition: 1,
+        trackGearAssignment: true,
         assignedGear: null,
       },
     });
@@ -177,6 +178,15 @@ describe("POST /", () => {
       .send({ name: "Optional Item", quantity: 1, optional: true })
       .expect(201);
     expect(body.item.optional).toBe(true);
+  });
+
+  it("persists an explicit trackGearAssignment when creating an item", async () => {
+    const { body } = await supertest(app)
+      .post(`/api/packing-lists/${packingListId}/sections/${sectionId}/items`)
+      .set("Cookie", authCookies)
+      .send({ name: "Untracked Item", quantity: 1, trackGearAssignment: false })
+      .expect(201);
+    expect(body.item.trackGearAssignment).toBe(false);
   });
 
   it("returns 400 when an item with the same name already exists in the section", async () => {
@@ -292,6 +302,7 @@ describe("POST /", () => {
         quantity: 1,
         optional: false,
         sortPosition: 1,
+        trackGearAssignment: true,
         assignedGear: {
           id: gear.id,
           name: gear.name,
@@ -536,6 +547,7 @@ describe("PATCH /:itemId", () => {
         quantity: expect.any(Number),
         optional: expect.any(Boolean),
         sortPosition: 1,
+        trackGearAssignment: expect.any(Boolean),
         assignedGear: null,
       },
     });
@@ -683,5 +695,119 @@ describe("PATCH /:itemId", () => {
         public: gear.category.public,
       },
     });
+  });
+
+  it("clears the assigned gear when assignedGearId is null", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { assignedGearId: gear.id },
+    });
+
+    const { body } = await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ assignedGearId: null, sortPosition: 1 })
+      .expect(200);
+
+    expect(body.item.assignedGear).toBeNull();
+
+    const unassigned = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unassigned?.assignedGearId).toBeNull();
+  });
+
+  it("leaves the assigned gear unchanged when assignedGearId is omitted", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const gear = await createGearItem(user!.id);
+
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { assignedGearId: gear.id },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Renamed", sortPosition: 1 })
+      .expect(200);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unchanged?.assignedGearId).toBe(gear.id);
+  });
+
+  it("defaults trackGearAssignment to true for newly created items", async () => {
+    const created = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(created?.trackGearAssignment).toBe(true);
+  });
+
+  it("disables trackGearAssignment and persists it", async () => {
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ trackGearAssignment: false, sortPosition: 1 })
+      .expect(200);
+
+    const updated = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(updated?.trackGearAssignment).toBe(false);
+  });
+
+  it("re-enables trackGearAssignment and persists it", async () => {
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { trackGearAssignment: false },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ trackGearAssignment: true, sortPosition: 1 })
+      .expect(200);
+
+    const updated = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(updated?.trackGearAssignment).toBe(true);
+  });
+
+  it("leaves trackGearAssignment unchanged when omitted", async () => {
+    await db.packingListItem.update({
+      where: { id: itemId },
+      data: { trackGearAssignment: false },
+    });
+
+    await supertest(app)
+      .patch(
+        `/api/packing-lists/${packingListId}/sections/${sectionId}/items/${itemId}`,
+      )
+      .set("Cookie", authCookies)
+      .send({ name: "Renamed", sortPosition: 1 })
+      .expect(200);
+
+    const unchanged = await db.packingListItem.findUnique({
+      where: { id: itemId },
+    });
+    expect(unchanged?.trackGearAssignment).toBe(false);
   });
 });

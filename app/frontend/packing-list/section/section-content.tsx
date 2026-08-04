@@ -8,6 +8,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import SectionHeader from "./section-header";
 
 interface Props {
+  listId: string;
   section: ClientPackingListSection & { items: ClientPackingListItem[] };
   isFirst: boolean;
   isLast: boolean;
@@ -16,15 +17,13 @@ interface Props {
   onRename: (name: string) => void;
   onDelete: () => void;
   autoEdit: boolean;
-  autoEditItemId: string | null;
   onAddItem: () => void;
-  onEditItem: (item: ClientPackingListItem) => void;
-  onDeleteItem: (item: ClientPackingListItem) => void;
   onToggleOptional: (item: ClientPackingListItem) => void;
   onReorderItem: (item: ClientPackingListItem, sortPosition: number) => void;
 }
 
 export default function SectionContent({
+  listId,
   section,
   isFirst,
   isLast,
@@ -33,10 +32,7 @@ export default function SectionContent({
   onRename,
   onDelete,
   autoEdit,
-  autoEditItemId,
   onAddItem,
-  onEditItem,
-  onDeleteItem,
   onToggleOptional,
   onReorderItem,
 }: Props) {
@@ -51,7 +47,10 @@ export default function SectionContent({
   return (
     <Stack gap="xs" pb="xl" style={{ breakInside: "avoid" }}>
       <SectionHeader
+        listId={listId}
+        sectionId={section.id}
         name={section.name}
+        items={section.items}
         isFirst={isFirst}
         isLast={isLast}
         onMoveUp={onMoveUp}
@@ -63,11 +62,9 @@ export default function SectionContent({
       <Divider />
       <ItemList
         items={requiredItems}
+        sectionId={section.id}
         onReorder={onReorderItem}
         onToggleOptional={onToggleOptional}
-        onEditItem={onEditItem}
-        onDeleteItem={onDeleteItem}
-        autoEditItemId={autoEditItemId}
       />
 
       {optionalItems.length > 0 && (
@@ -77,11 +74,9 @@ export default function SectionContent({
           </Text>
           <ItemList
             items={optionalItems}
+            sectionId={section.id}
             onReorder={onReorderItem}
             onToggleOptional={onToggleOptional}
-            onEditItem={onEditItem}
-            onDeleteItem={onDeleteItem}
-            autoEditItemId={autoEditItemId}
           />
         </>
       )}
