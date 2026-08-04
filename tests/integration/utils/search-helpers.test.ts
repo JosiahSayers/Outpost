@@ -43,6 +43,19 @@ describe("searchCategories", () => {
     expect(results).toContainEqual(expectedMatch!);
   });
 
+  it("does not error on repeated/trailing whitespace between words", async () => {
+    const expectedMatch = await db.gearCategory.findFirst({
+      where: { name: "Pack Organization" },
+    });
+    const results = await searchCategories("Pack  organization ");
+    expect(results).toContainEqual(expectedMatch!);
+  });
+
+  it("returns an empty array for a blank query", async () => {
+    const results = await searchCategories("   ");
+    expect(results).toEqual([]);
+  });
+
   describe("when the user has custom categories", () => {
     let customCategory: GearCategory;
     let user: User;
