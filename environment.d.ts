@@ -10,6 +10,7 @@ declare module "bun" {
     DATABASE_URL: string;
     RESEND_API_KEY: string;
     SENTRY_DSN: string;
+    BUN_PUBLIC_SHA: string;
   }
 }
 

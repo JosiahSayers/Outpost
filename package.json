@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "predev": "[ \"$NODE_ENV\" != \"ci\" ] && docker compose -f docker-compose.dev.yml up -d || echo \"skipped predev\"",
-    "dev": "VERSION=$(cat version) NODE_ENV=development bun --watch index.ts",
+    "dev": "VERSION=$(cat version) COMMIT_SHA=$(git rev-parse HEAD) BUN_PUBLIC_SHA=$(git rev-parse HEAD) NODE_ENV=development bun --watch index.ts",
     "dev:workers": "NODE_ENV=development bun --watch app/jobs/workers/index.ts",
     "email:dev": "email dev --dir app/emails",
     "db:reset": "bunx --bun prisma migrate reset && bun db:migrate && bun db:seed",
