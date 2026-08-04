@@ -18,6 +18,7 @@ describe("transform", () => {
       optional: item.optional,
       quantity: item.quantity,
       sortPosition: item.sortPosition,
+      trackGearAssignment: item.trackGearAssignment,
       assignedGear: null,
       status: {
         packed: true,
@@ -61,6 +62,7 @@ describe("transform", () => {
       optional: item.optional,
       quantity: item.quantity,
       sortPosition: item.sortPosition,
+      trackGearAssignment: item.trackGearAssignment,
       assignedGear: {
         id: gearInventoryItem.id,
         name: gearInventoryItem.name,

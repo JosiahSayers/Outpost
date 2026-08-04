@@ -71,6 +71,7 @@ function makeTripPackingList(tripId: string) {
               optional: item.optional,
               quantity: item.quantity,
               sortPosition: item.sortPosition,
+              trackGearAssignment: item.trackGearAssignment,
               assignedGear: {
                 id: gearInventoryItem.id,
                 name: gearInventoryItem.name,

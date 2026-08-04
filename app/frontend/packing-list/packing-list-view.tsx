@@ -136,6 +136,7 @@ export default function PackingListView({ editable = false, list }: Props) {
         quantity: 1,
         optional: false,
         sortPosition: 0,
+        trackGearAssignment: true,
         assignedGear: null,
       },
       isNew: true,

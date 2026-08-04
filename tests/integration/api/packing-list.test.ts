@@ -369,6 +369,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -377,6 +378,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -385,6 +387,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -393,6 +396,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -401,6 +405,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -409,6 +414,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -417,6 +423,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 7,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -425,6 +432,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 8,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -433,6 +441,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 9,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -441,6 +450,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 10,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Backpacking Gear",
@@ -456,6 +466,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -464,6 +475,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -472,6 +484,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -480,6 +493,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -488,6 +502,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -496,6 +511,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Navigation",
@@ -511,6 +527,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -519,6 +536,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -527,6 +545,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -535,6 +554,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -543,6 +563,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -551,6 +572,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -559,6 +581,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -567,6 +590,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -575,6 +599,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 9,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -583,6 +608,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 10,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -591,6 +617,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 11,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -599,6 +626,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 12,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -607,6 +635,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 13,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -615,6 +644,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 14,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -623,6 +653,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 15,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -631,6 +662,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 16,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -639,6 +671,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 17,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Clothing/Footwear",
@@ -654,6 +687,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -662,6 +696,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -670,6 +705,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -678,6 +714,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -686,6 +723,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -694,6 +732,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -702,6 +741,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -710,6 +750,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -718,6 +759,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 9,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -726,6 +768,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 10,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Camp Kitchen",
@@ -741,6 +784,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -749,6 +793,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -757,6 +802,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -765,6 +811,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -773,6 +820,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Food & Water",
@@ -788,6 +836,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -796,6 +845,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -804,6 +854,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -812,6 +863,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -820,6 +872,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -828,6 +881,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -836,6 +890,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 7,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -844,6 +899,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 8,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -852,6 +908,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 9,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -860,6 +917,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 10,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -868,6 +926,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 11,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -876,6 +935,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 12,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -884,6 +944,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 13,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -892,6 +953,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 14,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Health & Hygiene",
@@ -907,6 +969,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -915,6 +978,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -923,6 +987,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Tools & Repairs",
@@ -938,6 +1003,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -946,6 +1012,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -954,6 +1021,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -962,6 +1030,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -970,6 +1039,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -978,6 +1048,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Emergency Items",
@@ -993,6 +1064,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1001,6 +1073,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1009,6 +1082,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1017,6 +1091,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1025,6 +1100,7 @@ describe("GET /:id", () => {
                   "optional": false,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Personal Items",
@@ -1040,6 +1116,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 1,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1048,6 +1125,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 2,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1056,6 +1134,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 3,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1064,6 +1143,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 4,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1072,6 +1152,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 5,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1080,6 +1161,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 6,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1088,6 +1170,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 7,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1096,6 +1179,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 8,
+                  "trackGearAssignment": true,
                 },
                 {
                   "assignedGear": null,
@@ -1104,6 +1188,7 @@ describe("GET /:id", () => {
                   "optional": true,
                   "quantity": 1,
                   "sortPosition": 9,
+                  "trackGearAssignment": true,
                 },
               ],
               "name": "Backpacking Extras",

@@ -16,6 +16,7 @@ export default function makePackingListItem(
     updatedAt: faker.date.past(),
     quantity: faker.number.int(5),
     optional: false,
+    trackGearAssignment: true,
     ...overrides,
   };
 }

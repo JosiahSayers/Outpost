@@ -25,6 +25,7 @@ const baseItem: ClientPackingListItem = {
   optional: false,
   quantity: 1,
   sortPosition: 1,
+  trackGearAssignment: true,
   assignedGear: null,
 };
 

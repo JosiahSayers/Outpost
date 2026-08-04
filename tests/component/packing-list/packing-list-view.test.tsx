@@ -71,6 +71,7 @@ describe("adding an item", () => {
           optional: false,
           quantity: body.quantity,
           sortPosition: 1,
+          trackGearAssignment: true,
           assignedGear: null,
         };
         serverList.sections[0]!.items.push(newItem);

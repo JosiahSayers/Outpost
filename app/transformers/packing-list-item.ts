@@ -10,7 +10,12 @@ import type {
 
 export type ClientPackingListItem = Pick<
   PackingListItem,
-  "id" | "name" | "optional" | "quantity" | "sortPosition"
+  | "id"
+  | "name"
+  | "optional"
+  | "quantity"
+  | "sortPosition"
+  | "trackGearAssignment"
 > & { assignedGear: ClientGearInventoryItem | null };
 
 export type PackingListItemTransformerInput = PackingListItem & {
@@ -26,6 +31,7 @@ export function transform(
     optional: item.optional,
     quantity: item.quantity,
     sortPosition: item.sortPosition,
+    trackGearAssignment: item.trackGearAssignment,
     assignedGear: item.assignedGear
       ? gearInventoryItemTransform(item.assignedGear)
       : null,

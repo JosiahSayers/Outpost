@@ -165,6 +165,7 @@ describe("POST /", () => {
         quantity: 2,
         optional: false,
         sortPosition: 1,
+        trackGearAssignment: true,
         assignedGear: null,
       },
     });
@@ -292,6 +293,7 @@ describe("POST /", () => {
         quantity: 1,
         optional: false,
         sortPosition: 1,
+        trackGearAssignment: true,
         assignedGear: {
           id: gear.id,
           name: gear.name,
@@ -536,6 +538,7 @@ describe("PATCH /:itemId", () => {
         quantity: expect.any(Number),
         optional: expect.any(Boolean),
         sortPosition: 1,
+        trackGearAssignment: expect.any(Boolean),
         assignedGear: null,
       },
     });

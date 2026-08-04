@@ -988,6 +988,7 @@ describe("GET /:id", () => {
               optional: false,
               quantity: 1,
               sortPosition: 1,
+              trackGearAssignment: true,
               assignedGear: {
                 id: gear.id,
                 name: gear.name,
