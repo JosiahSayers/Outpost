@@ -25,4 +25,5 @@ export const updateItem = z.strictObject({
   sortPosition: sortPosition.optional(),
   assignedGearId: z.string().optional().nullable(),
   gearCategoryId: z.string().optional(),
+  trackGearAssignment: z.boolean().optional(),
 });
