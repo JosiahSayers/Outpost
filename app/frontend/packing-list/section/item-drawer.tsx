@@ -392,7 +392,10 @@ function ItemDrawerForm({
           </Stack>
 
           {/* The other half of the decision: an item can be finished by ruling
-              gear out, not only by choosing some. */}
+              gear out, not only by choosing some. The label names the action
+              rather than the resulting state — "Not tracking…" reads like a
+              status even while gear sits assigned above it — and calls out
+              the extra clear step when there's a pick to undo. */}
           <UnstyledButton
             onClick={() => {
               setGear(null);
@@ -402,7 +405,9 @@ function ItemDrawerForm({
             <Group gap="xs">
               <MinusCircleIcon size={14} />
               <Text size="sm" c="dimmed">
-                Not tracking gear for this item
+                {gear
+                  ? "Remove gear and stop tracking"
+                  : "Stop tracking gear for this item"}
               </Text>
             </Group>
           </UnstyledButton>

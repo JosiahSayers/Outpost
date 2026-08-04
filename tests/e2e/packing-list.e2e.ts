@@ -607,7 +607,7 @@ test.describe("Packing List Page", () => {
         }) => {
           await page.getByText("Quilt").click();
           await drawer(page)
-            .getByRole("button", { name: "Not tracking gear for this item" })
+            .getByRole("button", { name: "Stop tracking gear for this item" })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
 
@@ -633,7 +633,7 @@ test.describe("Packing List Page", () => {
 
           await page.getByText("Quilt").click();
           await drawer(page)
-            .getByRole("button", { name: "Not tracking gear for this item" })
+            .getByRole("button", { name: "Stop tracking gear for this item" })
             .click();
           await page.getByRole("button", { name: "Save" }).click();
 
