@@ -53,15 +53,27 @@ function renderToastMessage(callIndex: number) {
 }
 
 let priorSha: string | undefined;
+// Patch just `reload` in place rather than replacing `window.location`
+// wholesale — `window.location` is a single object shared by the whole test
+// process (not reset per file), and a plain `{ ...window.location, reload }`
+// spread only copies its own enumerable properties. In happy-dom, `search`/
+// `pathname`/etc. are prototype accessors, not own properties, so a wholesale
+// replacement silently drops them for every test that runs afterward,
+// anywhere in the suite — including unrelated files, order/timing permitting.
+const originalReload = Object.getOwnPropertyDescriptor(
+  window.location,
+  "reload",
+);
 
 beforeEach(() => {
   priorSha = Bun.env.BUN_PUBLIC_SHA;
   Bun.env.BUN_PUBLIC_SHA = "current-sha";
   showToast.mockReset();
   reload.mockReset();
-  Object.defineProperty(window, "location", {
-    value: { ...window.location, reload },
+  Object.defineProperty(window.location, "reload", {
+    value: reload,
     writable: true,
+    configurable: true,
   });
   global.fetch = mock(() =>
     jsonResponse(healthResult),
@@ -71,6 +83,9 @@ beforeEach(() => {
 afterEach(() => {
   Bun.env.BUN_PUBLIC_SHA = priorSha as string;
   global.fetch = originalFetch;
+  if (originalReload) {
+    Object.defineProperty(window.location, "reload", originalReload);
+  }
 });
 
 it("does not toast when the backend sha matches the running build", async () => {
