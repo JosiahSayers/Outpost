@@ -1,5 +1,6 @@
+import GearLine from "$/frontend/packing-list/section/gear-line";
 import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
-import { ActionIcon, Checkbox, Group, Text } from "@mantine/core";
+import { ActionIcon, Checkbox, Group, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { ProhibitIcon } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -36,14 +37,18 @@ export default function ItemRow({
         checked={item.status.packed}
         onChange={(e) => onTogglePacked(item.id, e.currentTarget.checked)}
       />
-      <Text
-        size="sm"
-        c={item.status.packed ? "dimmed" : undefined}
-        style={{ flex: 1 }}
-        truncate="end"
-      >
-        {item.name}
-      </Text>
+      <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+        <Text
+          size="sm"
+          c={item.status.packed ? "dimmed" : undefined}
+          truncate="end"
+        >
+          {item.name}
+        </Text>
+        {item.assignedGear && (
+          <GearLine gear={item.assignedGear} quantity={item.quantity} />
+        )}
+      </Stack>
 
       <ActionIcon
         variant="subtle"
