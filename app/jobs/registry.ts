@@ -1,5 +1,6 @@
 import type { DefinedJob } from "$/jobs/define-job";
 import sendResetPasswordEmailJob from "$/jobs/workers/email/reset-password";
+import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
 import deriveCanonicalEntitiesJob from "$/jobs/workers/protected-areas/derive-canonical-entities";
@@ -22,4 +23,5 @@ export const registry: DefinedJob<any, any>[] = [
   finalizePadUsIngestJob,
   deriveCanonicalEntitiesJob,
   newUserSettingsNotificationsJob,
+  inferMetadataJob,
 ];

@@ -13,6 +13,7 @@ declare module "bun" {
     BUN_PUBLIC_SHA: string;
     BUN_PUBLIC_SENTRY_DSN: string;
     BUN_PUBLIC_ENVIRONMENT: string;
+    MODEL_ACCESS_KEY: string;
   }
 }
 
