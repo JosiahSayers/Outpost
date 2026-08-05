@@ -1,3 +1,4 @@
+import { inferMetadataQueue } from "$/jobs/workers/feedback/infer-metadata";
 import { app } from "$/server";
 import { db } from "$/utils/db";
 import { beforeEach, describe, expect, it } from "bun:test";
@@ -152,5 +153,32 @@ describe("POST /", () => {
       userId,
       status: "new",
     });
+  });
+
+  it("enqueues an infer-metadata job for the new feedback", async () => {
+    const response = await request(app)
+      .post("/api/feedback")
+      .send({ text: "This is some valid feedback text." })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    // A worker process running against this same Redis instance (e.g. `bun
+    // run dev:workers`) could pick the job up before this assertion runs, so
+    // look across every state rather than assuming "waiting".
+    const jobs = await inferMetadataQueue.getJobs([
+      "waiting",
+      "active",
+      "delayed",
+      "completed",
+    ]);
+    const job = jobs.find(
+      (j) => j.data.feedbackId === response.body.referenceId,
+    );
+    expect(job).toBeDefined();
+    expect(job!.name).toBe("infer-feedback-metadata");
+
+    // Best-effort cleanup -- a concurrently-running worker may have already
+    // completed/removed this job, or be actively holding a lock on it.
+    await job?.remove().catch(() => {});
   });
 });

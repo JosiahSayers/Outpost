@@ -1,3 +1,4 @@
+import { inferMetadataQueue } from "$/jobs/workers/feedback/infer-metadata";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { db } from "$/utils/db";
 import { createFeedback } from "$/validation/feedback";
@@ -19,8 +20,10 @@ feedbackRouter.post(
       },
     });
 
-    // TODO: Notify admins?
-    // TODO: send to LLM for inference
+    // TODO: Notify admins? (will most likely do an hourly/daily/tbd rollup of new feedback)
+    inferMetadataQueue.add("infer-feedback-metadata", {
+      feedbackId: feedback.id,
+    });
 
     return res.status(200).json({ referenceId: feedback.id });
   },
