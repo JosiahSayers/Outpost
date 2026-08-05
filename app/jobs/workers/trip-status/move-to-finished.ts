@@ -1,22 +1,9 @@
-import {
-  defaultWorkerOptions,
-  redisConnection,
-} from "$/jobs/workers/default-options";
-import {
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  type CreateNotificationJobData,
-} from "$/jobs/workers/notifications/create-notification";
+import { createNotificationQueue } from "$/jobs/queues";
+import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
-import { Queue, Worker } from "bullmq";
+import { Worker } from "bullmq";
 
 export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_finished";
-
-const createNotificationQueue = new Queue<CreateNotificationJobData>(
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  {
-    connection: redisConnection,
-  },
-);
 
 const BATCH_SIZE = 1000;
 

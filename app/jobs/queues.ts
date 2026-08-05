@@ -7,6 +7,7 @@ import {
   type SendResetPasswordEmailData,
 } from "$/jobs/workers/email/reset-password";
 import { NOTIFICATIONS__CREATE_NOTIFICATION } from "$/jobs/workers/notifications/create-notification";
+import { NOTIFICATIONS__NEW_USER_SETTINGS } from "$/jobs/workers/notifications/new-user-settings";
 import { PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
 import {
@@ -62,6 +63,11 @@ export const createNotificationQueue = new Queue(
   { connection: redisConnection },
 );
 
+export const newUserSettingsNotificationsQueue = new Queue(
+  NOTIFICATIONS__NEW_USER_SETTINGS,
+  { connection: redisConnection },
+);
+
 export const allQueues = [
   createNotificationQueue,
   moveToInProgressQueue,
@@ -71,4 +77,5 @@ export const allQueues = [
   protectedAreasIngestChunkQueue,
   protectedAreasFinalizeIngestQueue,
   protectedAreasDeriveCanonicalEntitiesQueue,
+  newUserSettingsNotificationsQueue,
 ];
