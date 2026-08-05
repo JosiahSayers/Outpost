@@ -70,6 +70,12 @@
     },
   },
   "trustedDependencies": [
+    "esbuild",
+    "sharp",
+    "@prisma/engines",
+    "@prisma/client",
+    "msgpackr-extract",
+    "prisma",
     "@sentry/cli",
   ],
   "packages": {
