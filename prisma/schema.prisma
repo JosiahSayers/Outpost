@@ -130,7 +130,7 @@ model Notification {
   read      Boolean @default(false)
   dismissed Boolean @default(false)
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 }
 
@@ -180,10 +180,10 @@ model CommunicationAuditLog {
   content           String?
 
   // Assigned when this communicated was initiated by an admin
-  initiatedBy       User?   @relation("initiatedBy", fields: [initiatedByUserId], references: [id])
+  initiatedBy       User?   @relation("initiatedBy", fields: [initiatedByUserId], references: [id], onDelete: SetNull)
   initiatedByUserId String?
 
-  user   User   @relation("recipient", fields: [userId], references: [id])
+  user   User   @relation("recipient", fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   @@index([userId, createdAt])
@@ -208,7 +208,7 @@ model GearCategory {
   name   String
   public Boolean @default(false)
 
-  user               User?               @relation(fields: [userId], references: [id])
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String?
   gearInventoryItems GearInventoryItem[]
 
@@ -231,7 +231,7 @@ model GearInventoryItem {
   category       GearCategory @relation(fields: [gearCategoryId], references: [id])
   gearCategoryId String
 
-  owner            User              @relation(fields: [userId], references: [id])
+  owner            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           String
   packingListItems PackingListItem[]
 
@@ -250,7 +250,7 @@ model PackingList {
   description             String?
   copiedFromPackingListId String?
 
-  owner               User?                @relation(fields: [userId], references: [id])
+  owner               User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String?
   packingListSections PackingListSection[]
   tripPackingLists    TripPackingList[]
@@ -307,7 +307,7 @@ model Trip {
   start    DateTime?  @db.Date
   end      DateTime?  @db.Date
 
-  user         User             @relation(fields: [userId], references: [id])
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
   tasks        TripTask[]
   mealPlanDays MealPlanDay[]
@@ -539,7 +539,7 @@ model ProtectedAreaIngestRun {
 
   errorMessage String? // populated on failure, mirrors what's logged to winston
 
-  initiatedBy       User?   @relation(fields: [initiatedByUserId], references: [id])
+  initiatedBy       User?   @relation(fields: [initiatedByUserId], references: [id], onDelete: SetNull)
   initiatedByUserId String?
 
   @@index([status, startedAt])
