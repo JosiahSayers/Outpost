@@ -9,7 +9,7 @@ export const NOTIFICATIONS__NEW_USER_SETTINGS =
 
 const BATCH_SIZE = 100;
 
-const NOTIFICATION_TITLE = "Set your unit preferences";
+export const NOTIFICATION_TITLE = "Set your unit preferences";
 
 export async function createNewUserSettingsNotifications(
   job: Job,
