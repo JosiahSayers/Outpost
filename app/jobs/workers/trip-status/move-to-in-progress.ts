@@ -1,22 +1,9 @@
-import {
-  defaultWorkerOptions,
-  redisConnection,
-} from "$/jobs/workers/default-options";
-import {
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  type CreateNotificationJobData,
-} from "$/jobs/workers/notifications/create-notification";
+import { defineJob } from "$/jobs/define-job";
+import { defaultJobOptions } from "$/jobs/workers/default-options";
+import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
-import { Queue, Worker } from "bullmq";
 
 export const TRIPS__MOVE_TO_IN_PROGRESS_WORKER = "trips__move_to_in_progress";
-
-const createNotificationQueue = new Queue<CreateNotificationJobData>(
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  {
-    connection: redisConnection,
-  },
-);
 
 const BATCH_SIZE = 1000;
 
@@ -94,8 +81,14 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
   return { changedTripIds, changedCount: changedTripIds.length };
 }
 
-export const moveToInProgressWorker = new Worker(
-  TRIPS__MOVE_TO_IN_PROGRESS_WORKER,
-  async () => moveTripsToInProgress(),
-  defaultWorkerOptions,
-);
+const moveToInProgressJob = defineJob({
+  name: TRIPS__MOVE_TO_IN_PROGRESS_WORKER,
+  processor: async () => moveTripsToInProgress(),
+  defaultJobOptions,
+  schedule: { id: "move-to-in-progress-nightly", pattern: "1 0 * * *" },
+});
+
+export const { queue: moveToInProgressQueue, worker: moveToInProgressWorker } =
+  moveToInProgressJob;
+
+export default moveToInProgressJob;

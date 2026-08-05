@@ -1,7 +1,7 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
-import { Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 
 export const PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER =
   "protected_areas__derive_canonical_entities";
@@ -137,14 +137,23 @@ export async function deriveCanonicalEntitiesJob(
   }
 }
 
-export const deriveCanonicalEntitiesWorker = new Worker(
-  PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER,
-  (job) => deriveCanonicalEntitiesJob(job),
-  {
-    ...defaultWorkerOptions,
+const deriveCanonicalEntitiesJobDefinition = defineJob({
+  name: PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER,
+  processor: (job) => deriveCanonicalEntitiesJob(job),
+  // Part of the rarely-run, manually-triggered PAD-US pipeline -- no
+  // auto-retry, matching the ingest entry point's documented intent.
+  defaultJobOptions: { attempts: 1 },
+  workerOptions: {
     // One derivation at a time, generous lock -- consistent with the other
     // PAD-US workers and keeps the big set-based statements from contending.
     concurrency: 1,
     lockDuration: 60 * 60_000, // 1 hour
   },
-);
+});
+
+export const {
+  queue: deriveCanonicalEntitiesQueue,
+  worker: deriveCanonicalEntitiesWorker,
+} = deriveCanonicalEntitiesJobDefinition;
+
+export default deriveCanonicalEntitiesJobDefinition;

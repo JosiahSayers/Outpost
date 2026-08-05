@@ -1,20 +1,9 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import {
-  defaultWorkerOptions,
-  redisConnection,
-} from "$/jobs/workers/default-options";
-import { PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER } from "$/jobs/workers/protected-areas/derive-canonical-entities";
+import { deriveCanonicalEntitiesQueue } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { db } from "$/utils/db";
-import { Queue, Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 import fs from "node:fs";
-
-// Local producer for enqueuing the canonical-entity derivation once ingest
-// succeeds -- mirrors ingest-padus.ts constructing its own FlowProducer rather
-// than importing from queues.ts (which would create an import cycle).
-const deriveCanonicalEntitiesQueue = new Queue(
-  PROTECTED_AREAS__DERIVE_CANONICAL_ENTITIES_WORKER,
-  { connection: redisConnection },
-);
 
 export const PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER =
   "protected_areas__finalize_padus_ingest";
@@ -98,10 +87,23 @@ export async function finalizePadUsIngest(job: Job<FinalizePadUsIngestData>) {
   }
 }
 
-export const finalizePadUsIngestWorker = new Worker<FinalizePadUsIngestData>(
-  PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
-  (job) => finalizePadUsIngest(job),
-  // Generous lock for consistency with the other PAD-US workers, so this can't
-  // lapse if the box is still under load when the chunks finish settling.
-  { ...defaultWorkerOptions, lockDuration: 60 * 60_000 }, // 1 hour
-);
+const finalizePadUsIngestJob = defineJob<FinalizePadUsIngestData>({
+  name: PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER,
+  processor: (job) => finalizePadUsIngest(job),
+  // Part of the rarely-run, manually-triggered PAD-US pipeline -- no
+  // auto-retry, matching the ingest entry point's documented intent.
+  defaultJobOptions: { attempts: 1 },
+  workerOptions: {
+    // Generous lock for consistency with the other PAD-US workers, so this
+    // can't lapse if the box is still under load when the chunks finish
+    // settling.
+    lockDuration: 60 * 60_000, // 1 hour
+  },
+});
+
+export const {
+  queue: finalizePadUsIngestQueue,
+  worker: finalizePadUsIngestWorker,
+} = finalizePadUsIngestJob;
+
+export default finalizePadUsIngestJob;

@@ -1,22 +1,13 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import {
-  defaultWorkerOptions,
-  redisConnection,
-} from "$/jobs/workers/default-options";
+import { defaultJobOptions } from "$/jobs/workers/default-options";
 import type { NotificationIconName } from "$/transformers/notification";
 import { db } from "$/utils/db";
-import { Queue, Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 import type { NotificationUncheckedCreateInput } from "../../../../generated/prisma/models";
 
 export const NOTIFICATIONS__CREATE_NOTIFICATION =
   "notifications__create_notification";
-
-export const createNotificationQueue = new Queue<CreateNotificationJobData>(
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  {
-    connection: redisConnection,
-  },
-);
 
 // `icon` is narrowed from the generic `string | null` Prisma allows to the
 // finite set of icons notification-icon.tsx actually renders -- anything
@@ -40,8 +31,15 @@ export async function createNotification(job: Job<CreateNotificationJobData>) {
   }
 }
 
-export const createNotificationWorker = new Worker<CreateNotificationJobData>(
-  NOTIFICATIONS__CREATE_NOTIFICATION,
-  createNotification,
-  defaultWorkerOptions,
-);
+const createNotificationJob = defineJob<CreateNotificationJobData>({
+  name: NOTIFICATIONS__CREATE_NOTIFICATION,
+  processor: createNotification,
+  defaultJobOptions,
+});
+
+export const {
+  queue: createNotificationQueue,
+  worker: createNotificationWorker,
+} = createNotificationJob;
+
+export default createNotificationJob;

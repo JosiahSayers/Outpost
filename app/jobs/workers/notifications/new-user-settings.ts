@@ -1,8 +1,9 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
-import { Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 
 export const NOTIFICATIONS__NEW_USER_SETTINGS =
   "notifications__new_user_settings";
@@ -90,8 +91,19 @@ export async function createNewUserSettingsNotifications(
   }
 }
 
-export const newUserSettingsNotificationsWorker = new Worker(
-  NOTIFICATIONS__NEW_USER_SETTINGS,
-  (job) => createNewUserSettingsNotifications(job),
-  defaultWorkerOptions,
-);
+const newUserSettingsNotificationsJob = defineJob<undefined>({
+  name: NOTIFICATIONS__NEW_USER_SETTINGS,
+  processor: (job) => createNewUserSettingsNotifications(job),
+  defaultJobOptions,
+  schedule: {
+    id: "new-user-settings-notification-nightly",
+    pattern: "1 0 * * *",
+  },
+});
+
+export const {
+  queue: newUserSettingsNotificationsQueue,
+  worker: newUserSettingsNotificationsWorker,
+} = newUserSettingsNotificationsJob;
+
+export default newUserSettingsNotificationsJob;

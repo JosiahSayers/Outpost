@@ -1,8 +1,4 @@
 import {
-  protectedAreasFinalizeIngestQueue,
-  protectedAreasIngestChunkQueue,
-} from "$/jobs/queues";
-import {
   PADUS_TEMP_ROOT,
   PROTECTED_AREAS__INGEST_PADUS_WORKER,
   convertGdbToCsv,
@@ -11,8 +7,14 @@ import {
   splitCsvIntoChunks,
   type IngestPadUsData,
 } from "$/jobs/workers/protected-areas/ingest-padus";
-import type { FinalizePadUsIngestData } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
-import type { IngestPadUsChunkData } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
+import {
+  finalizePadUsIngestQueue,
+  type FinalizePadUsIngestData,
+} from "$/jobs/workers/protected-areas/finalize-padus-ingest";
+import {
+  ingestPadUsChunkQueue,
+  type IngestPadUsChunkData,
+} from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { db } from "$/utils/db";
 import type { Job } from "bullmq";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -203,7 +205,7 @@ describe("ingestPadUs", () => {
     // worker process is already running against this same Redis instance
     // (e.g. `bun run dev:workers`), it can pick these jobs up and move them
     // out of "waiting" well before this assertion runs.
-    const chunkJob = (await protectedAreasIngestChunkQueue.getJob(
+    const chunkJob = (await ingestPadUsChunkQueue.getJob(
       result.chunkJobIds[0]!,
     )) as Job<IngestPadUsChunkData> | undefined;
     expect(chunkJob).toBeDefined();
@@ -211,7 +213,7 @@ describe("ingestPadUs", () => {
     expect(chunkContent.split("\n")[0]).toBe(CSV_HEADER);
     expect(chunkContent).toContain("Test National Forest");
 
-    const finalizeJob = (await protectedAreasFinalizeIngestQueue.getJob(
+    const finalizeJob = (await finalizePadUsIngestQueue.getJob(
       result.finalizeJobId,
     )) as Job<FinalizePadUsIngestData> | undefined;
     expect(finalizeJob).toBeDefined();

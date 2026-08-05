@@ -1,8 +1,8 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
 import { parse } from "csv-parse";
-import { Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 import fs from "node:fs";
 import readline from "node:readline";
 import type { ProtectedAreaCategory } from "../../../../generated/prisma/enums";
@@ -167,11 +167,16 @@ export async function ingestPadUsChunk(job: Job<IngestPadUsChunkData>) {
   }
 }
 
-export const ingestPadUsChunkWorker = new Worker<IngestPadUsChunkData>(
-  PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
-  (job) => ingestPadUsChunk(job),
-  {
-    ...defaultWorkerOptions,
+const ingestPadUsChunkJob = defineJob<IngestPadUsChunkData>({
+  name: PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER,
+  processor: (job) => ingestPadUsChunk(job),
+  // Part of the rarely-run, manually-triggered PAD-US pipeline -- no
+  // auto-retry, matching the ingest entry point's documented intent. (Chunk
+  // children are also added with an explicit per-job attempts:3 override via
+  // the FlowProducer in ingest-padus.ts; this is the fallback for anything
+  // added to the queue directly.)
+  defaultJobOptions: { attempts: 1 },
+  workerOptions: {
     // Process one chunk at a time instead of the shared default of 5. On a
     // resource-constrained box, 5 concurrent chunks each firing bursts of
     // upserts pegs the CPU and postgres, which is what starves BullMQ's
@@ -182,4 +187,9 @@ export const ingestPadUsChunkWorker = new Worker<IngestPadUsChunkData>(
     // contention (see the rationale on the prepare worker's lock).
     lockDuration: 60 * 60_000, // 1 hour
   },
-);
+});
+
+export const { queue: ingestPadUsChunkQueue, worker: ingestPadUsChunkWorker } =
+  ingestPadUsChunkJob;
+
+export default ingestPadUsChunkJob;

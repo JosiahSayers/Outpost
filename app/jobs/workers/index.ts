@@ -1,54 +1,21 @@
-import {
-  moveToFinishedQueue,
-  moveToInProgressQueue,
-  newUserSettingsNotificationsQueue,
-} from "$/jobs/queues";
-import { sendResetPasswordEmailWorker } from "$/jobs/workers/email/reset-password";
-import { createNotificationWorker } from "$/jobs/workers/notifications/create-notification";
-import { newUserSettingsNotificationsWorker } from "$/jobs/workers/notifications/new-user-settings";
+import { registry } from "$/jobs/registry";
 import { cleanupOrphanedPadUsRuns } from "$/jobs/workers/protected-areas/cleanup-orphaned-runs";
-import { deriveCanonicalEntitiesWorker } from "$/jobs/workers/protected-areas/derive-canonical-entities";
-import { finalizePadUsIngestWorker } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
-import { ingestPadUsWorker } from "$/jobs/workers/protected-areas/ingest-padus";
-import { ingestPadUsChunkWorker } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
-import { moveToFinishedWorker } from "$/jobs/workers/trip-status/move-to-finished";
-import { moveToInProgressWorker } from "$/jobs/workers/trip-status/move-to-in-progress";
 import { logger } from "$/utils/logger";
-import type { Worker } from "bullmq";
-
-const workers: Worker[] = [
-  moveToInProgressWorker,
-  moveToFinishedWorker,
-  sendResetPasswordEmailWorker,
-  ingestPadUsWorker,
-  ingestPadUsChunkWorker,
-  finalizePadUsIngestWorker,
-  deriveCanonicalEntitiesWorker,
-  createNotificationWorker,
-  newUserSettingsNotificationsWorker,
-];
 
 await cleanupOrphanedPadUsRuns();
 
-await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {
-  pattern: "1 0 * * *",
-});
+for (const job of registry) {
+  if (job.schedule) {
+    await job.queue.upsertJobScheduler(job.schedule.id, {
+      pattern: job.schedule.pattern,
+    });
+  }
+}
 
-await moveToFinishedQueue.upsertJobScheduler("move-to-finished-nightly", {
-  pattern: "1 0 * * *",
-});
-
-await newUserSettingsNotificationsQueue.upsertJobScheduler(
-  "new-user-settings-notification-nightly",
-  {
-    pattern: "1 0 * * *",
-  },
-);
-
-workers.forEach((worker) => worker.run());
+registry.forEach((job) => job.worker.run());
 
 process.on("SIGINT", async () => {
   logger.info("Gracefully stopping workers...");
-  await Promise.allSettled(workers.map((worker) => worker.close()));
+  await Promise.allSettled(registry.map((job) => job.worker.close()));
   process.exit();
 });

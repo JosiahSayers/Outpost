@@ -1,10 +1,11 @@
 import { FROM_ADDRESSES, resend } from "$/emails/resend-client";
 import ResetPasswordEmail from "$/emails/reset-password";
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { db } from "$/utils/db";
 import type { User } from "better-auth/types";
-import { Worker, type Job } from "bullmq";
+import type { Job } from "bullmq";
 import { jsx } from "react/jsx-runtime";
 import type { Resend } from "resend";
 
@@ -66,9 +67,15 @@ export async function sendResetPasswordEmail(
   return { resendEmailId: data?.id };
 }
 
-export const sendResetPasswordEmailWorker =
-  new Worker<SendResetPasswordEmailData>(
-    EMAILS__RESET_PASSWORD_WORKER,
-    async (job) => sendResetPasswordEmail(job, resend),
-    defaultWorkerOptions,
-  );
+const sendResetPasswordEmailJob = defineJob<SendResetPasswordEmailData>({
+  name: EMAILS__RESET_PASSWORD_WORKER,
+  processor: async (job) => sendResetPasswordEmail(job, resend),
+  defaultJobOptions,
+});
+
+export const {
+  queue: sendResetPasswordEmailQueue,
+  worker: sendResetPasswordEmailWorker,
+} = sendResetPasswordEmailJob;
+
+export default sendResetPasswordEmailJob;
