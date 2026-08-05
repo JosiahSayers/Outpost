@@ -1,4 +1,50 @@
 import winston, { type transport } from "winston";
+import TransportStream from "winston-transport";
+import * as Sentry from "@sentry/bun";
+
+const SENTRY_LOG_LEVEL_MAP: Record<
+  string,
+  "trace" | "debug" | "info" | "warn" | "error"
+> = {
+  silly: "trace",
+  debug: "debug",
+  verbose: "debug",
+  http: "info",
+  info: "info",
+  warn: "warn",
+  error: "error",
+};
+
+// Sentry log attributes must be string | number | boolean — flatten anything
+// else (nested objects, Error instances) rather than silently dropping it.
+function toSentryAttributes(
+  meta: Record<string, unknown>,
+): Record<string, string | number | boolean> {
+  const attributes: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(meta)) {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      attributes[key] = value;
+    } else if (value instanceof Error) {
+      attributes[key] = value.stack ?? value.message;
+    } else if (value !== undefined && value !== null) {
+      attributes[key] = JSON.stringify(value);
+    }
+  }
+  return attributes;
+}
+
+class SentryTransport extends TransportStream {
+  override log(info: Record<string, unknown>, callback: () => void) {
+    const { level, message, timestamp, ...meta } = info;
+    const fn = SENTRY_LOG_LEVEL_MAP[level as string] ?? "info";
+    Sentry.logger[fn](String(message), toSentryAttributes(meta));
+    callback();
+  }
+}
 
 export const logger = winston.createLogger({
   level: "info",
@@ -43,6 +89,8 @@ function getTransports() {
       handleExceptions: true,
     }),
   );
+
+  transports.push(new SentryTransport());
 
   return transports;
 }

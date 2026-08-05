@@ -1,4 +1,5 @@
 import { auth } from "$/utils/auth";
+import * as Sentry from "@sentry/bun";
 import { fromNodeHeaders } from "better-auth/node";
 import type { RequestHandler } from "express";
 
@@ -8,6 +9,7 @@ export const stashSession: RequestHandler = async (req, res, next) => {
   });
   if (session) {
     req.session = session;
+    Sentry.setUser({ id: session.user.id, email: session.user.email });
   }
 
   next();
