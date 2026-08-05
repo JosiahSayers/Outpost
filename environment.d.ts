@@ -11,6 +11,8 @@ declare module "bun" {
     RESEND_API_KEY: string;
     SENTRY_DSN: string;
     BUN_PUBLIC_SHA: string;
+    BUN_PUBLIC_SENTRY_DSN: string;
+    BUN_PUBLIC_ENVIRONMENT: string;
   }
 }
 

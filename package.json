@@ -5,13 +5,13 @@
   "private": true,
   "scripts": {
     "predev": "[ \"$NODE_ENV\" != \"ci\" ] && docker compose -f docker-compose.dev.yml up -d || echo \"skipped predev\"",
-    "dev": "VERSION=$(cat version) COMMIT_SHA=$(git rev-parse HEAD) BUN_PUBLIC_SHA=$(git rev-parse HEAD) NODE_ENV=development bun --watch --preload ./app/utils/sentry.ts index.ts",
+    "dev": "VERSION=$(cat version) COMMIT_SHA=$(git rev-parse HEAD) BUN_PUBLIC_SHA=$(git rev-parse HEAD) BUN_PUBLIC_SENTRY_DSN= BUN_PUBLIC_ENVIRONMENT=development NODE_ENV=development bun --watch --preload ./app/utils/sentry.ts index.ts",
     "dev:workers": "NODE_ENV=development bun --watch --preload ./app/utils/sentry.ts app/jobs/workers/index.ts",
     "email:dev": "email dev --dir app/emails",
     "db:reset": "bunx --bun prisma migrate reset && bun db:migrate && bun db:seed",
     "db:migrate": "bunx --bun prisma migrate dev && bunx --bun prisma generate",
     "db:seed": "bun prisma/seeds",
-    "docker:publish": "docker buildx build --build-arg BUILD_VERSION=$(cat version) --build-arg COMMIT_SHA=$(git rev-parse HEAD) --push --platform linux/amd64 -t josiahsayers15/$npm_package_name:latest -t josiahsayers15/$npm_package_name:$(cat version) .",
+    "docker:publish": "docker buildx build --build-arg BUILD_VERSION=$(cat version) --build-arg COMMIT_SHA=$(git rev-parse HEAD) --secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN --push --platform linux/amd64 -t josiahsayers15/$npm_package_name:latest -t josiahsayers15/$npm_package_name:$(cat version) .",
     "start": "bunx --bun prisma migrate deploy && bun run db:seed && bun run --preload /usr/src/app/app/utils/sentry.ts /usr/src/app/index.ts",
     "start:workers": "bun run --preload /usr/src/app/app/utils/sentry.ts /usr/src/app/app/jobs/workers/index.ts",
     "test:unit": "bun test tests/unit tests/component",
@@ -29,6 +29,7 @@
     "@happy-dom/global-registrator": "^20.11.1",
     "@playwright/test": "^1.62.0",
     "@react-email/ui": "^6.9.1",
+    "@sentry/cli": "^3.6.2",
     "@testing-library/jest-dom": "^6.10.0",
     "@testing-library/react": "^16.3.2",
     "@types/bun": "latest",
@@ -66,6 +67,7 @@
     "@prisma/client": "^7.9.1",
     "@react-email/components": "^1.0.12",
     "@sentry/bun": "^10.69.0",
+    "@sentry/react": "^10.69.0",
     "@tanstack/react-query": "^5.101.4",
     "@types/express": "^5.0.6",
     "better-auth": "^1.6.25",
@@ -84,5 +86,8 @@
     "winston-transport": "4.9.0",
     "wouter": "^3.10.0",
     "zod": "^4.4.3"
-  }
+  },
+  "trustedDependencies": [
+    "@sentry/cli"
+  ]
 }

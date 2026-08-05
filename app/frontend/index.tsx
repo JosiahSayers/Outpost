@@ -1,3 +1,6 @@
+import "./instrument";
+
+import { reactErrorHandler } from "@sentry/react";
 import { createRoot } from "react-dom/client";
 import App from "./app";
 import { suppressResizeObserverError } from "./utils/suppress-resize-observer-error";
@@ -5,5 +8,9 @@ import { suppressResizeObserverError } from "./utils/suppress-resize-observer-er
 suppressResizeObserverError();
 
 const container = document.getElementById("root");
-const root = createRoot(container!);
+const root = createRoot(container!, {
+  onUncaughtError: reactErrorHandler(),
+  onCaughtError: reactErrorHandler(),
+  onRecoverableError: reactErrorHandler(),
+});
 root.render(<App />);
