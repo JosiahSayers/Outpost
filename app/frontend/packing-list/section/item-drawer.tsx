@@ -51,14 +51,30 @@ interface Props {
 // reject is caught here instead of failing silently after the drawer closes.
 const MIN_NAME_LENGTH = 3;
 
-function groupByCategory(items: ClientGearInventoryItem[]) {
+// Groups are keyed by category name rather than id, so a custom category that
+// happens to share a public category's name already renders as one group —
+// `priorityCategoryName` (the packing list item's own expected category)
+// piggybacks on that: whichever group's name matches it (case-insensitively)
+// sorts first, everything else stays alphabetical.
+function groupByCategory(
+  items: ClientGearInventoryItem[],
+  priorityCategoryName?: string,
+) {
   const groups = new Map<string, ClientGearInventoryItem[]>();
   for (const item of items) {
     const existing = groups.get(item.category.name);
     if (existing) existing.push(item);
     else groups.set(item.category.name, [item]);
   }
-  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const priorityNeedle = priorityCategoryName?.toLowerCase();
+  return [...groups.entries()].sort(([a], [b]) => {
+    if (priorityNeedle) {
+      const aMatches = a.toLowerCase() === priorityNeedle;
+      const bMatches = b.toLowerCase() === priorityNeedle;
+      if (aMatches !== bMatches) return aMatches ? -1 : 1;
+    }
+    return a.localeCompare(b);
+  });
 }
 
 /**
@@ -150,8 +166,8 @@ function ItemDrawerForm({
             candidate.category.name.toLowerCase().includes(needle),
         )
       : inventoryItems;
-    return groupByCategory(matches);
-  }, [inventoryItems, query]);
+    return groupByCategory(matches, item.category?.name);
+  }, [inventoryItems, query, item.category?.name]);
 
   const trimmedName = name.trim();
   const nameError =

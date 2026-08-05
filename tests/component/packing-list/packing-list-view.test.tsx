@@ -1,6 +1,8 @@
 import PackingListView from "$/frontend/packing-list/packing-list-view";
 import { usePackingList } from "$/frontend/utils/api/packing-list";
+import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
+import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -73,6 +75,7 @@ describe("adding an item", () => {
           sortPosition: 1,
           trackGearAssignment: true,
           assignedGear: null,
+          category: null,
         };
         serverList.sections[0]!.items.push(newItem);
         return Promise.resolve(
@@ -154,5 +157,89 @@ describe("adding an item", () => {
       name: "Headlamp",
       quantity: 1,
     });
+  });
+});
+
+describe("item/weight summary", () => {
+  function gear(
+    overrides: Partial<ClientGearInventoryItem> = {},
+  ): ClientGearInventoryItem {
+    return {
+      id: "gear-1",
+      name: "Copper Spur UL2",
+      quantity: 1,
+      grams: 690,
+      category: { id: "cat-1", name: "Shelter", public: false },
+      ...overrides,
+    };
+  }
+
+  function item(
+    overrides: Partial<ClientPackingListItem> = {},
+  ): ClientPackingListItem {
+    return {
+      id: "item-1",
+      name: "Tent",
+      optional: false,
+      quantity: 1,
+      sortPosition: 1,
+      trackGearAssignment: true,
+      assignedGear: null,
+      category: null,
+      ...overrides,
+    };
+  }
+
+  function renderWithItems(items: ClientPackingListItem[]) {
+    render(
+      <QueryClientProvider client={makeQueryClient()}>
+        <MantineProvider>
+          <Router hook={() => ["/packing-lists/list-1", () => {}]}>
+            <PackingListView
+              editable={true}
+              list={{
+                ...baseList,
+                sections: [{ ...baseList.sections[0]!, items }],
+              }}
+            />
+          </Router>
+        </MantineProvider>
+      </QueryClientProvider>,
+    );
+  }
+
+  it("is omitted when the list has no items", () => {
+    renderWithItems([]);
+    expect(screen.queryByText(/^\d+ items?/)).not.toBeInTheDocument();
+  });
+
+  it("renders the singular count for exactly one item", () => {
+    renderWithItems([item({ id: "a", quantity: 1 })]);
+    expect(screen.getByText("1 item")).toBeInTheDocument();
+  });
+
+  it("renders the plural count and sums quantities across items", () => {
+    renderWithItems([
+      item({ id: "a", quantity: 2 }),
+      item({ id: "b", quantity: 1 }),
+    ]);
+    expect(screen.getByText(/^3 items/)).toBeInTheDocument();
+  });
+
+  it("omits the weight suffix when no item has assigned gear", () => {
+    renderWithItems([item({ id: "a", quantity: 1 })]);
+    expect(screen.getByText("1 item")).toBeInTheDocument();
+  });
+
+  it("appends the weight of assigned gear, quantity-weighted", () => {
+    renderWithItems([
+      item({
+        id: "a",
+        quantity: 2,
+        assignedGear: gear({ grams: 28.349523125 * 10 }),
+      }),
+    ]);
+    // 2 * 10oz = 20oz; test locale falls back to oz (see use-weight-display.test.tsx).
+    expect(screen.getByText("2 items · 20 oz")).toBeInTheDocument();
   });
 });

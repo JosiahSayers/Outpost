@@ -1337,6 +1337,12 @@ test.describe("Trip Page", () => {
           page,
         }) => {
           await page.getByText("Shelter").click();
+          // Wait for the Collapse animation to finish before hovering — mid-
+          // animation, the row's position is still settling, which makes the
+          // hover-revealed button flicker and steals the click.
+          await expect(
+            page.getByRole("checkbox", { name: "Tent" }),
+          ).toBeVisible();
           await page.getByText("Tent").hover();
           await page
             .getByRole("button", {
@@ -1359,6 +1365,12 @@ test.describe("Trip Page", () => {
             page,
           }) => {
             await page.getByText("Shelter").click();
+            // Wait for the Collapse animation to finish before hovering —
+            // mid-animation, the row's position is still settling, which
+            // makes the hover-revealed button flicker and steals the click.
+            await expect(
+              page.getByRole("checkbox", { name: "Tent" }),
+            ).toBeVisible();
             await page.getByText("Tent").hover();
             await page
               .getByRole("button", {

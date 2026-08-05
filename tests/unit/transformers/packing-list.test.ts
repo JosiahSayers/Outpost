@@ -69,19 +69,23 @@ describe("transform", () => {
       const item1_1 = {
         ...make("PackingListItem", { packingListSectionId: section1.id }),
         assignedGear: { ...gearInventoryItem, category: gearCategory },
+        category: null,
       };
       const item1_2 = {
         ...make("PackingListItem", { packingListSectionId: section1.id }),
         assignedGear: null,
+        category: null,
       };
       const item1_3 = {
         ...make("PackingListItem", { packingListSectionId: section1.id }),
         assignedGear: null,
+        category: null,
       };
       const section2 = make("PackingListSection", { packingListId: list.id });
       const item2_1 = {
         ...make("PackingListItem", { packingListSectionId: section2.id }),
         assignedGear: null,
+        category: null,
       };
       const input = {
         ...list,
@@ -129,6 +133,7 @@ describe("transform", () => {
                     public: gearCategory.public,
                   },
                 },
+                category: null,
               },
               {
                 id: item1_2.id,
@@ -138,6 +143,7 @@ describe("transform", () => {
                 sortPosition: item1_2.sortPosition,
                 trackGearAssignment: item1_2.trackGearAssignment,
                 assignedGear: null,
+                category: null,
               },
               {
                 id: item1_3.id,
@@ -147,6 +153,7 @@ describe("transform", () => {
                 sortPosition: item1_3.sortPosition,
                 trackGearAssignment: item1_3.trackGearAssignment,
                 assignedGear: null,
+                category: null,
               },
             ],
           },
@@ -163,6 +170,7 @@ describe("transform", () => {
                 sortPosition: item2_1.sortPosition,
                 trackGearAssignment: item2_1.trackGearAssignment,
                 assignedGear: null,
+                category: null,
               },
             ],
           },

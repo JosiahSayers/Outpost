@@ -5,6 +5,7 @@ import CategoryRow from "$/frontend/trip/packing-lists/category-row";
 import PackingListEmptyState from "$/frontend/trip/packing-lists/empty-state";
 import MealPlanSectionCard from "$/frontend/trip/packing-lists/meal-plan-section-card";
 import ProgressOverview from "$/frontend/trip/packing-lists/progress-overview";
+import { gearStateFor } from "$/frontend/utils/api/gear-assignment";
 import { useUpdateMealPlanItemPackingStatus } from "$/frontend/utils/api/meal-plan";
 import {
   useRemoveTripPackingList,
@@ -72,6 +73,35 @@ export default function PackingListSection({
     return { packed, total };
   }, [sections, mealDays]);
 
+  const { gearPackedGrams, gearTotalGrams } = useMemo(() => {
+    let gearPackedGrams = 0;
+    let gearTotalGrams = 0;
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (item.status.notNeeded || gearStateFor(item) !== "assigned") {
+          continue;
+        }
+        const grams = (item.assignedGear?.grams ?? 0) * item.quantity;
+        gearTotalGrams += grams;
+        if (item.status.packed) gearPackedGrams += grams;
+      }
+    }
+    return { gearPackedGrams, gearTotalGrams };
+  }, [sections]);
+
+  const { foodPackedGrams, foodTotalGrams } = useMemo(() => {
+    let foodPackedGrams = 0;
+    let foodTotalGrams = 0;
+    for (const { items } of mealDays) {
+      for (const item of items) {
+        const grams = (item.dryWeightGrams ?? 0) * item.quantity;
+        foodTotalGrams += grams;
+        if (item.status.packed) foodPackedGrams += grams;
+      }
+    }
+    return { foodPackedGrams, foodTotalGrams };
+  }, [mealDays]);
+
   const mealPurchased = useMemo(
     () =>
       mealDays.reduce(
@@ -102,6 +132,10 @@ export default function PackingListSection({
           packingListName={packingList?.name}
           purchased={hasMealItems ? mealPurchased : undefined}
           purchasedTotal={hasMealItems ? mealTotal : undefined}
+          gearPackedGrams={gearPackedGrams}
+          gearTotalGrams={gearTotalGrams}
+          foodPackedGrams={foodPackedGrams}
+          foodTotalGrams={foodTotalGrams}
         />
       )}
 

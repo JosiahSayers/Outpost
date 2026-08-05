@@ -340,7 +340,11 @@ export function useCreateItem(listId: string) {
 export function useUpdateItem(listId: string) {
   const queryClient = useQueryClient();
   const queryKey = packingListKeys.detail(listId);
+  // Scopes the invalidation-coalescing check below to this list's updates —
+  // see the `onSettled` comment.
+  const mutationKey = ["packing-list-item-update", listId];
   return useMutation({
+    mutationKey,
     mutationFn: ({
       sectionId,
       itemId,
@@ -394,8 +398,17 @@ export function useUpdateItem(listId: string) {
       })),
     onError: (_error, _vars, context) =>
       rollbackList(queryClient, queryKey, context),
+    // A single save is the only in-flight mutation for this list, so it
+    // invalidates immediately — unchanged from before. A bulk action (e.g.
+    // "track all items in this section") fires one mutation per item; without
+    // this check, each one settling would invalidate and refetch the whole
+    // list, visibly reloading it once per item. Only the last of the batch to
+    // settle finds itself alone (`isMutating` back down to 1) and invalidates,
+    // coalescing the whole batch into a single refetch.
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+      if (queryClient.isMutating({ mutationKey }) === 1) {
+        queryClient.invalidateQueries({ queryKey });
+      }
     },
   });
 }

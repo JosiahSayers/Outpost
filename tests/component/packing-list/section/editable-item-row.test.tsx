@@ -23,6 +23,7 @@ const baseItem: ClientPackingListItem = {
   sortPosition: 1,
   trackGearAssignment: true,
   assignedGear: null,
+  category: null,
 };
 
 const quilt: ClientGearInventoryItem = {

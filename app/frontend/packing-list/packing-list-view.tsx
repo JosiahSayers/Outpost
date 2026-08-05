@@ -12,13 +12,15 @@ import {
   useUpdatePackingList,
   useUpdateSection,
 } from "$/frontend/utils/api/packing-list";
+import { buildPackingListGearTotals } from "$/frontend/utils/build-section-gear-summary";
+import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { Box, Divider, Flex, Group, Stack, Text } from "@mantine/core";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import ConfirmDeleteModal from "./confirm-delete-modal";
 import ItemDrawer, { type ItemDrawerTarget } from "./section/item-drawer";
@@ -34,6 +36,11 @@ export default function PackingListView({ editable = false, list }: Props) {
   // Sections render straight from the cache-fed prop; sort defensively since the
   // backend makes no ordering guarantee.
   const sections = sortByPosition(list.sections);
+  const totals = useMemo(
+    () => buildPackingListGearTotals(sections.flatMap((s) => s.items)),
+    [sections],
+  );
+  const formatWeight = useWeightDisplay({ rollUp: true });
   // Section the user just added, so it mounts directly in edit mode.
   const [autoEditSectionId, setAutoEditSectionId] = useState<string | null>(
     null,
@@ -138,6 +145,7 @@ export default function PackingListView({ editable = false, list }: Props) {
         sortPosition: 0,
         trackGearAssignment: true,
         assignedGear: null,
+        category: null,
       },
       isNew: true,
     });
@@ -214,6 +222,12 @@ export default function PackingListView({ editable = false, list }: Props) {
               />
             </Box>
           </Flex>
+          {totals.totalItems > 0 && (
+            <Text size="sm" c="dimmed">
+              {totals.totalItems} item{totals.totalItems === 1 ? "" : "s"}
+              {totals.totalGrams > 0 && ` · ${formatWeight(totals.totalGrams)}`}
+            </Text>
+          )}
           <PackingListDescription
             value={list.description}
             onSave={(description) =>

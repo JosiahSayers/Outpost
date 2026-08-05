@@ -167,6 +167,7 @@ describe("POST /", () => {
         sortPosition: 1,
         trackGearAssignment: true,
         assignedGear: null,
+        category: null,
       },
     });
   });
@@ -314,6 +315,7 @@ describe("POST /", () => {
             public: gear.category.public,
           },
         },
+        category: null,
       },
     });
   });
@@ -549,6 +551,7 @@ describe("PATCH /:itemId", () => {
         sortPosition: 1,
         trackGearAssignment: expect.any(Boolean),
         assignedGear: null,
+        category: null,
       },
     });
   });

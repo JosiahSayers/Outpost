@@ -21,6 +21,7 @@ function makeItem(
     sortPosition: 0,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
     status: { packed: false, notNeeded: false },
     ...overrides,
   };

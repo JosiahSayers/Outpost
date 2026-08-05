@@ -34,6 +34,7 @@ function item(
     sortPosition: 2,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
     ...overrides,
   };
 }

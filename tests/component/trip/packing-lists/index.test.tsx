@@ -45,6 +45,7 @@ function makePackingList(
             sortPosition: 0,
             trackGearAssignment: true,
             assignedGear: null,
+            category: null,
             status: { packed: true, notNeeded: false },
           },
           {
@@ -55,6 +56,7 @@ function makePackingList(
             sortPosition: 1,
             trackGearAssignment: true,
             assignedGear: null,
+            category: null,
             status: { packed: false, notNeeded: false },
           },
         ],
@@ -72,6 +74,7 @@ function makePackingList(
             sortPosition: 0,
             trackGearAssignment: true,
             assignedGear: null,
+            category: null,
             status: { packed: true, notNeeded: false },
           },
           {
@@ -82,6 +85,7 @@ function makePackingList(
             sortPosition: 1,
             trackGearAssignment: true,
             assignedGear: null,
+            category: null,
             status: { packed: false, notNeeded: true },
           },
         ],

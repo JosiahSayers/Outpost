@@ -422,6 +422,7 @@ describe("PATCH /:listId/:itemId", () => {
         sortPosition: 1,
         trackGearAssignment: true,
         assignedGear: null,
+        category: null,
         status: {
           packed: true,
           notNeeded: false,

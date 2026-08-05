@@ -4,7 +4,11 @@ import { make } from "../../../helpers/test-data/make";
 
 describe("transform", () => {
   it("returns the packing list item fields plus the status", () => {
-    const item = { ...make("PackingListItem"), assignedGear: null };
+    const item = {
+      ...make("PackingListItem"),
+      assignedGear: null,
+      category: null,
+    };
     const status = make("TripPackingListItemStatus", {
       packed: true,
       notNeeded: false,
@@ -20,6 +24,7 @@ describe("transform", () => {
       sortPosition: item.sortPosition,
       trackGearAssignment: item.trackGearAssignment,
       assignedGear: null,
+      category: null,
       status: {
         packed: true,
         notNeeded: false,
@@ -28,7 +33,11 @@ describe("transform", () => {
   });
 
   it("defaults packed and notNeeded to false when there is no status", () => {
-    const item = { ...make("PackingListItem"), assignedGear: null };
+    const item = {
+      ...make("PackingListItem"),
+      assignedGear: null,
+      category: null,
+    };
 
     expect(
       transform({ ...item, tripPackingListItemStatuses: [] }),
@@ -48,6 +57,7 @@ describe("transform", () => {
     const item = {
       ...make("PackingListItem"),
       assignedGear: { ...gearInventoryItem, category: gearCategory },
+      category: null,
     };
     const status = make("TripPackingListItemStatus", {
       packed: true,
@@ -74,6 +84,7 @@ describe("transform", () => {
           public: gearCategory.public,
         },
       },
+      category: null,
       status: {
         packed: true,
         notNeeded: false,

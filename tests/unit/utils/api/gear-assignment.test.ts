@@ -27,6 +27,7 @@ function item(
     sortPosition: 1,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
     ...overrides,
   };
 }

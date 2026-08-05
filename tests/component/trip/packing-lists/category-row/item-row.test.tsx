@@ -1,9 +1,23 @@
 import ItemRow from "$/frontend/trip/packing-lists/category-row/item-row";
+import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import type { ClientTripPackingListItem } from "$/transformers/trip-packing-list/item";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
+
+function gear(
+  overrides: Partial<ClientGearInventoryItem> = {},
+): ClientGearInventoryItem {
+  return {
+    id: "gear-1",
+    name: "Trekking poles",
+    quantity: 1,
+    grams: 500,
+    category: { id: "cat-1", name: "Trekking", public: false },
+    ...overrides,
+  };
+}
 
 function item(
   overrides: Partial<ClientTripPackingListItem> = {},
@@ -16,6 +30,7 @@ function item(
     sortPosition: 0,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
     status: { packed: false, notNeeded: false },
     ...overrides,
   };
@@ -79,6 +94,18 @@ describe("toggling packed", () => {
     });
     fireEvent.click(screen.getByRole("checkbox"));
     expect(onTogglePacked).toHaveBeenCalledWith("item-8", false);
+  });
+});
+
+describe("assigned gear", () => {
+  it("renders the assigned gear's name and weight", () => {
+    renderItemRow({ assignedGear: gear({ name: "Trekking poles" }) });
+    expect(screen.getByText("Trekking poles")).toBeInTheDocument();
+  });
+
+  it("renders nothing extra when no gear is assigned", () => {
+    renderItemRow({ assignedGear: null });
+    expect(screen.queryByText(/Trekking poles/)).not.toBeInTheDocument();
   });
 });
 

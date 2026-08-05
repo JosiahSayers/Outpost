@@ -48,3 +48,27 @@ export function buildSectionGearSummary(
     grams,
   };
 }
+
+export interface PackingListGearTotals {
+  /** Every item's `quantity`, summed — two of something counts as two. */
+  totalItems: number;
+  /** Total grams contributed by assigned gear, quantity-weighted, across the
+   * whole list rather than one section. */
+  totalGrams: number;
+}
+
+export function buildPackingListGearTotals(
+  items: ClientPackingListItem[],
+): PackingListGearTotals {
+  let totalItems = 0;
+  let totalGrams = 0;
+
+  for (const item of items) {
+    totalItems += item.quantity;
+    if (gearStateFor(item) === "assigned") {
+      totalGrams += (item.assignedGear?.grams ?? 0) * item.quantity;
+    }
+  }
+
+  return { totalItems, totalGrams };
+}
