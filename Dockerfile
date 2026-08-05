@@ -23,7 +23,14 @@ ARG COMMIT_SHA
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 RUN bunx --bun prisma generate
-RUN BUN_PUBLIC_SHA=$COMMIT_SHA bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend --env='BUN_PUBLIC_*'
+# The frontend Sentry DSN is a public identifier (safe to embed in
+# client-side code) and this app only has one deployed environment, so
+# these are hardcoded rather than threaded through as build args/CI secrets.
+RUN NODE_ENV=production \
+    BUN_PUBLIC_SHA=$COMMIT_SHA \
+    BUN_PUBLIC_SENTRY_DSN=https://c2fd120dcf22ae492553be8f8ebbc47f@o1160609.ingest.us.sentry.io/4511841888763904 \
+    BUN_PUBLIC_ENVIRONMENT=staging \
+    bun build /usr/src/app/app/frontend/index.html --minify --public-path=/ --outdir=/usr/src/app/dist/frontend --env='BUN_PUBLIC_*'
 
 # [optional] tests & build
 ENV NODE_ENV=ci
