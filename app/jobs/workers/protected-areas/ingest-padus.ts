@@ -1,12 +1,10 @@
+import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import {
-  defaultWorkerOptions,
-  redisConnection,
-} from "$/jobs/workers/default-options";
+import { redisConnection } from "$/jobs/workers/default-options";
 import { PROTECTED_AREAS__FINALIZE_PADUS_INGEST_WORKER } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
 import { PROTECTED_AREAS__INGEST_PADUS_CHUNK_WORKER } from "$/jobs/workers/protected-areas/ingest-padus-chunk";
 import { db } from "$/utils/db";
-import { FlowProducer, Worker, type Job } from "bullmq";
+import { FlowProducer, type Job } from "bullmq";
 import { parse } from "csv-parse";
 import fs from "node:fs";
 import os from "node:os";
@@ -339,8 +337,16 @@ export async function ingestPadUs(
 // on worker restart by cleanupOrphanedPadUsRuns().
 const PREPARE_LOCK_DURATION_MS = 3 * 60 * 60_000; // 3 hours
 
-export const ingestPadUsWorker = new Worker<IngestPadUsData>(
-  PROTECTED_AREAS__INGEST_PADUS_WORKER,
-  (job) => ingestPadUs(job),
-  { ...defaultWorkerOptions, lockDuration: PREPARE_LOCK_DURATION_MS },
-);
+const ingestPadUsJob = defineJob<IngestPadUsData>({
+  name: PROTECTED_AREAS__INGEST_PADUS_WORKER,
+  processor: (job) => ingestPadUs(job),
+  // No auto-retry -- this is an expensive, multi-hour, manually-triggered
+  // pipeline entry point; a failure needs a human, not a retry storm.
+  defaultJobOptions: { attempts: 1 },
+  workerOptions: { lockDuration: PREPARE_LOCK_DURATION_MS },
+});
+
+export const { queue: ingestPadUsQueue, worker: ingestPadUsWorker } =
+  ingestPadUsJob;
+
+export default ingestPadUsJob;

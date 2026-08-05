@@ -1,4 +1,4 @@
-import { createNotificationQueue } from "$/jobs/queues";
+import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import type { CreateNotificationJobData } from "$/jobs/workers/notifications/create-notification";
 import {
   FINISHED_NOTIFICATION_TITLES,

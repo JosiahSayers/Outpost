@@ -1,7 +1,7 @@
-import { createNotificationQueue } from "$/jobs/queues";
-import { defaultWorkerOptions } from "$/jobs/workers/default-options";
+import { defineJob } from "$/jobs/define-job";
+import { defaultJobOptions } from "$/jobs/workers/default-options";
+import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
-import { Worker } from "bullmq";
 
 export const TRIPS__MOVE_TO_FINISHED_WORKER = "trips__move_to_finished";
 
@@ -82,8 +82,14 @@ export async function moveTripsToFinished(now: Date = new Date()) {
   return { changedTripIds, changedCount: changedTripIds.length };
 }
 
-export const moveToFinishedWorker = new Worker(
-  TRIPS__MOVE_TO_FINISHED_WORKER,
-  async () => moveTripsToFinished(),
-  defaultWorkerOptions,
-);
+const moveToFinishedJob = defineJob({
+  name: TRIPS__MOVE_TO_FINISHED_WORKER,
+  processor: async () => moveTripsToFinished(),
+  defaultJobOptions,
+  schedule: { id: "move-to-finished-nightly", pattern: "1 0 * * *" },
+});
+
+export const { queue: moveToFinishedQueue, worker: moveToFinishedWorker } =
+  moveToFinishedJob;
+
+export default moveToFinishedJob;

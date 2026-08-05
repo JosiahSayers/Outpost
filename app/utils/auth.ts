@@ -1,4 +1,4 @@
-import { sendResetPasswordEmailQueue } from "$/jobs/queues";
+import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
