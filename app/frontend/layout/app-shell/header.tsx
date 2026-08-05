@@ -47,36 +47,39 @@ export default function Header() {
             {session.data && <NotificationBell pulse={pulsing} />}
             <HeaderLinks />
           </Group>
-          {session.data && (
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="lg"
-              hiddenFrom="sm"
-              aria-label="Notifications"
-              onClick={toggleNotifications}
-            >
-              <NotificationBellIcon pulse={pulsing} />
-            </ActionIcon>
-          )}
-          {session.data ? (
-            <UnstyledButton
-              onClick={toggle}
-              hiddenFrom="sm"
-              aria-label="Toggle menu"
-              style={{ borderRadius: "50%", cursor: "pointer" }}
-            >
-              <MarmotAvatar size={36} winking={opened} />
-            </UnstyledButton>
-          ) : (
-            <Burger
-              opened={opened}
-              onClick={toggle}
-              hiddenFrom="sm"
-              size="sm"
-              aria-label="Toggle menu"
-            />
-          )}
+          {/* Grouped together (rather than as separate top-level items in the
+              outer space-between Group) so they sit close to each other —
+              otherwise space-between spreads its free space between every
+              pair of items, leaving a large gap before the avatar/burger. */}
+          <Group hiddenFrom="sm" gap="s">
+            {session.data ? (
+              <>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="lg"
+                  aria-label="Notifications"
+                  onClick={toggleNotifications}
+                >
+                  <NotificationBellIcon pulse={pulsing} />
+                </ActionIcon>
+                <UnstyledButton
+                  onClick={toggle}
+                  aria-label="Toggle menu"
+                  style={{ borderRadius: "50%", cursor: "pointer" }}
+                >
+                  <MarmotAvatar size={36} winking={opened} />
+                </UnstyledButton>
+              </>
+            ) : (
+              <Burger
+                opened={opened}
+                onClick={toggle}
+                size="sm"
+                aria-label="Toggle menu"
+              />
+            )}
+          </Group>
         </Group>
       </AppShellHeader>
       <Drawer
