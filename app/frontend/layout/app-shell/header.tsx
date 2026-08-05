@@ -51,7 +51,7 @@ export default function Header() {
               outer space-between Group) so they sit close to each other —
               otherwise space-between spreads its free space between every
               pair of items, leaving a large gap before the avatar/burger. */}
-          <Group hiddenFrom="sm" gap="s">
+          <Group hiddenFrom="sm" gap="sm">
             {session.data ? (
               <>
                 <ActionIcon
