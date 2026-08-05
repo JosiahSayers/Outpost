@@ -8,6 +8,7 @@ import type { Notification } from "../../generated/prisma/browser";
 export const NOTIFICATION_ICON_NAMES = [
   "FlagCheckeredIcon",
   "PersonSimpleHikeIcon",
+  "RulerIcon",
 ] as const;
 
 export type NotificationIconName = (typeof NOTIFICATION_ICON_NAMES)[number];

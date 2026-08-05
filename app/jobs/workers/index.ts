@@ -1,6 +1,11 @@
-import { moveToFinishedQueue, moveToInProgressQueue } from "$/jobs/queues";
+import {
+  moveToFinishedQueue,
+  moveToInProgressQueue,
+  newUserSettingsNotificationsQueue,
+} from "$/jobs/queues";
 import { sendResetPasswordEmailWorker } from "$/jobs/workers/email/reset-password";
 import { createNotificationWorker } from "$/jobs/workers/notifications/create-notification";
+import { newUserSettingsNotificationsWorker } from "$/jobs/workers/notifications/new-user-settings";
 import { cleanupOrphanedPadUsRuns } from "$/jobs/workers/protected-areas/cleanup-orphaned-runs";
 import { deriveCanonicalEntitiesWorker } from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import { finalizePadUsIngestWorker } from "$/jobs/workers/protected-areas/finalize-padus-ingest";
@@ -20,6 +25,7 @@ const workers: Worker[] = [
   finalizePadUsIngestWorker,
   deriveCanonicalEntitiesWorker,
   createNotificationWorker,
+  newUserSettingsNotificationsWorker,
 ];
 
 await cleanupOrphanedPadUsRuns();
@@ -31,6 +37,13 @@ await moveToInProgressQueue.upsertJobScheduler("move-to-in-progress-nightly", {
 await moveToFinishedQueue.upsertJobScheduler("move-to-finished-nightly", {
   pattern: "1 0 * * *",
 });
+
+await newUserSettingsNotificationsQueue.upsertJobScheduler(
+  "new-user-settings-notification-nightly",
+  {
+    pattern: "1 0 * * *",
+  },
+);
 
 workers.forEach((worker) => worker.run());
 
