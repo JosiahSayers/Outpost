@@ -147,10 +147,11 @@ describe("capHeightCenterOffset", () => {
 function makeItem(
   overrides: Partial<PackingListItemTransformerInput> = {},
 ): PackingListItemTransformerInput {
-  const { assignedGear, ...itemOverrides } = overrides;
+  const { assignedGear, category, ...itemOverrides } = overrides;
   return {
     ...make("PackingListItem", { assignedGearId: null, ...itemOverrides }),
     assignedGear: assignedGear ?? null,
+    category: category ?? null,
   };
 }
 

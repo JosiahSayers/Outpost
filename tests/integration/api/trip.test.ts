@@ -1000,6 +1000,7 @@ describe("GET /:id", () => {
                   public: category.public,
                 },
               },
+              category: null,
               status: { packed: true, notNeeded: false },
             },
           ],

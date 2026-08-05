@@ -68,6 +68,7 @@ tripRouter.get(
                             category: true,
                           },
                         },
+                        category: true,
                       },
                     },
                   },

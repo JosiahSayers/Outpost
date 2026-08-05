@@ -18,6 +18,7 @@ describe("transform", () => {
     const item = {
       ...make("PackingListItem", { packingListSectionId: section.id }),
       assignedGear: { ...gearInventoryItem, category: gearCategory },
+      category: null,
     };
     const status = make("TripPackingListItemStatus", {
       tripPackingListId: tripPackingList.id,
@@ -68,6 +69,7 @@ describe("transform", () => {
                   public: gearCategory.public,
                 },
               },
+              category: null,
               status: {
                 packed: true,
                 notNeeded: false,

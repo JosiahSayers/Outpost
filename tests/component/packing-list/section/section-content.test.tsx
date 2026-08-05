@@ -28,6 +28,7 @@ const requiredItem: ClientPackingListItem = {
   sortPosition: 1,
   trackGearAssignment: true,
   assignedGear: null,
+  category: null,
 };
 
 const optionalItem: ClientPackingListItem = {
@@ -38,6 +39,7 @@ const optionalItem: ClientPackingListItem = {
   sortPosition: 2,
   trackGearAssignment: true,
   assignedGear: null,
+  category: null,
 };
 
 const baseSection: ClientPackingListSection & {
@@ -88,6 +90,7 @@ function renderSection(editable: boolean, section = baseSection) {
                     sortPosition: prev.length + 1,
                     trackGearAssignment: true,
                     assignedGear: null,
+                    category: null,
                   },
                 ]);
               }}

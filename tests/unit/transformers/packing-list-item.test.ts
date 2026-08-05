@@ -4,7 +4,11 @@ import { transformers } from "$/transformers";
 
 describe("transform", () => {
   it("returns the expected shape", () => {
-    const item = { ...make("PackingListItem"), assignedGear: null };
+    const item = {
+      ...make("PackingListItem"),
+      assignedGear: null,
+      category: null,
+    };
     expect(transformers.packingListItem(item)).toEqual({
       id: item.id,
       name: item.name,
@@ -13,6 +17,7 @@ describe("transform", () => {
       sortPosition: item.sortPosition,
       trackGearAssignment: item.trackGearAssignment,
       assignedGear: null,
+      category: null,
     });
   });
 
@@ -24,6 +29,7 @@ describe("transform", () => {
     const item = {
       ...make("PackingListItem"),
       assignedGear: { ...gearInventoryItem, category: gearCategory },
+      category: null,
     };
 
     expect(transformers.packingListItem(item)).toEqual({
@@ -44,6 +50,22 @@ describe("transform", () => {
           public: gearCategory.public,
         },
       },
+      category: null,
+    });
+  });
+
+  it("transforms the item's own expected category, independent of any assigned gear", () => {
+    const expectedCategory = make("GearCategory");
+    const item = {
+      ...make("PackingListItem", { gearCategoryId: expectedCategory.id }),
+      assignedGear: null,
+      category: expectedCategory,
+    };
+
+    expect(transformers.packingListItem(item).category).toEqual({
+      id: expectedCategory.id,
+      name: expectedCategory.name,
+      public: expectedCategory.public,
     });
   });
 
@@ -51,6 +73,7 @@ describe("transform", () => {
     const item = {
       ...make("PackingListItem", { trackGearAssignment: false }),
       assignedGear: null,
+      category: null,
     };
     expect(transformers.packingListItem(item).trackGearAssignment).toBe(false);
   });

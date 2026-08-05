@@ -59,6 +59,7 @@ tripPackingListRouter.post(
                         category: true,
                       },
                     },
+                    category: true,
                   },
                 },
               },
@@ -165,6 +166,7 @@ tripPackingListRouter.patch(
             category: true,
           },
         },
+        category: true,
       },
     });
 

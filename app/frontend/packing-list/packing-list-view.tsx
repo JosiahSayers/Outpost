@@ -138,6 +138,7 @@ export default function PackingListView({ editable = false, list }: Props) {
         sortPosition: 0,
         trackGearAssignment: true,
         assignedGear: null,
+        category: null,
       },
       isNew: true,
     });

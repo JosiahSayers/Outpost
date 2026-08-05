@@ -79,6 +79,7 @@ itemsRouter.post(
             category: true,
           },
         },
+        category: true,
       },
     });
 
@@ -145,6 +146,7 @@ itemsRouter.patch(
     const currentHighestSort = getHighestSort(existingItems);
     let updatedItem: PackingListItem & {
       assignedGear: (GearInventoryItem & { category: GearCategory }) | null;
+      category: GearCategory | null;
     };
 
     await db.$transaction(async (tx) => {
@@ -180,6 +182,7 @@ itemsRouter.patch(
               category: true,
             },
           },
+          category: true,
         },
       });
     });

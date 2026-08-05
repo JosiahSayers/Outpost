@@ -73,6 +73,7 @@ describe("adding an item", () => {
           sortPosition: 1,
           trackGearAssignment: true,
           assignedGear: null,
+          category: null,
         };
         serverList.sections[0]!.items.push(newItem);
         return Promise.resolve(

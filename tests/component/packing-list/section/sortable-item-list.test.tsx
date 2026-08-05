@@ -17,6 +17,7 @@ const items: ClientPackingListItem[] = [
     sortPosition: 1,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
   },
   {
     id: "2",
@@ -26,6 +27,7 @@ const items: ClientPackingListItem[] = [
     sortPosition: 2,
     trackGearAssignment: true,
     assignedGear: null,
+    category: null,
   },
 ];
 

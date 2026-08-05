@@ -33,6 +33,7 @@ function makeTripPackingList(tripId: string) {
   const item = {
     ...make("PackingListItem", { packingListSectionId: section.id }),
     assignedGear: { ...gearInventoryItem, category: gearCategory },
+    category: null,
   };
   const status = make("TripPackingListItemStatus", {
     tripPackingListId: tripPackingList.id,
@@ -83,6 +84,7 @@ function makeTripPackingList(tripId: string) {
                   public: gearCategory.public,
                 },
               },
+              category: null,
               status: {
                 packed: true,
                 notNeeded: false,
