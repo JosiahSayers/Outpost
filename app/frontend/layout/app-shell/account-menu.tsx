@@ -13,7 +13,12 @@ import {
   UnstyledButton,
   useMantineColorScheme,
 } from "@mantine/core";
-import { GearIcon, ShieldIcon, SignOutIcon } from "@phosphor-icons/react";
+import {
+  ChatCircleTextIcon,
+  GearIcon,
+  ShieldIcon,
+  SignOutIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { Link } from "wouter";
 
@@ -23,6 +28,7 @@ interface AccountMenuProps {
   isAdmin?: boolean;
   stacked?: boolean;
   onNavigate?: () => void;
+  onOpenFeedback: () => void;
   onSignOut: () => void;
 }
 
@@ -38,6 +44,7 @@ export default function AccountMenu({
   isAdmin,
   stacked,
   onNavigate,
+  onOpenFeedback,
   onSignOut,
 }: AccountMenuProps) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
@@ -76,85 +83,109 @@ export default function AccountMenu({
 
   if (stacked) {
     return (
-      <Stack gap="md" w="100%">
-        {identity}
-        <Divider />
-        <Box onClick={onNavigate}>
-          <Group gap="xs">
-            <GearIcon size={16} />
-            <AppLink href="/account">Account Settings</AppLink>
-          </Group>
-        </Box>
-        {isAdmin && (
+      <>
+        <Stack gap="md" w="100%">
+          {identity}
+          <Divider />
           <Box onClick={onNavigate}>
             <Group gap="xs">
-              <ShieldIcon size={16} />
-              <AppLink href="/console">Admin</AppLink>
+              <GearIcon size={16} />
+              <AppLink href="/account">Account Settings</AppLink>
             </Group>
           </Box>
-        )}
-        {appearance}
-        <Divider />
-        <UnstyledButton
-          onClick={() => {
-            onSignOut();
-            onNavigate?.();
-          }}
-        >
-          <Group gap="xs">
-            <SignOutIcon size={16} />
-            <Text size="sm">Sign Out</Text>
-          </Group>
-        </UnstyledButton>
-      </Stack>
+          {isAdmin && (
+            <Box onClick={onNavigate}>
+              <Group gap="xs">
+                <ShieldIcon size={16} />
+                <AppLink href="/console">Admin</AppLink>
+              </Group>
+            </Box>
+          )}
+          {appearance}
+          <Divider />
+          <UnstyledButton
+            onClick={() => {
+              onOpenFeedback();
+              onNavigate?.();
+            }}
+          >
+            <Group gap="xs">
+              <ChatCircleTextIcon size={16} />
+              <Text size="sm">Send Feedback</Text>
+            </Group>
+          </UnstyledButton>
+          <UnstyledButton
+            onClick={() => {
+              onSignOut();
+              onNavigate?.();
+            }}
+          >
+            <Group gap="xs">
+              <SignOutIcon size={16} />
+              <Text size="sm">Sign Out</Text>
+            </Group>
+          </UnstyledButton>
+        </Stack>
+      </>
     );
   }
 
   return (
-    <Menu
-      shadow="md"
-      width={240}
-      position="bottom-end"
-      opened={menuOpened}
-      onChange={setMenuOpened}
-    >
-      <Menu.Target>
-        <UnstyledButton
-          aria-label="Account menu"
-          style={{ borderRadius: "50%", cursor: "pointer" }}
-        >
-          <MarmotAvatar winking={menuOpened} />
-        </UnstyledButton>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Box px="sm" py={6}>
-          {identity}
-        </Box>
-        <Menu.Divider />
-        <Menu.Item
-          component={Link}
-          href="/account"
-          leftSection={<GearIcon size={16} />}
-        >
-          Account Settings
-        </Menu.Item>
-        {isAdmin && (
+    <>
+      <Menu
+        shadow="md"
+        width={240}
+        position="bottom-end"
+        opened={menuOpened}
+        onChange={setMenuOpened}
+      >
+        <Menu.Target>
+          <UnstyledButton
+            aria-label="Account menu"
+            style={{ borderRadius: "50%", cursor: "pointer" }}
+          >
+            <MarmotAvatar winking={menuOpened} />
+          </UnstyledButton>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Box px="sm" py={6}>
+            {identity}
+          </Box>
+          <Menu.Divider />
           <Menu.Item
             component={Link}
-            href="/console"
-            leftSection={<ShieldIcon size={16} />}
+            href="/account"
+            leftSection={<GearIcon size={16} />}
           >
-            Admin
+            Account Settings
           </Menu.Item>
-        )}
-        <Box px="sm" pt={4} pb={2}>
-          {appearance}
-        </Box>
-        <Menu.Divider />
-        <Menu.Item leftSection={<SignOutIcon size={16} />} onClick={onSignOut}>
-          Sign Out
-        </Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
+          {isAdmin && (
+            <Menu.Item
+              component={Link}
+              href="/console"
+              leftSection={<ShieldIcon size={16} />}
+            >
+              Admin
+            </Menu.Item>
+          )}
+          <Box px="sm" pt={4} pb={2}>
+            {appearance}
+          </Box>
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={<ChatCircleTextIcon size={16} />}
+            onClick={onOpenFeedback}
+          >
+            Send Feedback
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<SignOutIcon size={16} />}
+            onClick={onSignOut}
+          >
+            Sign Out
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </>
   );
 }
