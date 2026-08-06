@@ -1,4 +1,5 @@
 import { accountRouter } from "$/routers/api/account";
+import { feedbackRouter } from "$/routers/api/feedback";
 import { gearCategoriesRouter } from "$/routers/api/gear-categories";
 import { gearInventoryRouter } from "$/routers/api/gear-inventory";
 import { notificationsRouter } from "$/routers/api/notifications";
@@ -16,3 +17,4 @@ apiRouter.use("/packing-lists", packingListRouter);
 apiRouter.use("/places", placesRouter);
 apiRouter.use("/trips", tripRouter);
 apiRouter.use("/account", accountRouter);
+apiRouter.use("/feedback", feedbackRouter);

@@ -2,6 +2,7 @@ import { ModelName } from "../../../generated/prisma/internal/prismaNamespace";
 import type { PickStringLiteral } from "../../../type-helpers";
 import makeAccountSetting from "./generators/account-setting";
 import makeAccountSettingValue from "./generators/account-setting-value";
+import makeFeedback from "./generators/feedback";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeMealPlanDay from "./generators/meal-plan-day";
@@ -24,6 +25,7 @@ type SupportedModels = PickStringLiteral<
   ModelName,
   | "AccountSetting"
   | "AccountSettingValue"
+  | "Feedback"
   | "GearInventoryItem"
   | "GearCategory"
   | "PackingList"
@@ -46,6 +48,7 @@ type SupportedModels = PickStringLiteral<
 const generators = {
   AccountSetting: makeAccountSetting,
   AccountSettingValue: makeAccountSettingValue,
+  Feedback: makeFeedback,
   GearCategory: makeGearCategory,
   GearInventoryItem: makeGearInventoryItem,
   PackingList: makePackingList,

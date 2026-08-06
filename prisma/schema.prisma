@@ -51,6 +51,9 @@ model User {
   communicationAuditLogsReceived  CommunicationAuditLog[]  @relation("recipient")
   protectedAreaIngestRuns         ProtectedAreaIngestRun[]
   notifications                   Notification[]
+  feedback                        Feedback[]
+  feedbackNotes                   FeedbackNote[]
+  feedbackAuditLogs               FeedbackAuditLog[]
 
   @@unique([email])
   @@map("user")
@@ -104,6 +107,73 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+//
+// User Feedback
+//
+enum FeedbackStatus {
+  new // just submitted, unreviewed
+  triaged // reviewed by an admin, confirmed valid/actionable
+  planned // accepted, scheduled but not started
+  in_progress // actively being worked (researching + implementing collapsed)
+  completed // resolved — bug fixed or feature added, topic tells you which
+  declined // won't fix / not planned, reviewed and rejected
+  duplicate // duplicate of existing feedback
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  text            String
+  inferredTopic   String[]
+  inferredSubject String[]
+  status          FeedbackStatus @default(new)
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String
+  duplicateOf       Feedback?          @relation("duplicate-feedback", fields: [duplicateId], references: [id], onDelete: SetNull)
+  duplicateId       String?
+  duplicates        Feedback[]         @relation("duplicate-feedback")
+  feedbackNotes     FeedbackNote[]
+  feedbackAuditLogs FeedbackAuditLog[]
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([duplicateId])
+}
+
+model FeedbackNote {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  message    String
+  userFacing Boolean @default(false)
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId String
+  admin      User?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  adminId    String?
+
+  @@index([feedbackId])
+}
+
+model FeedbackAuditLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  changeDescription String // EX: "Status change: new -> triaged"
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId String
+  admin      User?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  adminId    String?
+
+  @@index([feedbackId])
 }
 
 //
