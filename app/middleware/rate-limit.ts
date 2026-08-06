@@ -11,7 +11,7 @@ export function createRateLimiter(
     standardHeaders: false,
     legacyHeaders: false,
     skipFailedRequests: true,
-    skip: () => Bun.env.NODE_ENV === "test",
+    skip: () => Bun.env.NODE_ENV !== "production",
     handler: (req, res) => {
       res
         .status(429)
