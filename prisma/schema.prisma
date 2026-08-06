@@ -131,6 +131,7 @@ model Feedback {
   inferredTopic   String[]
   inferredSubject String[]
   status          FeedbackStatus @default(new)
+  submittedOnPage String
 
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String

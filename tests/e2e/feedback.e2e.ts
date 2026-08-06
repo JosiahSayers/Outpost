@@ -53,6 +53,7 @@ test.describe("Submitting feedback", () => {
       where: { userId: user.id },
     });
     expect(feedback.text).toBe(validText);
+    expect(feedback.submittedOnPage).toBe("/dashboard");
   });
 
   test("clicking Done after a successful submission closes and resets the drawer", async ({

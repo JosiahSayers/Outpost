@@ -138,7 +138,10 @@ describe("POST /", () => {
   it("creates feedback for the authenticated user and returns a referenceId", async () => {
     const response = await request(app)
       .post("/api/feedback")
-      .send({ text: "This is some valid feedback text." })
+      .send({
+        text: "This is some valid feedback text.",
+        submittedOnPage: "/dashboard",
+      })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(200);
@@ -150,9 +153,39 @@ describe("POST /", () => {
     });
     expect(feedback).toMatchObject({
       text: "This is some valid feedback text.",
+      submittedOnPage: "/dashboard",
       userId,
       status: "new",
     });
+  });
+
+  it("defaults submittedOnPage to 'unknown' when omitted", async () => {
+    const response = await request(app)
+      .post("/api/feedback")
+      .send({ text: "This is some valid feedback text." })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const feedback = await db.feedback.findUnique({
+      where: { id: response.body.referenceId },
+    });
+    expect(feedback).toMatchObject({ submittedOnPage: "unknown" });
+  });
+
+  it("truncates submittedOnPage longer than 1000 characters instead of rejecting it", async () => {
+    const response = await request(app)
+      .post("/api/feedback")
+      .send({
+        text: "This is some valid feedback text.",
+        submittedOnPage: "a".repeat(1001),
+      })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const feedback = await db.feedback.findUnique({
+      where: { id: response.body.referenceId },
+    });
+    expect(feedback?.submittedOnPage).toBe("a".repeat(1000));
   });
 
   it("enqueues an infer-metadata job for the new feedback", async () => {

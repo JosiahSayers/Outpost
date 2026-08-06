@@ -13,6 +13,11 @@ export default function makeFeedback(
     inferredTopic: [],
     inferredSubject: [],
     status: "new",
+    submittedOnPage: faker.helpers.arrayElement([
+      "/dashboard",
+      "/trips",
+      "/gear-inventory",
+    ]),
     userId: faker.string.uuid(),
     duplicateId: null,
     ...overrides,

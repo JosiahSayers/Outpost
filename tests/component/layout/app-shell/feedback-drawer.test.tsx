@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { Router } from "wouter";
 
 // Mantine's Textarea autosize hooks into font-loading events; happy-dom doesn't
 // implement document.fonts, so stub it to avoid a crash in act-compat.
@@ -16,6 +17,7 @@ if (!document.fonts) {
 }
 
 const maxLength = createFeedback.shape.text.maxLength!;
+const testPath = "/dashboard/trip-1";
 
 const onClose = mock(() => {});
 
@@ -27,7 +29,9 @@ function renderDrawer(opened = true) {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <MantineProvider>
-        <FeedbackDrawer opened={opened} onClose={onClose} />
+        <Router hook={() => [testPath, () => {}]}>
+          <FeedbackDrawer opened={opened} onClose={onClose} />
+        </Router>
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -69,6 +73,7 @@ describe("submitting feedback", () => {
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({
       text: "This feature would be really helpful for me.",
+      submittedOnPage: testPath,
     });
   });
 

@@ -16,6 +16,7 @@ feedbackRouter.post(
     const feedback = await db.feedback.create({
       data: {
         text: req.body.text,
+        submittedOnPage: req.body.submittedOnPage,
         userId: req.session!.user.id,
       },
     });

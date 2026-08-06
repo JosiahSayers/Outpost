@@ -6,11 +6,13 @@ import {
   Button,
   Drawer,
   Group,
+  Input,
   Stack,
   Text,
   Textarea,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
+import { useLocation } from "wouter";
 
 const maxLength = createFeedback.shape.text.maxLength!;
 
@@ -21,9 +23,10 @@ interface Props {
 
 export default function FeedbackDrawer({ opened, onClose }: Props) {
   const submitFeedback = useSubmitFeedback();
+  const [location] = useLocation();
 
   const form = useForm({
-    initialValues: { text: "" },
+    initialValues: { text: "", submittedOnPage: location },
     validate: schemaResolver(createFeedback, { sync: true }),
   });
 
@@ -76,6 +79,11 @@ export default function FeedbackDrawer({ opened, onClose }: Props) {
               autosize
               minRows={5}
               {...form.getInputProps("text")}
+            />
+            <Input
+              type="hidden"
+              value={location}
+              {...form.getInputProps("submittedOnPage")}
             />
             {submitFeedback.isError && (
               <Error message="Couldn't submit your feedback. Please try again." />
