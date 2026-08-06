@@ -57,7 +57,6 @@ const NOTIFICATION_JOB_STATES: JobType[] = [
   "active",
   "delayed",
   "completed",
-  "paused",
   "failed",
 ];
 
