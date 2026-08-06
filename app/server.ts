@@ -1,4 +1,5 @@
 import { attachLogger } from "$/middleware/attach-logger";
+import { ipRateLimiter } from "$/middleware/rate-limit";
 import { requestLogger } from "$/middleware/request-logger";
 import { stashRequestMetadata } from "$/middleware/stash-request-meta";
 import { stashSession } from "$/middleware/stash-session";
@@ -13,7 +14,19 @@ import { toNodeHandler } from "better-auth/node";
 import express from "express";
 
 export const app = express();
-app.use(stashRequestMetadata, attachLogger, requestLogger, stashSession);
+
+// In production, Caddy is the only reverse proxy in front of the app (see
+// docker-compose.staging.yml), adding exactly one hop to X-Forwarded-For.
+// Trusting 1 hop lets req.ip resolve to the real client IP instead of
+// Caddy's. Left disabled elsewhere so a client can't spoof its own IP by
+// setting X-Forwarded-For directly, since nothing there strips it.
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
+app.use(stashRequestMetadata, attachLogger, requestLogger);
+app.use(ipRateLimiter);
+app.use(stashSession);
 
 app.all("/api/auth/{*any}", toNodeHandler(auth));
 app.disable("x-powered-by");
