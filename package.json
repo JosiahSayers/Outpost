@@ -30,7 +30,7 @@
     "@playwright/test": "^1.62.1",
     "@react-email/ui": "^6.9.1",
     "@sentry/cli": "^3.6.2",
-    "@testing-library/jest-dom": "^6.10.0",
+    "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@types/bun": "latest",
     "@types/luxon": "^3.7.3",
@@ -46,10 +46,11 @@
     "prettier": "^3.9.6",
     "prisma": "^7.9.1",
     "react-email": "^6.9.1",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@bull-board/api": "^8.6.0",
@@ -76,7 +77,7 @@
     "csv-parse": "^7.0.2",
     "express": "^5.2.1",
     "express-zod-safe": "^3.2.1",
-    "ioredis": "^5.11.1",
+    "ioredis": "^6.0.0",
     "luxon": "^3.7.2",
     "pdfkit": "^0.19.1",
     "pg": "^8.22.0",
