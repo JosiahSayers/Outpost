@@ -42,17 +42,36 @@ export function useWeightDisplay({
       const rollupThreshold =
         rollupUnit &&
         WEIGHT_ROLLUP_THRESHOLD * WEIGHT_CONVERSIONS.multipliers[rollupUnit];
-      const displayUnit =
-        rollupUnit && rollupThreshold && grams >= rollupThreshold
-          ? rollupUnit
-          : unit;
 
-      const value = grams / WEIGHT_CONVERSIONS.multipliers[displayUnit];
+      if (rollupUnit && rollupThreshold && grams >= rollupThreshold) {
+        const rollupMultiplier = WEIGHT_CONVERSIONS.multipliers[rollupUnit];
+        const unitMultiplier = WEIGHT_CONVERSIONS.multipliers[unit];
+        const unitsPerRollup = rollupMultiplier / unitMultiplier;
+
+        let whole = Math.floor(grams / rollupMultiplier);
+        let remainder = Math.round(
+          (grams - whole * rollupMultiplier) / unitMultiplier,
+        );
+
+        // Rounding the remainder up to the small unit can carry it into a
+        // full rollup unit (e.g. 15.6 oz rounding to 16 oz === 1 lb).
+        if (remainder >= unitsPerRollup) {
+          whole += 1;
+          remainder = 0;
+        }
+
+        const wholePart = `${whole} ${WEIGHT_UNIT_ABBREVIATION[rollupUnit]}`;
+        return remainder === 0
+          ? wholePart
+          : `${wholePart} ${remainder} ${WEIGHT_UNIT_ABBREVIATION[unit]}`;
+      }
+
+      const value = grams / WEIGHT_CONVERSIONS.multipliers[unit];
       const formatted = new Intl.NumberFormat(navigator.language, {
         maximumFractionDigits: decimalScale,
       }).format(value);
 
-      return `${formatted} ${WEIGHT_UNIT_ABBREVIATION[displayUnit]}`;
+      return `${formatted} ${WEIGHT_UNIT_ABBREVIATION[unit]}`;
     },
     [unit, decimalScale, rollUp],
   );
