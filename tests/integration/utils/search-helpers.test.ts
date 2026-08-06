@@ -56,6 +56,19 @@ describe("searchCategories", () => {
     expect(results).toEqual([]);
   });
 
+  it("does not error on tsquery syntax characters (OUTPOST-2)", async () => {
+    const expectedMatch = await db.gearCategory.findFirst({
+      where: { name: "Pack Organization" },
+    });
+    const results = await searchCategories("Pack & Organization");
+    expect(results).toContainEqual(expectedMatch!);
+  });
+
+  it("returns an empty array for a query that is only punctuation", async () => {
+    const results = await searchCategories("&");
+    expect(results).toEqual([]);
+  });
+
   describe("when the user has custom categories", () => {
     let customCategory: GearCategory;
     let user: User;

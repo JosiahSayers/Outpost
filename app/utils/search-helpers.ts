@@ -4,10 +4,17 @@ import type { MealName } from "../../generated/prisma/enums";
 // Turn free-text input into a prefix-match tsquery: each whitespace-delimited
 // token becomes a `token:*` prefix term, all required (`&`). Mirrors
 // searchCategories. Returns "" for blank input so callers can short-circuit.
+//
+// Tokens are stripped of everything but letters/digits before being turned
+// into terms -- tsquery syntax chars (&, |, !, :, (, )) survive the
+// whitespace split (e.g. "Gear & Repair" -> ["Gear", "&", "Repair"]) and a
+// bare "&" becomes the invalid term "&:*", so a punctuation-only token must
+// be dropped rather than passed through.
 function toPrefixTsQuery(searchQuery: string): string {
   return searchQuery
     .trim()
     .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ""))
     .filter(Boolean)
     .map((word) => `${word}:*`)
     .join(" & ");
