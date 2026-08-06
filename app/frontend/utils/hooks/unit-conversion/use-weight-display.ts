@@ -1,3 +1,4 @@
+import { usePreferredBoolean } from "$/frontend/account/use-preferred-boolean";
 import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import {
   WEIGHT_CONVERSIONS,
@@ -11,11 +12,6 @@ import { useCallback } from "react";
 
 export interface UseWeightDisplayOptions {
   decimalScale?: number;
-  // When true, values that are large for the display unit are shown in the
-  // next larger unit instead (e.g. 26 oz displays as "1.63 lb"). Off by
-  // default so lists of individually-entered weights stay in a consistent
-  // unit; opt in for places (like totals) where the unit doesn't matter.
-  rollUp?: boolean;
 }
 
 // Formats a canonical-grams value for read-only display (e.g. "450 g" or
@@ -24,21 +20,27 @@ export interface UseWeightDisplayOptions {
 // formatter function rather than a formatted string so the hook can be
 // called once per component and the formatter reused across a list (e.g.
 // mapped table rows) without violating the rules of hooks.
+//
+// Whether large values roll up into the next unit instead of showing a
+// decimal (e.g. 24 oz as "1 lb 8 oz" rather than "1.5 lb") is entirely
+// governed by the user's weight_rollup account setting (default on) --
+// callers don't get a say, so the setting means the same thing everywhere
+// it's used.
 export function useWeightDisplay({
   decimalScale = 2,
-  rollUp = false,
 }: UseWeightDisplayOptions = {}) {
   const unit = usePreferredUnit(
     "weight_viewing_unit",
     WEIGHT_REGION_DEFAULT_UNIT,
     WEIGHT_DEFAULT_UNIT,
   );
+  const rollUpEnabled = usePreferredBoolean("weight_rollup", true);
 
   return useCallback(
     (grams: number | null): string => {
       if (grams === null) return "";
 
-      const rollupUnit = rollUp ? WEIGHT_ROLLUP_UNIT[unit] : undefined;
+      const rollupUnit = rollUpEnabled ? WEIGHT_ROLLUP_UNIT[unit] : undefined;
       const rollupThreshold =
         rollupUnit &&
         WEIGHT_ROLLUP_THRESHOLD * WEIGHT_CONVERSIONS.multipliers[rollupUnit];
@@ -73,6 +75,6 @@ export function useWeightDisplay({
 
       return `${formatted} ${WEIGHT_UNIT_ABBREVIATION[unit]}`;
     },
-    [unit, decimalScale, rollUp],
+    [unit, decimalScale, rollUpEnabled],
   );
 }

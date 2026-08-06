@@ -29,7 +29,7 @@ interface Props {
  */
 export default function GearProgress({ listId, sectionId, items }: Props) {
   const updateItem = useUpdateItem(listId);
-  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWeight = useWeightDisplay();
   const summary = buildSectionGearSummary(items);
 
   // A section with nothing to track has nothing to report.

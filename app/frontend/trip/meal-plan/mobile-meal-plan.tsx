@@ -22,7 +22,7 @@ export default function MobileMealPlan({
   mealPlan: ClientMealPlanDay[];
   onDayClick: (day: ClientMealPlanDay) => void;
 }) {
-  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWeight = useWeightDisplay();
   const formatWater = useFluidDisplay();
 
   return (

@@ -22,11 +22,17 @@ export const weightEntryUnit = z.strictObject({
   value: z.enum(WeightUnit),
 });
 
+export const weightRollup = z.strictObject({
+  slug: z.literal("weight_rollup"),
+  value: z.enum(["true", "false"]),
+});
+
 export const accountSettings = z.discriminatedUnion("slug", [
   liquidViewingUnit,
   liquidEntryUnit,
   weightViewingUnit,
   weightEntryUnit,
+  weightRollup,
 ]);
 
 export const editAccountSettings = z.strictObject({

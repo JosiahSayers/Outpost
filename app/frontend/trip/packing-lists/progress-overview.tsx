@@ -40,7 +40,7 @@ export default function ProgressOverview({
   const purchasedPct = hasPurchased
     ? Math.round((purchased! / purchasedTotal!) * 100)
     : 0;
-  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWeight = useWeightDisplay();
   const hasGearWeight = gearTotalGrams !== undefined && gearTotalGrams > 0;
   const hasFoodWeight = foodTotalGrams !== undefined && foodTotalGrams > 0;
   const combinedTotalGrams = (gearTotalGrams ?? 0) + (foodTotalGrams ?? 0);

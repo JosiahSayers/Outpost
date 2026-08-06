@@ -42,6 +42,13 @@ const SETTINGS: ClientUserAccountSetting[] = [
     name: "Preferred Weight Entry Unit",
     value: "kilograms",
   }),
+  setting({
+    slug: "weight_rollup",
+    name: "Roll up large totals",
+    description: "Show large totals as whole units plus a remainder.",
+    defaultValue: "true",
+    value: "true",
+  }),
 ];
 
 function renderPanel(settings: ClientUserAccountSetting[] | undefined) {
@@ -135,6 +142,7 @@ describe("once settings have loaded", () => {
     expect(
       screen.getByRole("combobox", { name: "Preferred Weight Entry Unit" }),
     ).toHaveValue("Kilograms (kg)");
+    expect(screen.getByRole("switch")).toBeChecked();
     await waitFor(() => {});
   });
 
@@ -194,6 +202,33 @@ describe("changing a weight select", () => {
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(init.body as string)).toEqual({
       settings: [{ slug: "weight_viewing_unit", value: "pounds" }],
+    });
+    await waitFor(() => {});
+  });
+});
+
+describe("toggling the weight rollup switch", () => {
+  it("optimistically updates the value and calls the API to persist it", async () => {
+    renderPanel(SETTINGS);
+    const rollupSwitch = screen.getByRole("switch");
+
+    fireEvent.click(rollupSwitch);
+
+    // React sets the checkbox's `checked` IDL property directly rather than
+    // the "checked" content attribute, so waitFor's MutationObserver never
+    // sees it change; `data-checked` is a plain attribute Mantine sets
+    // alongside it and mutates observably, so assert on that instead.
+    await waitFor(() =>
+      expect(rollupSwitch).toHaveAttribute("data-checked", "false"),
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
+      .mock.calls[0]! as [string, RequestInit];
+    expect(url).toBe("/api/account/settings");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      settings: [{ slug: "weight_rollup", value: "false" }],
     });
     await waitFor(() => {});
   });
