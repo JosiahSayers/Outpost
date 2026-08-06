@@ -9,8 +9,7 @@ export const createFeedback = z.strictObject({
 // prompt so the two can't drift apart.
 const feedbackTopicDescriptions = {
   bug_report: "something is broken, erroring, or not behaving as designed",
-  feature_request:
-    "a request for new functionality that doesn't exist today",
+  feature_request: "a request for new functionality that doesn't exist today",
   usability_feedback:
     "existing functionality works but is confusing, awkward, or hard to find",
   performance_issue: "something is slow, hangs, or times out",
