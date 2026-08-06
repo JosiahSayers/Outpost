@@ -18,7 +18,7 @@ export function createRateLimiter(
         .json({ error: "Too many requests, please try again later." });
     },
     store: new RedisStore({
-      prefix: `rate-limit:${overrides.prefix ?? ""}`,
+      prefix: `rate-limit:${overrides.prefix ? overrides.prefix + ":" : ""}`,
       sendCommand: (command: string, ...rest: string[]) =>
         redisClient.send(command, rest),
     }),
