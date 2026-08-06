@@ -11,7 +11,7 @@ async function run() {
       slug: "weight_rollup",
       name: "Roll up large totals",
       description:
-        "When a weight gets large, show it as whole units plus a remainder (e.g. 1 lb 8 oz) instead of a decimal (e.g. 1.5 lb). Applies everywhere weights are shown.",
+        "When a weight gets large, show it as whole units plus a remainder (e.g. 1 lb 8 oz) instead of a decimal (e.g. 1.5 lbs). Applies everywhere weights are shown.",
       defaultValue: "true",
     },
   });

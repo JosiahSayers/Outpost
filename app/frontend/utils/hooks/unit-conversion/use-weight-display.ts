@@ -6,7 +6,7 @@ import {
   WEIGHT_REGION_DEFAULT_UNIT,
   WEIGHT_ROLLUP_THRESHOLD,
   WEIGHT_ROLLUP_UNIT,
-  WEIGHT_UNIT_ABBREVIATION,
+  weightUnitAbbreviation,
 } from "$/frontend/shared-components/converter/weight-conversions";
 import { useCallback } from "react";
 
@@ -62,18 +62,21 @@ export function useWeightDisplay({
           remainder = 0;
         }
 
-        const wholePart = `${whole} ${WEIGHT_UNIT_ABBREVIATION[rollupUnit]}`;
+        const wholePart = `${whole} ${weightUnitAbbreviation(rollupUnit, whole)}`;
         return remainder === 0
           ? wholePart
-          : `${wholePart} ${remainder} ${WEIGHT_UNIT_ABBREVIATION[unit]}`;
+          : `${wholePart} ${remainder} ${weightUnitAbbreviation(unit, remainder)}`;
       }
 
       const value = grams / WEIGHT_CONVERSIONS.multipliers[unit];
+      // Round the same way the formatter will, so a value that displays as
+      // "1" (e.g. 1.004 at decimalScale 2) is treated as singular.
+      const rounded = Number(value.toFixed(decimalScale));
       const formatted = new Intl.NumberFormat(navigator.language, {
         maximumFractionDigits: decimalScale,
       }).format(value);
 
-      return `${formatted} ${WEIGHT_UNIT_ABBREVIATION[unit]}`;
+      return `${formatted} ${weightUnitAbbreviation(unit, rounded)}`;
     },
     [unit, decimalScale, rollUpEnabled],
   );

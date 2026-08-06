@@ -1,7 +1,7 @@
 import { db } from "$/utils/db";
 
 // The canonical gear inventory that dashboard/gear-inventory assertions are
-// written against (item names, per-item grams, the derived "5 lb 6 oz" total,
+// written against (item names, per-item grams, the derived "5 lbs 6 oz" total,
 // and the three unique categories). Kept as data so both the dev seed and the
 // e2e fixtures provision an identical set and can never drift apart.
 export const CANONICAL_GEAR = [

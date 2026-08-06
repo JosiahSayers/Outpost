@@ -58,6 +58,38 @@ describe("with a stored weight_viewing_unit setting", () => {
   });
 });
 
+describe("pluralization", () => {
+  it("keeps pounds singular for exactly 1 lb", () => {
+    renderDisplay(453.59237, [setting({ value: "pounds" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("1 lb");
+  });
+
+  it("pluralizes pounds for a decimal value other than 1", () => {
+    renderDisplay(453.59237 * 1.5, [setting({ value: "pounds" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("1.5 lbs");
+  });
+
+  it("pluralizes pounds for a decimal value below 1", () => {
+    renderDisplay(453.59237 * 0.5, [setting({ value: "pounds" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("0.5 lbs");
+  });
+
+  it("does not pluralize grams", () => {
+    renderDisplay(1000, [setting({ value: "grams" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("1,000 g");
+  });
+
+  it("does not pluralize kilograms", () => {
+    renderDisplay(2000, [setting({ value: "kilograms" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("2 kg");
+  });
+
+  it("does not pluralize ounces", () => {
+    renderDisplay(2 * 28.349523125, [setting({ value: "ounces" })]);
+    expect(screen.getByTestId("weight")).toHaveTextContent("2 oz");
+  });
+});
+
 describe("rollup (on by default)", () => {
   it("rolls up past the threshold into whole units plus a remainder", () => {
     // 24 oz = 1.5 lb
@@ -68,7 +100,7 @@ describe("rollup (on by default)", () => {
   it("omits the remainder when it rolls up evenly", () => {
     // 32 oz = 2 lb
     renderDisplay(32 * 28.349523125, [setting({ value: "ounces" })]);
-    expect(screen.getByTestId("weight")).toHaveTextContent("2 lb");
+    expect(screen.getByTestId("weight")).toHaveTextContent("2 lbs");
   });
 
   it("rounds a fractional remainder to the nearest whole unit", () => {
@@ -80,7 +112,7 @@ describe("rollup (on by default)", () => {
   it("carries the remainder into the whole unit when it rounds up to a full unit", () => {
     // 31.6 oz = 1 lb 15.6 oz -> rounds to 1 lb 16 oz -> carries to 2 lb
     renderDisplay(31.6 * 28.349523125, [setting({ value: "ounces" })]);
-    expect(screen.getByTestId("weight")).toHaveTextContent("2 lb");
+    expect(screen.getByTestId("weight")).toHaveTextContent("2 lbs");
   });
 
   it("does not roll up below the threshold", () => {

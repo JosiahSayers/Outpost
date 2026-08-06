@@ -79,8 +79,8 @@ test.describe("Gear Inventory Page", () => {
     }) => {
       // 745 + 1615 + 82 = 2442g. The stat bar rolls totals up to the next
       // unit once they pass 1.5x it, so this displays in pounds rather than
-      // the locale-detected ounces: 2442g = 5 lb 6 oz.
-      await expect(page.getByText("5 lb 6 oz")).toBeVisible();
+      // the locale-detected ounces: 2442g = 5 lbs 6 oz.
+      await expect(page.getByText("5 lbs 6 oz")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
