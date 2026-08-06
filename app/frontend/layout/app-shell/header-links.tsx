@@ -9,9 +9,14 @@ import { useLocation } from "wouter";
 interface HeaderLinksProps {
   stacked?: boolean;
   onNavigate?: () => void;
+  onOpenFeedback: () => void;
 }
 
-export default function HeaderLinks({ stacked, onNavigate }: HeaderLinksProps) {
+export default function HeaderLinks({
+  stacked,
+  onNavigate,
+  onOpenFeedback,
+}: HeaderLinksProps) {
   const session = authClient.useSession();
   const [, navigate] = useLocation();
   const { markSignOutInitiated, clearSignOutInitiated, isSignOutInitiated } =
@@ -59,6 +64,7 @@ export default function HeaderLinks({ stacked, onNavigate }: HeaderLinksProps) {
         isAdmin={session.data.user.role === "admin"}
         stacked={stacked}
         onNavigate={onNavigate}
+        onOpenFeedback={onOpenFeedback}
         onSignOut={handleSignOut}
       />
     );

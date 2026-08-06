@@ -2,6 +2,10 @@ import z from "zod";
 
 export const createFeedback = z.strictObject({
   text: z.string().min(15).max(750),
+  submittedOnPage: z
+    .string()
+    .transform((val) => val.slice(0, 1000))
+    .default("unknown"),
 });
 
 // Single source of truth for the topic/subject taxonomy: each key becomes a

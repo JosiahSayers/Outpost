@@ -1,4 +1,5 @@
 import AppLogo from "$/frontend/layout/app-shell/app-logo";
+import FeedbackDrawer from "$/frontend/layout/app-shell/feedback-drawer";
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
 import MarmotAvatar from "$/frontend/layout/app-shell/marmot-avatar";
 import NotificationBell from "$/frontend/layout/app-shell/notification-bell";
@@ -27,6 +28,13 @@ export default function Header() {
     notificationsOpened,
     { toggle: toggleNotifications, close: closeNotifications },
   ] = useDisclosure(false);
+  // Owned here rather than by AccountMenu: the mobile burger Drawer unmounts
+  // its content (including nested AccountMenu) once its close transition
+  // finishes, which would tear down a FeedbackDrawer rendered inside it too.
+  // Keeping it as a sibling of that Drawer means it survives the burger menu
+  // closing after "Send Feedback" is clicked.
+  const [feedbackOpened, { open: openFeedback, close: closeFeedback }] =
+    useDisclosure(false);
   const session = authClient.useSession();
   const logoHref = session.data ? "/dashboard" : "/";
   const { pulsing } = useNotificationArrivalAlert(!!session.data);
@@ -45,7 +53,7 @@ export default function Header() {
           </Link>
           <Group visibleFrom="sm">
             {session.data && <NotificationBell pulse={pulsing} />}
-            <HeaderLinks />
+            <HeaderLinks onOpenFeedback={openFeedback} />
           </Group>
           {/* Grouped together (rather than as separate top-level items in the
               outer space-between Group) so they sit close to each other —
@@ -90,7 +98,11 @@ export default function Header() {
         size="xs"
       >
         <Stack>
-          <HeaderLinks stacked onNavigate={close} />
+          <HeaderLinks
+            stacked
+            onNavigate={close}
+            onOpenFeedback={openFeedback}
+          />
         </Stack>
       </Drawer>
       <Drawer
@@ -101,6 +113,7 @@ export default function Header() {
       >
         <NotificationPanelContent onNavigate={closeNotifications} />
       </Drawer>
+      <FeedbackDrawer opened={feedbackOpened} onClose={closeFeedback} />
     </>
   );
 }

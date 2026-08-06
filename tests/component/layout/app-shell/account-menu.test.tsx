@@ -1,5 +1,6 @@
 import AccountMenu from "$/frontend/layout/app-shell/account-menu";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
@@ -7,28 +8,33 @@ import { Router } from "wouter";
 
 const onSignOut = mock(() => {});
 const onNavigate = mock(() => {});
+const onOpenFeedback = mock(() => {});
 
 function renderMenu(
   props: Partial<React.ComponentProps<typeof AccountMenu>> = {},
 ) {
   return render(
-    <MantineProvider>
-      <Router hook={() => ["/dashboard", () => {}]}>
-        <AccountMenu
-          name="Josiah Sayers"
-          email="josiah.sayers@me.com"
-          onSignOut={onSignOut}
-          onNavigate={onNavigate}
-          {...props}
-        />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Router hook={() => ["/dashboard", () => {}]}>
+          <AccountMenu
+            name="Josiah Sayers"
+            email="josiah.sayers@me.com"
+            onSignOut={onSignOut}
+            onNavigate={onNavigate}
+            onOpenFeedback={onOpenFeedback}
+            {...props}
+          />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 
 beforeEach(() => {
   onSignOut.mockReset();
   onNavigate.mockReset();
+  onOpenFeedback.mockReset();
 });
 
 // The Menu dropdown's contents are only reliably renderable/interactable in a
@@ -108,6 +114,15 @@ describe("mobile (stacked)", () => {
 
     fireEvent.click(screen.getByRole("link", { name: "Admin" }));
 
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onOpenFeedback and onNavigate when Send Feedback is clicked", () => {
+    renderMenu({ stacked: true });
+
+    fireEvent.click(screen.getByText("Send Feedback"));
+
+    expect(onOpenFeedback).toHaveBeenCalledTimes(1);
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 });

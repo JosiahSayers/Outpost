@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
@@ -23,13 +24,15 @@ import HeaderLinks from "$/frontend/layout/app-shell/header-links";
 
 function headerLinksTree(navigate: () => void) {
   return (
-    <MantineProvider>
-      <SignOutProvider>
-        <Router hook={() => ["/dashboard", navigate]}>
-          <HeaderLinks stacked />
-        </Router>
-      </SignOutProvider>
-    </MantineProvider>
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <SignOutProvider>
+          <Router hook={() => ["/dashboard", navigate]}>
+            <HeaderLinks stacked onOpenFeedback={() => {}} />
+          </Router>
+        </SignOutProvider>
+      </MantineProvider>
+    </QueryClientProvider>
   );
 }
 
