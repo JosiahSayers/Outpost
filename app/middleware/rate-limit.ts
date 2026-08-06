@@ -24,4 +24,3 @@ export function createRateLimiter(overrides: Partial<Options> = {}) {
 }
 
 export const ipRateLimiter = createRateLimiter();
-export const authRateLimiter = createRateLimiter();
