@@ -22,6 +22,29 @@ export const baseAuthConfig = {
       strategy: "compact",
     },
   },
+  // Enabled by default in production only (Better Auth's own default), with
+  // stricter rules for the endpoints most worth throttling beyond sign-in
+  // (which already defaults to 3 requests/10s). "/sign-in/email" is left
+  // alone to keep that built-in default.
+  rateLimit: {
+    customRules: {
+      "/sign-up/email": { window: 60, max: 5 },
+      "/request-password-reset": { window: 60, max: 3 },
+    },
+  },
+  advanced: {
+    ipAddress: {
+      // Caddy is the only reverse proxy in front of the app in production
+      // (docker-compose.staging.yml), and the app's port isn't published to
+      // the host, so only containers on the docker network can reach it.
+      // Trusting that range lets a client-spoofed X-Forwarded-For entry be
+      // stripped down to the real client IP instead of the header being
+      // discarded outright (Better Auth's default when it can't tell which
+      // hop to trust). Left empty elsewhere since there's no proxy to trust.
+      trustedProxies:
+        process.env.NODE_ENV === "production" ? ["172.16.0.0/12"] : [],
+    },
+  },
   plugins: [admin()],
 } satisfies BetterAuthOptions;
 
