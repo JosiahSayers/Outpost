@@ -2,6 +2,7 @@ import {
   userCanAccessPackingList,
   userCanEditPackingList,
 } from "$/middleware/authorization/packing-list";
+import { pdfRateLimiter } from "$/middleware/rate-limit";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { sectionsRouter } from "$/routers/api/packing-list/sections";
 import { transformers } from "$/transformers";
@@ -246,6 +247,7 @@ packingListRouter.delete(
 
 packingListRouter.get(
   "/:id/pdf",
+  pdfRateLimiter,
   userCanAccessPackingList,
   validate({ params: idParam }),
   async (req, res) => {

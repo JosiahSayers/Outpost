@@ -1,5 +1,6 @@
 import { inferMetadataQueue } from "$/jobs/workers/feedback/infer-metadata";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { feedbackRateLimiter } from "$/middleware/rate-limit";
 import { db } from "$/utils/db";
 import { createFeedback } from "$/validation/feedback";
 import { Router } from "express";
@@ -11,6 +12,7 @@ feedbackRouter.use(requireValidSession);
 
 feedbackRouter.post(
   "/",
+  feedbackRateLimiter,
   validate({ body: createFeedback }),
   async (req, res) => {
     const feedback = await db.feedback.create({
