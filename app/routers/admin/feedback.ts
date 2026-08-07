@@ -36,6 +36,7 @@ adminFeedbackRouter.get(
       db.feedback.count({
         where: {
           status: { in: status },
+          duplicateId: null,
         },
       }),
     ]);
