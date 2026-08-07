@@ -1,4 +1,9 @@
-import { transform, transformFull } from "$/transformers/admin/feedback";
+import {
+  transform,
+  transformFull,
+  transformListItem,
+} from "$/transformers/admin/feedback";
+import { transform as userTransform } from "$/transformers/admin/user";
 import { describe, expect, it } from "bun:test";
 import { make } from "../../../helpers/test-data/make";
 
@@ -13,6 +18,7 @@ describe("transform", () => {
       inferredSubject: feedback.inferredSubject,
       inferredTopic: feedback.inferredTopic,
       status: feedback.status,
+      submittedOnPage: feedback.submittedOnPage,
       text: feedback.text,
     });
   });
@@ -34,14 +40,28 @@ describe("transform", () => {
   });
 });
 
+describe("transformListItem", () => {
+  it("returns the base fields plus the submitting user", () => {
+    const feedback = make("Feedback");
+    const user = make("User");
+
+    expect(transformListItem({ ...feedback, user })).toEqual({
+      ...transform(feedback),
+      user: userTransform(user),
+    });
+  });
+});
+
 describe("transformFull", () => {
   it("returns the expected shape with empty relations", () => {
     const feedback = make("Feedback");
+    const user = make("User");
     const full = {
       ...feedback,
       feedbackNotes: [],
       feedbackAuditLogs: [],
       duplicates: [],
+      user,
     };
 
     expect(transformFull(full)).toEqual({
@@ -49,6 +69,7 @@ describe("transformFull", () => {
       notes: [],
       auditLogs: [],
       duplicates: [],
+      user: userTransform(user),
     });
   });
 
@@ -67,11 +88,13 @@ describe("transformFull", () => {
       admin,
     };
     const duplicate = make("Feedback");
+    const user = make("User");
     const full = {
       ...feedback,
       feedbackNotes: [note],
       feedbackAuditLogs: [auditLog],
       duplicates: [duplicate],
+      user,
     };
 
     expect(transformFull(full)).toEqual({
@@ -118,6 +141,7 @@ describe("transformFull", () => {
         },
       ],
       duplicates: [transform(duplicate)],
+      user: userTransform(user),
     });
   });
 
@@ -136,6 +160,7 @@ describe("transformFull", () => {
       feedbackNotes: [note],
       feedbackAuditLogs: [auditLog],
       duplicates: [],
+      user: make("User"),
     };
 
     expect(transformFull(full)).toMatchObject({

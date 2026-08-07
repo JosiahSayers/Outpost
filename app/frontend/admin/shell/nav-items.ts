@@ -1,6 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   ArrowsClockwiseIcon,
+  ChatCircleTextIcon,
   ClipboardTextIcon,
   FlagIcon,
   GaugeIcon,
@@ -28,6 +29,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: MagnifyingGlassIcon,
     description:
       "Look up any account by name or email — the entry point for impersonation, resets, and sessions.",
+  },
+  {
+    label: "Feedback",
+    href: "/console/feedback",
+    icon: ChatCircleTextIcon,
+    section: "Support",
+    description:
+      "User-submitted feedback — filter by status, leave notes, and track it through to resolution.",
   },
   {
     label: "Audit Log",

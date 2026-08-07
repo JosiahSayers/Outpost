@@ -65,6 +65,29 @@ describe("GET /", () => {
     ]);
   });
 
+  it("includes the submitting user and page for each result", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", {
+        userId,
+        status: "new",
+        submittedOnPage: "/trips/big-sur-2026/packing-list",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/feedback")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.feedback).toEqual([
+      expect.objectContaining({
+        id: feedback.id,
+        submittedOnPage: "/trips/big-sur-2026/packing-list",
+        user: expect.objectContaining({ id: userId }),
+      }),
+    ]);
+  });
+
   it("filters by an explicit status query param", async () => {
     await db.feedback.create({
       data: make("Feedback", { userId, status: "new" }),
@@ -285,6 +308,7 @@ describe("GET /:id", () => {
         }),
       ],
       duplicates: [expect.objectContaining({ id: duplicate.id })],
+      user: expect.objectContaining({ id: userId }),
     });
   });
 

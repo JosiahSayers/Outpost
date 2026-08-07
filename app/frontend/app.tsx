@@ -3,6 +3,8 @@ import AppProviders from "$/frontend/app-providers";
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import AdminPage from "$/frontend/pages/admin.page";
+import AdminFeedbackDetailPage from "$/frontend/pages/admin-feedback-detail.page";
+import AdminFeedbackPage from "$/frontend/pages/admin-feedback.page";
 import AdminQueuesPage from "$/frontend/pages/admin-queues.page";
 import AdminUserSessionsPage from "$/frontend/pages/admin-user-sessions.page";
 import AdminUsersPage from "$/frontend/pages/admin-users.page";
@@ -33,6 +35,11 @@ export default function App() {
           component={AdminUserSessionsPage}
         />
         <Route path="/console/queues" component={AdminQueuesPage} />
+        <Route path="/console/feedback" component={AdminFeedbackPage} />
+        <Route
+          path="/console/feedback/:id"
+          component={AdminFeedbackDetailPage}
+        />
         <Route>
           <AppShell>
             <Switch>

@@ -30,6 +30,9 @@ adminFeedbackRouter.get(
         orderBy: {
           createdAt: "desc",
         },
+        include: {
+          user: true,
+        },
         take,
         skip,
       }),
@@ -42,7 +45,13 @@ adminFeedbackRouter.get(
     ]);
 
     return res.json(
-      paginate(feedback, transformers.admin.feedback, count, take, "feedback"),
+      paginate(
+        feedback,
+        transformers.admin.feedbackListItem,
+        count,
+        take,
+        "feedback",
+      ),
     );
   },
 );
@@ -54,6 +63,7 @@ adminFeedbackRouter.get(
     const feedback = await db.feedback.findUnique({
       where: { id: req.params.id },
       include: {
+        user: true,
         feedbackNotes: {
           include: {
             admin: true,
