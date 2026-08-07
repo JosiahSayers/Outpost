@@ -1,7 +1,8 @@
+import { feedbackExists } from "$/middleware/feedback-existence";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
-import { feedbackSearch } from "$/validation/admin/feedback";
+import { editFeedback, feedbackSearch } from "$/validation/admin/feedback";
 import { idParam } from "$/validation/shared";
 import { Router } from "express";
 import validate from "express-zod-safe";
@@ -67,5 +68,20 @@ adminFeedbackRouter.get(
     return res.json({
       feedback: transformers.admin.fullFeedback(feedback),
     });
+  },
+);
+
+adminFeedbackRouter.use(feedbackExists);
+
+adminFeedbackRouter.patch(
+  "/:id",
+  validate({ params: idParam, body: editFeedback }),
+  async (req, res) => {
+    const updatedFeedback = await db.feedback.update({
+      where: { id: req.params.id },
+      data: { status: req.body.status },
+    });
+
+    return res.json({ feedback: transformers.admin.feedback(updatedFeedback) });
   },
 );

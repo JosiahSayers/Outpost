@@ -14,3 +14,7 @@ export const feedbackSearch = z.strictObject({
   skip: numberQueryParam(0),
   status: arrayQueryParam(z.enum(FeedbackStatus), defaultStatuses),
 });
+
+export const editFeedback = z.strictObject({
+  status: z.enum(FeedbackStatus),
+});
