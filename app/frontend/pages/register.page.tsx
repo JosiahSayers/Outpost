@@ -1,5 +1,6 @@
 import { authClient } from "$/frontend/utils/auth-client";
 import { useUnauthenticatedGuard } from "$/frontend/utils/guards/unauthenticated.guard";
+import { newPasswordFields, refineNewPasswordsMatch } from "$/validation/auth";
 import {
   Anchor,
   Button,
@@ -16,21 +17,13 @@ import { useState } from "react";
 
 import { z } from "zod/v4";
 
-const registerSchema = z
-  .object({
+const registerSchema = refineNewPasswordsMatch(
+  z.object({
     name: z.string().min(1, { error: "Name is required" }),
     email: z.email({ error: "Please enter a valid email address" }),
-    password: z
-      .string()
-      .min(8, { error: "Password must be at least 8 characters" }),
-    confirmPassword: z
-      .string()
-      .min(1, { error: "Please confirm your password" }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    error: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+    ...newPasswordFields,
+  }),
+);
 
 type RegisterValues = z.infer<typeof registerSchema>;
 
@@ -40,7 +33,12 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<RegisterValues>({
-    initialValues: { name: "", email: "", password: "", confirmPassword: "" },
+    initialValues: {
+      name: "",
+      email: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
     validate: schemaResolver(registerSchema, { sync: true }),
   });
 
@@ -51,7 +49,7 @@ export default function RegisterPage() {
     const { error } = await authClient.signUp.email({
       name: values.name,
       email: values.email,
-      password: values.password,
+      password: values.newPassword,
       callbackURL: "/",
     });
 
@@ -94,7 +92,7 @@ export default function RegisterPage() {
               label="Password"
               placeholder="At least 8 characters"
               autoComplete="new-password"
-              {...form.getInputProps("password")}
+              {...form.getInputProps("newPassword")}
             />
 
             <PasswordInput

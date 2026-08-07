@@ -1,4 +1,18 @@
+import { db } from "$/utils/db";
+import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./support/fixtures";
+
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
+
+function signIn(
+  request: APIRequestContext,
+  credentials: { email: string; password: string },
+) {
+  return request.post("/api/auth/sign-in/email", {
+    data: credentials,
+    headers: { Origin: BASE_URL },
+  });
+}
 
 test.describe("Account Settings page", () => {
   test.beforeEach(async ({ page, user }) => {
@@ -90,6 +104,85 @@ test.describe("Account Settings page", () => {
     }) => {
       await expect(page.getByText(user.name, { exact: true })).toBeVisible();
       await expect(page.getByText(user.email)).toBeVisible();
+    });
+  });
+
+  test.describe("Security panel", () => {
+    test.beforeEach(async ({ page }) => {
+      await page.getByRole("link", { name: "Security" }).click();
+      await expect(
+        page.getByRole("heading", { level: 3, name: "Security" }),
+      ).toBeVisible();
+    });
+
+    test("shows an inline error for an incorrect current password", async ({
+      page,
+    }) => {
+      await page
+        .getByRole("textbox", { name: "Current password" })
+        .fill("the-wrong-password");
+      await page
+        .getByRole("textbox", { name: "New password", exact: true })
+        .fill("brand-new-password789");
+      await page
+        .getByRole("textbox", { name: "Confirm new password" })
+        .fill("brand-new-password789");
+      await page.getByRole("button", { name: "Change password" }).click();
+
+      await expect(page.getByText(/invalid password/i)).toBeVisible();
+    });
+
+    test("changes the password and revokes other sessions", async ({
+      page,
+      user,
+      request,
+    }) => {
+      const newPassword = "brand-new-password789";
+
+      // Sign in from a second, independent context to simulate another
+      // device holding a session for this user.
+      const otherDeviceSignIn = await signIn(request, {
+        email: user.email,
+        password: user.password,
+      });
+      expect(otherDeviceSignIn.ok()).toBe(true);
+
+      const sessionsBeforeChange = await db.session.count({
+        where: { userId: user.id },
+      });
+      expect(sessionsBeforeChange).toBeGreaterThanOrEqual(2);
+
+      await page
+        .getByRole("textbox", { name: "Current password" })
+        .fill(user.password);
+      await page
+        .getByRole("textbox", { name: "New password", exact: true })
+        .fill(newPassword);
+      await page
+        .getByRole("textbox", { name: "Confirm new password" })
+        .fill(newPassword);
+      await page.getByRole("button", { name: "Change password" }).click();
+
+      await expect(
+        page.getByText(/signed out of other devices/i),
+      ).toBeVisible();
+
+      const sessionsAfterChange = await db.session.count({
+        where: { userId: user.id },
+      });
+      expect(sessionsAfterChange).toBe(1);
+
+      const failedSignIn = await signIn(request, {
+        email: user.email,
+        password: user.password,
+      });
+      expect(failedSignIn.ok()).toBe(false);
+
+      const successfulSignIn = await signIn(request, {
+        email: user.email,
+        password: newPassword,
+      });
+      expect(successfulSignIn.ok()).toBe(true);
     });
   });
 

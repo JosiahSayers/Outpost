@@ -1,4 +1,5 @@
 import type { DefinedJob } from "$/jobs/define-job";
+import sendPasswordChangedEmailJob from "$/jobs/workers/email/password-changed";
 import sendResetPasswordEmailJob from "$/jobs/workers/email/reset-password";
 import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
@@ -18,6 +19,7 @@ export const registry: DefinedJob<any, any>[] = [
   moveToInProgressJob,
   moveToFinishedJob,
   sendResetPasswordEmailJob,
+  sendPasswordChangedEmailJob,
   ingestPadUsJob,
   ingestPadUsChunkJob,
   finalizePadUsIngestJob,

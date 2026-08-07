@@ -1,5 +1,6 @@
 import { authClient } from "$/frontend/utils/auth-client";
 import { useUnauthenticatedGuard } from "$/frontend/utils/guards/unauthenticated.guard";
+import { newPasswordFields, refineNewPasswordsMatch } from "$/validation/auth";
 import {
   Alert,
   Anchor,
@@ -16,19 +17,9 @@ import { useState } from "react";
 import { useSearchParams } from "wouter";
 import { z } from "zod/v4";
 
-const resetPasswordSchema = z
-  .object({
-    newPassword: z
-      .string()
-      .min(8, { error: "Password must be at least 8 characters" }),
-    confirmPassword: z
-      .string()
-      .min(1, { error: "Please confirm your password" }),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    error: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const resetPasswordSchema = refineNewPasswordsMatch(
+  z.object(newPasswordFields),
+);
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
