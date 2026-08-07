@@ -1,14 +1,21 @@
 import "@testing-library/jest-dom";
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
 let sessionData: { user: object } | null = null;
 let isPending = false;
+let sessionError: { status: number } | null = null;
+const refetch = mock(() => {});
 
 mock.module("$/frontend/utils/auth-client", () => ({
   authClient: {
-    useSession: () => ({ data: sessionData, isPending }),
+    useSession: () => ({
+      data: sessionData,
+      isPending,
+      error: sessionError,
+      refetch,
+    }),
   },
 }));
 
@@ -33,6 +40,8 @@ describe("when there is no session and the session is not pending", () => {
   beforeEach(() => {
     sessionData = null;
     isPending = false;
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/dashboard", navigate]}>
@@ -55,6 +64,8 @@ describe("when the session is still loading", () => {
   beforeEach(() => {
     sessionData = null;
     isPending = true;
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/dashboard", navigate]}>
@@ -74,6 +85,8 @@ describe("when there is a valid session", () => {
   beforeEach(() => {
     sessionData = { user: { id: "1", email: "test@example.com" } };
     isPending = false;
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/dashboard", navigate]}>
@@ -87,12 +100,64 @@ describe("when there is a valid session", () => {
   });
 });
 
+describe("when the session check fails with a transient (non-401) error and there is no cached data", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = null;
+    isPending = false;
+    sessionError = { status: 502 };
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/dashboard", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("does not navigate, treating it like a still-loading session", () => {
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("retries the session check", async () => {
+    await waitFor(() => expect(refetch).toHaveBeenCalled(), {
+      timeout: 3000,
+    });
+  });
+});
+
+describe("when the session check fails with a 401", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = null;
+    isPending = false;
+    sessionError = { status: 401 };
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/dashboard", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("navigates to sign-in, since a 401 confirms there is no session", () => {
+    expect(navigate).toHaveBeenCalledWith(
+      "/sign-in?redirect=%2Fdashboard",
+      undefined,
+    );
+  });
+});
+
 describe("when there is no session because a sign-out was initiated", () => {
   const navigate = mock(() => {});
 
   beforeEach(() => {
     sessionData = null;
     isPending = false;
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <SignOutProvider>
