@@ -1,5 +1,6 @@
 import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import FluidUnitField from "$/frontend/account/preferences-panel/fluid-unit-field";
+import WeightRollupField from "$/frontend/account/preferences-panel/weight-rollup-field";
 import WeightUnitField from "$/frontend/account/preferences-panel/weight-unit-field";
 import { type FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import { type WeightUnit } from "$/frontend/shared-components/converter/weight-conversions";
@@ -20,6 +21,7 @@ import { DropIcon, ScalesIcon } from "@phosphor-icons/react";
 
 export type FluidSettingSlug = "liquid_viewing_unit" | "liquid_entry_unit";
 export type WeightSettingSlug = "weight_viewing_unit" | "weight_entry_unit";
+export type WeightRollupSlug = "weight_rollup";
 
 export default function PreferencesPanel() {
   const { isPending } = useAccountSettingsContext();
@@ -29,7 +31,8 @@ export default function PreferencesPanel() {
   const savePreference = (
     input:
       | { slug: FluidSettingSlug; value: FluidUnit }
-      | { slug: WeightSettingSlug; value: WeightUnit },
+      | { slug: WeightSettingSlug; value: WeightUnit }
+      | { slug: WeightRollupSlug; value: "true" | "false" },
   ) => {
     updateSetting.mutate(input, {
       onError: notifyError("Couldn't update preference"),
@@ -72,6 +75,11 @@ export default function PreferencesPanel() {
           <WeightUnitField slug="weight_viewing_unit" onSave={savePreference} />
           <WeightUnitField slug="weight_entry_unit" onSave={savePreference} />
         </SimpleGrid>
+        <WeightRollupField
+          slug="weight_rollup"
+          onSave={savePreference}
+          mt="md"
+        />
       </Card>
     </Stack>
   );

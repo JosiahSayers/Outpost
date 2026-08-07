@@ -120,13 +120,14 @@ describe("PATCH /settings", () => {
               "code": "invalid_union",
               "discriminator": "slug",
               "errors": [],
-              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit'",
+              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup'",
               "note": "No matching discriminator",
               "options": [
                 "liquid_viewing_unit",
                 "liquid_entry_unit",
                 "weight_viewing_unit",
                 "weight_entry_unit",
+                "weight_rollup",
               ],
               "path": [
                 "settings",
@@ -281,6 +282,7 @@ describe("PATCH /settings", () => {
       liquid_entry_unit: "cupsUS",
       weight_viewing_unit: "kilograms",
       weight_entry_unit: "ounces",
+      weight_rollup: "false",
     };
 
     await request(app)

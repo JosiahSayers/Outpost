@@ -180,7 +180,7 @@ describe("MealPlanSection", () => {
     ]);
 
     expect(screen.getAllByText("14.11 oz")).toHaveLength(4); // both days, both views
-    expect(screen.getAllByText("1.76 lb")).toHaveLength(2); // trip total, both views
+    expect(screen.getAllByText("1 lb 12 oz")).toHaveLength(2); // trip total, both views
   });
 
   it("shows a water figure for each meal that needs it, and hides it for dry meals, in both views", () => {

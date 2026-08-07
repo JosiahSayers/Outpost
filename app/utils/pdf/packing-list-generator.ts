@@ -212,6 +212,7 @@ export async function generatePackingListPdf(
     nextString: string,
     nextStringWidth: number,
     nextStringTopMargin: number = 0,
+    extraTrailingHeight: number = 0,
   ) => {
     const atEndOfColumn =
       document.y >=
@@ -219,7 +220,8 @@ export async function generatePackingListPdf(
     const willOverflowPage =
       document.heightOfString(nextString, { width: nextStringWidth }) +
         document.y +
-        nextStringTopMargin >
+        nextStringTopMargin +
+        extraTrailingHeight >
       document.page.height - document.page.margins.bottom;
 
     if ((atEndOfColumn || willOverflowPage) && column < 3) {
@@ -260,10 +262,53 @@ export async function generatePackingListPdf(
           .lineGap(lineGap);
       };
 
+      const sortedItems = section.items.slice().sort(compareItemsForDisplay);
+      const firstItem = sortedItems[0];
+
+      // A title alone at the bottom of a column, with all of its items
+      // pushed to the next one, reads as a mistake. Measure how much room
+      // the first line of content needs (the "Optional:" label if the
+      // section leads with an optional item, otherwise the first item's
+      // line) and require the title to have room for both, so the whole
+      // section moves together when it doesn't fit.
+      document
+        .fontSize(12)
+        .font("Playfair Display Bold")
+        .lineGap(lineGap * 2);
+      const titleHeight = document.heightOfString(section.name, {
+        width: columnWidth,
+      });
+
+      let firstContentHeight = 0;
+      if (firstItem) {
+        if (firstItem.optional) {
+          document
+            .font("Source Sans 3 SemiBold")
+            .fontSize(10)
+            .lineGap(lineGap * 2);
+          firstContentHeight =
+            12 + document.heightOfString("Optional:", { width: columnWidth });
+        } else {
+          document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
+          firstContentHeight = document.heightOfString(
+            getItemDisplayName(firstItem) + getQuantityLabel(firstItem),
+            { width: columnTextWidth },
+          );
+        }
+      }
+
+      // columnCalculations measures `nextString` using whichever font is
+      // active when it's called, so restore the title's font before
+      // invoking it (firstContentHeight measurement above may have changed it).
+      document
+        .fontSize(12)
+        .font("Playfair Display Bold")
+        .lineGap(lineGap * 2);
       const overflowed = columnCalculations(
         section.name,
         columnWidth,
         titleTopMargin,
+        titleHeight + firstContentHeight,
       );
       titleTopMargin = overflowed ? 0 : titleTopMargin;
       document
@@ -280,7 +325,7 @@ export async function generatePackingListPdf(
       document.fontSize(8).font("Source Sans 3").lineGap(lineGap);
 
       let lastItemWasOptional = false;
-      section.items.sort(compareItemsForDisplay).forEach((item) => {
+      sortedItems.forEach((item) => {
         if (item.optional && !lastItemWasOptional) {
           const didMove = columnCalculations("Optional:", columnWidth, 12);
           if (didMove) drawContinuationLabel();

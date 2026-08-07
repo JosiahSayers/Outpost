@@ -21,6 +21,24 @@ export const WEIGHT_UNIT_ABBREVIATION: Record<WeightUnit, string> = {
   pounds: "lb",
 };
 
+// Only "lb" pluralizes to "lbs" -- g/kg/oz are the same abbreviation in both
+// the singular and plural (there's no separate "gs"/"kgs"/"ozs" convention).
+export const WEIGHT_UNIT_ABBREVIATION_PLURAL: Record<WeightUnit, string> = {
+  grams: "g",
+  kilograms: "kg",
+  ounces: "oz",
+  pounds: "lbs",
+};
+
+export function weightUnitAbbreviation(
+  unit: WeightUnit,
+  value: number,
+): string {
+  return value === 1
+    ? WEIGHT_UNIT_ABBREVIATION[unit]
+    : WEIGHT_UNIT_ABBREVIATION_PLURAL[unit];
+}
+
 export const WEIGHT_UNIT_LABEL: Record<WeightUnit, string> = {
   grams: "Grams (g)",
   kilograms: "Kilograms (kg)",

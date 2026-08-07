@@ -79,8 +79,8 @@ test.describe("Gear Inventory Page", () => {
     }) => {
       // 745 + 1615 + 82 = 2442g. The stat bar rolls totals up to the next
       // unit once they pass 1.5x it, so this displays in pounds rather than
-      // the locale-detected ounces: 2442 / 453.59237 ≈ 5.38.
-      await expect(page.getByText("5.38 lb")).toBeVisible();
+      // the locale-detected ounces: 2442g = 5 lbs 6 oz.
+      await expect(page.getByText("5 lbs 6 oz")).toBeVisible();
     });
 
     test("shows the correct number of unique categories", async ({ page }) => {
@@ -89,21 +89,25 @@ test.describe("Gear Inventory Page", () => {
   });
 
   test.describe("weight formatting", () => {
-    test("displays weight in the locale-detected unit (ounces for en-US)", async ({
+    test("displays weight in the locale-detected unit (ounces for en-US), rolled up past the threshold", async ({
       page,
     }) => {
+      // 745g = 26.28 oz, above the 1.5 lb rollup threshold, so it rolls up
+      // (weight_rollup defaults to on).
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Durston X-Mid 1" })
-          .getByText("26.28 oz"),
+          .getByText("1 lb 10 oz"),
       ).toBeVisible();
+      // 1615g = 56.97 oz, also above the rollup threshold.
       await expect(
         page
           .getByRole("row")
           .filter({ hasText: "Gergory Zulu 45" })
-          .getByText("56.97 oz"),
+          .getByText("3 lbs 9 oz"),
       ).toBeVisible();
+      // 82g = 2.89 oz, below the rollup threshold, so it stays as a decimal.
       await expect(
         page
           .getByRole("row")

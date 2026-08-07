@@ -40,7 +40,7 @@ export default function PackingListView({ editable = false, list }: Props) {
     () => buildPackingListGearTotals(sections.flatMap((s) => s.items)),
     [sections],
   );
-  const formatWeight = useWeightDisplay({ rollUp: true });
+  const formatWeight = useWeightDisplay();
   // Section the user just added, so it mounts directly in edit mode.
   const [autoEditSectionId, setAutoEditSectionId] = useState<string | null>(
     null,

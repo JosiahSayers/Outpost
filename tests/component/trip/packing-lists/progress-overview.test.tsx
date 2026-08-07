@@ -142,7 +142,7 @@ describe("weight summary", () => {
       screen.getByText(/Food: 5 oz packed · 10 oz unpacked/),
     ).toBeInTheDocument();
     // 20oz gear + 15oz food = 35oz, which is >= the 1.5lb rollup threshold.
-    expect(screen.getByText(/Total: 2.19 lb/)).toBeInTheDocument();
+    expect(screen.getByText(/Total: 2 lbs 3 oz/)).toBeInTheDocument();
   });
 
   it("treats a missing packed value as 0 when nothing of that kind is packed yet", () => {

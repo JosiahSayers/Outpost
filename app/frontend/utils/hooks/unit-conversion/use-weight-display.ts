@@ -1,3 +1,4 @@
+import { usePreferredBoolean } from "$/frontend/account/use-preferred-boolean";
 import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
 import {
   WEIGHT_CONVERSIONS,
@@ -5,17 +6,12 @@ import {
   WEIGHT_REGION_DEFAULT_UNIT,
   WEIGHT_ROLLUP_THRESHOLD,
   WEIGHT_ROLLUP_UNIT,
-  WEIGHT_UNIT_ABBREVIATION,
+  weightUnitAbbreviation,
 } from "$/frontend/shared-components/converter/weight-conversions";
 import { useCallback } from "react";
 
 export interface UseWeightDisplayOptions {
   decimalScale?: number;
-  // When true, values that are large for the display unit are shown in the
-  // next larger unit instead (e.g. 26 oz displays as "1.63 lb"). Off by
-  // default so lists of individually-entered weights stay in a consistent
-  // unit; opt in for places (like totals) where the unit doesn't matter.
-  rollUp?: boolean;
 }
 
 // Formats a canonical-grams value for read-only display (e.g. "450 g" or
@@ -24,36 +20,64 @@ export interface UseWeightDisplayOptions {
 // formatter function rather than a formatted string so the hook can be
 // called once per component and the formatter reused across a list (e.g.
 // mapped table rows) without violating the rules of hooks.
+//
+// Whether large values roll up into the next unit instead of showing a
+// decimal (e.g. 24 oz as "1 lb 8 oz" rather than "1.5 lb") is entirely
+// governed by the user's weight_rollup account setting (default on) --
+// callers don't get a say, so the setting means the same thing everywhere
+// it's used.
 export function useWeightDisplay({
   decimalScale = 2,
-  rollUp = false,
 }: UseWeightDisplayOptions = {}) {
   const unit = usePreferredUnit(
     "weight_viewing_unit",
     WEIGHT_REGION_DEFAULT_UNIT,
     WEIGHT_DEFAULT_UNIT,
   );
+  const rollUpEnabled = usePreferredBoolean("weight_rollup", true);
 
   return useCallback(
     (grams: number | null): string => {
       if (grams === null) return "";
 
-      const rollupUnit = rollUp ? WEIGHT_ROLLUP_UNIT[unit] : undefined;
+      const rollupUnit = rollUpEnabled ? WEIGHT_ROLLUP_UNIT[unit] : undefined;
       const rollupThreshold =
         rollupUnit &&
         WEIGHT_ROLLUP_THRESHOLD * WEIGHT_CONVERSIONS.multipliers[rollupUnit];
-      const displayUnit =
-        rollupUnit && rollupThreshold && grams >= rollupThreshold
-          ? rollupUnit
-          : unit;
 
-      const value = grams / WEIGHT_CONVERSIONS.multipliers[displayUnit];
+      if (rollupUnit && rollupThreshold && grams >= rollupThreshold) {
+        const rollupMultiplier = WEIGHT_CONVERSIONS.multipliers[rollupUnit];
+        const unitMultiplier = WEIGHT_CONVERSIONS.multipliers[unit];
+        const unitsPerRollup = rollupMultiplier / unitMultiplier;
+
+        let whole = Math.floor(grams / rollupMultiplier);
+        let remainder = Math.round(
+          (grams - whole * rollupMultiplier) / unitMultiplier,
+        );
+
+        // Rounding the remainder up to the small unit can carry it into a
+        // full rollup unit (e.g. 15.6 oz rounding to 16 oz === 1 lb).
+        if (remainder >= unitsPerRollup) {
+          whole += 1;
+          remainder = 0;
+        }
+
+        const wholePart = `${whole} ${weightUnitAbbreviation(rollupUnit, whole)}`;
+        return remainder === 0
+          ? wholePart
+          : `${wholePart} ${remainder} ${weightUnitAbbreviation(unit, remainder)}`;
+      }
+
+      const value = grams / WEIGHT_CONVERSIONS.multipliers[unit];
+      // Round the same way the formatter will, so a value that displays as
+      // "1" (e.g. 1.004 at decimalScale 2) is treated as singular.
+      const rounded = Number(value.toFixed(decimalScale));
       const formatted = new Intl.NumberFormat(navigator.language, {
         maximumFractionDigits: decimalScale,
       }).format(value);
 
-      return `${formatted} ${WEIGHT_UNIT_ABBREVIATION[displayUnit]}`;
+      return `${formatted} ${weightUnitAbbreviation(unit, rounded)}`;
     },
-    [unit, decimalScale, rollUp],
+    [unit, decimalScale, rollUpEnabled],
   );
 }
