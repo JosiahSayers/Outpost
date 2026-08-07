@@ -6,7 +6,6 @@ import {
   Button,
   Drawer,
   Group,
-  Input,
   Stack,
   Text,
   Textarea,
@@ -26,7 +25,7 @@ export default function FeedbackDrawer({ opened, onClose }: Props) {
   const [location] = useLocation();
 
   const form = useForm({
-    initialValues: { text: "", submittedOnPage: location },
+    initialValues: { text: "" },
     validate: schemaResolver(createFeedback, { sync: true }),
   });
 
@@ -36,8 +35,13 @@ export default function FeedbackDrawer({ opened, onClose }: Props) {
     onClose();
   };
 
+  // `location` is read here (not off form state) so the drawer stays
+  // pinned to whatever page is current when the user actually submits —
+  // this component is a persistent sibling in Header that never remounts
+  // across navigation, so a value captured into form state at mount would
+  // go stale the moment the user navigates elsewhere before sending.
   const handleSubmit = form.onSubmit((values) => {
-    submitFeedback.mutate(values);
+    submitFeedback.mutate({ ...values, submittedOnPage: location });
   });
 
   return (
@@ -84,11 +88,6 @@ export default function FeedbackDrawer({ opened, onClose }: Props) {
               autosize
               minRows={5}
               {...form.getInputProps("text")}
-            />
-            <Input
-              type="hidden"
-              value={location}
-              {...form.getInputProps("submittedOnPage")}
             />
             {submitFeedback.isError && (
               <Error message="Couldn't submit your feedback. Please try again." />
