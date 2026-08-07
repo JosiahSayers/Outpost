@@ -54,6 +54,7 @@ adminFeedbackRouter.get(
     const feedback = await db.feedback.findUnique({
       where: { id: req.params.id },
       include: {
+        user: true,
         feedbackNotes: {
           include: {
             admin: true,

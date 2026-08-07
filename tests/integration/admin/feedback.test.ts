@@ -285,6 +285,7 @@ describe("GET /:id", () => {
         }),
       ],
       duplicates: [expect.objectContaining({ id: duplicate.id })],
+      user: expect.objectContaining({ id: userId }),
     });
   });
 

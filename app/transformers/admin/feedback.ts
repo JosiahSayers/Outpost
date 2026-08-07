@@ -1,4 +1,8 @@
 import type { ClientAdminFeedbackNote } from "$/transformers/admin/feedback-note";
+import {
+  transform as userTransform,
+  type ClientAdminUser,
+} from "$/transformers/admin/user";
 import type {
   Feedback,
   FeedbackAuditLog,
@@ -38,12 +42,14 @@ export type FullFeedback = Feedback & {
   feedbackNotes: Array<FeedbackNote & { admin: User | null }>;
   feedbackAuditLogs: Array<FeedbackAuditLog & { admin: User | null }>;
   duplicates: Feedback[];
+  user: User;
 };
 
 export type ClientFullAdminFeedback = ClientAdminFeedback & {
   notes: ClientAdminFeedbackNote[];
   auditLogs: ClientAdminFeedbackAuditLog[];
   duplicates: ClientAdminFeedback[];
+  user: ClientAdminUser;
 };
 
 export function transformFull(item: FullFeedback): ClientFullAdminFeedback {
@@ -52,5 +58,6 @@ export function transformFull(item: FullFeedback): ClientFullAdminFeedback {
     notes: item.feedbackNotes.map(feedbackNoteTransform),
     auditLogs: item.feedbackAuditLogs.map(feedbackAuditTransform),
     duplicates: item.duplicates.map(transform),
+    user: userTransform(item.user),
   };
 }

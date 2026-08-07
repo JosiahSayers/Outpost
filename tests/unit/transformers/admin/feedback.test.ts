@@ -1,4 +1,5 @@
 import { transform, transformFull } from "$/transformers/admin/feedback";
+import { transform as userTransform } from "$/transformers/admin/user";
 import { describe, expect, it } from "bun:test";
 import { make } from "../../../helpers/test-data/make";
 
@@ -37,11 +38,13 @@ describe("transform", () => {
 describe("transformFull", () => {
   it("returns the expected shape with empty relations", () => {
     const feedback = make("Feedback");
+    const user = make("User");
     const full = {
       ...feedback,
       feedbackNotes: [],
       feedbackAuditLogs: [],
       duplicates: [],
+      user,
     };
 
     expect(transformFull(full)).toEqual({
@@ -49,6 +52,7 @@ describe("transformFull", () => {
       notes: [],
       auditLogs: [],
       duplicates: [],
+      user: userTransform(user),
     });
   });
 
@@ -67,11 +71,13 @@ describe("transformFull", () => {
       admin,
     };
     const duplicate = make("Feedback");
+    const user = make("User");
     const full = {
       ...feedback,
       feedbackNotes: [note],
       feedbackAuditLogs: [auditLog],
       duplicates: [duplicate],
+      user,
     };
 
     expect(transformFull(full)).toEqual({
@@ -118,6 +124,7 @@ describe("transformFull", () => {
         },
       ],
       duplicates: [transform(duplicate)],
+      user: userTransform(user),
     });
   });
 
@@ -136,6 +143,7 @@ describe("transformFull", () => {
       feedbackNotes: [note],
       feedbackAuditLogs: [auditLog],
       duplicates: [],
+      user: make("User"),
     };
 
     expect(transformFull(full)).toMatchObject({
