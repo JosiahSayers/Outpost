@@ -3,6 +3,7 @@ import NoteEntry from "$/frontend/admin/feedback-detail/note-entry";
 import { formatRelativeTime } from "$/frontend/utils/format-relative-time";
 import type { ClientFullAdminFeedback } from "$/transformers/admin/feedback";
 import { Stack, Text } from "@mantine/core";
+import { useState } from "react";
 
 interface Props {
   feedback: ClientFullAdminFeedback;
@@ -26,6 +27,9 @@ type Entry =
 // chronological feed — newest first, matching how each list is already
 // ordered server-side.
 export default function Timeline({ feedback }: Props) {
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(
+    null,
+  );
   const entries: Entry[] = [
     ...feedback.notes.map((note): Entry => ({
       type: "note",
@@ -51,9 +55,14 @@ export default function Timeline({ feedback }: Props) {
             key={entry.key}
             feedbackId={feedback.id}
             note={entry.note}
+            highlighted={entry.note.id === highlightedNoteId}
           />
         ) : (
-          <LogEntry key={entry.key} log={entry.log} />
+          <LogEntry
+            key={entry.key}
+            log={entry.log}
+            onNoteHover={setHighlightedNoteId}
+          />
         ),
       )}
       <Text size="xs" c="dimmed" px={4}>

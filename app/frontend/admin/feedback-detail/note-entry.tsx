@@ -19,9 +19,10 @@ import { useState } from "react";
 interface Props {
   feedbackId: string;
   note: ClientAdminFeedbackNote;
+  highlighted?: boolean;
 }
 
-export default function NoteEntry({ feedbackId, note }: Props) {
+export default function NoteEntry({ feedbackId, note, highlighted }: Props) {
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState(note.message);
   const [userFacing, setUserFacing] = useState(note.userFacing);
@@ -46,7 +47,16 @@ export default function NoteEntry({ feedbackId, note }: Props) {
   }
 
   return (
-    <Paper withBorder p="sm">
+    <Paper
+      withBorder
+      p="sm"
+      style={{
+        backgroundColor: highlighted
+          ? "var(--mantine-color-yellow-light)"
+          : undefined,
+        transition: "background-color 150ms ease",
+      }}
+    >
       <Group gap="sm" wrap="nowrap" align="flex-start">
         <Avatar radius="xl" size={30} color="bark-brown" variant="light">
           {note.admin ? getInitials(note.admin.name) : "?"}
@@ -64,6 +74,9 @@ export default function NoteEntry({ feedbackId, note }: Props) {
               >
                 {note.userFacing ? "Visible to submitter" : "Internal"}
               </Badge>
+              <Text size="xs" c="dimmed" ff="monospace">
+                (#{note.id.slice(0, 8)})
+              </Text>
             </Group>
             <Group gap="xs" wrap="nowrap">
               <Text size="xs" c="dimmed">
