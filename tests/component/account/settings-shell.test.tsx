@@ -75,6 +75,20 @@ describe("SettingsShell", () => {
     await waitFor(() => {});
   });
 
+  it("switches to the Security panel when clicked", async () => {
+    renderShell();
+
+    fireEvent.click(screen.getByText("Security"));
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Security" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: "Profile" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {});
+  });
+
   it("renders Notifications and Privacy as disabled with a Soon badge", () => {
     renderShell();
 

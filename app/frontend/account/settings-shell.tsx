@@ -1,9 +1,11 @@
 import PreferencesPanel from "$/frontend/account/preferences-panel";
 import ProfilePanel from "$/frontend/account/profile-panel";
+import SecurityPanel from "$/frontend/account/security-panel";
 import { Badge, Box, Divider, Flex, NavLink, Paper } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   BellIcon,
+  LockIcon,
   ShieldIcon,
   SlidersHorizontalIcon,
   UserIcon,
@@ -11,9 +13,9 @@ import {
 import type { ReactNode } from "react";
 import { Link } from "wouter";
 
-type SettingsTab = "profile" | "preferences";
+type SettingsTab = "profile" | "preferences" | "security";
 
-const SETTINGS_TABS: SettingsTab[] = ["profile", "preferences"];
+const SETTINGS_TABS: SettingsTab[] = ["profile", "preferences", "security"];
 
 function isSettingsTab(value: string | undefined): value is SettingsTab {
   return SETTINGS_TABS.includes(value as SettingsTab);
@@ -35,6 +37,7 @@ export default function SettingsShell({
   const tabContent: Record<SettingsTab, ReactNode> = {
     profile: <ProfilePanel name={name} email={email} />,
     preferences: <PreferencesPanel />,
+    security: <SecurityPanel />,
   } as const;
 
   return (
@@ -54,6 +57,13 @@ export default function SettingsShell({
             leftSection={<SlidersHorizontalIcon size={16} />}
             active={activeTab === "preferences"}
             to="/account/preferences"
+          />
+          <NavLink
+            component={Link}
+            label="Security"
+            leftSection={<LockIcon size={16} />}
+            active={activeTab === "security"}
+            to="/account/security"
           />
           <NavLink
             component={Link}

@@ -70,4 +70,5 @@ export const emailSpacing = {
  */
 const APP_URL =
   process.env.BETTER_AUTH_URL ?? "https://outpost.sayerscloud.com";
+export const emailAppUrl = APP_URL;
 export const emailLogoUrl = `${APP_URL}/email-assets/outpost-logo-no-tagline.png`;

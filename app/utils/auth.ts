@@ -1,6 +1,8 @@
+import { sendPasswordChangedEmailQueue } from "$/jobs/workers/email/password-changed";
 import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { createAuthMiddleware } from "better-auth/api";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
 import { admin } from "better-auth/plugins";
 
@@ -46,6 +48,16 @@ export const baseAuthConfig = {
     },
   },
   plugins: [admin()],
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/change-password") {
+        const user = ctx.context.session?.user;
+        if (user) {
+          sendPasswordChangedEmailQueue.add(user.email, { user });
+        }
+      }
+    }),
+  },
 } satisfies BetterAuthOptions;
 
 export const auth = betterAuth(baseAuthConfig);
