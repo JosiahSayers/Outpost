@@ -51,6 +51,11 @@ export function useAdminFeedbackList(
       status.forEach((s) => params.append("status", s));
       return apiClient<AdminFeedbackListResult>(`/admin/feedback?${params}`);
     },
+    // Feedback is submitted from elsewhere in the app (not through any
+    // mutation this admin screen knows about to invalidate), so the global
+    // 15-minute staleTime would otherwise serve a stale cached page —
+    // freshly-submitted feedback wouldn't show up until a hard refresh.
+    staleTime: 0,
   });
 }
 
@@ -59,6 +64,10 @@ export function useAdminFeedbackDetail(id: string) {
     queryKey: adminFeedbackKeys.detail(id),
     queryFn: () =>
       apiClient<{ feedback: ClientFullAdminFeedback }>(`/admin/feedback/${id}`),
+    // Same reasoning as useAdminFeedbackList — e.g. the async metadata-
+    // inference job can update inferredTopic/inferredSubject after this
+    // item was first cached, and another admin can add notes concurrently.
+    staleTime: 0,
   });
 }
 

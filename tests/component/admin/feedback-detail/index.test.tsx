@@ -107,7 +107,53 @@ function makeQueryClient() {
   });
 }
 
-function renderDetail(queryClient: QueryClient = makeQueryClient()) {
+// useAdminFeedbackDetail always attempts a background refetch on mount
+// (staleTime: 0, see admin-feedback.ts), so every test's fetch mock has to
+// account for that extra GET, not just whatever request it's actually
+// interested in. This installer handles it once: GET requests for this
+// feedback's detail endpoint echo back whatever's already in the query
+// cache (resolving quickly, like a real fetch, without changing what's on
+// screen), and anything else — the endpoints individual tests care about —
+// is delegated to an optional handler.
+function installFetchMock(
+  queryClient: QueryClient,
+  handleOther?: (url: URL, init?: RequestInit) => Promise<Response> | undefined,
+) {
+  global.fetch = mock((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(String(input), "http://localhost");
+
+    const isDetailGet =
+      url.pathname === `/admin/feedback/${FEEDBACK_ID}` &&
+      (!init?.method || init.method === "GET");
+    if (isDetailGet) {
+      const data = queryClient.getQueryData(
+        adminFeedbackKeys.detail(FEEDBACK_ID),
+      );
+      if (data) {
+        return Promise.resolve(
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      }
+    }
+
+    const handled = handleOther?.(url, init);
+    if (handled) return handled;
+
+    // Nothing seeded/handled for this request — hang rather than error, so
+    // a test that didn't anticipate this request doesn't get a spurious
+    // failure.
+    return new Promise(() => {});
+  }) as unknown as typeof fetch;
+}
+
+function renderDetail(
+  queryClient: QueryClient = makeQueryClient(),
+  handleOther?: (url: URL, init?: RequestInit) => Promise<Response> | undefined,
+) {
+  installFetchMock(queryClient, handleOther);
   render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={{ respectReducedMotion: true }}>
@@ -178,11 +224,9 @@ describe("when the feedback doesn't exist", () => {
   });
 
   it("shows a not-found state", async () => {
-    global.fetch = mock(() =>
+    renderDetail(makeQueryClient(), () =>
       Promise.resolve(new Response(null, { status: 404 })),
-    ) as unknown as typeof fetch;
-
-    renderDetail();
+    );
 
     await waitFor(() =>
       expect(
@@ -199,11 +243,9 @@ describe("when the request fails", () => {
   });
 
   it("shows a generic error state", async () => {
-    global.fetch = mock(() =>
+    renderDetail(makeQueryClient(), () =>
       Promise.resolve(new Response(null, { status: 500 })),
-    ) as unknown as typeof fetch;
-
-    renderDetail();
+    );
 
     await waitFor(() =>
       expect(
@@ -244,10 +286,15 @@ describe("posting a note", () => {
     queryClient.setQueryData(adminFeedbackKeys.detail(FEEDBACK_ID), {
       feedback: makeFullFeedback({ notes: [], auditLogs: [] }),
     });
-    global.fetch = mock((url: string, options?: RequestInit) => {
-      expect(url).toBe(`/admin/feedback/${FEEDBACK_ID}/notes`);
-      expect(options?.method).toBe("POST");
-      expect(JSON.parse(options?.body as string)).toEqual({
+
+    renderDetail(queryClient, (url, init) => {
+      if (
+        url.pathname !== `/admin/feedback/${FEEDBACK_ID}/notes` ||
+        init?.method !== "POST"
+      ) {
+        return undefined;
+      }
+      expect(JSON.parse(init.body as string)).toEqual({
         message: "Reproduced locally too.",
         userFacing: true,
       });
@@ -263,9 +310,7 @@ describe("posting a note", () => {
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       );
-    }) as unknown as typeof fetch;
-
-    renderDetail(queryClient);
+    });
     await waitFor(() => screen.getByText(/Packing list quantities reset/));
 
     fireEvent.change(screen.getByPlaceholderText("Add a note…"), {
@@ -291,10 +336,15 @@ describe("editing an existing note", () => {
     queryClient.setQueryData(adminFeedbackKeys.detail(FEEDBACK_ID), {
       feedback: makeFullFeedback(),
     });
-    global.fetch = mock((url: string, options?: RequestInit) => {
-      expect(url).toBe(`/admin/feedback/${FEEDBACK_ID}/notes/note-1`);
-      expect(options?.method).toBe("PATCH");
-      expect(JSON.parse(options?.body as string)).toEqual({
+
+    renderDetail(queryClient, (url, init) => {
+      if (
+        url.pathname !== `/admin/feedback/${FEEDBACK_ID}/notes/note-1` ||
+        init?.method !== "PATCH"
+      ) {
+        return undefined;
+      }
+      expect(JSON.parse(init.body as string)).toEqual({
         message: "Confirmed on staging — filed BTP-142, now fixed.",
         userFacing: false,
       });
@@ -308,9 +358,7 @@ describe("editing an existing note", () => {
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       );
-    }) as unknown as typeof fetch;
-
-    renderDetail(queryClient);
+    });
     await waitFor(() => screen.getByText(/Packing list quantities reset/));
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
