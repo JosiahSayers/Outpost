@@ -40,13 +40,10 @@ notificationsRouter.get(
       transformers.notification,
       total,
       req.query.take,
+      "notifications",
     );
 
-    return res.json({
-      notifications: page.items,
-      pageSize: page.pageSize,
-      total: page.total,
-    });
+    return res.json(page);
   },
 );
 

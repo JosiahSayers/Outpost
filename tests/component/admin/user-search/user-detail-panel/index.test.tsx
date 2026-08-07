@@ -1,11 +1,13 @@
 import UserDetailPanel from "$/frontend/admin/user-search/user-detail-panel";
-import type { ClientAdminUser } from "$/transformers/admin/user";
+import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 
-function makeUser(overrides: Partial<ClientAdminUser> = {}): ClientAdminUser {
+function makeUser(
+  overrides: Partial<ClientAdminUserWithCounts> = {},
+): ClientAdminUserWithCounts {
   return {
     id: "user-1",
     name: "Tomás Reyes",
@@ -28,7 +30,7 @@ function makeUser(overrides: Partial<ClientAdminUser> = {}): ClientAdminUser {
   };
 }
 
-function renderPanel(user: ClientAdminUser) {
+function renderPanel(user: ClientAdminUserWithCounts) {
   render(
     <MantineProvider>
       <UserDetailPanel user={user} />

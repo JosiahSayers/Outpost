@@ -1,9 +1,9 @@
-import type { ClientAdminUser } from "$/transformers/admin/user";
+import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { apiClient, ApiError } from "./client";
 
 export interface AdminUserSearchResult {
-  users: ClientAdminUser[];
+  users: ClientAdminUserWithCounts[];
   total: number;
   pageSize: number;
 }

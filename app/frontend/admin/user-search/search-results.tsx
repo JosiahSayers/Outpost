@@ -1,18 +1,18 @@
 import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
 import { formatJoinedDate } from "$/frontend/admin/user-search/format-date";
 import { getInitials } from "$/frontend/utils/get-initials";
-import type { ClientAdminUser } from "$/transformers/admin/user";
+import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import { Avatar, Group, Paper, Stack, Table, Text } from "@mantine/core";
 import { CaretRightIcon } from "@phosphor-icons/react";
 
 interface SearchResultsProps {
-  results: ClientAdminUser[];
+  results: ClientAdminUserWithCounts[];
   selectedUserId: string | null;
   onSelect: (userId: string) => void;
   isWideLayout: boolean;
 }
 
-function ActivityLine({ user }: { user: ClientAdminUser }) {
+function ActivityLine({ user }: { user: ClientAdminUserWithCounts }) {
   return (
     <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
       {user.counts.trips} trips · {user.counts.gearInventoryItems} gear ·{" "}

@@ -51,16 +51,13 @@ adminUserRouter.get(
 
     const page = paginate(
       userList,
-      transformers.admin.user,
+      transformers.admin.userWithCounts,
       total,
       req.query.take,
+      "users",
     );
 
-    return res.status(userList.length === 0 ? 404 : 200).json({
-      users: page.items,
-      total: page.total,
-      pageSize: page.pageSize,
-    });
+    return res.status(userList.length === 0 ? 404 : 200).json(page);
   },
 );
 

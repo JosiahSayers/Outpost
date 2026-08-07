@@ -50,13 +50,10 @@ userSessionsRouter.get(
       transformers.admin.session,
       total,
       req.query.take,
+      "sessions",
     );
 
-    return res.status(200).json({
-      sessions: page.items,
-      total: page.total,
-      pageSize: page.pageSize,
-    });
+    return res.status(200).json(page);
   },
 );
 

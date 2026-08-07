@@ -1,5 +1,13 @@
-import { booleanQueryParam, numberQueryParam } from "$/validation/shared";
+import {
+  arrayQueryParam,
+  booleanQueryParam,
+  numberQueryParam,
+} from "$/validation/shared";
 import { describe, expect, it } from "bun:test";
+import express from "express";
+import validate from "express-zod-safe";
+import request from "supertest";
+import z from "zod";
 
 describe("numberQueryParam", () => {
   const testValidator = numberQueryParam(3);
@@ -76,5 +84,66 @@ describe("booleanQueryParam", () => {
     expect(() => testValidator.parse("yes")).toThrow();
     expect(() => testValidator.parse("1")).toThrow();
     expect(() => testValidator.parse("")).toThrow();
+  });
+});
+
+describe("arrayQueryParam", () => {
+  const testValidator = arrayQueryParam(z.enum(["a", "b", "c"]), ["a", "b"]);
+
+  it("returns the default when passed undefined", () => {
+    expect(testValidator.parse(undefined)).toEqual(["a", "b"]);
+  });
+
+  it("wraps a single string value in an array", () => {
+    expect(testValidator.parse("c")).toEqual(["c"]);
+  });
+
+  it("passes an array value through unchanged", () => {
+    expect(testValidator.parse(["a", "c"])).toEqual(["a", "c"]);
+  });
+
+  it("throws when a value doesn't match the element schema", () => {
+    expect(() => testValidator.parse("z")).toThrow();
+    expect(() => testValidator.parse(["a", "z"])).toThrow();
+  });
+
+  it("throws on an empty string, since it isn't a valid enum member", () => {
+    expect(() => testValidator.parse("")).toThrow();
+  });
+
+  // The preprocessor above only normalizes shape (string vs array); whether a
+  // repeated query key actually arrives as an array, rather than the last
+  // value winning or some other shape, is Express's own parsing behavior.
+  // This confirms that assumption against a real Express request instead of
+  // a hand-built object, so a future Express/query-parser change here would
+  // surface as a test failure rather than a silent behavior change in prod.
+  describe("against real Express query parsing", () => {
+    const app = express();
+    app.get(
+      "/",
+      validate({ query: z.strictObject({ status: testValidator }) }),
+      (req, res) => {
+        res.json({ status: req.query.status });
+      },
+    );
+
+    it("parses a single repeated-key occurrence as a one-element array", async () => {
+      const response = await request(app).get("/").query("status=c");
+      expect(response.body).toEqual({ status: ["c"] });
+    });
+
+    it("parses multiple occurrences of the same key as an array", async () => {
+      const response = await request(app).get("/").query("status=a&status=c");
+      expect(response.body).toEqual({ status: ["a", "c"] });
+    });
+
+    it("falls back to the default when the key is omitted", async () => {
+      const response = await request(app).get("/");
+      expect(response.body).toEqual({ status: ["a", "b"] });
+    });
+
+    it("rejects an unknown status value with a 400", async () => {
+      await request(app).get("/").query("status=z").expect(400);
+    });
   });
 });

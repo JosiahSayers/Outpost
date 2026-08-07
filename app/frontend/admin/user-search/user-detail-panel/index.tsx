@@ -5,7 +5,7 @@ import StatTile from "$/frontend/admin/user-search/user-detail-panel/stat-tile";
 import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
 import Error from "$/frontend/shared-components/error";
 import { getInitials } from "$/frontend/utils/get-initials";
-import type { ClientAdminUser } from "$/transformers/admin/user";
+import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import {
   Avatar,
   Group,
@@ -18,7 +18,7 @@ import {
 import { EnvelopeSimpleIcon } from "@phosphor-icons/react";
 
 interface UserDetailPanelProps {
-  user: ClientAdminUser;
+  user: ClientAdminUserWithCounts;
 }
 
 export default function UserDetailPanel({ user }: UserDetailPanelProps) {
