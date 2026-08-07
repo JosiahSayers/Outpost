@@ -226,6 +226,11 @@ export const trailTheme = createTheme({
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           fontWeight: "600",
+          // Source Sans 3's ascent/descent split leaves all-caps glyphs
+          // sitting high in Mantine's line-height-centered badge, so the
+          // gap below the text reads larger than the gap above it. Nudge
+          // down slightly to balance it optically.
+          transform: "translateY(1px)",
         },
       },
     }),
