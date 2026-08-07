@@ -1,7 +1,10 @@
 import AdminPagination from "$/frontend/admin/shared/pagination";
 import { formatShortDate } from "$/frontend/admin/feedback/format-date";
 import FeedbackStatusBadge from "$/frontend/admin/feedback/status-badge";
-import { ACTIONABLE_STATUSES } from "$/frontend/admin/feedback/status";
+import {
+  ACTIONABLE_STATUSES,
+  ALL_STATUSES,
+} from "$/frontend/admin/feedback/status";
 import StatusFilter from "$/frontend/admin/feedback/status-filter";
 import { useAdminFeedbackList } from "$/frontend/utils/api/admin-feedback";
 import { getInitials } from "$/frontend/utils/get-initials";
@@ -18,16 +21,65 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { useLocation, useSearch } from "wouter";
 import type { FeedbackStatus } from "../../../../generated/prisma/enums";
 
 const PAGE_SIZE = 10;
 
+interface SearchState {
+  status: FeedbackStatus[];
+  page: number;
+}
+
+function sameStatuses(a: FeedbackStatus[], b: FeedbackStatus[]): boolean {
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return (
+    sortedA.length === sortedB.length &&
+    sortedA.every((status, i) => status === sortedB[i])
+  );
+}
+
+function parseSearchState(search: string): SearchState {
+  const params = new URLSearchParams(search);
+  const status = params
+    .getAll("status")
+    .filter((s): s is FeedbackStatus => (ALL_STATUSES as string[]).includes(s));
+  const page = Number(params.get("page"));
+  return {
+    status: status.length > 0 ? status : ACTIONABLE_STATUSES,
+    page: Number.isInteger(page) && page > 0 ? page : 1,
+  };
+}
+
+function buildSearchUrl(state: SearchState): string {
+  const params = new URLSearchParams();
+  // Omit the status params entirely when they match the default filter, so
+  // a first-time visit still gets a clean "/console/feedback" URL.
+  if (!sameStatuses(state.status, ACTIONABLE_STATUSES)) {
+    state.status.forEach((s) => params.append("status", s));
+  }
+  if (state.page > 1) params.set("page", String(state.page));
+  const query = params.toString();
+  return query ? `/console/feedback?${query}` : "/console/feedback";
+}
+
 export default function FeedbackList() {
   const [, navigate] = useLocation();
-  const [status, setStatus] = useState<FeedbackStatus[]>(ACTIONABLE_STATUSES);
-  const [page, setPage] = useState(1);
+  // Read only as the seed for the initial state below — after mount, the
+  // URL is kept in sync FROM this state (one-way), matching the pattern in
+  // admin/user-search/index.tsx, so navigating back to this page (rather
+  // than only via the in-app back link) restores the filter and page.
+  const initialSearch = useSearch();
+  const [state, setState] = useState<SearchState>(() =>
+    parseSearchState(initialSearch),
+  );
+  const { status, page } = state;
+
+  useEffect(() => {
+    navigate(buildSearchUrl(state), { replace: true });
+  }, [state, navigate]);
 
   const { data, isPending, isFetching, isError } = useAdminFeedbackList(
     status,
@@ -40,8 +92,11 @@ export default function FeedbackList() {
   const total = data?.total ?? 0;
 
   function handleStatusChange(next: FeedbackStatus[]) {
-    setStatus(next);
-    setPage(1);
+    setState({ status: next, page: 1 });
+  }
+
+  function handlePageChange(next: number) {
+    setState({ status, page: next });
   }
 
   return (
@@ -170,7 +225,7 @@ export default function FeedbackList() {
           page={page}
           pageSize={PAGE_SIZE}
           total={total}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
           disabled={isFetching}
         />
       )}

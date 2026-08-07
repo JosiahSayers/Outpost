@@ -224,6 +224,10 @@ describe("clicking a row", () => {
 
     fireEvent.click(screen.getByText(/Packing list quantities reset/));
 
-    expect(navigate.mock.calls[0]?.[0]).toBe("/console/feedback/feedback-42");
+    // The first call is the mount-time URL sync (see the useEffect in
+    // FeedbackList); the row click is the most recent call.
+    expect(navigate.mock.calls.at(-1)?.[0]).toBe(
+      "/console/feedback/feedback-42",
+    );
   });
 });
