@@ -2,7 +2,11 @@ import { feedbackExists } from "$/middleware/feedback-existence";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
-import { editFeedback, feedbackSearch } from "$/validation/admin/feedback";
+import {
+  createFeedbackNote,
+  editFeedback,
+  feedbackSearch,
+} from "$/validation/admin/feedback";
 import { idParam } from "$/validation/shared";
 import { Router } from "express";
 import validate from "express-zod-safe";
@@ -71,10 +75,9 @@ adminFeedbackRouter.get(
   },
 );
 
-adminFeedbackRouter.use(feedbackExists);
-
 adminFeedbackRouter.patch(
   "/:id",
+  feedbackExists,
   validate({ params: idParam, body: editFeedback }),
   async (req, res) => {
     const updatedFeedback = await db.feedback.update({
@@ -83,5 +86,26 @@ adminFeedbackRouter.patch(
     });
 
     return res.json({ feedback: transformers.admin.feedback(updatedFeedback) });
+  },
+);
+
+adminFeedbackRouter.post(
+  "/:id/notes",
+  feedbackExists,
+  validate({ params: idParam, body: createFeedbackNote }),
+  async (req, res) => {
+    const note = await db.feedbackNote.create({
+      data: {
+        feedbackId: req.params.id,
+        message: req.body.message,
+        userFacing: req.body.userFacing,
+        adminId: req.session!.user.id,
+      },
+      include: {
+        admin: true,
+      },
+    });
+
+    return res.json({ note: transformers.admin.feedbackNote(note) });
   },
 );

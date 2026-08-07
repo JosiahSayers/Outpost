@@ -18,3 +18,13 @@ export const feedbackSearch = z.strictObject({
 export const editFeedback = z.strictObject({
   status: z.enum(FeedbackStatus),
 });
+
+export const createFeedbackNote = z.strictObject({
+  message: z.string(),
+  userFacing: z.boolean().default(false),
+});
+
+export const editFeedbackNote = z.strictObject({
+  message: z.string().optional(),
+  userFacing: z.boolean().optional(),
+});
