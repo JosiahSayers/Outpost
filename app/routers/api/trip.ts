@@ -30,13 +30,15 @@ tripRouter.get("/", validate({ query: tripSearch }), async (req, res, next) => {
     db.trip.count({ where }),
   ]);
 
-  const page = paginate(trips, transformers.trip, total, req.query.take);
+  const page = paginate(
+    trips,
+    transformers.trip,
+    total,
+    req.query.take,
+    "trips",
+  );
 
-  return res.json({
-    trips: page.items,
-    total: page.total,
-    pageSize: page.pageSize,
-  });
+  return res.json(page);
 });
 
 tripRouter.get(

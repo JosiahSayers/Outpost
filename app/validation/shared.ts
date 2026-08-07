@@ -21,6 +21,19 @@ export const numberQueryParam = (
   }, schema.default(defaultValue));
 };
 
+// Query params arrive as a single string, or as an array of strings when the
+// key is repeated (e.g. `?status=new&status=planned`), depending on qs
+// parsing. Normalize both shapes into an array before validating.
+export const arrayQueryParam = <T extends z.ZodType>(
+  schema: T,
+  defaultValue: z.infer<T>[],
+) => {
+  return z.preprocess((input) => {
+    if (input === undefined) return undefined;
+    return Array.isArray(input) ? input : [input];
+  }, z.array(schema).default(defaultValue));
+};
+
 // Query params arrive as strings, and z.coerce.boolean() treats any
 // non-empty string (including "false") as true, so only the literal
 // "true"/"false" strings are coerced here.
