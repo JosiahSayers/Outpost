@@ -5,7 +5,9 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 
-function makeUser(overrides: Partial<ClientAdminUserWithCounts> = {}): ClientAdminUserWithCounts {
+function makeUser(
+  overrides: Partial<ClientAdminUserWithCounts> = {},
+): ClientAdminUserWithCounts {
   return {
     id: "user-1",
     name: "Tomás Reyes",

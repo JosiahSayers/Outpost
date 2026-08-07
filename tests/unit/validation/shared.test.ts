@@ -133,9 +133,7 @@ describe("arrayQueryParam", () => {
     });
 
     it("parses multiple occurrences of the same key as an array", async () => {
-      const response = await request(app)
-        .get("/")
-        .query("status=a&status=c");
+      const response = await request(app).get("/").query("status=a&status=c");
       expect(response.body).toEqual({ status: ["a", "c"] });
     });
 

@@ -22,7 +22,9 @@ window.matchMedia = (query: string) =>
     dispatchEvent: () => false,
   }) as MediaQueryList;
 
-function makeUser(overrides: Partial<ClientAdminUserWithCounts> = {}): ClientAdminUserWithCounts {
+function makeUser(
+  overrides: Partial<ClientAdminUserWithCounts> = {},
+): ClientAdminUserWithCounts {
   return {
     id: "user-1",
     name: "Tomás Reyes",
