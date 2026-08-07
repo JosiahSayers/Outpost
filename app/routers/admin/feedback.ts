@@ -5,6 +5,8 @@ import { db } from "$/utils/db";
 import {
   createFeedbackNote,
   editFeedback,
+  editFeedbackNote,
+  feedbackNoteParams,
   feedbackSearch,
 } from "$/validation/admin/feedback";
 import { idParam } from "$/validation/shared";
@@ -77,13 +79,28 @@ adminFeedbackRouter.get(
 
 adminFeedbackRouter.patch(
   "/:id",
-  feedbackExists,
   validate({ params: idParam, body: editFeedback }),
   async (req, res) => {
-    const updatedFeedback = await db.feedback.update({
+    const feedback = await db.feedback.findUnique({
       where: { id: req.params.id },
-      data: { status: req.body.status },
     });
+    if (!feedback) {
+      return res.sendStatus(404);
+    }
+
+    const [updatedFeedback, _auditLog] = await db.$transaction([
+      db.feedback.update({
+        where: { id: req.params.id },
+        data: { status: req.body.status },
+      }),
+      db.feedbackAuditLog.create({
+        data: {
+          feedbackId: feedback.id,
+          adminId: req.session!.user.id,
+          changeDescription: `Status change: ${feedback.status} -> ${req.body.status}`,
+        },
+      }),
+    ]);
 
     return res.json({ feedback: transformers.admin.feedback(updatedFeedback) });
   },
@@ -107,5 +124,36 @@ adminFeedbackRouter.post(
     });
 
     return res.json({ note: transformers.admin.feedbackNote(note) });
+  },
+);
+
+adminFeedbackRouter.patch(
+  "/:id/notes/:noteId",
+  feedbackExists,
+  validate({ params: feedbackNoteParams, body: editFeedbackNote }),
+  async (req, res) => {
+    const note = await db.feedbackNote.findUnique({
+      where: {
+        id: req.params.noteId,
+        feedbackId: req.params.id,
+      },
+    });
+
+    if (!note) {
+      return res.sendStatus(404);
+    }
+
+    const updatedNote = await db.feedbackNote.update({
+      where: { id: req.params.noteId },
+      data: {
+        message: req.body.message,
+        userFacing: req.body.userFacing,
+      },
+      include: {
+        admin: true,
+      },
+    });
+
+    return res.json({ note: transformers.admin.feedbackNote(updatedNote) });
   },
 );

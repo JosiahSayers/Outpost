@@ -1,4 +1,8 @@
-import { arrayQueryParam, numberQueryParam } from "$/validation/shared";
+import {
+  arrayQueryParam,
+  idParam,
+  numberQueryParam,
+} from "$/validation/shared";
 import z from "zod";
 import { FeedbackStatus } from "../../../generated/prisma/enums";
 
@@ -17,6 +21,10 @@ export const feedbackSearch = z.strictObject({
 
 export const editFeedback = z.strictObject({
   status: z.enum(FeedbackStatus),
+});
+
+export const feedbackNoteParams = idParam.extend({
+  noteId: z.string(),
 });
 
 export const createFeedbackNote = z.strictObject({
