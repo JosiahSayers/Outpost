@@ -13,6 +13,7 @@ describe("transform", () => {
 
     expect(transform(feedback)).toEqual({
       id: feedback.id,
+      referenceId: feedback.referenceId,
       createdAt: feedback.createdAt,
       duplicateId: feedback.duplicateId,
       inferredSubject: feedback.inferredSubject,

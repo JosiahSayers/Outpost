@@ -56,6 +56,39 @@ test.describe("Submitting feedback", () => {
     expect(feedback.submittedOnPage).toBe("/dashboard");
   });
 
+  test("records the page the user is currently on, not the page open when the drawer first mounted", async ({
+    page,
+    user,
+  }) => {
+    // The feedback drawer is mounted once at the app root and never remounts
+    // across client-side navigation — so it must read the current page at
+    // submit time, not whatever page was open when it first mounted (here,
+    // /dashboard from the beforeEach `page.goto`).
+    await page
+      .locator("header")
+      .getByRole("button", { name: "Account menu" })
+      .click();
+    await page
+      .getByRole("menu")
+      .getByRole("menuitem", { name: "Account Settings" })
+      .click();
+    await expect(page).toHaveURL("/account");
+
+    await openDrawer(page);
+    await drawer(page)
+      .getByRole("textbox", { name: /^Feedback/ })
+      .fill(validText);
+    await drawer(page).getByRole("button", { name: "Send" }).click();
+    await expect(
+      drawer(page).getByText("Thanks! Someone on the team will take a look."),
+    ).toBeVisible();
+
+    const feedback = await db.feedback.findFirstOrThrow({
+      where: { userId: user.id },
+    });
+    expect(feedback.submittedOnPage).toBe("/account");
+  });
+
   test("clicking Done after a successful submission closes and resets the drawer", async ({
     page,
   }) => {

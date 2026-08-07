@@ -6,7 +6,7 @@ import type { ClientAdminUser } from "$/transformers/admin/user";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
 
 const FEEDBACK_ID = "feedback-1";
@@ -58,6 +58,7 @@ function makeFullFeedback(
 ): ClientFullAdminFeedback {
   return {
     id: FEEDBACK_ID,
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-07-27T18:42:00Z"),
     duplicateId: null,
     inferredSubject: [],
@@ -146,5 +147,39 @@ describe("with no notes or audit logs", () => {
   it("still renders the synthetic 'Feedback submitted' entry", () => {
     renderTimeline(makeFullFeedback());
     expect(screen.getByText(/Feedback submitted/)).toBeInTheDocument();
+  });
+});
+
+describe("hovering a log entry's note id", () => {
+  it("highlights the matching note entry, and clears on hover out", () => {
+    const noteId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+    renderTimeline(
+      makeFullFeedback({
+        notes: [makeNote({ id: noteId, message: "Confirmed on staging." })],
+        auditLogs: [
+          makeLog({ changeDescription: `Note (${noteId}) message updated` }),
+        ],
+      }),
+    );
+
+    const noteCard = screen
+      .getByText("Confirmed on staging.")
+      .closest(".mantine-Paper-root") as HTMLElement;
+    expect(noteCard.style.backgroundColor).toBe("");
+
+    // Both the note's own id display and the log entry's parsed reference
+    // render the same truncated text — the log entry's copy is the one NOT
+    // inside the note card.
+    const idSpan = screen
+      .getAllByText("(#a1b2c3d4)")
+      .find((el) => !el.closest(".mantine-Paper-root"))!;
+    fireEvent.mouseEnter(idSpan);
+    expect(noteCard.style.backgroundColor).toBe(
+      "var(--mantine-color-yellow-light)",
+    );
+
+    fireEvent.mouseLeave(idSpan);
+    expect(noteCard.style.backgroundColor).toBe("");
   });
 });

@@ -49,14 +49,21 @@ function makeNote(
   };
 }
 
-function renderEntry(note: ClientAdminFeedbackNote = makeNote()) {
+function renderEntry(
+  note: ClientAdminFeedbackNote = makeNote(),
+  highlighted?: boolean,
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
-        <NoteEntry feedbackId={FEEDBACK_ID} note={note} />
+        <NoteEntry
+          feedbackId={FEEDBACK_ID}
+          note={note}
+          highlighted={highlighted}
+        />
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -80,6 +87,31 @@ describe("on render", () => {
   it("falls back to 'Deleted admin' when the note's admin no longer exists", () => {
     renderEntry(makeNote({ admin: null }));
     expect(screen.getByText("Deleted admin")).toBeInTheDocument();
+  });
+
+  it("shows the note's own short id", () => {
+    renderEntry(makeNote({ id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }));
+    expect(screen.getByText("(#a1b2c3d4)")).toBeInTheDocument();
+  });
+});
+
+describe("highlighting", () => {
+  it("applies a highlight background when highlighted is true", () => {
+    renderEntry(makeNote(), true);
+    const card = screen
+      .getByText("Josiah Sayers")
+      .closest(".mantine-Paper-root");
+    expect((card as HTMLElement).style.backgroundColor).toBe(
+      "var(--mantine-color-yellow-light)",
+    );
+  });
+
+  it("has no highlight background when highlighted is false or omitted", () => {
+    renderEntry(makeNote(), false);
+    const card = screen
+      .getByText("Josiah Sayers")
+      .closest(".mantine-Paper-root");
+    expect((card as HTMLElement).style.backgroundColor).toBe("");
   });
 });
 

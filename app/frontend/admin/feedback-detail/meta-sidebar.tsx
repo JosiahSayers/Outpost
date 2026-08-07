@@ -34,19 +34,27 @@ export default function MetaSidebar({ feedback }: Props) {
   return (
     <Paper withBorder p="md">
       <SidebarLabel>Submitted by</SidebarLabel>
-      <Group gap="sm" mt="xs" mb="md" wrap="nowrap">
-        <Avatar radius="xl" size={34} color="bark-brown" variant="light">
-          {getInitials(feedback.user.name)}
-        </Avatar>
-        <div style={{ minWidth: 0 }}>
-          <Text fw={700} size="sm" truncate>
-            {feedback.user.name}
-          </Text>
-          <Text size="xs" c="dimmed" truncate>
-            {feedback.user.email}
-          </Text>
-        </div>
-      </Group>
+      <Anchor
+        component={Link}
+        href={`/console/users?search=${encodeURIComponent(feedback.user.email)}&user=${feedback.user.id}`}
+        underline="never"
+        c="inherit"
+        display="block"
+      >
+        <Group gap="sm" mt="xs" mb="md" wrap="nowrap">
+          <Avatar radius="xl" size={34} color="bark-brown" variant="light">
+            {getInitials(feedback.user.name)}
+          </Avatar>
+          <div style={{ minWidth: 0 }}>
+            <Text fw={700} size="sm" truncate>
+              {feedback.user.name}
+            </Text>
+            <Text size="xs" c="dimmed" truncate>
+              {feedback.user.email}
+            </Text>
+          </div>
+        </Group>
+      </Anchor>
 
       <Stack gap={4} mb="md">
         <SidebarLabel>Page</SidebarLabel>

@@ -14,6 +14,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
+import type { FeedbackStatus } from "../../../../generated/prisma/enums";
 
 const ACTIONABLE_STATUSES = ["new", "triaged", "planned", "in_progress"] as [
   "new",
@@ -44,6 +45,7 @@ function makeFeedbackListItem(
 ): ClientAdminFeedbackListItem {
   return {
     id: "feedback-1",
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-08-01T18:42:00Z"),
     duplicateId: null,
     inferredSubject: ["trip-duplication"],
@@ -62,10 +64,46 @@ function makeQueryClient() {
   });
 }
 
+// useAdminFeedbackList always attempts a background refetch on mount
+// (staleTime: 0, see admin-feedback.ts) so new feedback shows up without a
+// hard refresh. Rather than leaving that refetch unmocked (a real network
+// call) or hanging forever (which would leave `isFetching` — and so the
+// pagination controls' `disabled` state — stuck true), echo back whatever's
+// already in the query cache for the requested URL. That resolves quickly,
+// like a real fetch would, without changing what's on screen.
+function installCacheEchoFetch(queryClient: QueryClient) {
+  global.fetch = mock((input: RequestInfo | URL) => {
+    const url = new URL(String(input), "http://localhost");
+    if (url.pathname === "/admin/feedback") {
+      const skip = Number(url.searchParams.get("skip") ?? 0);
+      const take = Number(url.searchParams.get("take") ?? 10);
+      const status = url.searchParams.getAll("status") as FeedbackStatus[];
+      const data = queryClient.getQueryData(
+        adminFeedbackKeys.list(status, skip, take),
+      );
+      if (data) {
+        return Promise.resolve(
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      }
+    }
+    // Nothing seeded for this request — hang rather than error, so a test
+    // that didn't anticipate this request doesn't get a spurious failure.
+    return new Promise(() => {});
+  }) as unknown as typeof fetch;
+}
+
 function renderList(
   queryClient: QueryClient = makeQueryClient(),
   navigate: (to: string) => void = () => {},
+  { mockFetch = true }: { mockFetch?: boolean } = {},
 ) {
+  if (mockFetch) {
+    installCacheEchoFetch(queryClient);
+  }
   render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
@@ -128,7 +166,7 @@ describe("when the request fails", () => {
       Promise.resolve(new Response(null, { status: 500 })),
     ) as unknown as typeof fetch;
 
-    renderList();
+    renderList(undefined, undefined, { mockFetch: false });
 
     await waitFor(() =>
       expect(screen.getByText("Couldn’t load feedback.")).toBeInTheDocument(),

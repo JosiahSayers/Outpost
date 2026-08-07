@@ -87,9 +87,12 @@ describe("submitting feedback", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText("Thanks! Someone on the team will take a look."),
+        screen.getByText(/Thanks! Someone on the team will take a look\./),
       ).toBeInTheDocument(),
     );
+    expect(
+      screen.getByText("Reference feedback-1", { exact: false }),
+    ).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });
 
@@ -138,6 +141,47 @@ describe("submitting feedback", () => {
       ).toBeInTheDocument(),
     );
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("navigating while the drawer stays mounted", () => {
+  // FeedbackDrawer is mounted once at the app root and never remounts across
+  // client-side navigation (see header.tsx) — so a value captured into form
+  // state only at mount would go stale. This reproduces that by changing the
+  // location between renders without remounting the drawer, then submitting.
+  it("submits the page that's current at submit time, not at mount time", async () => {
+    let currentPath = "/dashboard";
+    const queryClient = new QueryClient();
+
+    function Tree() {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <MantineProvider>
+            <Router hook={() => [currentPath, () => {}]}>
+              <FeedbackDrawer opened onClose={onClose} />
+            </Router>
+          </MantineProvider>
+        </QueryClientProvider>
+      );
+    }
+
+    const { rerender } = render(<Tree />);
+
+    currentPath = "/trips/big-sur-2026";
+    rerender(<Tree />);
+
+    fireEvent.change(textarea(), {
+      target: { value: "This feature would be really helpful for me." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [, init] = (global.fetch as unknown as ReturnType<typeof mock>).mock
+      .calls[0]! as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      text: "This feature would be really helpful for me.",
+      submittedOnPage: "/trips/big-sur-2026",
+    });
   });
 });
 
