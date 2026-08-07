@@ -52,25 +52,33 @@ export default function NoteEntry({ feedbackId, note }: Props) {
           {note.admin ? getInitials(note.admin.name) : "?"}
         </Avatar>
         <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
-          <Group gap="xs" wrap="wrap">
-            <Text fw={700} size="sm">
-              {note.admin?.name ?? "Deleted admin"}
-            </Text>
-            <Badge
-              size="xs"
-              color={note.userFacing ? "trail-green" : "stone-gray"}
-              variant="light"
-            >
-              {note.userFacing ? "Visible to submitter" : "Internal"}
-            </Badge>
-            <Text size="xs" c="dimmed" ml="auto">
-              {formatRelativeTime(new Date(note.createdAt))}
-            </Text>
-            {!editing && (
-              <Button variant="subtle" size="compact-xs" onClick={startEditing}>
-                Edit
-              </Button>
-            )}
+          <Group gap="xs" wrap="wrap" justify="space-between">
+            <Group gap="xs" wrap="wrap">
+              <Text fw={700} size="sm">
+                {note.admin?.name ?? "Deleted admin"}
+              </Text>
+              <Badge
+                size="xs"
+                color={note.userFacing ? "trail-green" : "stone-gray"}
+                variant="light"
+              >
+                {note.userFacing ? "Visible to submitter" : "Internal"}
+              </Badge>
+            </Group>
+            <Group gap="xs" wrap="nowrap">
+              <Text size="xs" c="dimmed">
+                {formatRelativeTime(new Date(note.createdAt))}
+              </Text>
+              {!editing && (
+                <Button
+                  variant="subtle"
+                  size="compact-xs"
+                  onClick={startEditing}
+                >
+                  Edit
+                </Button>
+              )}
+            </Group>
           </Group>
 
           {editing ? (
