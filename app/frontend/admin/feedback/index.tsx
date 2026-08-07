@@ -87,7 +87,7 @@ export default function FeedbackList() {
             <Table highlightOnHover verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Status</Table.Th>
+                  <Table.Th pl="lg">Status</Table.Th>
                   <Table.Th>Feedback</Table.Th>
                   <Table.Th>Submitted by</Table.Th>
                   <Table.Th>Page</Table.Th>
@@ -101,7 +101,7 @@ export default function FeedbackList() {
                     onClick={() => navigate(`/console/feedback/${item.id}`)}
                     style={{ cursor: "pointer" }}
                   >
-                    <Table.Td>
+                    <Table.Td pl="lg">
                       <FeedbackStatusBadge status={item.status} />
                     </Table.Td>
                     <Table.Td maw={340}>
