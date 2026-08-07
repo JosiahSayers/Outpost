@@ -122,7 +122,7 @@ test.describe("Account Settings page", () => {
         .getByRole("textbox", { name: "Current password" })
         .fill("the-wrong-password");
       await page
-        .getByRole("textbox", { name: "New password" })
+        .getByRole("textbox", { name: "New password", exact: true })
         .fill("brand-new-password789");
       await page
         .getByRole("textbox", { name: "Confirm new password" })
@@ -156,7 +156,7 @@ test.describe("Account Settings page", () => {
         .getByRole("textbox", { name: "Current password" })
         .fill(user.password);
       await page
-        .getByRole("textbox", { name: "New password" })
+        .getByRole("textbox", { name: "New password", exact: true })
         .fill(newPassword);
       await page
         .getByRole("textbox", { name: "Confirm new password" })
