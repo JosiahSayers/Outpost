@@ -1,6 +1,6 @@
 import UserSearch from "$/frontend/admin/user-search";
 import { adminUserKeys } from "$/frontend/utils/api/admin-users";
-import type { ClientAdminUser } from "$/transformers/admin/user";
+import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -22,7 +22,7 @@ window.matchMedia = (query: string) =>
     dispatchEvent: () => false,
   }) as MediaQueryList;
 
-function makeUser(overrides: Partial<ClientAdminUser> = {}): ClientAdminUser {
+function makeUser(overrides: Partial<ClientAdminUserWithCounts> = {}): ClientAdminUserWithCounts {
   return {
     id: "user-1",
     name: "Tomás Reyes",

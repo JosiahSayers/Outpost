@@ -51,7 +51,7 @@ adminUserRouter.get(
 
     const page = paginate(
       userList,
-      transformers.admin.user,
+      transformers.admin.userWithCounts,
       total,
       req.query.take,
       "users",

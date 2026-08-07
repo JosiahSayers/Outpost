@@ -7,7 +7,7 @@ export interface AdminUserCounts {
   activeSessions: number;
 }
 
-export type ClientAdminUser = Pick<
+type ClientAdminUserFields = Pick<
   User,
   | "id"
   | "banExpires"
@@ -20,7 +20,13 @@ export type ClientAdminUser = Pick<
   | "role"
   | "updatedAt"
   | "image"
-> & { counts: AdminUserCounts };
+>;
+
+export type ClientAdminUser = ClientAdminUserFields;
+
+export type ClientAdminUserWithCounts = ClientAdminUserFields & {
+  counts: AdminUserCounts;
+};
 
 interface UserWithCounts extends User {
   _count: {
@@ -31,7 +37,7 @@ interface UserWithCounts extends User {
   };
 }
 
-export function transform(item: UserWithCounts): ClientAdminUser {
+function transformFields(item: User): ClientAdminUserFields {
   return {
     id: item.id,
     banExpires: item.banExpires,
@@ -44,6 +50,18 @@ export function transform(item: UserWithCounts): ClientAdminUser {
     name: item.name,
     role: item.role,
     updatedAt: item.updatedAt,
+  };
+}
+
+export function transform(item: User): ClientAdminUser {
+  return transformFields(item);
+}
+
+export function transformWithCounts(
+  item: UserWithCounts,
+): ClientAdminUserWithCounts {
+  return {
+    ...transformFields(item),
     counts: {
       trips: item._count.trips,
       gearInventoryItems: item._count.gearInventoryItems,

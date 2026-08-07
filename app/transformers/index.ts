@@ -1,8 +1,14 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
 import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
-import { transform as adminFeedbackTransform } from "$/transformers/admin/feedback";
+import {
+  transform as adminFeedbackTransform,
+  transformFull as adminFullFeedbackTransform,
+} from "$/transformers/admin/feedback";
 import { transform as adminSessionTransform } from "$/transformers/admin/session";
-import { transform as adminUserTransform } from "$/transformers/admin/user";
+import {
+  transform as adminUserTransform,
+  transformWithCounts as adminUserWithCountsTransform,
+} from "$/transformers/admin/user";
 import { transform as gearCategoryTransform } from "$/transformers/gear-category";
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
 import { transform as mealPlanDayTransform } from "$/transformers/meal-plan/day";
@@ -41,7 +47,9 @@ export const transformers = {
   userAccountSettings: userAccountSettingsTransform,
   admin: {
     feedback: adminFeedbackTransform,
+    fullFeedback: adminFullFeedbackTransform,
     user: adminUserTransform,
+    userWithCounts: adminUserWithCountsTransform,
     session: adminSessionTransform,
   },
 } as const;
