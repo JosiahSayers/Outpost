@@ -23,6 +23,7 @@ export type ClientAdminFeedback = Pick<
   | "inferredSubject"
   | "inferredTopic"
   | "status"
+  | "submittedOnPage"
   | "text"
 >;
 
@@ -34,7 +35,26 @@ export function transform(item: Feedback): ClientAdminFeedback {
     inferredSubject: item.inferredSubject,
     inferredTopic: item.inferredTopic,
     status: item.status,
+    submittedOnPage: item.submittedOnPage,
     text: item.text,
+  };
+}
+
+// The list screen shows who filed each item, same as the detail screen —
+// unlike `transform`, this requires the `user` relation to be included in
+// the query, so it's kept separate rather than folded into `transform`
+// itself (which `transformFull` also uses for the lightweight `duplicates`
+// summaries, where the user relation isn't loaded).
+export type ClientAdminFeedbackListItem = ClientAdminFeedback & {
+  user: ClientAdminUser;
+};
+
+export function transformListItem(
+  item: Feedback & { user: User },
+): ClientAdminFeedbackListItem {
+  return {
+    ...transform(item),
+    user: userTransform(item.user),
   };
 }
 

@@ -3,6 +3,7 @@ import { transform as userAccountSettingsTransform } from "$/transformers/accoun
 import {
   transform as adminFeedbackTransform,
   transformFull as adminFullFeedbackTransform,
+  transformListItem as adminFeedbackListItemTransform,
 } from "$/transformers/admin/feedback";
 import { transform as adminFeedbackNoteTransform } from "$/transformers/admin/feedback-note";
 import { transform as adminSessionTransform } from "$/transformers/admin/session";
@@ -48,6 +49,7 @@ export const transformers = {
   userAccountSettings: userAccountSettingsTransform,
   admin: {
     feedback: adminFeedbackTransform,
+    feedbackListItem: adminFeedbackListItemTransform,
     fullFeedback: adminFullFeedbackTransform,
     feedbackNote: adminFeedbackNoteTransform,
     user: adminUserTransform,

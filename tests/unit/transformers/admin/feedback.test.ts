@@ -1,4 +1,8 @@
-import { transform, transformFull } from "$/transformers/admin/feedback";
+import {
+  transform,
+  transformFull,
+  transformListItem,
+} from "$/transformers/admin/feedback";
 import { transform as userTransform } from "$/transformers/admin/user";
 import { describe, expect, it } from "bun:test";
 import { make } from "../../../helpers/test-data/make";
@@ -14,6 +18,7 @@ describe("transform", () => {
       inferredSubject: feedback.inferredSubject,
       inferredTopic: feedback.inferredTopic,
       status: feedback.status,
+      submittedOnPage: feedback.submittedOnPage,
       text: feedback.text,
     });
   });
@@ -31,6 +36,18 @@ describe("transform", () => {
 
     expect(transform(feedback)).toMatchObject({
       duplicateId: "original-feedback-id",
+    });
+  });
+});
+
+describe("transformListItem", () => {
+  it("returns the base fields plus the submitting user", () => {
+    const feedback = make("Feedback");
+    const user = make("User");
+
+    expect(transformListItem({ ...feedback, user })).toEqual({
+      ...transform(feedback),
+      user: userTransform(user),
     });
   });
 });
