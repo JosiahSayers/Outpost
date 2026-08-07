@@ -3,6 +3,8 @@ import type { PickStringLiteral } from "../../../type-helpers";
 import makeAccountSetting from "./generators/account-setting";
 import makeAccountSettingValue from "./generators/account-setting-value";
 import makeFeedback from "./generators/feedback";
+import makeFeedbackAuditLog from "./generators/feedback-audit-log";
+import makeFeedbackNote from "./generators/feedback-note";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeMealPlanDay from "./generators/meal-plan-day";
@@ -26,6 +28,8 @@ type SupportedModels = PickStringLiteral<
   | "AccountSetting"
   | "AccountSettingValue"
   | "Feedback"
+  | "FeedbackAuditLog"
+  | "FeedbackNote"
   | "GearInventoryItem"
   | "GearCategory"
   | "PackingList"
@@ -49,6 +53,8 @@ const generators = {
   AccountSetting: makeAccountSetting,
   AccountSettingValue: makeAccountSettingValue,
   Feedback: makeFeedback,
+  FeedbackAuditLog: makeFeedbackAuditLog,
+  FeedbackNote: makeFeedbackNote,
   GearCategory: makeGearCategory,
   GearInventoryItem: makeGearInventoryItem,
   PackingList: makePackingList,

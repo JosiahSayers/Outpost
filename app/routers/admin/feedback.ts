@@ -57,13 +57,23 @@ adminFeedbackRouter.get(
           include: {
             admin: true,
           },
+          orderBy: {
+            createdAt: "desc",
+          },
         },
         feedbackAuditLogs: {
           include: {
             admin: true,
           },
+          orderBy: {
+            createdAt: "desc",
+          },
         },
-        duplicates: true,
+        duplicates: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     });
 
