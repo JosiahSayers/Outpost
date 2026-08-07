@@ -149,7 +149,7 @@ describe("POST /", () => {
     expect(response.body).toEqual({ referenceId: expect.any(String) });
 
     const feedback = await db.feedback.findUnique({
-      where: { id: response.body.referenceId },
+      where: { referenceId: response.body.referenceId },
     });
     expect(feedback).toMatchObject({
       text: "This is some valid feedback text.",
@@ -167,7 +167,7 @@ describe("POST /", () => {
       .expect(200);
 
     const feedback = await db.feedback.findUnique({
-      where: { id: response.body.referenceId },
+      where: { referenceId: response.body.referenceId },
     });
     expect(feedback).toMatchObject({ submittedOnPage: "unknown" });
   });
@@ -183,7 +183,7 @@ describe("POST /", () => {
       .expect(200);
 
     const feedback = await db.feedback.findUnique({
-      where: { id: response.body.referenceId },
+      where: { referenceId: response.body.referenceId },
     });
     expect(feedback?.submittedOnPage).toBe("a".repeat(1000));
   });
@@ -204,9 +204,10 @@ describe("POST /", () => {
       "delayed",
       "completed",
     ]);
-    const job = jobs.find(
-      (j) => j.data.feedbackId === response.body.referenceId,
-    );
+    const feedback = await db.feedback.findUniqueOrThrow({
+      where: { referenceId: response.body.referenceId },
+    });
+    const job = jobs.find((j) => j.data.feedbackId === feedback.id);
     expect(job).toBeDefined();
     expect(job!.name).toBe("infer-feedback-metadata");
 

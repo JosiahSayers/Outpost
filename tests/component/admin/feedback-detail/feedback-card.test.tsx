@@ -27,6 +27,7 @@ function makeFeedback(
 ): ClientFullAdminFeedback {
   return {
     id: "feedback-1",
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-07-27T18:42:00Z"),
     duplicateId: null,
     inferredSubject: [],

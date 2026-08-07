@@ -31,6 +31,7 @@ function makeDuplicate(
 ): ClientAdminFeedback {
   return {
     id: "dup-1",
+    referenceId: "D1D2D3",
     createdAt: new Date("2026-08-03T12:00:00Z"),
     duplicateId: "feedback-1",
     inferredSubject: [],
@@ -47,6 +48,7 @@ function makeFeedback(
 ): ClientFullAdminFeedback {
   return {
     id: "feedback-1",
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-07-27T18:42:00Z"),
     duplicateId: null,
     inferredSubject: [],

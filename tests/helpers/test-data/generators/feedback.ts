@@ -7,6 +7,7 @@ export default function makeFeedback(
 ): Feedback {
   return {
     id: faker.string.uuid(),
+    referenceId: faker.string.alphanumeric({ length: 6, casing: "upper" }),
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     text: faker.lorem.sentences(2),

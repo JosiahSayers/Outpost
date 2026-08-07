@@ -44,6 +44,7 @@ function makeFeedbackListItem(
 ): ClientAdminFeedbackListItem {
   return {
     id: "feedback-1",
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-08-01T18:42:00Z"),
     duplicateId: null,
     inferredSubject: ["trip-duplication"],

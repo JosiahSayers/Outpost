@@ -85,6 +85,7 @@ function makeFullFeedback(
 ): ClientFullAdminFeedback {
   return {
     id: FEEDBACK_ID,
+    referenceId: "A1B2C3",
     createdAt: new Date("2026-07-27T18:42:00Z"),
     duplicateId: null,
     inferredSubject: ["trip-duplication"],
@@ -147,6 +148,7 @@ describe("on initial load", () => {
         duplicates: [
           {
             id: "dup-1",
+            referenceId: "D1D2D3",
             createdAt: new Date("2026-08-03T12:00:00Z"),
             duplicateId: FEEDBACK_ID,
             inferredSubject: [],

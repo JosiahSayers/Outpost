@@ -55,7 +55,12 @@ export default function FeedbackDrawer({ opened, onClose }: Props) {
       {submitFeedback.isSuccess ? (
         <Stack gap="md" pt="xs">
           <Alert color="green">
-            Thanks! Someone on the team will take a look.
+            <Text size="sm">Thanks! Someone on the team will take a look.</Text>
+            {submitFeedback.data && (
+              <Text size="xs" c="dimmed" mt={4}>
+                Reference {submitFeedback.data.referenceId}
+              </Text>
+            )}
           </Alert>
           <Group justify="flex-end">
             <Button onClick={handleClose}>Done</Button>

@@ -18,6 +18,7 @@ import { transform as feedbackNoteTransform } from "./feedback-note";
 export type ClientAdminFeedback = Pick<
   Feedback,
   | "id"
+  | "referenceId"
   | "createdAt"
   | "duplicateId"
   | "inferredSubject"
@@ -30,6 +31,7 @@ export type ClientAdminFeedback = Pick<
 export function transform(item: Feedback): ClientAdminFeedback {
   return {
     id: item.id,
+    referenceId: item.referenceId,
     createdAt: item.createdAt,
     duplicateId: item.duplicateId,
     inferredSubject: item.inferredSubject,

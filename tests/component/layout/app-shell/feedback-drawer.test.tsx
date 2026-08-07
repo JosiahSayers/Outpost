@@ -87,9 +87,12 @@ describe("submitting feedback", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText("Thanks! Someone on the team will take a look."),
+        screen.getByText(/Thanks! Someone on the team will take a look\./),
       ).toBeInTheDocument(),
     );
+    expect(
+      screen.getByText("Reference feedback-1", { exact: false }),
+    ).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });
 

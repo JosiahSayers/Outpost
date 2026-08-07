@@ -142,7 +142,8 @@ export default function FeedbackList() {
             <Table highlightOnHover verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th pl="lg">Status</Table.Th>
+                  <Table.Th pl="lg">Ref</Table.Th>
+                  <Table.Th>Status</Table.Th>
                   <Table.Th>Feedback</Table.Th>
                   <Table.Th>Submitted by</Table.Th>
                   <Table.Th>Page</Table.Th>
@@ -157,6 +158,11 @@ export default function FeedbackList() {
                     style={{ cursor: "pointer" }}
                   >
                     <Table.Td pl="lg">
+                      <Text size="xs" c="dimmed" ff="monospace">
+                        {item.referenceId}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
                       <FeedbackStatusBadge status={item.status} />
                     </Table.Td>
                     <Table.Td maw={340}>

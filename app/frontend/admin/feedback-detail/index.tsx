@@ -94,7 +94,7 @@ export default function FeedbackDetail({ feedbackId }: Props) {
             >
               Feedback{" "}
               <Text component="span" ff="monospace" tt="none" fw={400}>
-                #{data.feedback.id.slice(0, 8)}
+                {data.feedback.referenceId}
               </Text>
             </Title>
             <StatusControl
