@@ -271,7 +271,10 @@ export async function generatePackingListPdf(
       // section leads with an optional item, otherwise the first item's
       // line) and require the title to have room for both, so the whole
       // section moves together when it doesn't fit.
-      document.fontSize(12).font("Playfair Display Bold").lineGap(lineGap * 2);
+      document
+        .fontSize(12)
+        .font("Playfair Display Bold")
+        .lineGap(lineGap * 2);
       const titleHeight = document.heightOfString(section.name, {
         width: columnWidth,
       });
@@ -297,7 +300,10 @@ export async function generatePackingListPdf(
       // columnCalculations measures `nextString` using whichever font is
       // active when it's called, so restore the title's font before
       // invoking it (firstContentHeight measurement above may have changed it).
-      document.fontSize(12).font("Playfair Display Bold").lineGap(lineGap * 2);
+      document
+        .fontSize(12)
+        .font("Playfair Display Bold")
+        .lineGap(lineGap * 2);
       const overflowed = columnCalculations(
         section.name,
         columnWidth,
