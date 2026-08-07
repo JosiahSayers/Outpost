@@ -28,11 +28,11 @@ export const feedbackNoteParams = idParam.extend({
 });
 
 export const createFeedbackNote = z.strictObject({
-  message: z.string(),
+  message: z.string().max(1500),
   userFacing: z.boolean().default(false),
 });
 
 export const editFeedbackNote = z.strictObject({
-  message: z.string().optional(),
+  message: z.string().max(1500).optional(),
   userFacing: z.boolean().optional(),
 });

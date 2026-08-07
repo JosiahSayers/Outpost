@@ -92,26 +92,33 @@ adminFeedbackRouter.patch(
   "/:id",
   validate({ params: idParam, body: editFeedback }),
   async (req, res) => {
-    const feedback = await db.feedback.findUnique({
-      where: { id: req.params.id },
-    });
-    if (!feedback) {
-      return res.sendStatus(404);
-    }
+    const updatedFeedback = await db.$transaction(async (tx) => {
+      const feedback = await tx.feedback.findUnique({
+        where: { id: req.params.id },
+      });
+      if (!feedback) {
+        return null;
+      }
 
-    const [updatedFeedback, _auditLog] = await db.$transaction([
-      db.feedback.update({
+      const updated = await tx.feedback.update({
         where: { id: req.params.id },
         data: { status: req.body.status },
-      }),
-      db.feedbackAuditLog.create({
+      });
+
+      await tx.feedbackAuditLog.create({
         data: {
           feedbackId: feedback.id,
           adminId: req.session!.user.id,
           changeDescription: `Status change: ${feedback.status} -> ${req.body.status}`,
         },
-      }),
-    ]);
+      });
+
+      return updated;
+    });
+
+    if (!updatedFeedback) {
+      return res.sendStatus(404);
+    }
 
     return res.json({ feedback: transformers.admin.feedback(updatedFeedback) });
   },
@@ -119,8 +126,8 @@ adminFeedbackRouter.patch(
 
 adminFeedbackRouter.post(
   "/:id/notes",
-  feedbackExists,
   validate({ params: idParam, body: createFeedbackNote }),
+  feedbackExists,
   async (req, res) => {
     const note = await db.feedbackNote.create({
       data: {
@@ -140,30 +147,61 @@ adminFeedbackRouter.post(
 
 adminFeedbackRouter.patch(
   "/:id/notes/:noteId",
-  feedbackExists,
   validate({ params: feedbackNoteParams, body: editFeedbackNote }),
+  feedbackExists,
   async (req, res) => {
-    const note = await db.feedbackNote.findUnique({
-      where: {
-        id: req.params.noteId,
-        feedbackId: req.params.id,
-      },
+    const updatedNote = await db.$transaction(async (tx) => {
+      const note = await tx.feedbackNote.findUnique({
+        where: {
+          id: req.params.noteId,
+          feedbackId: req.params.id,
+        },
+      });
+
+      if (!note) {
+        return null;
+      }
+
+      const updatedNote = await tx.feedbackNote.update({
+        where: { id: req.params.noteId },
+        data: {
+          message: req.body.message,
+          userFacing: req.body.userFacing,
+        },
+        include: {
+          admin: true,
+        },
+      });
+
+      if (req.body.message !== undefined && note.message !== req.body.message) {
+        await tx.feedbackAuditLog.create({
+          data: {
+            adminId: req.session!.user.id,
+            feedbackId: req.params.id,
+            changeDescription: `Note (${note.id}) message updated`,
+          },
+        });
+      }
+
+      if (
+        req.body.userFacing !== undefined &&
+        note.userFacing !== req.body.userFacing
+      ) {
+        await tx.feedbackAuditLog.create({
+          data: {
+            adminId: req.session!.user.id,
+            feedbackId: req.params.id,
+            changeDescription: `Note (${note.id}) user facing change: ${note.userFacing} -> ${req.body.userFacing}`,
+          },
+        });
+      }
+
+      return updatedNote;
     });
 
-    if (!note) {
+    if (!updatedNote) {
       return res.sendStatus(404);
     }
-
-    const updatedNote = await db.feedbackNote.update({
-      where: { id: req.params.noteId },
-      data: {
-        message: req.body.message,
-        userFacing: req.body.userFacing,
-      },
-      include: {
-        admin: true,
-      },
-    });
 
     return res.json({ note: transformers.admin.feedbackNote(updatedNote) });
   },

@@ -546,6 +546,27 @@ describe("POST /:id/notes", () => {
       }),
     ]);
   });
+
+  it("rejects a message longer than 1500 characters", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+
+    const response = await request(app)
+      .post(`/admin/feedback/${feedback.id}/notes`)
+      .send({ message: "a".repeat(1501) })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "body",
+        errors: [
+          expect.objectContaining({ code: "too_big", path: ["message"] }),
+        ],
+      }),
+    ]);
+  });
 });
 
 describe("PATCH /:id/notes/:noteId", () => {
@@ -702,5 +723,168 @@ describe("PATCH /:id/notes/:noteId", () => {
         errors: [expect.objectContaining({ code: "unrecognized_keys" })],
       }),
     ]);
+  });
+
+  it("rejects a message longer than 1500 characters", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", { feedbackId: feedback.id, adminId }),
+    });
+
+    const response = await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({ message: "a".repeat(1501) })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "body",
+        errors: [
+          expect.objectContaining({ code: "too_big", path: ["message"] }),
+        ],
+      }),
+    ]);
+  });
+
+  it("logs an audit entry when the message changes", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", {
+        feedbackId: feedback.id,
+        adminId,
+        message: "original",
+      }),
+    });
+
+    await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({ message: "updated message" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const auditLogs = await db.feedbackAuditLog.findMany({
+      where: { feedbackId: feedback.id },
+    });
+    expect(auditLogs).toEqual([
+      expect.objectContaining({
+        feedbackId: feedback.id,
+        adminId,
+        changeDescription: `Note (${note.id}) message updated`,
+      }),
+    ]);
+  });
+
+  it("does not log an audit entry when the message is resent unchanged", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", {
+        feedbackId: feedback.id,
+        adminId,
+        message: "original",
+      }),
+    });
+
+    await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({ message: "original" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const auditLogs = await db.feedbackAuditLog.findMany({
+      where: { feedbackId: feedback.id },
+    });
+    expect(auditLogs).toEqual([]);
+  });
+
+  it("logs an audit entry when userFacing is toggled from true to false", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", {
+        feedbackId: feedback.id,
+        adminId,
+        userFacing: true,
+      }),
+    });
+
+    await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({ userFacing: false })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const auditLogs = await db.feedbackAuditLog.findMany({
+      where: { feedbackId: feedback.id },
+    });
+    expect(auditLogs).toEqual([
+      expect.objectContaining({
+        feedbackId: feedback.id,
+        adminId,
+        changeDescription: `Note (${note.id}) user facing change: true -> false`,
+      }),
+    ]);
+  });
+
+  it("logs an audit entry when userFacing is toggled from false to true", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", {
+        feedbackId: feedback.id,
+        adminId,
+        userFacing: false,
+      }),
+    });
+
+    await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({ userFacing: true })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const auditLogs = await db.feedbackAuditLog.findMany({
+      where: { feedbackId: feedback.id },
+    });
+    expect(auditLogs).toEqual([
+      expect.objectContaining({
+        feedbackId: feedback.id,
+        adminId,
+        changeDescription: `Note (${note.id}) user facing change: false -> true`,
+      }),
+    ]);
+  });
+
+  it("does not log an audit entry when the body omits both fields", async () => {
+    const feedback = await db.feedback.create({
+      data: make("Feedback", { userId, status: "new" }),
+    });
+    const note = await db.feedbackNote.create({
+      data: make("FeedbackNote", {
+        feedbackId: feedback.id,
+        adminId,
+        message: "original",
+        userFacing: true,
+      }),
+    });
+
+    await request(app)
+      .patch(`/admin/feedback/${feedback.id}/notes/${note.id}`)
+      .send({})
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const auditLogs = await db.feedbackAuditLog.findMany({
+      where: { feedbackId: feedback.id },
+    });
+    expect(auditLogs).toEqual([]);
   });
 });
