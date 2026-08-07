@@ -8,7 +8,9 @@ import { ApiError } from "$/frontend/utils/api/client";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Anchor,
+  Box,
   Center,
+  Flex,
   Group,
   Loader,
   Paper,
@@ -101,8 +103,13 @@ export default function FeedbackDetail({ feedbackId }: Props) {
             />
           </Group>
 
-          <Group align="flex-start" wrap="wrap" gap="lg">
-            <div style={{ flex: "1 1 480px", minWidth: 0 }}>
+          <Flex
+            direction={{ base: "column-reverse", sm: "row" }}
+            align={{ base: "stretch", sm: "flex-start" }}
+            wrap="wrap"
+            gap="lg"
+          >
+            <Box flex={{ base: "1 1 auto", sm: "1 1 480px" }} miw={0}>
               <FeedbackCard feedback={data.feedback} />
 
               <Title order={5} mb="sm">
@@ -110,12 +117,15 @@ export default function FeedbackDetail({ feedbackId }: Props) {
               </Title>
               <NoteComposer feedbackId={data.feedback.id} />
               <Timeline feedback={data.feedback} />
-            </div>
+            </Box>
 
-            <div style={{ flex: "0 1 260px", minWidth: 240 }}>
+            <Box
+              flex={{ base: "1 1 auto", sm: "0 1 260px" }}
+              miw={{ base: 0, sm: 240 }}
+            >
               <MetaSidebar feedback={data.feedback} />
-            </div>
-          </Group>
+            </Box>
+          </Flex>
         </>
       )}
     </Stack>
