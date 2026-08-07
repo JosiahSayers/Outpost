@@ -82,6 +82,15 @@ describe("submitter details", () => {
     expect(screen.getByText("PN")).toBeInTheDocument();
   });
 
+  it("links to the submitter's admin user record", () => {
+    renderSidebar(makeFeedback());
+    const link = screen.getByRole("link", { name: /Priya Natarajan/ });
+    expect(link).toHaveAttribute(
+      "href",
+      "/console/users?search=priya%40fernridge.co&user=user-1",
+    );
+  });
+
   it("shows the page the feedback was submitted from", () => {
     renderSidebar(makeFeedback());
     expect(
