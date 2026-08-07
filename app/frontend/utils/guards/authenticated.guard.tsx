@@ -1,10 +1,10 @@
-import { authClient } from "$/frontend/utils/auth-client";
+import { useResolvedSession } from "$/frontend/utils/guards/use-resolved-session";
 import { useSignOutContext } from "$/frontend/utils/sign-out-context";
 import { useLayoutEffect } from "react";
 import { useLocation } from "wouter";
 
 export function useAuthenticatedGuard() {
-  const session = authClient.useSession();
+  const session = useResolvedSession();
   const [location, navigate] = useLocation();
   const { isSignOutInitiated } = useSignOutContext();
 

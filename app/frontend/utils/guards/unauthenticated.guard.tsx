@@ -1,10 +1,10 @@
-import { authClient } from "$/frontend/utils/auth-client";
+import { useResolvedSession } from "$/frontend/utils/guards/use-resolved-session";
 import { useLayoutEffect } from "react";
 import { useLocation } from "wouter";
 
 // Redirects the user if they have a valid session
 export function useUnauthenticatedGuard(redirect = "/") {
-  const session = authClient.useSession();
+  const session = useResolvedSession();
   const [, navigate] = useLocation();
 
   useLayoutEffect(() => {

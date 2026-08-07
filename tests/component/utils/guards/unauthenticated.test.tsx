@@ -4,10 +4,17 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
 let sessionData: { user: object } | null = null;
+let sessionError: { status: number } | null = null;
+const refetch = mock(() => {});
 
 mock.module("$/frontend/utils/auth-client", () => ({
   authClient: {
-    useSession: () => ({ data: sessionData }),
+    useSession: () => ({
+      data: sessionData,
+      isPending: false,
+      error: sessionError,
+      refetch,
+    }),
   },
 }));
 
@@ -23,6 +30,8 @@ describe("when there is no session", () => {
 
   beforeEach(() => {
     sessionData = null;
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/sign-in", navigate]}>
@@ -36,11 +45,33 @@ describe("when there is no session", () => {
   });
 });
 
+describe("when the session check fails with a transient (non-401) error and there is no cached data", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = null;
+    sessionError = { status: 502 };
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/sign-in", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("does not navigate away from sign-in", () => {
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
 describe("when there is a session", () => {
   const navigate = mock(() => {});
 
   beforeEach(() => {
     sessionData = { user: { id: "1", email: "test@example.com" } };
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/sign-in", navigate]}>
@@ -59,6 +90,8 @@ describe("when there is a session and a custom redirect is specified", () => {
 
   beforeEach(() => {
     sessionData = { user: { id: "1", email: "test@example.com" } };
+    sessionError = null;
+    refetch.mockClear();
     navigate.mockClear();
     render(
       <Router hook={() => ["/sign-in", navigate]}>

@@ -1,9 +1,9 @@
-import { authClient } from "$/frontend/utils/auth-client";
+import { useResolvedSession } from "$/frontend/utils/guards/use-resolved-session";
 import { useLayoutEffect } from "react";
 import { useLocation } from "wouter";
 
 export function useAdminGuard() {
-  const session = authClient.useSession();
+  const session = useResolvedSession();
   const [location, navigate] = useLocation();
 
   useLayoutEffect(() => {
