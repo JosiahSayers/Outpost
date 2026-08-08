@@ -42,6 +42,7 @@ export default function ItemEditForm({
   const form = useForm({
     initialValues: {
       name: item.name,
+      brand: item.brand ?? "",
       meal: item.meal as string,
       quantity: item.quantity as number | string,
       calories: (item.calories === 0 ? "" : item.calories) as number | string,
@@ -57,11 +58,10 @@ export default function ItemEditForm({
   const waterMlInputProps = form.getInputProps("waterMl");
   const dryWeightGramsInputProps = form.getInputProps("dryWeightGrams");
 
-  const handleSubmit = form.onSubmit((values) => {
-    updateItem.mutate({
-      dayNumber,
-      itemId: item.id,
+  function buildPayload(values: typeof form.values) {
+    return {
       name: values.name.trim(),
+      brand: values.brand.trim() || null,
       meal: values.meal as MealName,
       quantity: typeof values.quantity === "number" ? values.quantity : 1,
       calories: typeof values.calories === "number" ? values.calories : 0,
@@ -76,9 +76,28 @@ export default function ItemEditForm({
         typeof values.dryWeightGrams === "number"
           ? Math.round(values.dryWeightGrams)
           : null,
-    });
+    };
+  }
+
+  const handleSubmit = form.onSubmit((values) => {
+    updateItem.mutate({ dayNumber, itemId: item.id, ...buildPayload(values) });
     onDone();
   });
+
+  // Ripples by default (handleSubmit above); this forks instead -- creates a
+  // new item with these field values and re-points only this placement to
+  // it, leaving every other day/trip using the original item untouched.
+  function handleSaveAsNew() {
+    const validation = form.validate();
+    if (validation.hasErrors) return;
+    updateItem.mutate({
+      dayNumber,
+      itemId: item.id,
+      ...buildPayload(form.values),
+      fork: true,
+    });
+    onDone();
+  }
 
   return (
     <>
@@ -89,6 +108,8 @@ export default function ItemEditForm({
           {...form.getInputProps("name")}
           mb="sm"
         />
+
+        <TextInput label="Brand" {...form.getInputProps("brand")} mb="sm" />
 
         <Select
           label="Meal"
@@ -141,7 +162,12 @@ export default function ItemEditForm({
           >
             Remove item
           </Button>
-          <Button type="submit">Save</Button>
+          <Group gap="xs">
+            <Button type="button" variant="light" onClick={handleSaveAsNew}>
+              Save as new item
+            </Button>
+            <Button type="submit">Save</Button>
+          </Group>
         </Group>
       </form>
 

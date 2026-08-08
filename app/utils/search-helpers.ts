@@ -67,25 +67,24 @@ SELECT "Place".id
 }
 
 export interface SearchMealPlanItemsOptions {
-  // Exclude items belonging to this trip (typically the trip being edited),
-  // so "previous trips" doesn't just echo items already on the current one.
+  // Exclude items already placed anywhere on this trip's current meal plan,
+  // so "previous trips" doesn't just echo items already added to this one.
   excludeTripId?: string;
-  // Boost rows whose meal matches this one, so e.g. searching from a
-  // breakfast slot surfaces the user's past breakfasts first. Rows with a
-  // different (or no) matching meal are still returned, just ranked lower.
+  // Boost items that have ever been placed in this meal slot, so e.g.
+  // searching from a breakfast slot surfaces the user's past breakfasts
+  // first. Items with no matching placement are still returned, just
+  // ranked lower.
   meal?: MealName;
   limit?: number;
 }
 
-// Full-text autocomplete over a user's own previous MealPlanItem rows (BTP-77:
-// autocomplete meals from previous trips). Scoped to the requesting user via
-// MealPlanDay -> Trip, since MealPlanItem has no direct userId. Deduped by
-// exact name match first (DISTINCT ON, keeping the most recently created row
-// per name) so e.g. "Oatmeal" added on two different trips only shows up
-// once. The deduped rows are then ranked by meal match, then text relevance,
-// then most recently created first. Two-step like searchCategories/
-// searchPlaces: rank ids in SQL, hydrate via Prisma, preserve the ranked
-// order on the way out.
+// Full-text autocomplete over a user's own reusable MealPlanItem rows
+// (BTP-77: autocomplete meals from previous trips; BTP-104: MealPlanItem is
+// now a per-user canonical entity, so this is a plain userId-scoped search
+// with no dedup needed -- items are unique by construction). Ranked by meal
+// placement history, then text relevance, then most recently created.
+// Two-step like searchCategories/searchPlaces: rank ids in SQL, hydrate via
+// Prisma, preserve the ranked order on the way out.
 export async function searchMealPlanItems(
   searchQuery: string,
   userId: string,
@@ -98,23 +97,22 @@ export async function searchMealPlanItems(
   const mealParam = meal ?? null;
 
   const results = await db.$queryRaw<Array<{ id: string }>>`
-SELECT id FROM (
-  SELECT DISTINCT ON ("MealPlanItem".name)
-    "MealPlanItem".id,
-    "MealPlanItem".meal,
-    "MealPlanItem".data_fts,
-    "MealPlanItem"."createdAt"
-    FROM "MealPlanItem"
-    JOIN "MealPlanDay" ON "MealPlanDay".id = "MealPlanItem"."mealPlanDayId"
-    JOIN "Trip" ON "Trip".id = "MealPlanDay"."tripId"
-    WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
-      AND "Trip"."userId" = ${userId}
-      AND (${excludeTripIdParam}::text IS NULL OR "Trip".id != ${excludeTripIdParam})
-    ORDER BY "MealPlanItem".name, "MealPlanItem"."createdAt" DESC
-) AS deduped
-  ORDER BY (meal = ${mealParam}::"MealName") DESC,
-           ts_rank(data_fts, to_tsquery('english', ${formattedQuery})) DESC,
-           "createdAt" DESC
+SELECT "MealPlanItem".id FROM "MealPlanItem"
+  WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+    AND "MealPlanItem"."userId" = ${userId}
+    AND (${excludeTripIdParam}::text IS NULL OR NOT EXISTS (
+      SELECT 1 FROM "MealPlanDayItem" mpdi
+      JOIN "MealPlanDay" md ON md.id = mpdi."mealPlanDayId"
+      WHERE mpdi."mealPlanItemId" = "MealPlanItem".id
+        AND md."tripId" = ${excludeTripIdParam}
+    ))
+  ORDER BY (${mealParam}::"MealName" IS NOT NULL AND EXISTS (
+              SELECT 1 FROM "MealPlanDayItem" mpdi
+              WHERE mpdi."mealPlanItemId" = "MealPlanItem".id
+                AND mpdi.meal = ${mealParam}::"MealName"
+            )) DESC,
+           ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
+           "MealPlanItem"."createdAt" DESC
   LIMIT ${limit};
 `;
 

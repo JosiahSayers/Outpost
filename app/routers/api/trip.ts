@@ -52,7 +52,7 @@ tripRouter.get(
         tasks: true,
         mealPlanDays: {
           include: {
-            items: { include: { packingStatuses: true } },
+            items: { include: { mealPlanItem: true } },
           },
         },
         links: true,
@@ -117,7 +117,7 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
       tasks: true,
       mealPlanDays: {
         include: {
-          items: true,
+          items: { include: { mealPlanItem: true } },
         },
       },
     },

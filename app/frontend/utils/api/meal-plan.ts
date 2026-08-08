@@ -1,6 +1,7 @@
 import { MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import { tripKeys } from "$/frontend/utils/api/trip";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
+import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
 import type { ClientFullTrip } from "$/transformers/trip";
 import type {
@@ -179,7 +180,7 @@ export function useMealPlanItemSearch(
   return useQuery({
     queryKey: mealPlanItemSearchKeys.search(query),
     queryFn: () =>
-      apiClient<{ items: ClientMealPlanItem[] }>(
+      apiClient<{ items: ClientMealPlanItemSummary[] }>(
         `/api/trips/${tripId}/meal-plan/items?query=${encodeURIComponent(query)}&meal=${meal}`,
       ).then((res) => res.items ?? []),
     enabled: query.length > 0,
@@ -207,10 +208,18 @@ export function useCreateMealPlanItem(tripId: string) {
       queryClient.setQueryData<{ trip: ClientFullTrip }>(queryKey, (old) =>
         old
           ? {
-              trip: updateDayItems(old.trip, dayNumber, (items) => [
-                ...items,
-                mealPlanItem,
-              ]),
+              // Adding an item already placed in this day+meal slot bumps
+              // its quantity server-side rather than creating a new
+              // placement, so upsert by id here instead of always
+              // appending — otherwise a bump would render as a phantom
+              // duplicate row until the next refetch.
+              trip: updateDayItems(old.trip, dayNumber, (items) =>
+                items.some((item) => item.id === mealPlanItem.id)
+                  ? items.map((item) =>
+                      item.id === mealPlanItem.id ? mealPlanItem : item,
+                    )
+                  : [...items, mealPlanItem],
+              ),
             }
           : old,
       );

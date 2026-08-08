@@ -20,21 +20,17 @@ export const mealPlanDayExists: RequestHandler = async (req, res, next) => {
 };
 
 export const mealPlanItemExists: RequestHandler = async (req, res, next) => {
-  const mealPlanDayWithItem = await db.mealPlanDay.findUnique({
+  const dayItem = await db.mealPlanDayItem.findFirst({
     where: {
-      tripId_dayNumber: {
+      id: String(req.params.itemId),
+      mealPlanDay: {
         tripId: String(req.params.id),
         dayNumber: Number(req.params.day),
-      },
-      items: {
-        some: {
-          id: String(req.params.itemId),
-        },
       },
     },
   });
 
-  if (!mealPlanDayWithItem) {
+  if (!dayItem) {
     return res.sendStatus(404);
   }
 

@@ -37,7 +37,7 @@ export async function createTrips() {
     });
 
     for (const day of mealPlanDays) {
-      await seedMealPlanItems(day);
+      await seedMealPlanItems(day, user.id);
     }
 
     await db.tripLink.createMany({

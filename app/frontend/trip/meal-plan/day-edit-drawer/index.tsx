@@ -144,6 +144,7 @@ export default function DayEditDrawer({ day, tripId, opened, onClose }: Props) {
                     tripId={tripId}
                     onAdd={(name) =>
                       createItem.mutate({
+                        mode: "new",
                         dayNumber: day.dayNumber,
                         name,
                         meal,
@@ -151,13 +152,11 @@ export default function DayEditDrawer({ day, tripId, opened, onClose }: Props) {
                     }
                     onSelectExisting={(item) =>
                       createItem.mutate({
+                        mode: "existing",
                         dayNumber: day.dayNumber,
                         meal,
-                        name: item.name,
-                        calories: item.calories,
-                        quantity: item.quantity,
-                        waterMl: item.waterMl ?? undefined,
-                        dryWeightGrams: item.dryWeightGrams ?? undefined,
+                        mealPlanItemId: item.id,
+                        quantity: 1,
                       })
                     }
                   />

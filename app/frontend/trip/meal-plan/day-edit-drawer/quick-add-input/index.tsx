@@ -4,8 +4,8 @@ import {
   mealPlanItemSearchKeys,
   useMealPlanItemSearch,
 } from "$/frontend/utils/api/meal-plan";
-import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
-import { Badge, Group, SimpleGrid, Stack, Text } from "@mantine/core";
+import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
+import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { BowlFoodIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -17,7 +17,7 @@ interface Props {
   meal: MealName;
   tripId: string;
   onAdd: (name: string) => void;
-  onSelectExisting: (item: ClientMealPlanItem) => void;
+  onSelectExisting: (item: ClientMealPlanItemSummary) => void;
 }
 
 export default function QuickAddInput({
@@ -66,12 +66,11 @@ export default function QuickAddInput({
             <Text size="sm" fw={700} lineClamp={1}>
               {item.name}
             </Text>
-            <Badge
-              color={item.meal === meal ? "trail-green" : "stone-gray"}
-              variant={item.meal === meal ? "filled" : "light"}
-            >
-              {MEAL_LABEL[item.meal]}
-            </Badge>
+            {item.brand && (
+              <Text size="xs" c="dimmed" lineClamp={1}>
+                {item.brand}
+              </Text>
+            )}
           </Group>
           <SimpleGrid cols={3} spacing={10}>
             <StatCell

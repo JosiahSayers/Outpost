@@ -19,22 +19,35 @@ export const editMealPlanDay = z.strictObject({
   date: isoDate,
 });
 
-export const createMealPlanItem = z.strictObject({
-  name: z.string().min(1),
-  calories: z.int().optional().default(0),
-  meal: z.enum(MealName),
-  quantity: z.int().optional(),
-  waterMl: z.int().optional(),
-  dryWeightGrams: z.int().optional(),
-});
+export const createMealPlanItem = z.discriminatedUnion("mode", [
+  z.strictObject({
+    mode: z.literal("existing"),
+    mealPlanItemId: z.string(),
+    meal: z.enum(MealName),
+    quantity: z.int().optional(),
+  }),
+  z.strictObject({
+    mode: z.literal("new"),
+    name: z.string().min(1),
+    brand: z.string().optional(),
+    calories: z.int().optional().default(0),
+    waterMl: z.int().optional(),
+    dryWeightGrams: z.int().optional(),
+    meal: z.enum(MealName),
+    quantity: z.int().optional(),
+  }),
+]);
 
-export const editMealPlanItem = createMealPlanItem.partial().extend({
-  // .partial() doesn't strip the .default(0) on calories, which would
-  // otherwise reset calories to 0 whenever a PATCH omits the field
-  calories: z.int().optional(),
+export const editMealPlanItem = z.strictObject({
+  meal: z.enum(MealName).optional(),
+  quantity: z.int().optional(),
+  name: z.string().min(1).optional(),
   // nullable so a PATCH can clear these — omitting them means "unchanged"
+  brand: z.string().nullable().optional(),
+  calories: z.int().optional(),
   waterMl: z.int().nullable().optional(),
   dryWeightGrams: z.int().nullable().optional(),
+  fork: z.boolean().optional().default(false),
 });
 
 export const editMealPlanItemStatus = z.strictObject({
