@@ -13,6 +13,7 @@ import {
   Group,
   NumberInput,
   Select,
+  Text,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -169,6 +170,12 @@ export default function ItemEditForm({
             <Button type="submit">Save</Button>
           </Group>
         </Group>
+
+        <Text size="xs" c="dimmed" mt="sm">
+          This item may be used on other days or trips. <strong>Save</strong>{" "}
+          updates it everywhere it appears; <strong>Save as new item</strong>{" "}
+          changes only this one, without affecting the others.
+        </Text>
       </form>
 
       <ConfirmDeleteModal
