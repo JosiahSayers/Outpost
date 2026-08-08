@@ -1,6 +1,6 @@
+import * as Sentry from "@sentry/bun";
 import winston, { type transport } from "winston";
 import TransportStream from "winston-transport";
-import * as Sentry from "@sentry/bun";
 
 const SENTRY_LOG_LEVEL_MAP: Record<
   string,
@@ -29,6 +29,7 @@ function toSentryAttributes(
     ) {
       attributes[key] = value;
     } else if (value instanceof Error) {
+      Sentry.captureException(value);
       attributes[key] = value.stack ?? value.message;
     } else if (value !== undefined && value !== null) {
       attributes[key] = JSON.stringify(value);
