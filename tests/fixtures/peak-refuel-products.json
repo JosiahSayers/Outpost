@@ -12,7 +12,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/White_Chicken_Chili-V5_Front.png?v=1783951710"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 9072694100213,
@@ -26,7 +27,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/cheesecakebitesfront.png?v=1783952687"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 9000000000099,
@@ -40,7 +42,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/summit-stew-front.png?v=1783951999"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 9779274842357,
@@ -54,7 +57,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/temp_UuzjYaU.png?v=1777066266"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 9778829590773,
@@ -68,7 +72,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/Backcountry.png?v=1784223553"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 4588560449596,
@@ -82,7 +87,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/products/Black_OrangeSpork.jpg?v=1629396082"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 8876481511669,
@@ -96,7 +102,8 @@
         {
           "src": "https://cdn.shopify.com/s/files/1/0083/7363/3084/files/peakrefuel-20_bdc398dc-05c9-4b24-bb6b-eaf21eb97bcd.png?v=1730223725"
         }
-      ]
+      ],
+      "variants": [{ "requires_shipping": true }]
     },
     {
       "id": 9000000000100,
@@ -106,7 +113,22 @@
       "product_type": "Meals",
       "tags": ["GFAVL", "meals"],
       "body_html": "<p><strong>Trail Tacos: </strong>Seasoned beef, beans, and rice ready in minutes.</p>\n<p>Preparation Instructions:</p>\n<p>1. Open pouch at tear mark. Remove oxygen absorber.</p>\n<p>2. Carefully add 1 cup (8 oz) boiling water to pouch.</p>\n<p>3. Stir well and zip pouch closed. Let stand for 10 minutes.</p>\n<ul>\n<li>Protein – 30g per pouch</li>\n<li>Servings - 2</li>\n<li>Contains – Milk</li>\n<li>Made &amp; Packaged in the USA</li>\n<li>Calories per Pouch - 610</li>\n<li>Prep Time - 10 min</li>\n</ul>",
-      "images": []
+      "images": [],
+      "variants": [{ "requires_shipping": true }]
+    },
+    {
+      "id": 4401778360380,
+      "handle": "gift-cards",
+      "title": "Gift Cards",
+      "vendor": "Peak Refuel",
+      "product_type": "Meals",
+      "tags": ["syncio-hidden"],
+      "body_html": "<p>Give the gift of freeze-dried meals.</p>",
+      "images": [],
+      "variants": [
+        { "requires_shipping": false },
+        { "requires_shipping": false }
+      ]
     }
   ]
 }

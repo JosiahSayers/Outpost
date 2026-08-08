@@ -31,6 +31,7 @@ export interface ShopifyProduct {
   tags: string[];
   body_html: string;
   images: { src: string }[];
+  variants: { requires_shipping: boolean }[];
 }
 
 interface ShopifyProductsResponse {
@@ -41,7 +42,15 @@ export function shouldSkip(product: ShopifyProduct): boolean {
   if (!INCLUDED_PRODUCT_TYPES.has(product.product_type)) {
     return true;
   }
-  return product.tags.some((tag) => EXCLUDED_TAGS.has(tag));
+  if (product.tags.some((tag) => EXCLUDED_TAGS.has(tag))) {
+    return true;
+  }
+  // Every variant non-shippable means a purely digital product (e.g. a gift
+  // card) -- confirmed live that "Gift Cards" is mistagged product_type:
+  // "Meals" with no other exclusion signal, but its variants all have
+  // requires_shipping: false, which no real food item does. General Shopify
+  // convention, not a Peak Refuel-specific hack.
+  return product.variants.every((variant) => !variant.requires_shipping);
 }
 
 function stripHtml(html: string): string {

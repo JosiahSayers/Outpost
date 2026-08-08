@@ -71,14 +71,15 @@ export async function processProductImage(
   }
 
   try {
-    const { bytes, contentType } = await fetchGuarded(imageUrl, {
+    // contentType from the response is discarded -- the re-encoded output is
+    // always webp regardless of what format the source image was in.
+    const { bytes } = await fetchGuarded(imageUrl, {
       fetchImpl,
       lookupImpl,
       allowedContentTypes: IMAGE_CONTENT_TYPES,
       maxBytes: MAX_IMAGE_BYTES,
       timeoutMs: IMAGE_TIMEOUT_MS,
     });
-    void contentType; // the re-encoded output is always webp regardless of source format
 
     const image = new Bun.Image(bytes, { maxPixels: MAX_PIXELS });
     const { width, height } = await image.metadata();

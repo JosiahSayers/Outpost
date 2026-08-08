@@ -120,6 +120,13 @@ describe("shouldSkip", () => {
     // tags are the only signal that catches it.
     expect(shouldSkip(findProduct("Backcountry Pack"))).toBe(true);
   });
+
+  it("skips a Meals-typed product whose variants are all non-shippable", () => {
+    // "Gift Cards" is also mistagged product_type: Meals with no disqualifying
+    // tag -- every variant having requires_shipping: false (a digital
+    // product) is the only signal that catches it.
+    expect(shouldSkip(findProduct("Gift Cards"))).toBe(true);
+  });
 });
 
 describe("parseProduct", () => {
