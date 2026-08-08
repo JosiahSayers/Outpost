@@ -509,6 +509,7 @@ test.describe("Trip Page", () => {
           name: string;
           calories: number;
           meal: string;
+          brand?: string;
           waterMl?: number;
           dryWeightGrams?: number;
           quantity?: number;
@@ -519,12 +520,12 @@ test.describe("Trip Page", () => {
         });
         const response = await page.request.post(
           `/api/trips/${historyTripId}/meal-plan/days/1/items`,
-          { data },
+          { data: { mode: "new", ...data } },
         );
         expect(response.ok()).toBe(true);
       }
 
-      test("surfaces a past item's calories, water, weight, and meal at a glance", async ({
+      test("surfaces a past item's calories, water, weight, and brand at a glance", async ({
         page,
       }) => {
         const itemName = `Ramen Bomb ${Date.now()}`;
@@ -532,6 +533,7 @@ test.describe("Trip Page", () => {
           name: itemName,
           calories: 890,
           meal: "dinner",
+          brand: "Backpacker's Pantry",
           waterMl: 500,
           dryWeightGrams: 210,
         });
@@ -546,7 +548,7 @@ test.describe("Trip Page", () => {
         await expect(option.getByText("890")).toBeVisible();
         await expect(option.getByText("500 mL")).toBeVisible();
         await expect(option.getByText("210 g")).toBeVisible();
-        await expect(option.getByText("Dinner")).toBeVisible();
+        await expect(option.getByText("Backpacker's Pantry")).toBeVisible();
       });
 
       test("shows a message naming the query when no past item matches", async ({
@@ -562,7 +564,7 @@ test.describe("Trip Page", () => {
         ).toBeVisible();
       });
 
-      test("selecting a match creates a new item with its full data", async ({
+      test("selecting a match attaches the existing item with its canonical data", async ({
         page,
       }) => {
         const itemName = `Ramen Bomb ${Date.now()}`;
@@ -572,7 +574,6 @@ test.describe("Trip Page", () => {
           meal: "dinner",
           waterMl: 500,
           dryWeightGrams: 210,
-          quantity: 2,
         });
 
         await table(page).getByText("Day 1").click();
@@ -593,9 +594,12 @@ test.describe("Trip Page", () => {
         const created = trip.mealPlan[0].meals.dinner.find(
           (item: { name: string }) => item.name === itemName,
         );
+        // Attaching an existing item always starts a fresh placement at
+        // quantity 1 -- search results are canonical-only and don't carry a
+        // quantity to copy forward.
         expect(created).toMatchObject({
           calories: 890,
-          quantity: 2,
+          quantity: 1,
           waterMl: 500,
           dryWeightGrams: 210,
           meal: "dinner",
@@ -653,7 +657,7 @@ test.describe("Trip Page", () => {
         await page.getByRole("combobox", { name: "Meal" }).click();
         await page.getByRole("option", { name: "Snacks" }).click();
         await page.getByRole("textbox", { name: "Calories" }).fill("400");
-        await page.getByRole("button", { name: "Save" }).click();
+        await page.getByRole("button", { name: "Save", exact: true }).click();
 
         await expect(
           page.getByRole("heading", { name: "Edit item" }),
@@ -690,7 +694,7 @@ test.describe("Trip Page", () => {
         await page.getByRole("option", { name: "Kilograms (kg)" }).click();
         await page.getByRole("textbox", { name: "Dry weight" }).fill("0.1");
 
-        await page.getByRole("button", { name: "Save" }).click();
+        await page.getByRole("button", { name: "Save", exact: true }).click();
         await expect(
           page.getByRole("heading", { name: "Edit item" }),
         ).not.toBeVisible();
@@ -711,7 +715,7 @@ test.describe("Trip Page", () => {
         await expect(
           page.getByRole("textbox", { name: "Dry weight" }),
         ).toHaveValue("0.1");
-        await page.getByRole("button", { name: "Save" }).click();
+        await page.getByRole("button", { name: "Save", exact: true }).click();
 
         await page.reload();
         await table(page).getByText("Day 1").click();
@@ -1459,7 +1463,7 @@ test.describe("Trip Page", () => {
     ): Promise<void> {
       const response = await page.request.post(
         `/api/trips/${tripId}/meal-plan/days/${dayNumber}/items`,
-        { data: { name, meal: "breakfast", quantity: 1 } },
+        { data: { mode: "new", name, meal: "breakfast", quantity: 1 } },
       );
       expect(response.ok()).toBe(true);
     }

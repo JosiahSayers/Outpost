@@ -41,6 +41,7 @@ model User {
   gearCategories     GearCategory[]
   packingLists       PackingList[]
   trips              Trip[]
+  mealPlanItems      MealPlanItem[]
 
   role                            String?
   banned                          Boolean?                 @default(false)
@@ -451,9 +452,9 @@ model MealPlanDay {
   dayNumber Int
   date      DateTime? @db.Date
 
-  trip   Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip   Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId String
-  items  MealPlanItem[]
+  items  MealPlanDayItem[]
 
   @@unique([tripId, dayNumber])
 }
@@ -465,27 +466,55 @@ enum MealName {
   snacks
 }
 
+// Reusable, per-user canonical meal-plan item (BTP-104). Editing a field
+// here ripples to every placement; forking (see meal-plan router) creates a
+// new row instead.
 model MealPlanItem {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   name           String
+  brand          String?
   calories       Int
-  meal           MealName
-  quantity       Int      @default(1)
   waterMl        Int?
   dryWeightGrams Int?
 
-  mealPlanDay     MealPlanDay                 @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
-  mealPlanDayId   String
-  packingStatuses MealPlanItemPackingStatus[]
+  owner    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  dayItems MealPlanDayItem[]
 
   // Full Text Search
   data_fts Unsupported("tsvector")?
 
-  @@index([mealPlanDayId])
+  @@index([userId])
   @@index([data_fts], type: Gin)
+}
+
+// One placement of a MealPlanItem on one MealPlanDay/meal slot, with its own
+// quantity and packing status. Placing an already-placed item in the same
+// day+meal slot again bumps quantity (see meal-plan router) rather than
+// creating a second row -- enforced by the unique constraint below.
+// Deleting this row removes the placement only; the canonical MealPlanItem
+// persists.
+model MealPlanDayItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meal      MealName
+  quantity  Int      @default(1)
+  purchased Boolean  @default(false)
+  packed    Boolean  @default(false)
+
+  mealPlanDay    MealPlanDay  @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
+  mealPlanDayId  String
+  mealPlanItem   MealPlanItem @relation(fields: [mealPlanItemId], references: [id], onDelete: Cascade)
+  mealPlanItemId String
+
+  @@unique([mealPlanDayId, mealPlanItemId, meal])
+  @@index([mealPlanDayId])
+  @@index([mealPlanItemId])
 }
 
 model TripPackingList {
@@ -516,18 +545,6 @@ model TripPackingListItemStatus {
   packingListItemId String
 
   @@unique([tripPackingListId, packingListItemId])
-}
-
-model MealPlanItemPackingStatus {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  purchased Boolean @default(false)
-  packed    Boolean @default(false)
-
-  mealPlanItem   MealPlanItem @relation(fields: [mealPlanItemId], references: [id], onDelete: Cascade)
-  mealPlanItemId String       @unique
 }
 
 //

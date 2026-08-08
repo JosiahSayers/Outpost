@@ -15,6 +15,7 @@ import { transform as gearCategoryTransform } from "$/transformers/gear-category
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
 import { transform as mealPlanDayTransform } from "$/transformers/meal-plan/day";
 import { transform as mealPlanItemTransform } from "$/transformers/meal-plan/item";
+import { transform as mealPlanItemSummaryTransform } from "$/transformers/meal-plan/item-summary";
 import { transform as notificationTransform } from "$/transformers/notification";
 import { transform as packingListTransform } from "$/transformers/packing-list";
 import { transform as packingListItemTransform } from "$/transformers/packing-list-item";
@@ -42,6 +43,7 @@ export const transformers = {
   tripLink: tripLinkTransform,
   mealPlanDay: mealPlanDayTransform,
   mealPlanItem: mealPlanItemTransform,
+  mealPlanItemSummary: mealPlanItemSummaryTransform,
   notification: notificationTransform,
   tripPackingList: tripPackingListTransform,
   tripPackingListItem: tripPackingListItemTransform,

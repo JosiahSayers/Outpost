@@ -8,8 +8,8 @@ import makeFeedbackNote from "./generators/feedback-note";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeMealPlanDay from "./generators/meal-plan-day";
+import makeMealPlanDayItem from "./generators/meal-plan-day-item";
 import makeMealPlanItem from "./generators/meal-plan-item";
-import makeMealPlanItemPackingStatus from "./generators/meal-plan-item-packing-status";
 import makeNotification from "./generators/notification";
 import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
@@ -44,7 +44,7 @@ type SupportedModels = PickStringLiteral<
   | "TripTask"
   | "MealPlanDay"
   | "MealPlanItem"
-  | "MealPlanItemPackingStatus"
+  | "MealPlanDayItem"
   | "Notification"
   | "User"
 >;
@@ -69,7 +69,7 @@ const generators = {
   TripTask: makeTripTask,
   MealPlanDay: makeMealPlanDay,
   MealPlanItem: makeMealPlanItem,
-  MealPlanItemPackingStatus: makeMealPlanItemPackingStatus,
+  MealPlanDayItem: makeMealPlanDayItem,
   Notification: makeNotification,
   User: makeUser,
 } as const;

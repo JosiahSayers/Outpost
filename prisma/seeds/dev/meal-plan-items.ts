@@ -139,23 +139,36 @@ const MENUS: Record<MealName, MenuItem[]>[] = [
   },
 ];
 
-export async function seedMealPlanItems(day: MealPlanDay) {
+export async function seedMealPlanItems(day: MealPlanDay, userId: string) {
   const menu = MENUS[(day.dayNumber - 1) % MENUS.length]!;
 
-  const items = (Object.entries(menu) as [MealName, MenuItem[]][]).flatMap(
-    ([meal, menuItems]) =>
-      menuItems.map((item) => ({
-        name: item.name,
-        calories: item.calories,
-        meal,
-        quantity: item.quantity ?? 1,
-        waterMl: item.waterMl ?? null,
-        dryWeightGrams: item.dryWeightGrams ?? null,
-        mealPlanDayId: day.id,
-      })),
-  );
+  for (const [meal, menuItems] of Object.entries(menu) as [
+    MealName,
+    MenuItem[],
+  ][]) {
+    for (const menuItem of menuItems) {
+      const item =
+        (await db.mealPlanItem.findFirst({
+          where: { userId, name: menuItem.name },
+        })) ??
+        (await db.mealPlanItem.create({
+          data: {
+            userId,
+            name: menuItem.name,
+            calories: menuItem.calories,
+            waterMl: menuItem.waterMl ?? null,
+            dryWeightGrams: menuItem.dryWeightGrams ?? null,
+          },
+        }));
 
-  if (items.length === 0) return;
-
-  await db.mealPlanItem.createMany({ data: items });
+      await db.mealPlanDayItem.create({
+        data: {
+          mealPlanDayId: day.id,
+          mealPlanItemId: item.id,
+          meal,
+          quantity: menuItem.quantity ?? 1,
+        },
+      });
+    }
+  }
 }

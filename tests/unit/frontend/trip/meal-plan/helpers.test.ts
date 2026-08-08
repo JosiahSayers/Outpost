@@ -29,7 +29,9 @@ function day(overrides: Partial<ClientMealPlanDay> = {}): ClientMealPlanDay {
 function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
   return {
     id: crypto.randomUUID(),
+    mealPlanItemId: crypto.randomUUID(),
     name: "Oatmeal",
+    brand: null,
     meal: "breakfast",
     calories: 0,
     quantity: 1,

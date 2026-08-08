@@ -1,42 +1,44 @@
 import type {
+  MealPlanDayItem,
   MealPlanItem,
-  MealPlanItemPackingStatus,
 } from "../../../generated/prisma/browser";
 
-export type ClientMealPlanItemPackingStatus = Omit<
-  MealPlanItemPackingStatus,
-  "id" | "createdAt" | "updatedAt" | "mealPlanItemId"
+export type ClientMealPlanItemStatus = Pick<
+  MealPlanDayItem,
+  "purchased" | "packed"
 >;
 
-export type ClientMealPlanItem = Pick<
-  MealPlanItem,
-  | "id"
-  | "name"
-  | "calories"
-  | "quantity"
-  | "waterMl"
-  | "dryWeightGrams"
-  | "meal"
-> & {
-  status: ClientMealPlanItemPackingStatus;
+export type ClientMealPlanItem = {
+  id: string;
+  mealPlanItemId: string;
+  name: string;
+  brand: string | null;
+  calories: number;
+  waterMl: number | null;
+  dryWeightGrams: number | null;
+  meal: MealPlanDayItem["meal"];
+  quantity: number;
+  status: ClientMealPlanItemStatus;
 };
 
-type Input = MealPlanItem & {
-  packingStatuses?: MealPlanItemPackingStatus[];
+export type MealPlanDayItemInput = MealPlanDayItem & {
+  mealPlanItem: MealPlanItem;
 };
 
-export function transform(item: Input): ClientMealPlanItem {
+export function transform(dayItem: MealPlanDayItemInput): ClientMealPlanItem {
   return {
-    id: item.id,
-    name: item.name,
-    calories: item.calories,
-    quantity: item.quantity,
-    waterMl: item.waterMl,
-    dryWeightGrams: item.dryWeightGrams,
-    meal: item.meal,
+    id: dayItem.id,
+    mealPlanItemId: dayItem.mealPlanItemId,
+    name: dayItem.mealPlanItem.name,
+    brand: dayItem.mealPlanItem.brand,
+    calories: dayItem.mealPlanItem.calories,
+    waterMl: dayItem.mealPlanItem.waterMl,
+    dryWeightGrams: dayItem.mealPlanItem.dryWeightGrams,
+    meal: dayItem.meal,
+    quantity: dayItem.quantity,
     status: {
-      packed: item.packingStatuses?.[0]?.packed ?? false,
-      purchased: item.packingStatuses?.[0]?.purchased ?? false,
+      purchased: dayItem.purchased,
+      packed: dayItem.packed,
     },
   };
 }

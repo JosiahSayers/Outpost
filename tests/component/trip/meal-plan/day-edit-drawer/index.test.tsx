@@ -24,7 +24,9 @@ window.matchMedia = (query: string) =>
 function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
   return {
     id: crypto.randomUUID(),
+    mealPlanItemId: crypto.randomUUID(),
     name: "Oatmeal",
+    brand: null,
     meal: "breakfast",
     calories: 0,
     quantity: 1,
@@ -141,6 +143,7 @@ describe("quick-add", () => {
     expect(url).toBe("/api/trips/trip-1/meal-plan/days/2/items");
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({
+      mode: "new",
       name: "Pad Thai",
       meal: "dinner",
     });

@@ -10,7 +10,9 @@ function item(
 ): ClientMealPlanItem {
   return {
     id,
+    mealPlanItemId: crypto.randomUUID(),
     name,
+    brand: null,
     meal,
     calories: 100,
     quantity: 1,

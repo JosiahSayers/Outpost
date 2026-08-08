@@ -4,21 +4,27 @@ import { make } from "../../../helpers/test-data/make";
 
 describe("transform", () => {
   it("returns the expected shape", () => {
-    const item = {
-      ...make("MealPlanItem", {
+    const mealPlanItem = make("MealPlanItem", {
+      name: "Dehydrated chili",
+      brand: "Backpacker's Pantry",
+      calories: 650,
+      waterMl: 400,
+      dryWeightGrams: 120,
+    });
+    const dayItem = {
+      ...make("MealPlanDayItem", {
+        mealPlanItemId: mealPlanItem.id,
         meal: "dinner",
-        name: "Dehydrated chili",
-        calories: 650,
         quantity: 2,
-        waterMl: 400,
-        dryWeightGrams: 120,
       }),
-      packingStatuses: [],
+      mealPlanItem,
     };
 
-    expect(transform(item)).toEqual({
-      id: item.id,
+    expect(transform(dayItem)).toEqual({
+      id: dayItem.id,
+      mealPlanItemId: mealPlanItem.id,
       name: "Dehydrated chili",
+      brand: "Backpacker's Pantry",
       calories: 650,
       quantity: 2,
       waterMl: 400,
@@ -28,31 +34,29 @@ describe("transform", () => {
     });
   });
 
-  it("passes through null waterMl and dryWeightGrams", () => {
-    const item = {
-      ...make("MealPlanItem"),
+  it("passes through null brand, waterMl, and dryWeightGrams", () => {
+    const mealPlanItem = make("MealPlanItem", {
+      brand: null,
       waterMl: null,
       dryWeightGrams: null,
-      packingStatuses: [],
-    };
+    });
+    const dayItem = { ...make("MealPlanDayItem"), mealPlanItem };
 
-    expect(transform(item)).toMatchObject({
+    expect(transform(dayItem)).toMatchObject({
+      brand: null,
       waterMl: null,
       dryWeightGrams: null,
     });
   });
 
-  it("returns the packed/purchased values from the first packing status", () => {
-    const status = make("MealPlanItemPackingStatus", {
-      purchased: true,
-      packed: true,
-    });
-    const item = {
-      ...make("MealPlanItem"),
-      packingStatuses: [status],
+  it("returns the packed/purchased values from the day item", () => {
+    const mealPlanItem = make("MealPlanItem");
+    const dayItem = {
+      ...make("MealPlanDayItem", { purchased: true, packed: true }),
+      mealPlanItem,
     };
 
-    expect(transform(item)).toMatchObject({
+    expect(transform(dayItem)).toMatchObject({
       status: { purchased: true, packed: true },
     });
   });

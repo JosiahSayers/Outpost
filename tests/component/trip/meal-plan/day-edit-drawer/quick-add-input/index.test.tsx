@@ -1,6 +1,6 @@
 import QuickAddInput from "$/frontend/trip/meal-plan/day-edit-drawer/quick-add-input";
 import { mealPlanItemSearchKeys } from "$/frontend/utils/api/meal-plan";
-import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
+import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -23,30 +23,26 @@ window.matchMedia = (query: string) =>
 
 const tripId = "trip-1";
 
-const dinnerMatch: ClientMealPlanItem = {
+const ramenBomb: ClientMealPlanItemSummary = {
   id: "item-1",
   name: "Ramen Bomb",
+  brand: "Backpacker's Pantry",
   calories: 890,
-  quantity: 1,
   waterMl: 500,
   dryWeightGrams: 210,
-  meal: "dinner",
-  status: { packed: false, purchased: false },
 };
 
-const lunchOther: ClientMealPlanItem = {
+const ramenNoodles: ClientMealPlanItemSummary = {
   id: "item-2",
   name: "Ramen Noodles",
+  brand: null,
   calories: 380,
-  quantity: 2,
   waterMl: null,
   dryWeightGrams: 85,
-  meal: "lunch",
-  status: { packed: false, purchased: false },
 };
 
 const onAdd = mock((_name: string) => {});
-const onSelectExisting = mock((_item: ClientMealPlanItem) => {});
+const onSelectExisting = mock((_item: ClientMealPlanItemSummary) => {});
 
 function makeQueryClient() {
   return new QueryClient({
@@ -66,7 +62,7 @@ function renderInput({
   fetchImpl,
 }: {
   seedQuery?: string;
-  seedItems?: ClientMealPlanItem[];
+  seedItems?: ClientMealPlanItemSummary[];
   fetchImpl?: typeof fetch;
 } = {}) {
   const queryClient = makeQueryClient();
@@ -161,7 +157,7 @@ describe("searching", () => {
   it("shows each match's calories, water, and dry weight", async () => {
     renderInput({
       seedQuery: "ram",
-      seedItems: [dinnerMatch, lunchOther],
+      seedItems: [ramenBomb, ramenNoodles],
     });
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
     fireEvent.focus(input);
@@ -181,28 +177,27 @@ describe("searching", () => {
     expect(screen.getByText("85 g")).toBeInTheDocument();
   });
 
-  it("fills the meal badge for a result matching the searched meal", async () => {
-    renderInput({ seedQuery: "ram", seedItems: [dinnerMatch] });
+  it("shows a result's brand when present", async () => {
+    renderInput({ seedQuery: "ram", seedItems: [ramenBomb] });
     fireEvent.focus(screen.getByRole("textbox", { name: "Add to Dinner" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Add to Dinner" }), {
       target: { value: "ram" },
     });
 
-    await waitFor(() => screen.getByText("Ramen Bomb"));
-    const badge = screen.getByText("Dinner").closest(".mantine-Badge-root");
-    expect(badge).toHaveAttribute("data-variant", "filled");
+    await waitFor(() =>
+      expect(screen.getByText("Backpacker's Pantry")).toBeInTheDocument(),
+    );
   });
 
-  it("mutes the meal badge for a result from a different meal", async () => {
-    renderInput({ seedQuery: "ram", seedItems: [lunchOther] });
+  it("omits the brand text when a result has none", async () => {
+    renderInput({ seedQuery: "ram", seedItems: [ramenNoodles] });
     fireEvent.focus(screen.getByRole("textbox", { name: "Add to Dinner" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Add to Dinner" }), {
       target: { value: "ram" },
     });
 
     await waitFor(() => screen.getByText("Ramen Noodles"));
-    const badge = screen.getByText("Lunch").closest(".mantine-Badge-root");
-    expect(badge).toHaveAttribute("data-variant", "light");
+    expect(screen.queryByText("Backpacker's Pantry")).not.toBeInTheDocument();
   });
 
   it("shows skeleton rows while the search is pending", async () => {
@@ -240,7 +235,7 @@ describe("searching", () => {
 
 describe("selecting a result", () => {
   it("calls onSelectExisting with the matched item's full data and clears the input", async () => {
-    renderInput({ seedQuery: "ram", seedItems: [dinnerMatch] });
+    renderInput({ seedQuery: "ram", seedItems: [ramenBomb] });
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "ram" } });
@@ -248,7 +243,7 @@ describe("selecting a result", () => {
     await waitFor(() => screen.getByText("Ramen Bomb"));
     fireEvent.click(screen.getByText("Ramen Bomb"));
 
-    expect(onSelectExisting).toHaveBeenCalledWith(dinnerMatch);
+    expect(onSelectExisting).toHaveBeenCalledWith(ramenBomb);
     expect(onAdd).not.toHaveBeenCalled();
     expect(input).toHaveValue("");
   });

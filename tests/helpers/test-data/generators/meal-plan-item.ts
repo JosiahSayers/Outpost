@@ -10,12 +10,11 @@ export default function makeMealPlanItem(
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     name: faker.commerce.productName(),
+    brand: null,
     calories: faker.number.int({ min: 100, max: 1000 }),
-    meal: "breakfast",
-    quantity: 1,
     waterMl: null,
     dryWeightGrams: null,
-    mealPlanDayId: faker.string.uuid(),
+    userId: faker.string.uuid(),
     ...overrides,
   };
 }
