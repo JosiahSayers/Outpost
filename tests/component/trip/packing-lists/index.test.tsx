@@ -106,7 +106,9 @@ function makeMealPlanDay(
       breakfast: [
         {
           id: "meal-item-oatmeal",
+          mealPlanItemId: "meal-plan-item-oatmeal",
           name: "Instant Oatmeal",
+          brand: null,
           calories: 200,
           quantity: 2,
           waterMl: 300,

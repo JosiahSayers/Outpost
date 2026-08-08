@@ -12,7 +12,9 @@ function baseItem(
 ): ClientMealPlanItem {
   return {
     id: crypto.randomUUID(),
+    mealPlanItemId: crypto.randomUUID(),
     name: "Oatmeal",
+    brand: null,
     meal: "breakfast",
     calories: 0,
     quantity: 1,
@@ -61,4 +63,30 @@ it("shows plain calories for items with a quantity of 1", () => {
 it("omits calories when the item has none tracked", () => {
   renderRow(baseItem({ calories: 0 }));
   expect(screen.queryByText(/cal/)).not.toBeInTheDocument();
+});
+
+it("briefly highlights the quantity when it changes, then fades", () => {
+  const item = baseItem({ quantity: 1 });
+  const { rerender } = render(
+    <MantineProvider>
+      <ItemRow item={item} onClick={onClick} />
+    </MantineProvider>,
+  );
+
+  rerender(
+    <MantineProvider>
+      <ItemRow item={{ ...item, quantity: 2 }} onClick={onClick} />
+    </MantineProvider>,
+  );
+
+  const quantityText = screen.getByText("×2");
+  expect(quantityText.style.backgroundColor).toBe(
+    "var(--mantine-color-yellow-2)",
+  );
+});
+
+it("does not highlight the quantity on initial render", () => {
+  renderRow(baseItem({ quantity: 3 }));
+  const quantityText = screen.getByText("×3");
+  expect(quantityText.style.backgroundColor).toBe("transparent");
 });

@@ -11,7 +11,9 @@ const onDone = mock(() => {});
 function item(overrides: Partial<ClientMealPlanItem> = {}): ClientMealPlanItem {
   return {
     id: "item-1",
+    mealPlanItemId: "meal-plan-item-1",
     name: "Oatmeal",
+    brand: null,
     meal: "breakfast",
     calories: 350,
     quantity: 1,
@@ -90,6 +92,7 @@ describe("saving", () => {
       waterMl: 240,
       dryWeightGrams: 90,
     });
+    expect(JSON.parse(init.body as string).fork).toBeUndefined();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
@@ -106,12 +109,60 @@ describe("saving", () => {
     expect(JSON.parse(init.body as string)).toMatchObject({ waterMl: null });
   });
 
+  it("pre-fills and submits the brand field", async () => {
+    renderForm(item({ brand: "Backpacker's Pantry" }));
+    expect(screen.getByRole("textbox", { name: "Brand" })).toHaveValue(
+      "Backpacker's Pantry",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [, init] = lastFetchCall();
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      brand: "Backpacker's Pantry",
+    });
+  });
+
   it("shows a validation error and does not submit when the name is cleared", async () => {
     renderForm();
 
     const name = screen.getByRole("textbox", { name: /^Name/ });
     fireEvent.change(name, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(name).toBeInvalid());
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(onDone).not.toHaveBeenCalled();
+  });
+});
+
+describe("saving as a new item (fork)", () => {
+  it("submits fork: true and calls onDone, without ripple-editing the original", async () => {
+    renderForm();
+
+    fireEvent.change(screen.getByRole("textbox", { name: /^Name/ }), {
+      target: { value: "Granola" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save as new item" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/meal-plan/days/2/items/item-1");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      name: "Granola",
+      fork: true,
+    });
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a validation error and does not submit when the name is cleared", async () => {
+    renderForm();
+
+    const name = screen.getByRole("textbox", { name: /^Name/ });
+    fireEvent.change(name, { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save as new item" }));
 
     await waitFor(() => expect(name).toBeInvalid());
     expect(global.fetch).not.toHaveBeenCalled();
