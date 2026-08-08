@@ -9,6 +9,7 @@ export const NOTIFICATION_ICON_NAMES = [
   "FlagCheckeredIcon",
   "PersonSimpleHikeIcon",
   "RulerIcon",
+  "WarningIcon",
 ] as const;
 
 export type NotificationIconName = (typeof NOTIFICATION_ICON_NAMES)[number];

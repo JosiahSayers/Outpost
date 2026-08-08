@@ -5,6 +5,7 @@ import {
   FlagCheckeredIcon,
   PersonSimpleHikeIcon,
   RulerIcon,
+  WarningIcon,
   type Icon,
 } from "@phosphor-icons/react";
 
@@ -28,6 +29,7 @@ const ICONS = {
   FlagCheckeredIcon,
   PersonSimpleHikeIcon,
   RulerIcon,
+  WarningIcon,
 } satisfies Record<NotificationIconName, Icon>;
 
 export default function NotificationIcon({
