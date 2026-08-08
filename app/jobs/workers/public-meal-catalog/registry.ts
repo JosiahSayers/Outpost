@@ -1,6 +1,7 @@
 import { defineJobGroup } from "$/jobs/define-job-group";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { runVendorImport } from "$/jobs/workers/public-meal-catalog/run-vendor-import";
+import { packitGourmetScraper } from "$/jobs/workers/public-meal-catalog/vendors/packit-gourmet";
 import { peakRefuelScraper } from "$/jobs/workers/public-meal-catalog/vendors/peak-refuel";
 
 export const PUBLIC_MEAL_CATALOG_QUEUE = "public_meal_catalog__import";
@@ -16,6 +17,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       processor: (job) => runVendorImport(job, peakRefuelScraper),
       defaultJobOptions,
       schedule: { id: "import-peak-refuel-nightly", pattern: "1 0 * * *" },
+    },
+    {
+      name: packitGourmetScraper.vendorId,
+      processor: (job) => runVendorImport(job, packitGourmetScraper),
+      defaultJobOptions,
+      schedule: { id: "import-packit-gourmet-nightly", pattern: "11 0 * * *" },
     },
     // future vendors (Mountain House, etc.) added here as their own entry
   ],
