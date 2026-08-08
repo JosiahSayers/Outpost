@@ -46,6 +46,27 @@ class SentryTransport extends TransportStream {
   }
 }
 
+// winston.format.errors({ stack: true }) only rewrites `info` when the log
+// call's top-level argument *is* an Error. Errors passed as metadata fields
+// (e.g. `logger.warn(msg, { error: err })`) pass through untouched, and
+// Error's own properties (message, stack) are non-enumerable, so
+// format.json() serializes them to `{}`. Flatten any Error found in metadata
+// before it reaches json().
+const serializeErrorMeta = winston.format((info) => {
+  for (const key of Object.keys(info)) {
+    const value = info[key];
+    if (value instanceof Error) {
+      info[key] = {
+        ...value,
+        message: value.message,
+        name: value.name,
+        stack: value.stack,
+      };
+    }
+  }
+  return info;
+});
+
 export const logger = winston.createLogger({
   level: "info",
   format: getFormat(),
@@ -67,6 +88,7 @@ export const jobLogger = winston.createLogger({
 function getFormat() {
   return winston.format.combine(
     winston.format.errors({ stack: true }),
+    serializeErrorMeta(),
     winston.format.timestamp(),
     winston.format.json(),
   );
