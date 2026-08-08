@@ -15,7 +15,7 @@ export const queryClient = new QueryClient({
 
         return failureCount < 3;
       },
-      staleTime: minutesToMilliseconds(15),
+      staleTime: minutesToMilliseconds(0.5),
     },
   },
 });
