@@ -207,7 +207,7 @@ describe("fetchOpenGraph", () => {
 
       await expect(
         call("https://example.com/file.pdf", fetchImpl),
-      ).rejects.toThrow(/non-HTML content type/);
+      ).rejects.toThrow(/unexpected content type/);
     });
 
     it("parses the leading bytes when the body exceeds the limit", async () => {
