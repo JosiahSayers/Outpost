@@ -7,6 +7,7 @@ import makeFeedbackAuditLog from "./generators/feedback-audit-log";
 import makeFeedbackNote from "./generators/feedback-note";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
+import makeImage from "./generators/image";
 import makeMealPlanDay from "./generators/meal-plan-day";
 import makeMealPlanDayItem from "./generators/meal-plan-day-item";
 import makeMealPlanItem from "./generators/meal-plan-item";
@@ -15,6 +16,7 @@ import makePackingList from "./generators/packing-list";
 import makePackingListItem from "./generators/packing-list-item";
 import makePackingListSection from "./generators/packing-list-section";
 import makePlace from "./generators/place";
+import makePublicMealItem from "./generators/public-meal-item";
 import makeSession from "./generators/session";
 import makeTrip from "./generators/trip";
 import makeTripLink from "./generators/trip-link";
@@ -47,6 +49,8 @@ type SupportedModels = PickStringLiteral<
   | "MealPlanDayItem"
   | "Notification"
   | "User"
+  | "PublicMealItem"
+  | "Image"
 >;
 
 const generators = {
@@ -72,6 +76,8 @@ const generators = {
   MealPlanDayItem: makeMealPlanDayItem,
   Notification: makeNotification,
   User: makeUser,
+  PublicMealItem: makePublicMealItem,
+  Image: makeImage,
 } as const;
 
 export function make<Model extends SupportedModels>(

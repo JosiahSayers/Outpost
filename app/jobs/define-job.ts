@@ -33,6 +33,10 @@ export interface DefineJobOptions<DataType, ResultType = unknown> {
 }
 
 export interface DefinedJob<DataType, ResultType = unknown> {
+  // Discriminates against DefinedJobGroup (define-job-group.ts) so shared
+  // consumers (registry.ts, workers/index.ts) can branch on shape. Existing
+  // job files are unaffected -- none of them read `.kind`.
+  kind: "job";
   name: string;
   queue: Queue<DataType, ResultType>;
   worker: Worker<DataType, ResultType>;
@@ -43,6 +47,9 @@ export interface DefinedJob<DataType, ResultType = unknown> {
 // worker that can never be made to autorun outside workers/index.ts. This is
 // the only place `new Queue()` / `new Worker()` should appear under app/jobs
 // -- every job file calls this exactly once for its own queue/worker pair.
+// For a queue meant to hold several distinct job types (e.g. one importer
+// job per vendor sharing a queue), see defineJobGroup in define-job-group.ts
+// instead.
 export function defineJob<DataType = unknown, ResultType = unknown>(
   options: DefineJobOptions<DataType, ResultType>,
 ): DefinedJob<DataType, ResultType> {
@@ -60,5 +67,5 @@ export function defineJob<DataType = unknown, ResultType = unknown>(
     autorun: false,
   });
 
-  return { name, queue, worker, schedule };
+  return { kind: "job", name, queue, worker, schedule };
 }

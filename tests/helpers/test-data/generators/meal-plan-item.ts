@@ -15,6 +15,7 @@ export default function makeMealPlanItem(
     waterMl: null,
     dryWeightGrams: null,
     userId: faker.string.uuid(),
+    publicMealSourceId: null,
     ...overrides,
   };
 }

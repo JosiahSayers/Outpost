@@ -484,10 +484,16 @@ model MealPlanItem {
   userId   String
   dayItems MealPlanDayItem[]
 
+  // Provenance for BTP-111's fork-on-add: set when this row was created by
+  // forking a PublicMealItem. Nullable -- most MealPlanItem rows aren't forks.
+  publicMealSource   PublicMealItem? @relation(fields: [publicMealSourceId], references: [id], onDelete: SetNull)
+  publicMealSourceId String?
+
   // Full Text Search
   data_fts Unsupported("tsvector")?
 
   @@index([userId])
+  @@index([publicMealSourceId])
   @@index([data_fts], type: Gin)
 }
 
@@ -515,6 +521,54 @@ model MealPlanDayItem {
   @@unique([mealPlanDayId, mealPlanItemId, meal])
   @@index([mealPlanDayId])
   @@index([mealPlanItemId])
+}
+
+// Curated catalog of meals scraped from third-party vendor sites (BTP-107),
+// browsable/forkable by any user (BTP-111, not yet built). Scraped fields are
+// nullable because a source page may not expose everything -- the import job
+// (app/jobs/workers/public-meal-catalog) never blanks out a previously-known
+// value on re-scrape, so a gap here means it's never successfully been parsed
+// nor fixed by an admin (BTP-110, not yet built).
+model PublicMealItem {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  name           String
+  brand          String?
+  calories       Int?
+  waterMl        Int?
+  dryWeightGrams Int?
+
+  image          Image?  @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  imageId        String?
+  // Last-seen image URL from the source. Compared against the current scrape
+  // so an unchanged image is never re-downloaded/re-uploaded on every run.
+  sourceImageUrl String?
+
+  sourceVendor    String // e.g. "peak_refuel"
+  sourceProductId String // vendor's own product id -- the upsert key together with sourceVendor
+  sourceUrl       String // product page link, shown to an admin for cross-reference
+
+  forkedMealPlanItems MealPlanItem[]
+
+  @@unique([sourceVendor, sourceProductId])
+}
+
+// A single stored image, backed by an object in Cloudflare R2. Currently only
+// referenced by PublicMealItem; kept as its own model rather than inlined
+// fields so other features can reuse it later without a schema change.
+model Image {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  r2Key       String @unique
+  contentType String
+  width       Int
+  height      Int
+
+  publicMealItems PublicMealItem[]
 }
 
 model TripPackingList {

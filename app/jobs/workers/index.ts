@@ -4,15 +4,32 @@ import { logger } from "$/utils/logger";
 
 await cleanupOrphanedPadUsRuns();
 
-for (const job of registry) {
-  if (job.schedule) {
-    await job.queue.upsertJobScheduler(job.schedule.id, {
-      pattern: job.schedule.pattern,
-    });
+for (const entry of registry) {
+  if (entry.kind === "job") {
+    if (entry.schedule) {
+      await entry.queue.upsertJobScheduler(entry.schedule.id, {
+        pattern: entry.schedule.pattern,
+      });
+    }
+  } else {
+    for (const member of entry.members) {
+      if (member.schedule) {
+        await entry.queue.upsertJobScheduler(
+          member.schedule.id,
+          { pattern: member.schedule.pattern },
+          {
+            name: member.name,
+            ...(member.defaultJobOptions
+              ? { opts: member.defaultJobOptions }
+              : {}),
+          },
+        );
+      }
+    }
   }
 }
 
-registry.forEach((job) => job.worker.run());
+registry.forEach((entry) => entry.worker.run());
 
 process.on("SIGINT", async () => {
   logger.info("Gracefully stopping workers...");
