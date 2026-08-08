@@ -114,11 +114,8 @@ describe("searchMealPlanItems", () => {
   });
 
   it("returns a row for a full match", async () => {
-    // Seed data has multiple "Instant Oatmeal" rows across trips; dedup
-    // means only the most recently created one is returned.
     const expectedMatch = await db.mealPlanItem.findFirst({
-      where: { name: "Instant Oatmeal" },
-      orderBy: { createdAt: "desc" },
+      where: { name: "Instant Oatmeal", userId: user.id },
     });
     const results = await searchMealPlanItems("instant oatmeal", user.id);
     expect(results).toContainEqual(expectedMatch!);
@@ -126,8 +123,7 @@ describe("searchMealPlanItems", () => {
 
   it("returns a row for a partial match", async () => {
     const expectedMatch = await db.mealPlanItem.findFirst({
-      where: { name: "Instant Oatmeal" },
-      orderBy: { createdAt: "desc" },
+      where: { name: "Instant Oatmeal", userId: user.id },
     });
     const results = await searchMealPlanItems("oat", user.id);
     expect(results).toContainEqual(expectedMatch!);
@@ -135,14 +131,13 @@ describe("searchMealPlanItems", () => {
 
   it("returns a row for multiple word partial matches", async () => {
     const expectedMatch = await db.mealPlanItem.findFirst({
-      where: { name: "Trail Mix" },
-      orderBy: { createdAt: "desc" },
+      where: { name: "Trail Mix", userId: user.id },
     });
     const results = await searchMealPlanItems("tr mi", user.id);
     expect(results).toContainEqual(expectedMatch!);
   });
 
-  it("does not return items belonging to another user's trips", async () => {
+  it("does not return items belonging to another user", async () => {
     const results = await searchMealPlanItems("instant oatmeal", user2.id);
     expect(results).toEqual([]);
   });
@@ -156,15 +151,22 @@ describe("searchMealPlanItems", () => {
       mealPlanDay = await db.mealPlanDay.create({
         data: make("MealPlanDay", { tripId: trip.id, dayNumber: 1 }),
       });
-      await db.mealPlanItem.create({
+      const mealPlanItem = await db.mealPlanItem.create({
         data: make("MealPlanItem", {
+          userId: user.id,
           name: "Excludable Test Meal",
+        }),
+      });
+      await db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
           mealPlanDayId: mealPlanDay.id,
+          mealPlanItemId: mealPlanItem.id,
+          meal: "breakfast",
         }),
       });
     });
 
-    it("excludes items belonging to the given trip", async () => {
+    it("excludes items already placed on the given trip's meal plan", async () => {
       const results = await searchMealPlanItems(
         "excludable test meal",
         user.id,
@@ -173,7 +175,21 @@ describe("searchMealPlanItems", () => {
       expect(results).toEqual([]);
     });
 
-    it("includes the item when it belongs to a different trip", async () => {
+    it("does not exclude the item when checked against a different trip", async () => {
+      const otherTrip = await db.trip.create({
+        data: make("Trip", { userId: user.id }),
+      });
+      const results = await searchMealPlanItems(
+        "excludable test meal",
+        user.id,
+        { excludeTripId: otherTrip.id },
+      );
+      expect(results.some((item) => item.name === "Excludable Test Meal")).toBe(
+        true,
+      );
+    });
+
+    it("includes the item when no excludeTripId is given", async () => {
       const results = await searchMealPlanItems(
         "excludable test meal",
         user.id,
@@ -185,41 +201,25 @@ describe("searchMealPlanItems", () => {
   });
 
   describe("when the same item name appears more than once", () => {
-    let trip: Trip;
-    let mealPlanDay: MealPlanDay;
-
-    beforeEach(async () => {
-      trip = await db.trip.create({ data: make("Trip", { userId: user.id }) });
-      mealPlanDay = await db.mealPlanDay.create({
-        data: make("MealPlanDay", { tripId: trip.id, dayNumber: 1 }),
-      });
+    it("returns every matching row -- items are unique by construction, no dedup needed", async () => {
       await db.mealPlanItem.create({
         data: make("MealPlanItem", {
+          userId: user.id,
           name: "Duplicate Test Meal",
-          mealPlanDayId: mealPlanDay.id,
-          createdAt: faker.date.past(),
         }),
       });
       await db.mealPlanItem.create({
         data: make("MealPlanItem", {
+          userId: user.id,
           name: "Duplicate Test Meal",
-          mealPlanDayId: mealPlanDay.id,
-          createdAt: faker.date.recent(),
         }),
       });
-    });
 
-    it("only returns the most recently created row for each exact name", async () => {
-      const mostRecent = await db.mealPlanItem.findFirst({
-        where: { name: "Duplicate Test Meal" },
-        orderBy: { createdAt: "desc" },
-      });
       const results = await searchMealPlanItems("duplicate test meal", user.id);
       const matches = results.filter(
         (item) => item.name === "Duplicate Test Meal",
       );
-      expect(matches).toHaveLength(1);
-      expect(matches[0]).toEqual(mostRecent!);
+      expect(matches).toHaveLength(2);
     });
   });
 
@@ -232,22 +232,34 @@ describe("searchMealPlanItems", () => {
       mealPlanDay = await db.mealPlanDay.create({
         data: make("MealPlanDay", { tripId: trip.id, dayNumber: 1 }),
       });
-      // Older row, but its meal matches -- should still rank first.
-      await db.mealPlanItem.create({
+      // Older item, but placed at dinner -- should still rank first.
+      const dinnerItem = await db.mealPlanItem.create({
         data: make("MealPlanItem", {
+          userId: user.id,
           name: "Rankable Test Meal Dinner Version",
-          meal: "dinner",
-          mealPlanDayId: mealPlanDay.id,
           createdAt: faker.date.past(),
         }),
       });
-      // Newer row, meal doesn't match.
-      await db.mealPlanItem.create({
-        data: make("MealPlanItem", {
-          name: "Rankable Test Meal Lunch Version",
-          meal: "lunch",
+      await db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
           mealPlanDayId: mealPlanDay.id,
+          mealPlanItemId: dinnerItem.id,
+          meal: "dinner",
+        }),
+      });
+      // Newer item, placed at lunch -- doesn't match the "dinner" search.
+      const lunchItem = await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          userId: user.id,
+          name: "Rankable Test Meal Lunch Version",
           createdAt: faker.date.recent(),
+        }),
+      });
+      await db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
+          mealPlanDayId: mealPlanDay.id,
+          mealPlanItemId: lunchItem.id,
+          meal: "lunch",
         }),
       });
     });

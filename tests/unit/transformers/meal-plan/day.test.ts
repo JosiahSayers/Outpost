@@ -6,7 +6,10 @@ import { make } from "../../../helpers/test-data/make";
 function makeDayItem(overrides: { mealPlanDayId: string; meal: MealName }) {
   const mealPlanItem = make("MealPlanItem");
   return {
-    ...make("MealPlanDayItem", { mealPlanItemId: mealPlanItem.id, ...overrides }),
+    ...make("MealPlanDayItem", {
+      mealPlanItemId: mealPlanItem.id,
+      ...overrides,
+    }),
     mealPlanItem,
   };
 }

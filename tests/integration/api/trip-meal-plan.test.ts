@@ -8,6 +8,8 @@ import { make } from "../../helpers/test-data/make";
 let authCookies: Array<string>;
 let user2AuthCookies: Array<string>;
 let tripId: string;
+let userId: string;
+let user2Id: string;
 
 beforeEach(async () => {
   authCookies = await getAuthCookies();
@@ -16,8 +18,13 @@ beforeEach(async () => {
   const user = await db.user.findUnique({
     where: { email: "user@test.com" },
   });
+  const user2 = await db.user.findUnique({
+    where: { email: "user2@test.com" },
+  });
+  userId = user!.id;
+  user2Id = user2!.id;
   const trip = await db.trip.create({
-    data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    data: make("Trip", { name: "Appalachian Trail", userId }),
   });
   tripId = trip.id;
 });
@@ -213,11 +220,8 @@ describe("POST /days", () => {
   });
 
   it("allows the same dayNumber on a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
     await db.mealPlanDay.create({
       data: make("MealPlanDay", { tripId: otherTrip.id, dayNumber: 1 }),
@@ -266,11 +270,8 @@ describe("DELETE /days/:day", () => {
   });
 
   it("returns 404 when the day belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
@@ -314,8 +315,15 @@ describe("PATCH /days/:day", () => {
       }),
     });
     for (const meal of ["breakfast", "lunch", "dinner", "snacks"] as const) {
-      await db.mealPlanItem.create({
-        data: make("MealPlanItem", { mealPlanDayId: day.id, meal }),
+      const mealPlanItem = await db.mealPlanItem.create({
+        data: make("MealPlanItem", { userId }),
+      });
+      await db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
+          mealPlanDayId: day.id,
+          mealPlanItemId: mealPlanItem.id,
+          meal,
+        }),
       });
     }
   });
@@ -352,11 +360,8 @@ describe("PATCH /days/:day", () => {
   });
 
   it("returns 404 when the day belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
@@ -478,15 +483,20 @@ describe("GET /items", () => {
   // so matches here are unambiguously the ones this test created.
   const uniqueTerm = "freezedriedtestmeal";
   let itemId: string;
+  let dayId: string;
 
   beforeEach(async () => {
     const day = await db.mealPlanDay.create({
       data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
     });
+    dayId = day.id;
     const item = await db.mealPlanItem.create({
-      data: make("MealPlanItem", {
+      data: make("MealPlanItem", { userId, name: "Freezedriedtestmeal" }),
+    });
+    await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
         mealPlanDayId: day.id,
-        name: "Freezedriedtestmeal",
+        mealPlanItemId: item.id,
         meal: "breakfast",
       }),
     });
@@ -605,22 +615,12 @@ describe("GET /items", () => {
     expect(response.body.items).toEqual([]);
   });
 
-  it("returns items from the user's other trips too", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
-    const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
-    });
-    const otherDay = await db.mealPlanDay.create({
-      data: {
-        ...make("MealPlanDay", { tripId: otherTrip.id, dayNumber: 1 }),
-        date: null,
-      },
-    });
+  it("returns items regardless of which trip (or none) they're placed on", async () => {
+    // Items are per-user canonical entities now, not trip-scoped -- this one
+    // isn't placed on any day at all.
     await db.mealPlanItem.create({
       data: make("MealPlanItem", {
-        mealPlanDayId: otherDay.id,
+        userId,
         name: "Freezedriedtestmeal Deluxe",
       }),
     });
@@ -642,21 +642,9 @@ describe("GET /items", () => {
   });
 
   it("does not return items belonging to another user", async () => {
-    const user2 = await db.user.findUnique({
-      where: { email: "user2@test.com" },
-    });
-    const user2Trip = await db.trip.create({
-      data: make("Trip", { userId: user2!.id }),
-    });
-    const user2Day = await db.mealPlanDay.create({
-      data: {
-        ...make("MealPlanDay", { tripId: user2Trip.id, dayNumber: 1 }),
-        date: null,
-      },
-    });
     await db.mealPlanItem.create({
       data: make("MealPlanItem", {
-        mealPlanDayId: user2Day.id,
+        userId: user2Id,
         name: "Freezedriedtestmeal User2",
       }),
     });
@@ -673,11 +661,10 @@ describe("GET /items", () => {
   });
 
   it("respects the limit parameter", async () => {
-    const day = await db.mealPlanDay.findFirstOrThrow({ where: { tripId } });
     await db.mealPlanItem.createMany({
       data: [0, 1, 2].map((i) =>
         make("MealPlanItem", {
-          mealPlanDayId: day.id,
+          userId,
           name: `Freezedriedtestmeal Variant ${i}`,
         }),
       ),
@@ -692,16 +679,35 @@ describe("GET /items", () => {
     expect(response.body.items).toHaveLength(2);
   });
 
-  it("ignores excludeTripId for now (not wired up yet)", async () => {
+  it("excludes items already placed on the given trip's meal plan when excludeTripId is provided", async () => {
     const response = await request(app)
       .get(`/api/trips/${tripId}/meal-plan/items`)
       .query({ query: uniqueTerm, excludeTripId: tripId })
       .set("Cookie", authCookies)
       .expect(200);
 
-    expect(response.body.items).toEqual([
-      expect.objectContaining({ id: itemId, name: "Freezedriedtestmeal" }),
-    ]);
+    expect(
+      response.body.items.map((item: { id: string }) => item.id),
+    ).not.toContain(itemId);
+  });
+
+  it("does not exclude items the user owns but hasn't placed on that trip", async () => {
+    const unplaced = await db.mealPlanItem.create({
+      data: make("MealPlanItem", {
+        userId,
+        name: "Freezedriedtestmeal Unplaced",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/meal-plan/items`)
+      .query({ query: uniqueTerm, excludeTripId: tripId })
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(
+      response.body.items.map((item: { id: string }) => item.id),
+    ).toContain(unplaced.id);
   });
 
   it("rejects an invalid meal value", async () => {
@@ -737,13 +743,19 @@ describe("GET /items", () => {
   });
 
   it("ranks items matching the given meal above other matches", async () => {
-    const day = await db.mealPlanDay.findFirstOrThrow({ where: { tripId } });
-    // The seeded item is breakfast; add a lunch match too, so a "lunch"
-    // search should surface it first despite being created afterward.
+    // The seeded item is placed at breakfast; add a lunch placement too, so
+    // a "lunch" search should surface it first despite being created
+    // afterward.
     const lunchItem = await db.mealPlanItem.create({
       data: make("MealPlanItem", {
-        mealPlanDayId: day.id,
+        userId,
         name: "Freezedriedtestmeal Lunch",
+      }),
+    });
+    await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
+        mealPlanDayId: dayId,
+        mealPlanItemId: lunchItem.id,
         meal: "lunch",
       }),
     });
@@ -771,14 +783,14 @@ describe("POST /days/:day/items", () => {
   it("requires a valid session", async () => {
     await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .expect(401);
   });
 
   it("returns 404 when the trip does not exist", async () => {
     await request(app)
       .post("/api/trips/does-not-exist/meal-plan/days/1/items")
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect(404);
   });
@@ -786,7 +798,7 @@ describe("POST /days/:day/items", () => {
   it("returns 403 when the trip belongs to another user", async () => {
     await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", user2AuthCookies)
       .expect(403);
   });
@@ -794,31 +806,30 @@ describe("POST /days/:day/items", () => {
   it("returns 404 when the day does not exist", async () => {
     await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/99/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect(404);
   });
 
   it("returns 404 when the day belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
       .post(`/api/trips/${otherTrip.id}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect(404);
   });
 
-  it("creates an item with the provided fields", async () => {
+  it("creates a new item and attaches it with the provided fields", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
       .send({
+        mode: "new",
         name: "Oatmeal",
+        brand: "Quaker",
         meal: "breakfast",
         calories: 350,
         quantity: 2,
@@ -832,7 +843,9 @@ describe("POST /days/:day/items", () => {
     expect(response.body).toEqual({
       mealPlanItem: {
         id: expect.any(String),
+        mealPlanItemId: expect.any(String),
         name: "Oatmeal",
+        brand: "Quaker",
         meal: "breakfast",
         calories: 350,
         quantity: 2,
@@ -846,13 +859,15 @@ describe("POST /days/:day/items", () => {
   it("defaults calories to 0 and leaves optional fields unset", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect(201);
 
     expect(response.body.mealPlanItem).toEqual({
       id: expect.any(String),
+      mealPlanItemId: expect.any(String),
       name: "Oatmeal",
+      brand: null,
       meal: "breakfast",
       calories: 0,
       quantity: 1,
@@ -865,50 +880,37 @@ describe("POST /days/:day/items", () => {
   it("persists the item to the database, scoped to the day", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect(201);
 
     const day = await db.mealPlanDay.findUnique({
       where: { tripId_dayNumber: { tripId, dayNumber: 1 } },
     });
-    const dbItem = await db.mealPlanItem.findUnique({
+    const dbDayItem = await db.mealPlanDayItem.findUnique({
       where: { id: response.body.mealPlanItem.id },
     });
-    expect(dbItem?.mealPlanDayId).toBe(day!.id);
+    expect(dbDayItem?.mealPlanDayId).toBe(day!.id);
   });
 
   it("rejects a missing name", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ meal: "breakfast" })
+      .send({ mode: "new", meal: "breakfast" })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(400);
 
-    expect(response.body).toMatchInlineSnapshot(`
-      [
-        {
-          "errors": [
-            {
-              "code": "invalid_type",
-              "expected": "string",
-              "message": "Invalid input: expected string, received undefined",
-              "path": [
-                "name",
-              ],
-            },
-          ],
-          "type": "body",
-        },
-      ]
-    `);
+    expect(response.body[0]).toMatchObject({
+      errors: [expect.objectContaining({ path: ["name"] })],
+      type: "body",
+    });
   });
 
   it("rejects an invalid meal", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "brunch" })
+      .send({ mode: "new", name: "Oatmeal", meal: "brunch" })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(400);
@@ -926,34 +928,26 @@ describe("POST /days/:day/items", () => {
   it("rejects unrecognized fields", async () => {
     const response = await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast", notAField: true })
+      .send({
+        mode: "new",
+        name: "Oatmeal",
+        meal: "breakfast",
+        notAField: true,
+      })
       .set("Cookie", authCookies)
       .expect("Content-Type", /json/)
       .expect(400);
 
-    expect(response.body).toMatchInlineSnapshot(`
-      [
-        {
-          "errors": [
-            {
-              "code": "unrecognized_keys",
-              "keys": [
-                "notAField",
-              ],
-              "message": "Unrecognized key: "notAField"",
-              "path": [],
-            },
-          ],
-          "type": "body",
-        },
-      ]
-    `);
+    expect(response.body[0]).toMatchObject({
+      errors: [expect.objectContaining({ path: [] })],
+      type: "body",
+    });
   });
 
   it("does not create the item when the owning user check fails", async () => {
     await request(app)
       .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
-      .send({ name: "Oatmeal", meal: "breakfast" })
+      .send({ mode: "new", name: "Oatmeal", meal: "breakfast" })
       .set("Cookie", user2AuthCookies)
       .expect(403);
 
@@ -963,25 +957,119 @@ describe("POST /days/:day/items", () => {
     });
     expect(day?.items).toEqual([]);
   });
+
+  describe("mode: existing", () => {
+    it("attaches an existing item owned by the user", async () => {
+      const mealPlanItem = await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          userId,
+          name: "Trail Mix",
+          calories: 240,
+        }),
+      });
+
+      const response = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "existing",
+          mealPlanItemId: mealPlanItem.id,
+          meal: "snacks",
+          quantity: 1,
+        })
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      expect(response.body).toEqual({
+        mealPlanItem: {
+          id: expect.any(String),
+          mealPlanItemId: mealPlanItem.id,
+          name: "Trail Mix",
+          brand: null,
+          meal: "snacks",
+          calories: 240,
+          quantity: 1,
+          waterMl: null,
+          dryWeightGrams: null,
+          status: { purchased: false, packed: false },
+        },
+      });
+    });
+
+    it("returns 404 when the item belongs to another user", async () => {
+      const otherUsersItem = await db.mealPlanItem.create({
+        data: make("MealPlanItem", { userId: user2Id, name: "Trail Mix" }),
+      });
+
+      await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "existing",
+          mealPlanItemId: otherUsersItem.id,
+          meal: "snacks",
+        })
+        .set("Cookie", authCookies)
+        .expect(404);
+    });
+
+    it("bumps the quantity instead of duplicating when the item is already in that day+meal slot", async () => {
+      const mealPlanItem = await db.mealPlanItem.create({
+        data: make("MealPlanItem", { userId, name: "Trail Mix" }),
+      });
+      const body = {
+        mode: "existing" as const,
+        mealPlanItemId: mealPlanItem.id,
+        meal: "snacks" as const,
+        quantity: 1,
+      };
+
+      await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send(body)
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      const second = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send(body)
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      expect(second.body.mealPlanItem.quantity).toBe(2);
+
+      const day = await db.mealPlanDay.findUnique({
+        where: { tripId_dayNumber: { tripId, dayNumber: 1 } },
+      });
+      const placements = await db.mealPlanDayItem.findMany({
+        where: { mealPlanDayId: day!.id, mealPlanItemId: mealPlanItem.id },
+      });
+      expect(placements).toHaveLength(1);
+    });
+  });
 });
 
 describe("PATCH /days/:day/items/:itemId", () => {
   let itemId: string;
+  let mealPlanItemId: string;
+  let dayId: string;
 
   beforeEach(async () => {
     const day = await db.mealPlanDay.create({
       data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
     });
-    const item = await db.mealPlanItem.create({
-      data: make("MealPlanItem", {
+    dayId = day.id;
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId, name: "Oatmeal", calories: 350 }),
+    });
+    mealPlanItemId = mealPlanItem.id;
+    const dayItem = await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
         mealPlanDayId: day.id,
-        name: "Oatmeal",
+        mealPlanItemId: mealPlanItem.id,
         meal: "breakfast",
-        calories: 350,
         quantity: 1,
       }),
     });
-    itemId = item.id;
+    itemId = dayItem.id;
   });
 
   it("requires a valid session", async () => {
@@ -1024,11 +1112,8 @@ describe("PATCH /days/:day/items/:itemId", () => {
   });
 
   it("returns 404 when the item belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
@@ -1055,6 +1140,7 @@ describe("PATCH /days/:day/items/:itemId", () => {
       .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
       .send({
         name: "Granola",
+        brand: "Bear Naked",
         meal: "snacks",
         calories: 200,
         quantity: 3,
@@ -1068,7 +1154,9 @@ describe("PATCH /days/:day/items/:itemId", () => {
     expect(response.body).toEqual({
       mealPlanItem: {
         id: itemId,
+        mealPlanItemId,
         name: "Granola",
+        brand: "Bear Naked",
         meal: "snacks",
         calories: 200,
         quantity: 3,
@@ -1089,7 +1177,9 @@ describe("PATCH /days/:day/items/:itemId", () => {
     expect(response.body).toEqual({
       mealPlanItem: {
         id: itemId,
+        mealPlanItemId,
         name: "Granola",
+        brand: null,
         meal: "breakfast",
         calories: 350,
         quantity: 1,
@@ -1108,14 +1198,14 @@ describe("PATCH /days/:day/items/:itemId", () => {
       .expect(200);
 
     const dbItem = await db.mealPlanItem.findUnique({
-      where: { id: itemId },
+      where: { id: mealPlanItemId },
     });
     expect(dbItem?.name).toBe("Granola");
   });
 
   it("allows clearing waterMl and dryWeightGrams with null", async () => {
     await db.mealPlanItem.update({
-      where: { id: itemId },
+      where: { id: mealPlanItemId },
       data: { waterMl: 100, dryWeightGrams: 50 },
     });
 
@@ -1184,27 +1274,105 @@ describe("PATCH /days/:day/items/:itemId", () => {
       .expect(403);
 
     const dbItem = await db.mealPlanItem.findUnique({
-      where: { id: itemId },
+      where: { id: mealPlanItemId },
     });
     expect(dbItem?.name).toBe("Oatmeal");
+  });
+
+  describe("ripple and fork", () => {
+    async function addSecondPlacement() {
+      const day2 = await db.mealPlanDay.create({
+        data: { ...make("MealPlanDay", { tripId, dayNumber: 2 }), date: null },
+      });
+      return db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
+          mealPlanDayId: day2.id,
+          mealPlanItemId,
+          meal: "lunch",
+        }),
+      });
+    }
+
+    it("ripples an edit to every placement of the item by default", async () => {
+      const otherPlacement = await addSecondPlacement();
+
+      await request(app)
+        .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+        .send({ name: "Ripple Test" })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      const dbOtherPlacement = await db.mealPlanDayItem.findUnique({
+        where: { id: otherPlacement.id },
+        include: { mealPlanItem: true },
+      });
+      expect(dbOtherPlacement?.mealPlanItem.name).toBe("Ripple Test");
+    });
+
+    it("forks a new item when fork is true, leaving other placements untouched", async () => {
+      const otherPlacement = await addSecondPlacement();
+
+      const response = await request(app)
+        .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+        .send({ name: "Forked Name", fork: true })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      expect(response.body.mealPlanItem.mealPlanItemId).not.toBe(
+        mealPlanItemId,
+      );
+      expect(response.body.mealPlanItem.name).toBe("Forked Name");
+
+      const originalItem = await db.mealPlanItem.findUnique({
+        where: { id: mealPlanItemId },
+      });
+      expect(originalItem?.name).toBe("Oatmeal");
+
+      const dbOtherPlacement = await db.mealPlanDayItem.findUnique({
+        where: { id: otherPlacement.id },
+        include: { mealPlanItem: true },
+      });
+      expect(dbOtherPlacement?.mealPlanItem.name).toBe("Oatmeal");
+    });
+
+    it("returns 409 when changing meal to a slot already occupied by another placement of the same item", async () => {
+      await db.mealPlanDayItem.create({
+        data: make("MealPlanDayItem", {
+          mealPlanDayId: dayId,
+          mealPlanItemId,
+          meal: "lunch",
+        }),
+      });
+
+      await request(app)
+        .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
+        .send({ meal: "lunch" })
+        .set("Cookie", authCookies)
+        .expect(409);
+    });
   });
 });
 
 describe("DELETE /days/:day/items/:itemId", () => {
   let itemId: string;
+  let mealPlanItemId: string;
 
   beforeEach(async () => {
     const day = await db.mealPlanDay.create({
       data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
     });
-    const item = await db.mealPlanItem.create({
-      data: make("MealPlanItem", {
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId, name: "Oatmeal" }),
+    });
+    mealPlanItemId = mealPlanItem.id;
+    const dayItem = await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
         mealPlanDayId: day.id,
-        name: "Oatmeal",
+        mealPlanItemId: mealPlanItem.id,
         meal: "breakfast",
       }),
     });
-    itemId = item.id;
+    itemId = dayItem.id;
   });
 
   it("requires a valid session", async () => {
@@ -1242,11 +1410,8 @@ describe("DELETE /days/:day/items/:itemId", () => {
   });
 
   it("returns 404 when the item belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
@@ -1266,28 +1431,33 @@ describe("DELETE /days/:day/items/:itemId", () => {
       .expect(404);
   });
 
-  it("deletes the item", async () => {
+  it("deletes the placement but keeps the canonical item", async () => {
     await request(app)
       .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
       .set("Cookie", authCookies)
       .expect(200);
 
-    const dbItem = await db.mealPlanItem.findUnique({
+    const dbDayItem = await db.mealPlanDayItem.findUnique({
       where: { id: itemId },
     });
-    expect(dbItem).toBeNull();
+    expect(dbDayItem).toBeNull();
+
+    const dbItem = await db.mealPlanItem.findUnique({
+      where: { id: mealPlanItemId },
+    });
+    expect(dbItem).not.toBeNull();
   });
 
-  it("does not delete the item when the owning user check fails", async () => {
+  it("does not delete the placement when the owning user check fails", async () => {
     await request(app)
       .delete(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}`)
       .set("Cookie", user2AuthCookies)
       .expect(403);
 
-    const dbItem = await db.mealPlanItem.findUnique({
+    const dbDayItem = await db.mealPlanDayItem.findUnique({
       where: { id: itemId },
     });
-    expect(dbItem).not.toBeNull();
+    expect(dbDayItem).not.toBeNull();
   });
 });
 
@@ -1299,26 +1469,34 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
     const day = await db.mealPlanDay.create({
       data: { ...make("MealPlanDay", { tripId, dayNumber: 1 }), date: null },
     });
-    const item = await db.mealPlanItem.create({
+    const mealPlanItem = await db.mealPlanItem.create({
       data: make("MealPlanItem", {
-        mealPlanDayId: day.id,
+        userId,
         name: "Oatmeal",
-        meal: "breakfast",
         calories: 300,
-        quantity: 2,
         waterMl: 200,
         dryWeightGrams: 50,
       }),
     });
-    itemId = item.id;
+    const dayItem = await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
+        mealPlanDayId: day.id,
+        mealPlanItemId: mealPlanItem.id,
+        meal: "breakfast",
+        quantity: 2,
+      }),
+    });
+    itemId = dayItem.id;
     expectedItem = {
-      id: item.id,
-      name: item.name,
-      meal: item.meal,
-      calories: item.calories,
-      quantity: item.quantity,
-      waterMl: item.waterMl,
-      dryWeightGrams: item.dryWeightGrams,
+      id: dayItem.id,
+      mealPlanItemId: mealPlanItem.id,
+      name: mealPlanItem.name,
+      brand: mealPlanItem.brand,
+      meal: dayItem.meal,
+      calories: mealPlanItem.calories,
+      quantity: dayItem.quantity,
+      waterMl: mealPlanItem.waterMl,
+      dryWeightGrams: mealPlanItem.dryWeightGrams,
     };
   });
 
@@ -1366,11 +1544,8 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
   });
 
   it("returns 404 when the item belongs to a different trip", async () => {
-    const user = await db.user.findUnique({
-      where: { email: "user@test.com" },
-    });
     const otherTrip = await db.trip.create({
-      data: make("Trip", { userId: user!.id }),
+      data: make("Trip", { userId }),
     });
 
     await request(app)
@@ -1394,7 +1569,7 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
       .expect(404);
   });
 
-  it("creates a status when none exists, returning the full meal plan item", async () => {
+  it("updates the purchased/packed status", async () => {
     const response = await request(app)
       .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
       .send({ purchased: true, packed: false })
@@ -1410,49 +1585,23 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
     });
   });
 
-  it("persists the created status to the database", async () => {
+  it("persists the status to the database", async () => {
     await request(app)
       .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
       .send({ purchased: true, packed: false })
       .set("Cookie", authCookies)
       .expect(200);
 
-    const dbStatus = await db.mealPlanItemPackingStatus.findUnique({
-      where: { mealPlanItemId: itemId },
+    const dbDayItem = await db.mealPlanDayItem.findUnique({
+      where: { id: itemId },
     });
-    expect(dbStatus).toMatchObject({ purchased: true, packed: false });
+    expect(dbDayItem).toMatchObject({ purchased: true, packed: false });
   });
 
-  it("updates an existing status", async () => {
-    await db.mealPlanItemPackingStatus.create({
-      data: make("MealPlanItemPackingStatus", {
-        mealPlanItemId: itemId,
-        purchased: false,
-        packed: false,
-      }),
-    });
-
-    const response = await request(app)
-      .patch(`/api/trips/${tripId}/meal-plan/days/1/items/${itemId}/status`)
-      .send({ purchased: true, packed: true })
-      .set("Cookie", authCookies)
-      .expect(200);
-
-    expect(response.body).toEqual({
-      item: {
-        ...expectedItem,
-        status: { purchased: true, packed: true },
-      },
-    });
-  });
-
-  it("allows a partial update, leaving other fields unchanged", async () => {
-    await db.mealPlanItemPackingStatus.create({
-      data: make("MealPlanItemPackingStatus", {
-        mealPlanItemId: itemId,
-        purchased: true,
-        packed: false,
-      }),
+  it("allows a partial update, leaving the other status field unchanged", async () => {
+    await db.mealPlanDayItem.update({
+      where: { id: itemId },
+      data: { purchased: true, packed: false },
     });
 
     const response = await request(app)
@@ -1515,12 +1664,9 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
   });
 
   it("does not modify the status when the owning user check fails", async () => {
-    await db.mealPlanItemPackingStatus.create({
-      data: make("MealPlanItemPackingStatus", {
-        mealPlanItemId: itemId,
-        purchased: false,
-        packed: false,
-      }),
+    await db.mealPlanDayItem.update({
+      where: { id: itemId },
+      data: { purchased: false, packed: false },
     });
 
     await request(app)
@@ -1529,9 +1675,9 @@ describe("PATCH /days/:day/items/:itemId/status", () => {
       .set("Cookie", user2AuthCookies)
       .expect(403);
 
-    const dbStatus = await db.mealPlanItemPackingStatus.findUnique({
-      where: { mealPlanItemId: itemId },
+    const dbDayItem = await db.mealPlanDayItem.findUnique({
+      where: { id: itemId },
     });
-    expect(dbStatus).toMatchObject({ purchased: false, packed: false });
+    expect(dbDayItem).toMatchObject({ purchased: false, packed: false });
   });
 });

@@ -1,8 +1,5 @@
 import { toDateOnly } from "$/transformers/helpers";
-import type {
-  MealName,
-  MealPlanDay,
-} from "../../../generated/prisma/browser";
+import type { MealName, MealPlanDay } from "../../../generated/prisma/browser";
 import {
   transform as itemTransform,
   type ClientMealPlanItem,

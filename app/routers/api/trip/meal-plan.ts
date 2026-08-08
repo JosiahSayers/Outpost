@@ -192,8 +192,16 @@ mealPlanRouter.patch(
   mealPlanItemExists,
   validate({ params: mealPlanItemParams, body: editMealPlanItem }),
   async (req, res) => {
-    const { fork, meal, quantity, name, brand, calories, waterMl, dryWeightGrams } =
-      req.body;
+    const {
+      fork,
+      meal,
+      quantity,
+      name,
+      brand,
+      calories,
+      waterMl,
+      dryWeightGrams,
+    } = req.body;
     const itemFields = { name, brand, calories, waterMl, dryWeightGrams };
     const itemFieldsProvided = Object.values(itemFields).some(
       (value) => value !== undefined,
@@ -214,7 +222,8 @@ mealPlanRouter.patch(
             name: name ?? current.mealPlanItem.name,
             brand: brand !== undefined ? brand : current.mealPlanItem.brand,
             calories: calories ?? current.mealPlanItem.calories,
-            waterMl: waterMl !== undefined ? waterMl : current.mealPlanItem.waterMl,
+            waterMl:
+              waterMl !== undefined ? waterMl : current.mealPlanItem.waterMl,
             dryWeightGrams:
               dryWeightGrams !== undefined
                 ? dryWeightGrams

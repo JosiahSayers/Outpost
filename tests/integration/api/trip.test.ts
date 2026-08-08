@@ -814,9 +814,13 @@ describe("GET /:id", () => {
         date: new Date("2026-06-01"),
       }),
     });
-    const breakfastItem = await db.mealPlanItem.create({
-      data: make("MealPlanItem", {
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId: user!.id }),
+    });
+    const breakfastItem = await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
         mealPlanDayId: day.id,
+        mealPlanItemId: mealPlanItem.id,
         meal: "breakfast",
       }),
     });
