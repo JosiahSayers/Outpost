@@ -98,8 +98,14 @@ describe("mergePublicMealItem", () => {
 
   it("always takes name and sourceUrl from the fresh scrape, never the existing row", () => {
     const result = mergePublicMealItem(
-      scraped({ name: "New Name", sourceUrl: "https://peakrefuel.com/products/new-url" }),
-      existingRow({ name: "Old Name", sourceUrl: "https://peakrefuel.com/products/example-old-url" }),
+      scraped({
+        name: "New Name",
+        sourceUrl: "https://peakrefuel.com/products/new-url",
+      }),
+      existingRow({
+        name: "Old Name",
+        sourceUrl: "https://peakrefuel.com/products/example-old-url",
+      }),
     );
 
     expect(result.name).toBe("New Name");

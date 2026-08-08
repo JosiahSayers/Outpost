@@ -123,9 +123,7 @@ const OZ_TO_GRAMS = 28.3495;
 
 export function parseDryWeightGrams(bodyText: string): number | null {
   const match = bodyText.match(/Net Weight\s*[-–]\s*([\d.]+)\s*oz/i);
-  return match
-    ? Math.round(Number.parseFloat(match[1]!) * OZ_TO_GRAMS)
-    : null;
+  return match ? Math.round(Number.parseFloat(match[1]!) * OZ_TO_GRAMS) : null;
 }
 
 export function parseProduct(product: ShopifyProduct): ScrapedPublicMealItem {

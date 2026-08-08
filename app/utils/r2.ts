@@ -6,12 +6,8 @@ import { S3Client } from "bun";
 // a missing/misconfigured client as just another reason to skip image
 // handling for a given item (see public-meal-catalog/image.ts).
 export function createR2Client(): S3Client | null {
-  const {
-    R2_ACCOUNT_ID,
-    R2_ACCESS_KEY_ID,
-    R2_SECRET_ACCESS_KEY,
-    R2_BUCKET,
-  } = process.env;
+  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
+    process.env;
 
   if (
     !R2_ACCOUNT_ID ||

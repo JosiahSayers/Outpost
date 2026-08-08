@@ -32,19 +32,44 @@ export interface DefinedJobGroup<DataType, ResultType = unknown> {
   members: JobGroupMember<DataType, ResultType>[];
 }
 
+// Routes a job to whichever member processor registered under `job.name`.
+// Pulled out of defineJobGroup so it's testable directly against a fake job
+// object -- no real Queue/Worker/Redis needed, mirroring how this codebase
+// tests job processors by calling them directly rather than through a live
+// worker (see e.g. moveTripsToFinished).
+export function createGroupDispatcher<DataType, ResultType>(
+  queueName: string,
+  jobs: JobGroupMember<DataType, ResultType>[],
+): Processor<DataType, ResultType> {
+  const processorsByName = new Map(
+    jobs.map((job) => [job.name, job.processor]),
+  );
+
+  return (job, ...rest) => {
+    const processor = processorsByName.get(job.name);
+    if (!processor) {
+      throw new Error(
+        `No processor registered for job "${job.name}" in queue "${queueName}"`,
+      );
+    }
+    return processor(job, ...rest);
+  };
+}
+
 // One shared queue, many named jobs -- unlike defineJob (one queue = one
 // worker = one processor), this pairs a single worker with a dispatcher that
 // routes each job to its registered processor by `job.name`. Intended for a
 // family of similar jobs that belong on one queue (e.g. one import job per
 // vendor for the public meal catalog) rather than a queue each.
-export function defineJobGroup<DataType = unknown, ResultType = unknown>(options: {
+export function defineJobGroup<
+  DataType = unknown,
+  ResultType = unknown,
+>(options: {
   name: string;
   workerOptions?: Partial<Omit<WorkerOptions, "connection" | "autorun">>;
   jobs: JobGroupMember<DataType, ResultType>[];
 }): DefinedJobGroup<DataType, ResultType> {
   const { name, workerOptions, jobs } = options;
-
-  const processorsByName = new Map(jobs.map((job) => [job.name, job.processor]));
 
   const queue = new Queue<DataType, ResultType>(name, {
     connection: redisConnection,
@@ -52,15 +77,7 @@ export function defineJobGroup<DataType = unknown, ResultType = unknown>(options
 
   const worker = new Worker<DataType, ResultType>(
     name,
-    (job) => {
-      const processor = processorsByName.get(job.name);
-      if (!processor) {
-        throw new Error(
-          `No processor registered for job "${job.name}" in queue "${name}"`,
-        );
-      }
-      return processor(job);
-    },
+    createGroupDispatcher(name, jobs),
     {
       ...defaultWorkerOptions,
       ...workerOptions,

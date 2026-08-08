@@ -20,9 +20,9 @@ function findProduct(title: string): ShopifyProduct {
 
 describe("parseCalories", () => {
   it("parses the standard 'Calories per Pouch' bullet", () => {
-    expect(parseCalories("Some text. Calories per Pouch - 760. More text.")).toBe(
-      760,
-    );
+    expect(
+      parseCalories("Some text. Calories per Pouch - 760. More text."),
+    ).toBe(760);
   });
 
   it("handles an en dash separator", () => {
@@ -38,27 +38,31 @@ describe("parseCalories", () => {
   });
 
   it("returns null when the phrase is absent", () => {
-    expect(parseCalories("A tasty meal with no nutrition facts listed.")).toBeNull();
+    expect(
+      parseCalories("A tasty meal with no nutrition facts listed."),
+    ).toBeNull();
   });
 });
 
 describe("parseWaterMl", () => {
   it("prefers the oz-in-parentheses form when present", () => {
-    expect(parseWaterMl("Carefully add 2 cups (16 oz) boiling water to pouch.")).toBe(
-      Math.round(16 * 29.5735),
-    );
+    expect(
+      parseWaterMl("Carefully add 2 cups (16 oz) boiling water to pouch."),
+    ).toBe(Math.round(16 * 29.5735));
   });
 
   it("handles 'of boiling water' after the parenthetical", () => {
     expect(
-      parseWaterMl("Carefully add 1 1/3 cups (10.5 oz) of boiling water to pouch."),
+      parseWaterMl(
+        "Carefully add 1 1/3 cups (10.5 oz) of boiling water to pouch.",
+      ),
     ).toBe(Math.round(10.5 * 29.5735));
   });
 
   it("falls back to a plain fraction cup quantity with no oz given", () => {
-    expect(parseWaterMl("just add 2/3 cups of water and restore your energy")).toBe(
-      Math.round((2 / 3) * 236.588),
-    );
+    expect(
+      parseWaterMl("just add 2/3 cups of water and restore your energy"),
+    ).toBe(Math.round((2 / 3) * 236.588));
   });
 
   it("falls back to a unicode vulgar fraction cup quantity", () => {
@@ -166,9 +170,7 @@ describe("fetchProducts", () => {
   });
 
   it("throws when the vendor responds with a non-OK status", async () => {
-    const fetchImpl = mock(
-      async () => new Response("error", { status: 500 }),
-    );
+    const fetchImpl = mock(async () => new Response("error", { status: 500 }));
 
     await expect(
       fetchProducts(fetchImpl as unknown as typeof fetch),

@@ -2,7 +2,10 @@ import {
   createFieldCoverageTracker,
   detectSystemicFieldFailures,
 } from "$/jobs/workers/public-meal-catalog/field-coverage";
-import { processProductImage, type R2WriteClient } from "$/jobs/workers/public-meal-catalog/image";
+import {
+  processProductImage,
+  type R2WriteClient,
+} from "$/jobs/workers/public-meal-catalog/image";
 import { mergePublicMealItem } from "$/jobs/workers/public-meal-catalog/merge";
 import { getLogger } from "$/jobs/utils/logger-setup";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
@@ -12,7 +15,13 @@ import type { Job } from "bullmq";
 // Fields checked for systemic (whole-run) failure and for whether a row still
 // counts as "incomplete" -- kept here rather than inferred from the schema
 // since sourceVendor/sourceProductId/sourceUrl are identity, not scraped data.
-const TRACKED_FIELDS = ["brand", "calories", "waterMl", "dryWeightGrams", "imageId"];
+const TRACKED_FIELDS = [
+  "brand",
+  "calories",
+  "waterMl",
+  "dryWeightGrams",
+  "imageId",
+];
 const MIN_RUN_SIZE_FOR_ALERT = 3;
 
 export interface VendorScraper<Product> {

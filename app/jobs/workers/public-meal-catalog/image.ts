@@ -1,4 +1,4 @@
-import { fetchGuarded } from "$/utils/guarded-fetch";
+import { fetchGuarded, type GuardedFetchOptions } from "$/utils/guarded-fetch";
 import { createR2Client, publicMealItemImageKey } from "$/utils/r2";
 import { db } from "$/utils/db";
 import type { Logger } from "winston";
@@ -27,6 +27,7 @@ export interface ProcessProductImageInput {
 
 export interface ProcessProductImageDeps {
   fetchImpl?: typeof fetch;
+  lookupImpl?: GuardedFetchOptions["lookupImpl"];
   r2Client?: R2WriteClient | null;
   logger: Logger;
 }
@@ -42,7 +43,7 @@ export async function processProductImage(
   deps: ProcessProductImageDeps,
 ): Promise<{ imageId: string | null }> {
   const { sourceVendor, sourceProductId, imageUrl, existing } = input;
-  const { fetchImpl, logger } = deps;
+  const { fetchImpl, lookupImpl, logger } = deps;
   const existingImageId = existing?.imageId ?? null;
 
   if (!imageUrl) {
@@ -56,7 +57,11 @@ export async function processProductImage(
     return { imageId: existingImageId };
   }
 
-  const r2Client = deps.r2Client ?? createR2Client();
+  // "not provided" falls back to the real client; an explicit `null` (used
+  // in tests, and whenever a caller has already determined R2 isn't
+  // configured) must be respected rather than treated as "unset" by `??`.
+  const r2Client =
+    deps.r2Client === undefined ? createR2Client() : deps.r2Client;
   if (!r2Client) {
     logger.info(
       "Skipping image processing: R2 is not configured (missing env vars)",
@@ -68,6 +73,7 @@ export async function processProductImage(
   try {
     const { bytes, contentType } = await fetchGuarded(imageUrl, {
       fetchImpl,
+      lookupImpl,
       allowedContentTypes: IMAGE_CONTENT_TYPES,
       maxBytes: MAX_IMAGE_BYTES,
       timeoutMs: IMAGE_TIMEOUT_MS,

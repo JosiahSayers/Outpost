@@ -32,18 +32,12 @@ describe("createFieldCoverageTracker", () => {
 
 describe("detectSystemicFieldFailures", () => {
   it("returns fields that were null for every processed item", () => {
-    const result = detectSystemicFieldFailures(
-      { calories: 5, waterMl: 2 },
-      5,
-    );
+    const result = detectSystemicFieldFailures({ calories: 5, waterMl: 2 }, 5);
     expect(result).toEqual(["calories"]);
   });
 
   it("returns an empty array when no field failed for every item", () => {
-    const result = detectSystemicFieldFailures(
-      { calories: 4, waterMl: 0 },
-      5,
-    );
+    const result = detectSystemicFieldFailures({ calories: 4, waterMl: 0 }, 5);
     expect(result).toEqual([]);
   });
 
