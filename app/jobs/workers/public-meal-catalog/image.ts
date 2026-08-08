@@ -8,7 +8,11 @@ const IMAGE_CONTENT_TYPES = /\bimage\/(jpeg|jpg|png|webp|gif|avif)\b/i;
 const MAX_IMAGE_BYTES = 8_000_000;
 const IMAGE_TIMEOUT_MS = 10_000;
 const WEBP_QUALITY = 80;
-const MAX_PIXELS = 4096 * 4096; // decompression-bomb guard for Bun.Image
+// Decompression-bomb guard for Bun.Image. 4096x4096 was hitting real vendor
+// product photos (ERR_IMAGE_TOO_MANY_PIXELS) -- bumped to comfortably cover
+// legitimate high-res CDN images while still bounding memory for a genuinely
+// malicious tiny-file/huge-dimensions payload.
+const MAX_PIXELS = 8192 * 8192;
 
 export interface R2WriteClient {
   write(
