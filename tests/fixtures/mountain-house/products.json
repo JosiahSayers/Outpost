@@ -1,0 +1,150 @@
+{
+  "products": [
+    {
+      "id": 4409948471360,
+      "handle": "beef-stew-pouch",
+      "title": "Beef Stew",
+      "product_type": "Adventure Meals",
+      "tags": [
+        "Adventure Meal Pouch",
+        "Adventure Meals",
+        "Beef",
+        "Entrees",
+        "Gluten-Free"
+      ],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0085/1171/7440/files/55145-beef-stew-pouch.jpg?v=1756029595"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 4409948999999,
+      "handle": "beef-stew-pro-pak",
+      "title": "Beef Stew",
+      "product_type": "Pro-Paks",
+      "tags": ["Camping & Backpacking", "Pro-Paks", "Beef"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0085/1171/7440/files/beef-stew-pro-pak.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 5000000000001,
+      "handle": "best-sellers-kit",
+      "title": "Best Sellers Kit",
+      "product_type": "Adventure Meals",
+      "tags": ["Adventure Meals", "Fixed Bundle", "Kit"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/best-sellers-kit.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 5000000000002,
+      "handle": "classic-meal-assortment-bucket",
+      "title": "Classic Meal Assortment Bucket",
+      "product_type": "Adventure Meals",
+      "tags": ["Adventure Meals", "Bucket", "type_24 Servings"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/classic-bucket.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 5000000000003,
+      "handle": "diced-chicken",
+      "title": "Diced Chicken",
+      "product_type": "Just in Case",
+      "tags": ["Can", "Chicken", "Emergency Food & Survival", "Just in Case"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/diced-chicken.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 5000000000004,
+      "handle": "breakfast-skillet-2-pack",
+      "title": "Breakfast Skillet 2-Pack",
+      "product_type": "Adventure Meals",
+      "tags": ["2-Pack", "Adventure Meals", "Breakfast"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/breakfast-skillet-2pk.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    },
+    {
+      "id": 5000000000005,
+      "handle": "mexican-style-adobo-rice-chicken-pro-pak",
+      "title": "Mexican-Style Adobo Rice & Chicken",
+      "product_type": "Pro-Paks",
+      "tags": ["Pro-Paks", "Chicken"],
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/adobo-rice-chicken.jpg"
+        }
+      ],
+      "variants": [
+        {
+          "available": false,
+          "requires_shipping": true
+        }
+      ],
+      "vendor": "Oregon Freeze Dry",
+      "body_html": "<p>A tasty freeze-dried meal.</p>"
+    }
+  ]
+}

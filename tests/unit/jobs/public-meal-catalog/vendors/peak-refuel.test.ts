@@ -5,8 +5,8 @@ import {
   parseProduct,
   parseWaterMl,
   shouldSkip,
-  type ShopifyProduct,
 } from "$/jobs/workers/public-meal-catalog/vendors/peak-refuel";
+import type { ShopifyProduct } from "$/jobs/workers/public-meal-catalog/vendors/shopify";
 import { describe, expect, it, mock } from "bun:test";
 import fixture from "../../../../fixtures/peak-refuel-products.json";
 

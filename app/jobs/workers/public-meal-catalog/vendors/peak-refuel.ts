@@ -1,4 +1,8 @@
 import type { ScrapedPublicMealItem } from "$/jobs/workers/public-meal-catalog/merge";
+import {
+  fetchShopifyProducts,
+  type ShopifyProduct,
+} from "$/jobs/workers/public-meal-catalog/vendors/shopify";
 import * as cheerio from "cheerio";
 
 const STORE_BASE_URL = "https://peakrefuel.com";
@@ -21,22 +25,6 @@ const INCLUDED_PRODUCT_TYPES = new Set(["Meals", "Dessert"]);
 // the live catalog, including that mistagged one), and no legitimate single
 // meal does, so tags catch what product_type alone misses.
 const EXCLUDED_TAGS = new Set(["bundle", "packs"]);
-
-export interface ShopifyProduct {
-  id: number;
-  handle: string;
-  title: string;
-  vendor: string;
-  product_type: string;
-  tags: string[];
-  body_html: string;
-  images: { src: string }[];
-  variants: { requires_shipping: boolean }[];
-}
-
-interface ShopifyProductsResponse {
-  products: ShopifyProduct[];
-}
 
 export function shouldSkip(product: ShopifyProduct): boolean {
   if (!INCLUDED_PRODUCT_TYPES.has(product.product_type)) {
@@ -151,32 +139,10 @@ export function parseProduct(product: ShopifyProduct): ScrapedPublicMealItem {
   };
 }
 
-// Shopify's storefront products.json endpoint pages via limit/page; loop
-// until a page returns fewer than the page size.
 export async function fetchProducts(
   fetchImpl: typeof fetch = fetch,
 ): Promise<ShopifyProduct[]> {
-  const products: ShopifyProduct[] = [];
-
-  for (let page = 1; ; page++) {
-    const res = await fetchImpl(
-      `${STORE_BASE_URL}/products.json?limit=${PAGE_SIZE}&page=${page}`,
-    );
-    if (!res.ok) {
-      throw new Error(
-        `Peak Refuel products.json returned ${res.status} on page ${page}`,
-      );
-    }
-
-    const body = (await res.json()) as ShopifyProductsResponse;
-    products.push(...body.products);
-
-    if (body.products.length < PAGE_SIZE) {
-      break;
-    }
-  }
-
-  return products;
+  return fetchShopifyProducts(STORE_BASE_URL, fetchImpl, PAGE_SIZE);
 }
 
 export const peakRefuelScraper = {

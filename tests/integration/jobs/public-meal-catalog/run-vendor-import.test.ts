@@ -16,9 +16,11 @@ interface FakeProduct {
 function fakeScraper(
   vendorId: string,
   products: FakeProduct[],
+  trackedFields?: string[],
 ): VendorScraper<FakeProduct> {
   return {
     vendorId,
+    trackedFields,
     fetchProducts: async () => products,
     shouldSkip: (product) => product.skip ?? false,
     parseProduct: (product) => product.scraped,
@@ -199,6 +201,40 @@ describe("runVendorImport", () => {
       { scraped: scraped({ sourceProductId: "2", calories: 800 }) },
       { scraped: scraped({ sourceProductId: "3", calories: 900 }) },
     ]);
+
+    const jobs = await notificationJobsAddedDuring(() =>
+      runVendorImport(makeJob(), scraper),
+    );
+
+    expect(jobs).toHaveLength(0);
+  });
+
+  it("does not notify for a field a vendor scraper excludes via trackedFields, even at 100% null", async () => {
+    // Mirrors Mountain House excluding waterMl -- a field it structurally
+    // never publishes, so alerting on it every run would be a permanent
+    // false positive rather than a signal the site changed.
+    //
+    // None of these fake products carry an image, so imageId would also be
+    // null for all 3 -- a real systemic failure in its own right, same as
+    // the "only some items" test above. Pre-seeding one row with an image
+    // already attached isolates the assertion to waterMl.
+    const existingImage = await db.image.create({ data: make("Image", {}) });
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "2",
+        imageId: existingImage.id,
+      }),
+    });
+    const scraper = fakeScraper(
+      "fake_vendor",
+      [
+        { scraped: scraped({ sourceProductId: "1", waterMl: null }) },
+        { scraped: scraped({ sourceProductId: "2", waterMl: null }) },
+        { scraped: scraped({ sourceProductId: "3", waterMl: null }) },
+      ],
+      ["brand", "calories", "dryWeightGrams", "imageId"],
+    );
 
     const jobs = await notificationJobsAddedDuring(() =>
       runVendorImport(makeJob(), scraper),

@@ -1,6 +1,7 @@
 import { defineJobGroup } from "$/jobs/define-job-group";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { runVendorImport } from "$/jobs/workers/public-meal-catalog/run-vendor-import";
+import { mountainHouseScraper } from "$/jobs/workers/public-meal-catalog/vendors/mountain-house";
 import { packitGourmetScraper } from "$/jobs/workers/public-meal-catalog/vendors/packit-gourmet";
 import { peakRefuelScraper } from "$/jobs/workers/public-meal-catalog/vendors/peak-refuel";
 
@@ -24,6 +25,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       defaultJobOptions,
       schedule: { id: "import-packit-gourmet-nightly", pattern: "11 0 * * *" },
     },
-    // future vendors (Mountain House, etc.) added here as their own entry
+    {
+      name: mountainHouseScraper.vendorId,
+      processor: (job) => runVendorImport(job, mountainHouseScraper),
+      defaultJobOptions,
+      schedule: { id: "import-mountain-house-nightly", pattern: "21 0 * * *" },
+    },
+    // future vendors added here as their own entry
   ],
 });
