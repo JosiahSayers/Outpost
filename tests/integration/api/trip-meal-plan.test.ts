@@ -798,6 +798,34 @@ describe("GET /items", () => {
 
       expect(response.body.items).toEqual([]);
     });
+
+    it("shows only the public entry (not a second, own copy) once the user has forked it", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+
+      await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "public",
+          publicMealItemId: publicItem.id,
+          meal: "dinner",
+        })
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      const response = await request(app)
+        .get(`/api/trips/${tripId}/meal-plan/items`)
+        .query({ query: "white chicken chili" })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      const matches = response.body.items.filter(
+        (item: { name: string }) => item.name === "White Chicken Chili",
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0].source).toBe("public");
+    });
   });
 });
 

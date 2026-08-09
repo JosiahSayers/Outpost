@@ -95,6 +95,12 @@ export type MealPlanItemSearchResult =
 // then recency alongside everything else. Only "complete" public items
 // (every nullable field but the image is filled in) are searchable at all,
 // so fork-on-add never has to cope with a gap -- see BTP-111.
+// An own item that's itself a fork (publicMealSourceId set) is excluded
+// from the "own" branch -- otherwise adding a public item once would make
+// it show up twice (as itself and as the fork) on every later search.
+// Re-selecting the public entry still reuses that same fork via the
+// userId+publicMealSourceId upsert in the create route, so nothing is lost
+// by hiding the fork from search.
 // Two-step like searchCategories/searchPlaces: rank (source, id) pairs in
 // SQL via UNION ALL, hydrate each table via Prisma, preserve the ranked
 // order on the way out.
@@ -125,6 +131,7 @@ SELECT id, source FROM (
     FROM "MealPlanItem"
     WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
       AND "MealPlanItem"."userId" = ${userId}
+      AND "MealPlanItem"."publicMealSourceId" IS NULL
       AND (${excludeTripIdParam}::text IS NULL OR NOT EXISTS (
         SELECT 1 FROM "MealPlanDayItem" mpdi
         JOIN "MealPlanDay" md ON md.id = mpdi."mealPlanDayId"

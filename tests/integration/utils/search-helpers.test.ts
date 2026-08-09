@@ -338,5 +338,25 @@ describe("searchMealPlanItems", () => {
         "public",
       ]);
     });
+
+    it("excludes an own item that's a fork of a public item, showing only the public entry", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          userId: user.id,
+          name: "White Chicken Chili",
+          publicMealSourceId: publicItem.id,
+        }),
+      });
+
+      const results = await searchMealPlanItems("white chicken chili", user.id);
+      const matches = results.filter(
+        (result) => result.item.name === "White Chicken Chili",
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0]!.source).toBe("public");
+    });
   });
 });
