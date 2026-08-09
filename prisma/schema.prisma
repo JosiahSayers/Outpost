@@ -492,6 +492,7 @@ model MealPlanItem {
   // Full Text Search
   data_fts Unsupported("tsvector")?
 
+  @@unique([userId, publicMealSourceId])
   @@index([userId])
   @@index([publicMealSourceId])
   @@index([data_fts], type: Gin)
@@ -524,7 +525,7 @@ model MealPlanDayItem {
 }
 
 // Curated catalog of meals scraped from third-party vendor sites (BTP-107),
-// browsable/forkable by any user (BTP-111, not yet built). Scraped fields are
+// browsable/forkable by any user (BTP-111). Scraped fields are
 // nullable because a source page may not expose everything -- the import job
 // (app/jobs/workers/public-meal-catalog) never blanks out a previously-known
 // value on re-scrape, so a gap here means it's never successfully been parsed
@@ -552,7 +553,11 @@ model PublicMealItem {
 
   forkedMealPlanItems MealPlanItem[]
 
+  // Full Text Search
+  data_fts Unsupported("tsvector")?
+
   @@unique([sourceVendor, sourceProductId])
+  @@index([data_fts], type: Gin)
 }
 
 // A single stored image, backed by an object in Cloudflare R2. Currently only
