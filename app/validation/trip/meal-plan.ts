@@ -36,6 +36,12 @@ export const createMealPlanItem = z.discriminatedUnion("mode", [
     meal: z.enum(MealName),
     quantity: z.int().optional(),
   }),
+  z.strictObject({
+    mode: z.literal("public"),
+    publicMealItemId: z.string(),
+    meal: z.enum(MealName),
+    quantity: z.int().optional(),
+  }),
 ]);
 
 export const editMealPlanItem = z.strictObject({

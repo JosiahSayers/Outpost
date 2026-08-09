@@ -1,4 +1,9 @@
 import { db } from "$/utils/db";
+import type {
+  Image,
+  MealPlanItem,
+  PublicMealItem,
+} from "../../generated/prisma/client";
 import type { MealName } from "../../generated/prisma/enums";
 
 // Turn free-text input into a prefix-match tsquery: each whitespace-delimited
@@ -78,53 +83,98 @@ export interface SearchMealPlanItemsOptions {
   limit?: number;
 }
 
-// Full-text autocomplete over a user's own reusable MealPlanItem rows
-// (BTP-77: autocomplete meals from previous trips; BTP-104: MealPlanItem is
-// now a per-user canonical entity, so this is a plain userId-scoped search
-// with no dedup needed -- items are unique by construction). Ranked by meal
-// placement history, then text relevance, then most recently created.
-// Two-step like searchCategories/searchPlaces: rank ids in SQL, hydrate via
-// Prisma, preserve the ranked order on the way out.
+export type MealPlanItemSearchResult =
+  | { source: "own"; item: MealPlanItem }
+  | { source: "public"; item: PublicMealItem & { image: Image | null } };
+
+// Full-text autocomplete over a user's own reusable MealPlanItem rows,
+// unioned with the public catalog (BTP-111). Both are ranked together --
+// own items by meal placement history then text relevance then recency
+// (BTP-77/BTP-104, unchanged); public items have no placement history of
+// their own (only their forks get placed) so they rank by text relevance
+// then recency alongside everything else. Only "complete" public items
+// (every nullable field but the image is filled in) are searchable at all,
+// so fork-on-add never has to cope with a gap -- see BTP-111.
+// Two-step like searchCategories/searchPlaces: rank (source, id) pairs in
+// SQL via UNION ALL, hydrate each table via Prisma, preserve the ranked
+// order on the way out.
 export async function searchMealPlanItems(
   searchQuery: string,
   userId: string,
   { excludeTripId, meal, limit = 20 }: SearchMealPlanItemsOptions = {},
-) {
+): Promise<MealPlanItemSearchResult[]> {
   const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
 
   const excludeTripIdParam = excludeTripId ?? null;
   const mealParam = meal ?? null;
 
-  const results = await db.$queryRaw<Array<{ id: string }>>`
-SELECT "MealPlanItem".id FROM "MealPlanItem"
-  WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
-    AND "MealPlanItem"."userId" = ${userId}
-    AND (${excludeTripIdParam}::text IS NULL OR NOT EXISTS (
-      SELECT 1 FROM "MealPlanDayItem" mpdi
-      JOIN "MealPlanDay" md ON md.id = mpdi."mealPlanDayId"
-      WHERE mpdi."mealPlanItemId" = "MealPlanItem".id
-        AND md."tripId" = ${excludeTripIdParam}
-    ))
-  ORDER BY (${mealParam}::"MealName" IS NOT NULL AND EXISTS (
+  const results = await db.$queryRaw<
+    Array<{ id: string; source: "own" | "public" }>
+  >`
+SELECT id, source FROM (
+  SELECT "MealPlanItem".id AS id,
+         'own' AS source,
+         (${mealParam}::"MealName" IS NOT NULL AND EXISTS (
               SELECT 1 FROM "MealPlanDayItem" mpdi
               WHERE mpdi."mealPlanItemId" = "MealPlanItem".id
                 AND mpdi.meal = ${mealParam}::"MealName"
-            )) DESC,
-           ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
-           "MealPlanItem"."createdAt" DESC
-  LIMIT ${limit};
+            )) AS meal_boost,
+         ts_rank("MealPlanItem".data_fts, to_tsquery('english', ${formattedQuery})) AS rank,
+         "MealPlanItem"."createdAt" AS created_at
+    FROM "MealPlanItem"
+    WHERE "MealPlanItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+      AND "MealPlanItem"."userId" = ${userId}
+      AND (${excludeTripIdParam}::text IS NULL OR NOT EXISTS (
+        SELECT 1 FROM "MealPlanDayItem" mpdi
+        JOIN "MealPlanDay" md ON md.id = mpdi."mealPlanDayId"
+        WHERE mpdi."mealPlanItemId" = "MealPlanItem".id
+          AND md."tripId" = ${excludeTripIdParam}
+      ))
+
+  UNION ALL
+
+  SELECT "PublicMealItem".id AS id,
+         'public' AS source,
+         FALSE AS meal_boost,
+         ts_rank("PublicMealItem".data_fts, to_tsquery('english', ${formattedQuery})) AS rank,
+         "PublicMealItem"."createdAt" AS created_at
+    FROM "PublicMealItem"
+    WHERE "PublicMealItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+      AND "PublicMealItem".brand IS NOT NULL
+      AND "PublicMealItem".calories IS NOT NULL
+      AND "PublicMealItem"."waterMl" IS NOT NULL
+      AND "PublicMealItem"."dryWeightGrams" IS NOT NULL
+) combined
+ORDER BY meal_boost DESC, rank DESC, created_at DESC
+LIMIT ${limit};
 `;
 
-  const rankedIds = results.map((result) => result.id);
-  const items = await db.mealPlanItem.findMany({
-    where: { id: { in: rankedIds } },
-  });
-  const itemsById = new Map(items.map((item) => [item.id, item]));
+  const ownIds = results.filter((r) => r.source === "own").map((r) => r.id);
+  const publicIds = results
+    .filter((r) => r.source === "public")
+    .map((r) => r.id);
 
-  return rankedIds
-    .map((id) => itemsById.get(id))
-    .filter((item) => item !== undefined);
+  const [ownItems, publicItems] = await Promise.all([
+    db.mealPlanItem.findMany({ where: { id: { in: ownIds } } }),
+    db.publicMealItem.findMany({
+      where: { id: { in: publicIds } },
+      include: { image: true },
+    }),
+  ]);
+  const ownById = new Map(ownItems.map((item) => [item.id, item]));
+  const publicById = new Map(publicItems.map((item) => [item.id, item]));
+
+  return results
+    .map((result): MealPlanItemSearchResult | undefined => {
+      if (result.source === "own") {
+        const item = ownById.get(result.id);
+        return item ? { source: "own", item } : undefined;
+      }
+      const item = publicById.get(result.id);
+      return item ? { source: "public", item } : undefined;
+    })
+    .filter((result) => result !== undefined);
 }
 
 export async function searchCategories(
