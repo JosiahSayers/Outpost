@@ -1,0 +1,38 @@
+info:
+  name: Search
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/meals?query=chili&vendor=peak_refuel&brand=Peak Refuel&take=15&skip=0"
+  params:
+    - name: query
+      value: chili
+      type: query
+    - name: vendor
+      value: peak_refuel
+      type: query
+    - name: brand
+      value: Peak Refuel
+      type: query
+    - name: take
+      value: "15"
+      type: query
+    - name: skip
+      value: "0"
+      type: query
+  auth: inherit
+
+docs: |
+  Full-text search/browse over the public meal catalog. query is optional --
+  omit it to just browse (filtered/paginated, ordered by name). vendor and
+  brand each accept repeated params to filter by multiple values. Paged by
+  take+1 under the hood, so the response's hasMore tells you whether another
+  page exists without an exact total count.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
