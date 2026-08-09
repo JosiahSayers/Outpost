@@ -1,7 +1,4 @@
-import type {
-  Image,
-  PublicMealItem,
-} from "../../../generated/prisma/browser";
+import type { Image, PublicMealItem } from "../../../generated/prisma/browser";
 
 export type ClientPublicMealItemSummary = Pick<
   PublicMealItem,
