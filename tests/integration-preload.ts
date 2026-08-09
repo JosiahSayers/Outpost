@@ -54,13 +54,21 @@ beforeAll(async () => {
   // so restoring puts every seeded/migration row back exactly where it was.
   domainTables = await getDomainTables();
   sequenceColumns = await getSequenceColumns(domainTables);
-  for (const table of domainTables) {
-    await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "__snap__${table}"`);
-    await db.$executeRawUnsafe(
-      `CREATE TABLE "__snap__${table}" AS TABLE "${table}"`,
-    );
-  }
-});
+  await Promise.all(
+    domainTables.map(async (table) => {
+      await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "__snap__${table}"`);
+      await db.$executeRawUnsafe(
+        `CREATE TABLE "__snap__${table}" AS TABLE "${table}"`,
+      );
+    }),
+  );
+  // migrate reset + seed + snapshotting every table only gets slower as the
+  // schema grows. This regularly blew past bun's default 5000ms hook timeout
+  // on CI, which doesn't fail the run -- the hook keeps executing in the
+  // background -- but lets the next test file's tests start (and fail) before
+  // snapshotting finished, e.g. "relation __snap__GearInventoryItem does not
+  // exist". Parallelized above and given a generous explicit ceiling here.
+}, 60_000);
 
 // Drop the snapshot tables so they don't linger in the dev database.
 afterAll(async () => {
