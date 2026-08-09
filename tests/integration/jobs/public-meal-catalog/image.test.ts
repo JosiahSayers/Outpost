@@ -125,6 +125,7 @@ describe("processProductImage", () => {
   });
 
   it("updates the existing Image row in place rather than creating a new one when the url changed", async () => {
+    const totalImagesBefore = await db.image.count();
     const existingImage = await db.image.create({
       data: make("Image", {
         r2Key: "public-meal-items/peak_refuel/123.webp",
@@ -155,7 +156,7 @@ describe("processProductImage", () => {
 
     expect(result.imageId).toBe(existingImage.id);
     const totalImages = await db.image.count();
-    expect(totalImages).toBe(1); // no orphaned second row
+    expect(totalImages).toBe(totalImagesBefore + 1); // no orphaned second row
     const updated = await db.image.findUniqueOrThrow({
       where: { id: existingImage.id },
     });
@@ -163,6 +164,7 @@ describe("processProductImage", () => {
   });
 
   it("falls back to the existing imageId when the fetch fails", async () => {
+    const totalImagesBefore = await db.image.count();
     const existingImage = await db.image.create({
       data: make("Image", {}),
     });
@@ -191,7 +193,7 @@ describe("processProductImage", () => {
 
     expect(result.imageId).toBe(existingImage.id);
     const totalImages = await db.image.count();
-    expect(totalImages).toBe(1); // nothing new created, nothing corrupted
+    expect(totalImages).toBe(totalImagesBefore + 1); // nothing new created, nothing corrupted
   });
 
   it("skips processing and falls back to the existing value when R2 is not configured", async () => {
