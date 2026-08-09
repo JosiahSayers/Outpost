@@ -78,7 +78,7 @@ export default function QuickAddInput({
         item.source === "public" && item.imageUrl ? (
           <Image
             src={item.imageUrl}
-            alt=""
+            alt={`${item.name}${item.brand ? " by " + item.brand : ""}`}
             w={56}
             h={56}
             radius="sm"
