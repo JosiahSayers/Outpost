@@ -159,6 +159,15 @@ export default function DayEditDrawer({ day, tripId, opened, onClose }: Props) {
                         quantity: 1,
                       })
                     }
+                    onSelectPublic={(item) =>
+                      createItem.mutate({
+                        mode: "public",
+                        dayNumber: day.dayNumber,
+                        meal,
+                        publicMealItemId: item.id,
+                        quantity: 1,
+                      })
+                    }
                   />
                 </Stack>
               ))}

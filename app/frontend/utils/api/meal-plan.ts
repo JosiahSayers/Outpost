@@ -3,6 +3,7 @@ import { tripKeys } from "$/frontend/utils/api/trip";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
 import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
+import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
 import type { ClientFullTrip } from "$/transformers/trip";
 import type {
   createMealPlanDay,
@@ -167,11 +168,19 @@ export const mealPlanItemSearchKeys = {
   search: (query: string) => ["meal-plan-items", "search", query] as const,
 };
 
-// Autocomplete over the user's own previously-entered meal plan items (BTP-77),
-// across all of the user's trips — the endpoint lives under this trip's route
-// for convenience, but the search itself isn't scoped to it. `meal` only
-// boosts items from that meal slot toward the top; it doesn't filter results,
-// so it's not part of the cache key.
+// A search result is either one of the user's own items or a public catalog
+// item (BTP-111) — the source tag lets consumers branch on how to render it
+// and which "add" mutation mode to use.
+export type ClientMealPlanItemSearchResult =
+  | ({ source: "own" } & ClientMealPlanItemSummary)
+  | ({ source: "public" } & ClientPublicMealItemSummary);
+
+// Autocomplete over the user's own previously-entered meal plan items
+// (BTP-77) plus the public catalog (BTP-111), across all of the user's
+// trips — the endpoint lives under this trip's route for convenience, but
+// the search itself isn't scoped to it. `meal` only boosts items from that
+// meal slot toward the top; it doesn't filter results, so it's not part of
+// the cache key.
 export function useMealPlanItemSearch(
   tripId: string,
   query: string,
@@ -180,7 +189,7 @@ export function useMealPlanItemSearch(
   return useQuery({
     queryKey: mealPlanItemSearchKeys.search(query),
     queryFn: () =>
-      apiClient<{ items: ClientMealPlanItemSummary[] }>(
+      apiClient<{ items: ClientMealPlanItemSearchResult[] }>(
         `/api/trips/${tripId}/meal-plan/items?query=${encodeURIComponent(query)}&meal=${meal}`,
       ).then((res) => res.items ?? []),
     enabled: query.length > 0,

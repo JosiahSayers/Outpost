@@ -5,7 +5,8 @@ import {
   useMealPlanItemSearch,
 } from "$/frontend/utils/api/meal-plan";
 import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
-import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
+import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
+import { Badge, Group, Image, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { BowlFoodIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -18,6 +19,7 @@ interface Props {
   tripId: string;
   onAdd: (name: string) => void;
   onSelectExisting: (item: ClientMealPlanItemSummary) => void;
+  onSelectPublic: (item: ClientPublicMealItemSummary) => void;
 }
 
 export default function QuickAddInput({
@@ -25,6 +27,7 @@ export default function QuickAddInput({
   tripId,
   onAdd,
   onSelectExisting,
+  onSelectPublic,
 }: Props) {
   const [name, setName] = useState("");
   const [debouncedName] = useDebouncedValue(name, 200);
@@ -56,26 +59,54 @@ export default function QuickAddInput({
       searchKeyPrefix={mealPlanItemSearchKeys.all}
       getOptionValue={(item) => item.id}
       onOptionSubmit={(item) => {
-        onSelectExisting(item);
+        if (item.source === "public") {
+          onSelectPublic(item);
+        } else {
+          onSelectExisting(item);
+        }
         setName("");
       }}
       icon={<BowlFoodIcon size={16} color="var(--mantine-color-dimmed)" />}
       renderOption={(item) => (
         <Stack gap={6}>
           <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Text size="sm" fw={700} lineClamp={1}>
-              {item.name}
-            </Text>
-            {item.brand && (
-              <Text size="xs" c="dimmed" lineClamp={1}>
-                {item.brand}
+            <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
+              {item.source === "public" && item.imageUrl && (
+                <Image
+                  src={item.imageUrl}
+                  alt=""
+                  w={20}
+                  h={20}
+                  radius="sm"
+                  fit="cover"
+                  style={{ flexShrink: 0 }}
+                />
+              )}
+              <Text size="sm" fw={700} lineClamp={1}>
+                {item.name}
               </Text>
-            )}
+            </Group>
+            <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
+              {item.brand && (
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {item.brand}
+                </Text>
+              )}
+              {item.source === "public" && (
+                <Badge size="xs" variant="light" color="teal">
+                  Catalog
+                </Badge>
+              )}
+            </Group>
           </Group>
           <SimpleGrid cols={3} spacing={10}>
             <StatCell
               label="Calories"
-              value={item.calories > 0 ? item.calories.toLocaleString() : null}
+              value={
+                item.calories != null && item.calories > 0
+                  ? item.calories.toLocaleString()
+                  : null
+              }
             />
             <StatCell
               label="Water"
