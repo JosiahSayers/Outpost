@@ -124,17 +124,7 @@ mealPlanRouter.get(
     );
 
     return res.json({
-      items: matchingItems.map((result) =>
-        result.source === "own"
-          ? {
-              source: "own" as const,
-              ...transformers.mealPlanItemSummary(result.item),
-            }
-          : {
-              source: "public" as const,
-              ...transformers.publicMealItemSummary(result.item),
-            },
-      ),
+      items: matchingItems.map(transformers.mealPlanItemSearchResult),
     });
   },
 );

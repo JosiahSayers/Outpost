@@ -1,9 +1,8 @@
 import { MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import { tripKeys } from "$/frontend/utils/api/trip";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
-import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
+import type { ClientMealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
-import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
 import type { ClientFullTrip } from "$/transformers/trip";
 import type {
   createMealPlanDay,
@@ -167,13 +166,6 @@ export const mealPlanItemSearchKeys = {
   all: ["meal-plan-items", "search"] as const,
   search: (query: string) => ["meal-plan-items", "search", query] as const,
 };
-
-// A search result is either one of the user's own items or a public catalog
-// item (BTP-111) — the source tag lets consumers branch on how to render it
-// and which "add" mutation mode to use.
-export type ClientMealPlanItemSearchResult =
-  | ({ source: "own" } & ClientMealPlanItemSummary)
-  | ({ source: "public" } & ClientPublicMealItemSummary);
 
 // Autocomplete over the user's own previously-entered meal plan items
 // (BTP-77) plus the public catalog (BTP-111), across all of the user's

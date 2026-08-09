@@ -1,8 +1,6 @@
 import QuickAddInput from "$/frontend/trip/meal-plan/day-edit-drawer/quick-add-input";
-import {
-  mealPlanItemSearchKeys,
-  type ClientMealPlanItemSearchResult,
-} from "$/frontend/utils/api/meal-plan";
+import { mealPlanItemSearchKeys } from "$/frontend/utils/api/meal-plan";
+import type { ClientMealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
 import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
 import { MantineProvider } from "@mantine/core";

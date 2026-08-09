@@ -1,9 +1,5 @@
+import type { MealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import { db } from "$/utils/db";
-import type {
-  Image,
-  MealPlanItem,
-  PublicMealItem,
-} from "../../generated/prisma/client";
 import type { MealName } from "../../generated/prisma/enums";
 
 // Turn free-text input into a prefix-match tsquery: each whitespace-delimited
@@ -82,10 +78,6 @@ export interface SearchMealPlanItemsOptions {
   meal?: MealName;
   limit?: number;
 }
-
-export type MealPlanItemSearchResult =
-  | { source: "own"; item: MealPlanItem }
-  | { source: "public"; item: PublicMealItem & { image: Image | null } };
 
 // Full-text autocomplete over a user's own reusable MealPlanItem rows,
 // unioned with the public catalog (BTP-111). Both are ranked together --
