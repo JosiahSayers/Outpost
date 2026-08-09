@@ -284,14 +284,14 @@ describe("selecting a result", () => {
 });
 
 describe("public catalog results", () => {
-  it("shows a Catalog badge and thumbnail for a public result", async () => {
+  it("shows an Outpost badge and thumbnail for a public result", async () => {
     renderInput({ seedQuery: "chili", seedItems: [chiliMac] });
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "chili" } });
 
     await waitFor(() => screen.getByText("Chili Mac"));
-    expect(screen.getByText("Catalog")).toBeInTheDocument();
+    expect(screen.getByText("Outpost")).toBeInTheDocument();
     // The thumbnail is decorative (alt="") since the name is already shown
     // as text right next to it, so it's not in the accessibility tree --
     // query the DOM directly instead of by role.
@@ -301,13 +301,14 @@ describe("public catalog results", () => {
     );
   });
 
-  it("does not show a Catalog badge for an own-item result", async () => {
+  it("does not show an Outpost badge or thumbnail for an own-item result", async () => {
     renderInput({ seedQuery: "ram", seedItems: [ramenBomb] });
     const input = screen.getByRole("textbox", { name: "Add to Dinner" });
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "ram" } });
 
     await waitFor(() => screen.getByText("Ramen Bomb"));
-    expect(screen.queryByText("Catalog")).not.toBeInTheDocument();
+    expect(screen.queryByText("Outpost")).not.toBeInTheDocument();
+    expect(document.querySelector("img")).not.toBeInTheDocument();
   });
 });

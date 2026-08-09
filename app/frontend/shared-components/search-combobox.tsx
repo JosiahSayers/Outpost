@@ -45,8 +45,13 @@ export interface SearchComboboxProps<T> {
   getOptionValue: (item: T) => string;
   /** Called with the picked item when an option is selected. */
   onOptionSubmit: (item: T) => void;
-  /** Icon shown at the start of every option row. */
-  icon: ReactNode;
+  /**
+   * Icon shown at the start of every option row. Pass a function to vary it
+   * per item (e.g. a thumbnail when one's available, a fallback glyph
+   * otherwise); returning a falsy value omits the icon slot for that row
+   * entirely.
+   */
+  icon: ReactNode | ((item: T) => ReactNode);
   /** Renders the text column of an option (right of the icon). */
   renderOption: (item: T) => ReactNode;
   /**
@@ -162,25 +167,32 @@ export default function SearchCombobox<T>({
       </Combobox.Target>
       <Combobox.Dropdown hidden={hidden}>
         <Combobox.Options>
-          {results.map((item) => (
-            <Combobox.Option
-              key={getOptionValue(item)}
-              value={getOptionValue(item)}
-            >
-              <Group gap="xs" wrap="nowrap" align="flex-start">
-                <span
-                  style={{
-                    marginTop: 3,
-                    flexShrink: 0,
-                    display: "inline-flex",
-                  }}
-                >
-                  {icon}
-                </span>
-                <div style={{ minWidth: 0, flex: 1 }}>{renderOption(item)}</div>
-              </Group>
-            </Combobox.Option>
-          ))}
+          {results.map((item) => {
+            const resolvedIcon = typeof icon === "function" ? icon(item) : icon;
+            return (
+              <Combobox.Option
+                key={getOptionValue(item)}
+                value={getOptionValue(item)}
+              >
+                <Group gap="xs" wrap="nowrap" align="flex-start">
+                  {resolvedIcon && (
+                    <span
+                      style={{
+                        marginTop: 3,
+                        flexShrink: 0,
+                        display: "inline-flex",
+                      }}
+                    >
+                      {resolvedIcon}
+                    </span>
+                  )}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    {renderOption(item)}
+                  </div>
+                </Group>
+              </Combobox.Option>
+            );
+          })}
           {results.length === 0 &&
             (isLoading ? (
               showSpinner ? (

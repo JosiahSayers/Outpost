@@ -6,7 +6,15 @@ import {
 } from "$/frontend/utils/api/meal-plan";
 import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
 import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
-import { Badge, Group, Image, SimpleGrid, Stack, Text } from "@mantine/core";
+import {
+  Badge,
+  Group,
+  Image,
+  SimpleGrid,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { BowlFoodIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -66,26 +74,26 @@ export default function QuickAddInput({
         }
         setName("");
       }}
-      icon={<BowlFoodIcon size={16} color="var(--mantine-color-dimmed)" />}
+      icon={(item) =>
+        item.source === "public" && item.imageUrl ? (
+          <Image
+            src={item.imageUrl}
+            alt=""
+            w={56}
+            h={56}
+            radius="sm"
+            fit="cover"
+          />
+        ) : (
+          <BowlFoodIcon size={16} color="var(--mantine-color-dimmed)" />
+        )
+      }
       renderOption={(item) => (
         <Stack gap={6}>
           <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-              {item.source === "public" && item.imageUrl && (
-                <Image
-                  src={item.imageUrl}
-                  alt=""
-                  w={20}
-                  h={20}
-                  radius="sm"
-                  fit="cover"
-                  style={{ flexShrink: 0 }}
-                />
-              )}
-              <Text size="sm" fw={700} lineClamp={1}>
-                {item.name}
-              </Text>
-            </Group>
+            <Text size="sm" fw={700} lineClamp={1}>
+              {item.name}
+            </Text>
             <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
               {item.brand && (
                 <Text size="xs" c="dimmed" lineClamp={1}>
@@ -93,9 +101,15 @@ export default function QuickAddInput({
                 </Text>
               )}
               {item.source === "public" && (
-                <Badge size="xs" variant="light" color="teal">
-                  Catalog
-                </Badge>
+                <Tooltip
+                  label="This item was added to Outpost using details from the manufacturer's website"
+                  multiline
+                  w={220}
+                >
+                  <Badge size="xs" variant="light" color="teal">
+                    Outpost
+                  </Badge>
+                </Tooltip>
               )}
             </Group>
           </Group>
