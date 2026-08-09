@@ -15,6 +15,11 @@ import type { Job } from "bullmq";
 // Fields checked for systemic (whole-run) failure and for whether a row still
 // counts as "incomplete" -- kept here rather than inferred from the schema
 // since sourceVendor/sourceProductId/sourceUrl are identity, not scraped data.
+// A vendor scraper can override this via `trackedFields` if the vendor's own
+// site structurally never publishes one of these (e.g. no water-quantity
+// text anywhere) -- otherwise that field would report a "systemic failure"
+// on every single run forever, rather than genuinely signaling a broken
+// parser.
 const TRACKED_FIELDS = [
   "brand",
   "calories",
@@ -26,6 +31,7 @@ const MIN_RUN_SIZE_FOR_ALERT = 3;
 
 export interface VendorScraper<Product> {
   vendorId: string;
+  trackedFields?: string[];
   fetchProducts(fetchImpl?: typeof fetch): Promise<Product[]>;
   shouldSkip(product: Product): boolean;
   parseProduct(product: Product): {
@@ -57,7 +63,9 @@ export async function runVendorImport<Product>(
 ) {
   const logger = getLogger(job);
   const products = await scraper.fetchProducts(deps.fetchImpl);
-  const coverage = createFieldCoverageTracker(TRACKED_FIELDS);
+  const coverage = createFieldCoverageTracker(
+    scraper.trackedFields ?? TRACKED_FIELDS,
+  );
 
   let processed = 0;
   let skipped = 0;
