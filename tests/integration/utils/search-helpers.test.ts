@@ -118,7 +118,7 @@ describe("searchMealPlanItems", () => {
       where: { name: "Instant Oatmeal", userId: user.id },
     });
     const results = await searchMealPlanItems("instant oatmeal", user.id);
-    expect(results).toContainEqual(expectedMatch!);
+    expect(results).toContainEqual({ source: "own", item: expectedMatch! });
   });
 
   it("returns a row for a partial match", async () => {
@@ -126,7 +126,7 @@ describe("searchMealPlanItems", () => {
       where: { name: "Instant Oatmeal", userId: user.id },
     });
     const results = await searchMealPlanItems("oat", user.id);
-    expect(results).toContainEqual(expectedMatch!);
+    expect(results).toContainEqual({ source: "own", item: expectedMatch! });
   });
 
   it("returns a row for multiple word partial matches", async () => {
@@ -134,7 +134,7 @@ describe("searchMealPlanItems", () => {
       where: { name: "Trail Mix", userId: user.id },
     });
     const results = await searchMealPlanItems("tr mi", user.id);
-    expect(results).toContainEqual(expectedMatch!);
+    expect(results).toContainEqual({ source: "own", item: expectedMatch! });
   });
 
   it("does not return items belonging to another user", async () => {
@@ -184,9 +184,9 @@ describe("searchMealPlanItems", () => {
         user.id,
         { excludeTripId: otherTrip.id },
       );
-      expect(results.some((item) => item.name === "Excludable Test Meal")).toBe(
-        true,
-      );
+      expect(
+        results.some((result) => result.item.name === "Excludable Test Meal"),
+      ).toBe(true);
     });
 
     it("includes the item when no excludeTripId is given", async () => {
@@ -194,9 +194,9 @@ describe("searchMealPlanItems", () => {
         "excludable test meal",
         user.id,
       );
-      expect(results.some((item) => item.name === "Excludable Test Meal")).toBe(
-        true,
-      );
+      expect(
+        results.some((result) => result.item.name === "Excludable Test Meal"),
+      ).toBe(true);
     });
   });
 
@@ -217,7 +217,7 @@ describe("searchMealPlanItems", () => {
 
       const results = await searchMealPlanItems("duplicate test meal", user.id);
       const matches = results.filter(
-        (item) => item.name === "Duplicate Test Meal",
+        (result) => result.item.name === "Duplicate Test Meal",
       );
       expect(matches).toHaveLength(2);
     });
@@ -268,7 +268,7 @@ describe("searchMealPlanItems", () => {
       const results = await searchMealPlanItems("rankable test meal", user.id, {
         meal: "dinner",
       });
-      expect(results.map((item) => item.name)).toEqual([
+      expect(results.map((result) => result.item.name)).toEqual([
         "Rankable Test Meal Dinner Version",
         "Rankable Test Meal Lunch Version",
       ]);
@@ -278,7 +278,7 @@ describe("searchMealPlanItems", () => {
       const results = await searchMealPlanItems("rankable test meal", user.id, {
         meal: "breakfast",
       });
-      expect(results.map((item) => item.name).sort()).toEqual([
+      expect(results.map((result) => result.item.name).sort()).toEqual([
         "Rankable Test Meal Dinner Version",
         "Rankable Test Meal Lunch Version",
       ]);
@@ -286,10 +286,77 @@ describe("searchMealPlanItems", () => {
 
     it("falls back to relevance/recency order when no meal is given", async () => {
       const results = await searchMealPlanItems("rankable test meal", user.id);
-      expect(results.map((item) => item.name)).toEqual([
+      expect(results.map((result) => result.item.name)).toEqual([
         "Rankable Test Meal Lunch Version",
         "Rankable Test Meal Dinner Version",
       ]);
+    });
+  });
+
+  describe("public catalog", () => {
+    it("returns a public item for a matching query, tagged with source public", async () => {
+      const expectedMatch = await db.publicMealItem.findFirst({
+        where: { name: "White Chicken Chili" },
+      });
+      const results = await searchMealPlanItems("white chicken chili", user.id);
+      expect(results).toContainEqual({
+        source: "public",
+        item: { ...expectedMatch!, image: null },
+      });
+    });
+
+    it("is not filtered by userId -- any user can see it", async () => {
+      const results = await searchMealPlanItems("beef stroganoff", user2.id);
+      expect(
+        results.some(
+          (result) =>
+            result.source === "public" &&
+            result.item.name === "Beef Stroganoff",
+        ),
+      ).toBe(true);
+    });
+
+    it("excludes an incomplete public item (missing calories/water/dry weight)", async () => {
+      const results = await searchMealPlanItems("sweet pork", user.id);
+      expect(results).toEqual([]);
+    });
+
+    it("returns own and public matches together with no cross-table dedup", async () => {
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          userId: user.id,
+          name: "White Chicken Chili",
+        }),
+      });
+
+      const results = await searchMealPlanItems("white chicken chili", user.id);
+      expect(
+        results.filter((result) => result.item.name === "White Chicken Chili"),
+      ).toHaveLength(2);
+      expect(results.map((result) => result.source).sort()).toEqual([
+        "own",
+        "public",
+      ]);
+    });
+
+    it("excludes an own item that's a fork of a public item, showing only the public entry", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+      await db.mealPlanItem.create({
+        data: make("MealPlanItem", {
+          userId: user.id,
+          name: "White Chicken Chili",
+          publicMealSourceId: publicItem.id,
+        }),
+      });
+
+      const results = await searchMealPlanItems("white chicken chili", user.id);
+      const matches = results.filter(
+        (result) => result.item.name === "White Chicken Chili",
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0]!.source).toBe("public");
     });
   });
 });

@@ -1,7 +1,7 @@
 import { MEAL_ORDER } from "$/frontend/trip/meal-plan/helpers";
 import { tripKeys } from "$/frontend/utils/api/trip";
 import type { ClientMealPlanDay } from "$/transformers/meal-plan/day";
-import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
+import type { ClientMealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
 import type { ClientFullTrip } from "$/transformers/trip";
 import type {
@@ -167,11 +167,12 @@ export const mealPlanItemSearchKeys = {
   search: (query: string) => ["meal-plan-items", "search", query] as const,
 };
 
-// Autocomplete over the user's own previously-entered meal plan items (BTP-77),
-// across all of the user's trips — the endpoint lives under this trip's route
-// for convenience, but the search itself isn't scoped to it. `meal` only
-// boosts items from that meal slot toward the top; it doesn't filter results,
-// so it's not part of the cache key.
+// Autocomplete over the user's own previously-entered meal plan items
+// (BTP-77) plus the public catalog (BTP-111), across all of the user's
+// trips — the endpoint lives under this trip's route for convenience, but
+// the search itself isn't scoped to it. `meal` only boosts items from that
+// meal slot toward the top; it doesn't filter results, so it's not part of
+// the cache key.
 export function useMealPlanItemSearch(
   tripId: string,
   query: string,
@@ -180,7 +181,7 @@ export function useMealPlanItemSearch(
   return useQuery({
     queryKey: mealPlanItemSearchKeys.search(query),
     queryFn: () =>
-      apiClient<{ items: ClientMealPlanItemSummary[] }>(
+      apiClient<{ items: ClientMealPlanItemSearchResult[] }>(
         `/api/trips/${tripId}/meal-plan/items?query=${encodeURIComponent(query)}&meal=${meal}`,
       ).then((res) => res.items ?? []),
     enabled: query.length > 0,

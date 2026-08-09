@@ -1,6 +1,8 @@
 import QuickAddInput from "$/frontend/trip/meal-plan/day-edit-drawer/quick-add-input";
 import { mealPlanItemSearchKeys } from "$/frontend/utils/api/meal-plan";
+import type { ClientMealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import type { ClientMealPlanItemSummary } from "$/transformers/meal-plan/item-summary";
+import type { ClientPublicMealItemSummary } from "$/transformers/meal-plan/public-item-summary";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -23,7 +25,8 @@ window.matchMedia = (query: string) =>
 
 const tripId = "trip-1";
 
-const ramenBomb: ClientMealPlanItemSummary = {
+const ramenBomb: ClientMealPlanItemSearchResult = {
+  source: "own",
   id: "item-1",
   name: "Ramen Bomb",
   brand: "Backpacker's Pantry",
@@ -32,7 +35,8 @@ const ramenBomb: ClientMealPlanItemSummary = {
   dryWeightGrams: 210,
 };
 
-const ramenNoodles: ClientMealPlanItemSummary = {
+const ramenNoodles: ClientMealPlanItemSearchResult = {
+  source: "own",
   id: "item-2",
   name: "Ramen Noodles",
   brand: null,
@@ -41,8 +45,20 @@ const ramenNoodles: ClientMealPlanItemSummary = {
   dryWeightGrams: 85,
 };
 
+const chiliMac: ClientMealPlanItemSearchResult = {
+  source: "public",
+  id: "public-item-1",
+  name: "Chili Mac",
+  brand: "Peak Refuel",
+  calories: 640,
+  waterMl: 300,
+  dryWeightGrams: 150,
+  imageUrl: "https://images.example.com/chili-mac.webp",
+};
+
 const onAdd = mock((_name: string) => {});
 const onSelectExisting = mock((_item: ClientMealPlanItemSummary) => {});
+const onSelectPublic = mock((_item: ClientPublicMealItemSummary) => {});
 
 function makeQueryClient() {
   return new QueryClient({
@@ -62,7 +78,7 @@ function renderInput({
   fetchImpl,
 }: {
   seedQuery?: string;
-  seedItems?: ClientMealPlanItemSummary[];
+  seedItems?: ClientMealPlanItemSearchResult[];
   fetchImpl?: typeof fetch;
 } = {}) {
   const queryClient = makeQueryClient();
@@ -97,6 +113,7 @@ function renderInput({
           tripId={tripId}
           onAdd={onAdd}
           onSelectExisting={onSelectExisting}
+          onSelectPublic={onSelectPublic}
         />
       </MantineProvider>
     </QueryClientProvider>,
@@ -106,6 +123,7 @@ function renderInput({
 beforeEach(() => {
   onAdd.mockReset();
   onSelectExisting.mockReset();
+  onSelectPublic.mockReset();
 });
 
 it("labels the input for the given meal", async () => {
@@ -246,5 +264,49 @@ describe("selecting a result", () => {
     expect(onSelectExisting).toHaveBeenCalledWith(ramenBomb);
     expect(onAdd).not.toHaveBeenCalled();
     expect(input).toHaveValue("");
+  });
+
+  it("calls onSelectPublic (not onSelectExisting) for a public catalog result", async () => {
+    renderInput({ seedQuery: "chili", seedItems: [chiliMac] });
+    const input = screen.getByRole("textbox", { name: "Add to Dinner" });
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "chili" } });
+
+    await waitFor(() => screen.getByText("Chili Mac"));
+    fireEvent.click(screen.getByText("Chili Mac"));
+
+    expect(onSelectPublic).toHaveBeenCalledWith(chiliMac);
+    expect(onSelectExisting).not.toHaveBeenCalled();
+    expect(input).toHaveValue("");
+  });
+});
+
+describe("public catalog results", () => {
+  it("shows an Outpost badge and thumbnail for a public result", async () => {
+    renderInput({ seedQuery: "chili", seedItems: [chiliMac] });
+    const input = screen.getByRole("textbox", { name: "Add to Dinner" });
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "chili" } });
+
+    await waitFor(() => screen.getByText("Chili Mac"));
+    expect(screen.getByText("Outpost")).toBeInTheDocument();
+    // The thumbnail is decorative (alt="") since the name is already shown
+    // as text right next to it, so it's not in the accessibility tree --
+    // query the DOM directly instead of by role.
+    expect(document.querySelector("img")).toHaveAttribute(
+      "src",
+      chiliMac.imageUrl,
+    );
+  });
+
+  it("does not show an Outpost badge or thumbnail for an own-item result", async () => {
+    renderInput({ seedQuery: "ram", seedItems: [ramenBomb] });
+    const input = screen.getByRole("textbox", { name: "Add to Dinner" });
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "ram" } });
+
+    await waitFor(() => screen.getByText("Ramen Bomb"));
+    expect(screen.queryByText("Outpost")).not.toBeInTheDocument();
+    expect(document.querySelector("img")).not.toBeInTheDocument();
   });
 });

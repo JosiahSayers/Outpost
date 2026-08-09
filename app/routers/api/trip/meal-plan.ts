@@ -6,6 +6,7 @@ import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { searchMealPlanItems } from "$/utils/search-helpers";
 import { idParam } from "$/validation/shared";
+import type { PublicMealItem } from "../../../../generated/prisma/client";
 import {
   createMealPlanDay,
   createMealPlanItem,
@@ -123,7 +124,7 @@ mealPlanRouter.get(
     );
 
     return res.json({
-      items: matchingItems.map(transformers.mealPlanItemSummary),
+      items: matchingItems.map(transformers.mealPlanItemSearchResult),
     });
   },
 );
@@ -143,22 +144,58 @@ mealPlanRouter.post(
       }
     }
 
+    let publicSource: PublicMealItem | null = null;
+    if (req.body.mode === "public") {
+      publicSource = await db.publicMealItem.findUnique({
+        where: { id: req.body.publicMealItemId },
+      });
+
+      if (!publicSource) {
+        return res.status(404).json({ error: "Public meal item not found" });
+      }
+    }
+
     const dayItem = await db.$transaction(async (tx) => {
-      const mealPlanItemId =
-        req.body.mode === "existing"
-          ? req.body.mealPlanItemId
-          : (
-              await tx.mealPlanItem.create({
-                data: {
-                  userId: req.session!.user.id,
-                  name: req.body.name,
-                  brand: req.body.brand,
-                  calories: req.body.calories,
-                  waterMl: req.body.waterMl,
-                  dryWeightGrams: req.body.dryWeightGrams,
-                },
-              })
-            ).id;
+      let mealPlanItemId: string;
+      if (req.body.mode === "existing") {
+        mealPlanItemId = req.body.mealPlanItemId;
+      } else if (req.body.mode === "public") {
+        // Re-adding a public item the user has already forked reuses that
+        // fork (and keeps whatever they've since edited on it) instead of
+        // creating a second copy -- see the MealPlanItem
+        // @@unique([userId, publicMealSourceId]) constraint.
+        const forked = await tx.mealPlanItem.upsert({
+          where: {
+            userId_publicMealSourceId: {
+              userId: req.session!.user.id,
+              publicMealSourceId: publicSource!.id,
+            },
+          },
+          create: {
+            userId: req.session!.user.id,
+            publicMealSourceId: publicSource!.id,
+            name: publicSource!.name,
+            brand: publicSource!.brand,
+            calories: publicSource!.calories!,
+            waterMl: publicSource!.waterMl,
+            dryWeightGrams: publicSource!.dryWeightGrams,
+          },
+          update: {},
+        });
+        mealPlanItemId = forked.id;
+      } else {
+        const created = await tx.mealPlanItem.create({
+          data: {
+            userId: req.session!.user.id,
+            name: req.body.name,
+            brand: req.body.brand,
+            calories: req.body.calories,
+            waterMl: req.body.waterMl,
+            dryWeightGrams: req.body.dryWeightGrams,
+          },
+        });
+        mealPlanItemId = created.id;
+      }
 
       return tx.mealPlanDayItem.upsert({
         where: {

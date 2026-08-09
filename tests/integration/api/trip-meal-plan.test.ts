@@ -771,6 +771,62 @@ describe("GET /items", () => {
       itemId,
     ]);
   });
+
+  describe("public catalog", () => {
+    it("includes a matching public catalog item tagged with source public", async () => {
+      const response = await request(app)
+        .get(`/api/trips/${tripId}/meal-plan/items`)
+        .query({ query: "white chicken chili" })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      expect(response.body.items).toContainEqual(
+        expect.objectContaining({
+          source: "public",
+          name: "White Chicken Chili",
+          imageUrl: null,
+        }),
+      );
+    });
+
+    it("excludes an incomplete public catalog item", async () => {
+      const response = await request(app)
+        .get(`/api/trips/${tripId}/meal-plan/items`)
+        .query({ query: "sweet pork" })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      expect(response.body.items).toEqual([]);
+    });
+
+    it("shows only the public entry (not a second, own copy) once the user has forked it", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+
+      await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "public",
+          publicMealItemId: publicItem.id,
+          meal: "dinner",
+        })
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      const response = await request(app)
+        .get(`/api/trips/${tripId}/meal-plan/items`)
+        .query({ query: "white chicken chili" })
+        .set("Cookie", authCookies)
+        .expect(200);
+
+      const matches = response.body.items.filter(
+        (item: { name: string }) => item.name === "White Chicken Chili",
+      );
+      expect(matches).toHaveLength(1);
+      expect(matches[0].source).toBe("public");
+    });
+  });
 });
 
 describe("POST /days/:day/items", () => {
@@ -1043,6 +1099,123 @@ describe("POST /days/:day/items", () => {
         where: { mealPlanDayId: day!.id, mealPlanItemId: mealPlanItem.id },
       });
       expect(placements).toHaveLength(1);
+    });
+  });
+
+  describe("mode: public", () => {
+    it("forks the public item into a new user-owned MealPlanItem", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+
+      const response = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "public",
+          publicMealItemId: publicItem.id,
+          meal: "breakfast",
+        })
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      expect(response.body.mealPlanItem).toEqual({
+        id: expect.any(String),
+        mealPlanItemId: expect.any(String),
+        name: publicItem.name,
+        brand: publicItem.brand,
+        meal: "breakfast",
+        calories: publicItem.calories,
+        quantity: 1,
+        waterMl: publicItem.waterMl,
+        dryWeightGrams: publicItem.dryWeightGrams,
+        status: { purchased: false, packed: false },
+      });
+
+      const forked = await db.mealPlanItem.findUnique({
+        where: { id: response.body.mealPlanItem.mealPlanItemId },
+      });
+      expect(forked).toMatchObject({
+        userId,
+        publicMealSourceId: publicItem.id,
+        name: publicItem.name,
+      });
+    });
+
+    it("returns 404 when the public meal item does not exist", async () => {
+      await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({
+          mode: "public",
+          publicMealItemId: "does-not-exist",
+          meal: "breakfast",
+        })
+        .set("Cookie", authCookies)
+        .expect(404);
+    });
+
+    it("reuses the existing fork instead of duplicating it when the same public item is added again", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+      const body = {
+        mode: "public" as const,
+        publicMealItemId: publicItem.id,
+        meal: "breakfast" as const,
+      };
+
+      const first = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send(body)
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      const second = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send(body)
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      expect(second.body.mealPlanItem.mealPlanItemId).toBe(
+        first.body.mealPlanItem.mealPlanItemId,
+      );
+      expect(second.body.mealPlanItem.quantity).toBe(2);
+
+      const forks = await db.mealPlanItem.findMany({
+        where: { userId, publicMealSourceId: publicItem.id },
+      });
+      expect(forks).toHaveLength(1);
+    });
+
+    it("keeps a since-edited fork's fields on re-add instead of overwriting them", async () => {
+      const publicItem = await db.publicMealItem.findFirstOrThrow({
+        where: { name: "White Chicken Chili" },
+      });
+      const body = {
+        mode: "public" as const,
+        publicMealItemId: publicItem.id,
+        meal: "breakfast" as const,
+      };
+
+      const first = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send(body)
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      await db.mealPlanItem.update({
+        where: { id: first.body.mealPlanItem.mealPlanItemId },
+        data: { name: "White Chicken Chili (extra spicy)" },
+      });
+
+      const second = await request(app)
+        .post(`/api/trips/${tripId}/meal-plan/days/1/items`)
+        .send({ ...body, meal: "lunch" as const })
+        .set("Cookie", authCookies)
+        .expect(201);
+
+      expect(second.body.mealPlanItem.name).toBe(
+        "White Chicken Chili (extra spicy)",
+      );
     });
   });
 });
