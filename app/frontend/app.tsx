@@ -5,6 +5,7 @@ import AccountPage from "$/frontend/pages/account.page";
 import AdminPage from "$/frontend/pages/admin.page";
 import AdminFeedbackDetailPage from "$/frontend/pages/admin-feedback-detail.page";
 import AdminFeedbackPage from "$/frontend/pages/admin-feedback.page";
+import AdminMealsPage from "$/frontend/pages/admin-meals.page";
 import AdminQueuesPage from "$/frontend/pages/admin-queues.page";
 import AdminUserSessionsPage from "$/frontend/pages/admin-user-sessions.page";
 import AdminUsersPage from "$/frontend/pages/admin-users.page";
@@ -34,6 +35,7 @@ export default function App() {
           path="/console/users/:id/sessions"
           component={AdminUserSessionsPage}
         />
+        <Route path="/console/meals" component={AdminMealsPage} />
         <Route path="/console/queues" component={AdminQueuesPage} />
         <Route path="/console/feedback" component={AdminFeedbackPage} />
         <Route

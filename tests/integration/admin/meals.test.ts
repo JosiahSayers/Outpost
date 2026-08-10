@@ -81,7 +81,7 @@ describe("GET /", () => {
     expect(response.body.hasMore).toEqual(expect.any(Boolean));
     expect(response.body.items).toEqual(
       expect.arrayContaining([
-        {
+        expect.objectContaining({
           id: expect.any(String),
           name: "White Chicken Chili",
           brand: "Peak Refuel",
@@ -89,9 +89,35 @@ describe("GET /", () => {
           waterMl: 237,
           dryWeightGrams: 140,
           imageUrl: null,
-        },
+        }),
       ]),
     );
+  });
+
+  it("returns the admin shape, including source fields the summary transformer hides", async () => {
+    const seeded = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "trail_kitchen",
+        sourceProductId: "tk-admin-shape",
+        sourceUrl: "https://example.com/products/tk-admin-shape",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals")
+      .query({ vendor: ["trail_kitchen"] })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual([
+      expect.objectContaining({
+        id: seeded.id,
+        sourceVendor: "trail_kitchen",
+        sourceProductId: "tk-admin-shape",
+        sourceUrl: "https://example.com/products/tk-admin-shape",
+        sourceImageUrl: seeded.sourceImageUrl,
+      }),
+    ]);
   });
 
   it("returns a matching item for a free-text query", async () => {
@@ -246,7 +272,7 @@ describe("POST /", () => {
       .expect(403);
   });
 
-  it("creates a meal and returns its summary", async () => {
+  it("creates a meal and returns it", async () => {
     const response = await request(app)
       .post("/admin/meals")
       .send(validBody)
@@ -261,6 +287,10 @@ describe("POST /", () => {
       calories: validBody.calories,
       waterMl: validBody.waterMl,
       dryWeightGrams: validBody.dryWeightGrams,
+      sourceVendor: validBody.sourceVendor,
+      sourceProductId: validBody.sourceProductId,
+      sourceUrl: validBody.sourceUrl,
+      sourceImageUrl: null,
       imageUrl: null,
     });
 

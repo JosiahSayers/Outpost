@@ -48,7 +48,7 @@ adminMealsRouter.get(
     });
 
     return res.json({
-      items: items.map(transformers.publicMealItemSummary),
+      items: items.map(transformers.admin.publicMealItem),
       hasMore,
     });
   },
@@ -93,7 +93,7 @@ adminMealsRouter.post("/", validate({ body: createMeal }), async (req, res) => {
     });
   });
 
-  return res.json(transformers.publicMealItemSummary(newMeal));
+  return res.json(transformers.admin.publicMealItem(newMeal));
 });
 
 adminMealsRouter.patch(
@@ -146,7 +146,7 @@ adminMealsRouter.patch(
       });
     });
 
-    return res.json(transformers.publicMealItemSummary(updatedMeal));
+    return res.json(transformers.admin.publicMealItem(updatedMeal));
   },
 );
 
