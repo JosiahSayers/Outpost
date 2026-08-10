@@ -7,6 +7,7 @@ import {
   useUpdateMealPlanItem,
 } from "$/frontend/utils/api/meal-plan";
 import type { ClientMealPlanItem } from "$/transformers/meal-plan/item";
+import { editMealPlanItem } from "$/validation/trip/meal-plan";
 import {
   Button,
   Divider,
@@ -16,10 +17,31 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
+import { schemaResolver, useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { TrashIcon } from "@phosphor-icons/react";
+import { z } from "zod";
 import type { MealName } from "../../../../../generated/prisma/enums";
+
+// NumberInput holds "" (not undefined) when cleared, and editMealPlanItem's
+// optional int fields don't accept that -- treat "" as unset before handing
+// off to the real field schema, so validation stays driven by the backend's
+// own rules instead of a hand-rolled duplicate of them (same pattern as
+// admin/meals/meal-detail-panel.tsx).
+function optionalWhenBlank<Schema extends z.ZodTypeAny>(schema: Schema) {
+  return z.preprocess((value) => (value === "" ? undefined : value), schema);
+}
+
+const itemFormSchema = editMealPlanItem.extend({
+  // The form always submits a full payload (not a partial PATCH), so name
+  // is required here even though it's optional in editMealPlanItem's
+  // partial-update semantics.
+  name: z.string().min(1, "Name is required"),
+  quantity: optionalWhenBlank(editMealPlanItem.shape.quantity),
+  calories: optionalWhenBlank(editMealPlanItem.shape.calories),
+  waterMl: optionalWhenBlank(editMealPlanItem.shape.waterMl),
+  dryWeightGrams: optionalWhenBlank(editMealPlanItem.shape.dryWeightGrams),
+});
 
 interface Props {
   item: ClientMealPlanItem;
@@ -50,10 +72,7 @@ export default function ItemEditForm({
       waterMl: (item.waterMl ?? "") as number | string,
       dryWeightGrams: (item.dryWeightGrams ?? "") as number | string,
     },
-    validate: {
-      // TODO: follow convention and re-use zod validation from backend
-      name: (value) => (value.trim().length > 0 ? null : "Name is required"),
-    },
+    validate: schemaResolver(itemFormSchema, { sync: true }),
   });
 
   const waterMlInputProps = form.getInputProps("waterMl");

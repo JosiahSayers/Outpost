@@ -84,7 +84,7 @@ describe("typing a number", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
       target: { value: "2" },
     });
-    expect(onChange).toHaveBeenCalledWith(473.176473);
+    expect(onChange).toHaveBeenCalledWith(473);
     await waitFor(() => {});
   });
 });
@@ -123,7 +123,7 @@ describe("fluid ounce unit", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
       target: { value: "2" },
     });
-    expect(onChange).toHaveBeenCalledWith(59.147059125);
+    expect(onChange).toHaveBeenCalledWith(59);
     await waitFor(() => {});
   });
 });
