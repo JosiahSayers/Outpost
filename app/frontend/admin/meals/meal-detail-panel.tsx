@@ -11,6 +11,7 @@ import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientAdminPublicMealItem } from "$/transformers/admin/public-meal-item";
 import { createMeal } from "$/validation/admin/meals";
 import {
+  Anchor,
   Button,
   Flex,
   Group,
@@ -213,12 +214,20 @@ export default function MealDetailPanel({
             />
           </Group>
 
-          <TextInput
-            label="Source URL"
-            description="Product page link, shown to admins for cross-reference"
-            required
-            {...form.getInputProps("sourceUrl")}
-          />
+          <Stack gap="xs">
+            <TextInput
+              label="Source URL"
+              description="Product page link, shown to admins for cross-reference"
+              required
+              {...form.getInputProps("sourceUrl")}
+            />
+            <Anchor
+              href={form.getInputProps("sourceUrl").value}
+              target="_blank"
+            >
+              {form.getInputProps("sourceUrl").value}
+            </Anchor>
+          </Stack>
 
           <TextInput
             label="Source image URL"
