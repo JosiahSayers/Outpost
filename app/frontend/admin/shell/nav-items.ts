@@ -1,6 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   ArrowsClockwiseIcon,
+  BowlFoodIcon,
   ChatCircleTextIcon,
   ClipboardTextIcon,
   FlagIcon,
@@ -37,6 +38,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     section: "Support",
     description:
       "User-submitted feedback — filter by status, leave notes, and track it through to resolution.",
+  },
+  {
+    label: "Public Meals",
+    href: "/console/meals",
+    icon: BowlFoodIcon,
+    section: "Support",
+    description:
+      "Search, curate, and edit the public meal catalog surfaced across meal plans.",
   },
   {
     label: "Audit Log",

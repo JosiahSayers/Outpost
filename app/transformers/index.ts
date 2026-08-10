@@ -6,6 +6,7 @@ import {
   transformListItem as adminFeedbackListItemTransform,
 } from "$/transformers/admin/feedback";
 import { transform as adminFeedbackNoteTransform } from "$/transformers/admin/feedback-note";
+import { transform as adminPublicMealItemTransform } from "$/transformers/admin/public-meal-item";
 import { transform as adminSessionTransform } from "$/transformers/admin/session";
 import {
   transform as adminUserTransform,
@@ -61,5 +62,6 @@ export const transformers = {
     user: adminUserTransform,
     userWithCounts: adminUserWithCountsTransform,
     session: adminSessionTransform,
+    publicMealItem: adminPublicMealItemTransform,
   },
 } as const;
