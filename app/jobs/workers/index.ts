@@ -4,26 +4,44 @@ import { logger } from "$/utils/logger";
 
 await cleanupOrphanedPadUsRuns();
 
+// Each scheduler is registered independently -- one queue's scheduler
+// failing to upsert (e.g. a stale/colliding job id in Redis) must not stop
+// the others from registering, and must never stop worker.run() below from
+// running for every queue, scheduled or not.
 for (const entry of registry) {
   if (entry.kind === "job") {
     if (entry.schedule) {
-      await entry.queue.upsertJobScheduler(entry.schedule.id, {
-        pattern: entry.schedule.pattern,
-      });
+      try {
+        await entry.queue.upsertJobScheduler(entry.schedule.id, {
+          pattern: entry.schedule.pattern,
+        });
+      } catch (error) {
+        logger.error(
+          `Failed to upsert job scheduler "${entry.schedule.id}" for queue "${entry.name}"`,
+          { error },
+        );
+      }
     }
   } else {
     for (const member of entry.members) {
       if (member.schedule) {
-        await entry.queue.upsertJobScheduler(
-          member.schedule.id,
-          { pattern: member.schedule.pattern },
-          {
-            name: member.name,
-            ...(member.defaultJobOptions
-              ? { opts: member.defaultJobOptions }
-              : {}),
-          },
-        );
+        try {
+          await entry.queue.upsertJobScheduler(
+            member.schedule.id,
+            { pattern: member.schedule.pattern },
+            {
+              name: member.name,
+              ...(member.defaultJobOptions
+                ? { opts: member.defaultJobOptions }
+                : {}),
+            },
+          );
+        } catch (error) {
+          logger.error(
+            `Failed to upsert job scheduler "${member.schedule.id}" for queue "${entry.name}"`,
+            { error },
+          );
+        }
       }
     }
   }
