@@ -18,27 +18,27 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       name: peakRefuelScraper.vendorId,
       processor: (job) => runVendorImport(job, peakRefuelScraper),
       defaultJobOptions,
-      schedule: { id: "import-peak-refuel-nightly", pattern: "1 0 * * *" },
+      schedule: { id: "import-peak-refuel", pattern: "1 0 * * 0" },
     },
     {
       name: packitGourmetScraper.vendorId,
       processor: (job) => runVendorImport(job, packitGourmetScraper),
       defaultJobOptions,
-      schedule: { id: "import-packit-gourmet-nightly", pattern: "11 0 * * *" },
+      schedule: { id: "import-packit-gourmet", pattern: "11 0 * * 1" },
     },
     {
       name: mountainHouseScraper.vendorId,
       processor: (job) => runVendorImport(job, mountainHouseScraper),
       defaultJobOptions,
-      schedule: { id: "import-mountain-house-nightly", pattern: "21 0 * * *" },
+      schedule: { id: "import-mountain-house", pattern: "21 0 * * 2" },
     },
     {
       name: backpackersPantryScraper.vendorId,
       processor: (job) => runVendorImport(job, backpackersPantryScraper),
       defaultJobOptions,
       schedule: {
-        id: "import-backpackers-pantry-nightly",
-        pattern: "31 0 * * *",
+        id: "import-backpackers-pantry",
+        pattern: "31 0 * * 3",
       },
     },
     // future vendors added here as their own entry
