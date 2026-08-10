@@ -1,0 +1,1179 @@
+{
+  "products": [
+    {
+      "id": 5658867400853,
+      "title": "Cuban Rice Bowl",
+      "handle": "cuban-rice-bowl",
+      "body_html": "<h2>Black Beans, Plantain and Rice With Garlic Crema Sauce<br>\n</h2>\n<p>Cuban food to go? You bet. Big, bold flavors with a balanced spice take this rice bowl to new heights. The combination of rice and beans creates a complete protein—providing you with all the amino acids you need to go that extra mile. While this meal is vegetarian, even the hungriest of carnivores will appreciate the 15g of protein per serving, or 30g if you prefer a double serving. Garlic crema sauce and plantains create unique flavors you’ll find in no other camp meal.</p>\n<ul>\n<li>Long grain rice and black beans provide a complete protein</li>\n<li>Garlic crema sauce adds a flavor found in no other camp meal<br>\n</li>\n<li>Fast 12-minute cook time</li>\n<li>Vegetarian</li>\n<li>Gluten-free</li>\n</ul>\n<p><meta charset=\"UTF-8\"><span>This product has been lab tested with an extended </span><span data-markjs=\"true\" class=\"outlook-search-highlight\">shelf</span><span> </span><span data-markjs=\"true\" class=\"outlook-search-highlight\">life and</span><span> will have a minimum of two years to consume until its expiration date.</span></p>\n<p><a href=\"https://goodto-go.com/pages/california-proposition-65\" title=\"CA Prop 65 Warning\" target=\"_blank\"><span class=\"a-list-item\"><span>Important <strong>WARNING</strong> for California Residents</span></span></a></p>\n<h6>Ingredients</h6>\n<p><strong>Cuban Rice Bowl</strong></p>\n<p><span><strong><span style=\"color: #db2827;\">INGREDIENTS</span>:</strong></span><span> </span>(notice how many you can pronounce!)<br>Onion, Instant Long Grain Rice, Dried Black Beans, Poblano Pepper, Sour Cream Powder (Cultured Cream, Nonfat Milk), Plantain Chips (Plantain, Non Hydrogenated Palm Oil, Salt), Garlic, Dried Tomato Flakes, Grapeseed Oil, Sweet Rice Flour, Cilantro, Red Wine Vinegar, Dried Leeks, Ground Cumin, Sea Salt, Black Pepper, Dried Cilantro, Crystallized Lime (Citric Acid, Lime Oil, Lime Juice)</p>\n<p><strong>CONTAINS:</strong> Milk</p>\n<h6>FAQS</h6>\n<p><strong>Holy calories! Is that a typo?<br></strong>Nope, it's true—540 cals per serving and a whopping 1,070 cals in an entire double serving. If you're embarking on a long-distance hike, or just burning a ton of calories, look no further. This is our highest calorie entrée. <br></p>\n<p><meta charset=\"UTF-8\"><strong data-mce-fragment=\"1\">Is this meal spicy?<br data-mce-fragment=\"1\"></strong><span data-mce-fragment=\"1\">Not so much hot, as it is flavorful. <meta charset=\"UTF-8\">Poblano, black pepper and cumin come together to create big, bold flavors with a balanced spice. If spicy-hot just isn't your thing, have no fear! This is a mild dish.</span><br></p>\n<p><a href=\"https://goodto-go.com/pages/faq\" title=\"All Frequently Asked Questions page\" target=\"_blank\"><strong>SEE FAQ PAGE</strong></a></p>\n<h6>Cooking Directions</h6>\n<h3>Cuban Rice Bowl Directions</h3>\n<p><strong>X</strong><span> Tear pouch open and </span><strong>REMOVE</strong><span> oxygen absorber.</span><br><strong>X</strong><span> </span><span>Add a little less than one and a quarter cups (275ML) of </span><strong>BOILING</strong><span> (yes, boiling) water to bag.</span><br><strong>X</strong><span> </span><strong>STIR</strong><span> and reseal.</span><strong><span> </span>HANG OUT</strong><span> for 12 minutes. Think about how big the universe is. </span><br><strong>X</strong><span> </span><strong>OPEN</strong><span>. </span><strong>STIR AGAIN</strong><span>. </span><strong>EAT</strong><span>. </span><strong>SMILE</strong><span>. </span><br><strong>X</strong><span> Rehydration will take </span><strong>LONGER</strong><span> at higher altitudes.</span></p>\n<h3><br></h3>",
+      "published_at": "2022-03-25T11:04:22-04:00",
+      "created_at": "2020-08-28T13:34:24-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Entree",
+      "tags": [
+        "coconut-free",
+        "cuban rice bowl icons",
+        "egg-free",
+        "fish-free",
+        "gluten-free",
+        "no added sugar",
+        "peanut-free",
+        "sesame-free",
+        "shellfish-free",
+        "soy-free",
+        "sulfite-free",
+        "tree nut-free",
+        "Vegetarian"
+      ],
+      "variants": [
+        {
+          "id": 35992547000469,
+          "title": "Each",
+          "option1": "Each",
+          "option2": null,
+          "option3": null,
+          "sku": "1062",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098460401892,
+            "product_id": 5658867400853,
+            "position": 1,
+            "created_at": "2022-10-12T19:01:09-04:00",
+            "updated_at": "2025-02-07T15:09:42-05:00",
+            "alt": "Good To-Go Cuban Rice Bowl single-serving pouch – seasoned rice and beans with red packaging",
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_Single_Front_S22.png?v=1738958982",
+            "variant_ids": [35992547000469]
+          },
+          "available": true,
+          "price": "10.99",
+          "grams": 140,
+          "compare_at_price": "10.75",
+          "position": 1,
+          "product_id": 5658867400853,
+          "created_at": "2020-08-28T14:45:04-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 42179932160228,
+          "title": "6-Pack",
+          "option1": "6-Pack",
+          "option2": null,
+          "option3": null,
+          "sku": "1062qcs",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098460500196,
+            "product_id": 5658867400853,
+            "position": 9,
+            "created_at": "2022-10-12T19:01:09-04:00",
+            "updated_at": "2025-09-22T16:30:23-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_6-Pack_Single_S22.png?v=1758573023",
+            "variant_ids": [42179932160228]
+          },
+          "available": true,
+          "price": "63.99",
+          "grams": 862,
+          "compare_at_price": "62.56",
+          "position": 2,
+          "product_id": 5658867400853,
+          "created_at": "2021-12-09T15:48:40-05:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 40098460401892,
+          "created_at": "2022-10-12T19:01:09-04:00",
+          "position": 1,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [35992547000469],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_Single_Front_S22.png?v=1738958982",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 40098831761636,
+          "created_at": "2022-10-12T19:24:57-04:00",
+          "position": 2,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_Cooked_LowRes.jpg?v=1738958982",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 74011751416036,
+          "created_at": "2025-02-07T15:07:56-05:00",
+          "position": 3,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/3_GTG_CubanRiceBowl_1062_S25.jpg?v=1738958982",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011751481572,
+          "created_at": "2025-02-07T15:07:56-05:00",
+          "position": 4,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/4_GTG_CubanRiceBowl_1062_S25.jpg?v=1738958982",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011751547108,
+          "created_at": "2025-02-07T15:07:56-05:00",
+          "position": 5,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/5_GTG_CubanRiceBowl_1062_S25.jpg?v=1738958982",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011751514340,
+          "created_at": "2025-02-07T15:07:56-05:00",
+          "position": 6,
+          "updated_at": "2025-02-07T15:09:42-05:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/6_GTG_CubanRiceBowl_1062_S25.jpg?v=1738958982",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78540144738532,
+          "created_at": "2025-09-22T16:29:56-04:00",
+          "position": 7,
+          "updated_at": "2025-09-22T16:30:23-04:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ie0O6Eas.jpg?v=1758573023",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 40098460303588,
+          "created_at": "2022-10-12T19:01:09-04:00",
+          "position": 8,
+          "updated_at": "2025-09-22T16:30:23-04:00",
+          "product_id": 5658867400853,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_Single_Back_S22.png?v=1758573023",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 40098460500196,
+          "created_at": "2022-10-12T19:01:09-04:00",
+          "position": 9,
+          "updated_at": "2025-09-22T16:30:23-04:00",
+          "product_id": 5658867400853,
+          "variant_ids": [42179932160228],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_CubanBowl_6-Pack_Single_S22.png?v=1758573023",
+          "width": 1000,
+          "height": 1000
+        }
+      ],
+      "options": [
+        {
+          "name": "Pack Quantity",
+          "position": 1,
+          "values": ["Each", "6-Pack"]
+        }
+      ]
+    },
+    {
+      "id": 10198860679,
+      "title": "Pad Thai",
+      "handle": "pad-thai",
+      "body_html": "<h2>Rice Noodles With Wild American Shrimp Sauce and Peanuts</h2>\n<p>Our version of this quintessential Thai dish captures the four Thai flavors of sweet, salty, sour and spicy. Traditional Banh Pho rice noodles are served with carrots, bean sprouts and peanuts in a flavorful wild American shrimp sauce.</p>\n<ul>\n<li>Traditional Banh Pho rice noodles</li>\n<li>Sustainably caught wild American shrimp</li>\n<li>Whole pasteurized eggs <br>\n</li>\n<li>Gluten-free</li>\n<li>Pescatarian</li>\n</ul>\n<p><meta charset=\"UTF-8\"><span>This product has been lab tested with an extended </span><span class=\"outlook-search-highlight\" data-markjs=\"true\">shelf</span><span> </span><span class=\"outlook-search-highlight\" data-markjs=\"true\">life and</span><span> will have a minimum of two years to consume until its expiration date.</span></p>\n<p><a href=\"https://goodto-go.com/pages/california-proposition-65\" title=\"CA Prop 65 Warning\" target=\"_blank\"><span class=\"a-list-item\"><span>Important <strong>WARNING</strong> for California Residents</span></span></a></p>\n<h6>Ingredients</h6>\n<p><strong>Pad Thai</strong></p>\n<p><span><strong><span style=\"color: #db2827;\">INGREDIENTS</span>:</strong></span><span> </span>(notice how many you can pronounce!)<br>Rice Noodles (Rice Flour, Water), Carrots, Whole Pasteurized Eggs, Onion, Dry Roasted Peanuts, Bean Sprouts, Brown Sugar, Textured Vegetable Protein (Defatted Soy Flour), Grapeseed Oil, Fish Salt (Anchovy, Sea Salt), Sweet Rice Flour, Garlic, Tamarind Powder, Dried Ground Shrimp (Shrimp, Salt), Dried Scallions, Dried Cilantro, Lime Juice Powder (Maltodextrin, Lime Juice, Lime Oil), Ground Turmeric, Dried Thai Chiles</p>\n<p><strong>CONTAINS:</strong><span> Peanuts, Eggs, Soybean, Fish, Crustacean Shellfish, Sulfites</span></p>\n<h6>FAQS</h6>\n<p><strong>Where are your shrimp sourced?<br></strong>We use wild-caught, American Gulf shrimp, caught in the Gulf of Mexico. These little crustaceans pack a lot of flavor and protein—17g per single serving, or 32g for an entire double serving.<br></p>\n<p><strong>Are there a lot of peanuts?<br></strong>We include a separate pouch of dry-roasted peanuts in every meal, so you can choose to add a lot or just a little. Pro tip: We like to top the Pad Thai with the peanuts after it's rehydrated, so they retain their crunch.</p>\n<p><a href=\"https://goodto-go.com/pages/faq\" title=\"All Frequently Asked Questions page\" target=\"_blank\"><strong>SEE FAQ PAGE</strong></a></p>\n<h6>Cooking Directions</h6>\n<h3>Pad Thai Directions</h3>\n<p><strong>X</strong><span> Tear pouch open and </span><strong>REMOVE</strong><span> oxygen absorber.</span><br><strong>X</strong><span> </span><span style=\"color: #db2827;\"><strong>SINGLE SERVING</strong></span><span> Add a little more than one cup (250ML) of </span><strong>BOILING</strong><span> (yes, boiling) water to bag. </span><br><strong>X</strong><span> </span><strong>STIR</strong><span> and reseal.</span><strong><span> </span>HANG OUT</strong><span> for 15 minutes. Think about how big the universe is. </span><br><strong>X</strong><span> </span><strong>OPEN</strong><span>. </span><strong>STIR AGAIN</strong><span>. </span><strong>EAT</strong><span>. </span><strong>SMILE</strong><span>. </span><br><strong>X</strong><span> Rehydration will take </span><strong>LONGER</strong><span> at higher altitudes.</span></p>\n<ul></ul>",
+      "published_at": "2022-03-25T11:06:17-04:00",
+      "created_at": "2017-04-17T16:50:28-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Entree",
+      "tags": [
+        "carnivore",
+        "coconut-free",
+        "dairy-free",
+        "gluten-free",
+        "pad thai icons",
+        "Pescatarian",
+        "sesame-free",
+        "tree nut-free"
+      ],
+      "variants": [
+        {
+          "id": 42021598855,
+          "title": "Each",
+          "option1": "Each",
+          "option2": null,
+          "option3": null,
+          "sku": "1055",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098595406052,
+            "product_id": 10198860679,
+            "position": 1,
+            "created_at": "2022-10-12T19:09:36-04:00",
+            "updated_at": "2025-04-23T11:02:47-04:00",
+            "alt": "Good To-Go Pad Thai single-serving pouch – rice noodle dish with purple label and tamarind flavor",
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_PadThai_Single_Front_S22.png?v=1745420567",
+            "variant_ids": [42021598855]
+          },
+          "available": true,
+          "price": "10.99",
+          "grams": 135,
+          "compare_at_price": "10.75",
+          "position": 1,
+          "product_id": 10198860679,
+          "created_at": "2017-04-17T16:50:28-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 42164571635940,
+          "title": "6-Pack",
+          "option1": "6-Pack",
+          "option2": null,
+          "option3": null,
+          "sku": "1055qcs",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098595438820,
+            "product_id": 10198860679,
+            "position": 8,
+            "created_at": "2022-10-12T19:09:36-04:00",
+            "updated_at": "2025-02-07T15:16:52-05:00",
+            "alt": null,
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_PadThai_6-Pack_Single_S22.png?v=1738959412",
+            "variant_ids": [42164571635940]
+          },
+          "available": true,
+          "price": "63.99",
+          "grams": 816,
+          "compare_at_price": "62.56",
+          "position": 2,
+          "product_id": 10198860679,
+          "created_at": "2021-12-07T09:53:43-05:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 40098595406052,
+          "created_at": "2022-10-12T19:09:36-04:00",
+          "position": 1,
+          "updated_at": "2025-04-23T11:02:47-04:00",
+          "product_id": 10198860679,
+          "variant_ids": [42021598855],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_PadThai_Single_Front_S22.png?v=1745420567",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 74011817083108,
+          "created_at": "2025-02-07T15:14:06-05:00",
+          "position": 2,
+          "updated_at": "2025-04-23T11:02:47-04:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/2_GTG_PadThai_1055_Cooked_S25.jpg?v=1745420567",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011817181412,
+          "created_at": "2025-02-07T15:14:07-05:00",
+          "position": 3,
+          "updated_at": "2025-04-23T11:02:47-04:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/3_GTG_PadThai_1055_S25.jpg?v=1745420567",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011817246948,
+          "created_at": "2025-02-07T15:14:07-05:00",
+          "position": 4,
+          "updated_at": "2025-02-07T15:16:52-05:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/5_GTG_PadThai_1055_S25.jpg?v=1738959412",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011817214180,
+          "created_at": "2025-02-07T15:14:07-05:00",
+          "position": 5,
+          "updated_at": "2025-02-07T15:16:52-05:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/4_GTG_PadThai_1055_S25_bbda388e-ced4-495d-8f87-6102feaf5635.jpg?v=1738959412",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 74011817279716,
+          "created_at": "2025-02-07T15:14:07-05:00",
+          "position": 6,
+          "updated_at": "2025-02-07T15:16:52-05:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/6_GTG_PadThai_1055_S25.jpg?v=1738959412",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 40098595373284,
+          "created_at": "2022-10-12T19:09:36-04:00",
+          "position": 7,
+          "updated_at": "2025-02-07T15:16:52-05:00",
+          "product_id": 10198860679,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_PadThai_Single_Back_S22.png?v=1738959412",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 40098595438820,
+          "created_at": "2022-10-12T19:09:36-04:00",
+          "position": 8,
+          "updated_at": "2025-02-07T15:16:52-05:00",
+          "product_id": 10198860679,
+          "variant_ids": [42164571635940],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_PadThai_6-Pack_Single_S22.png?v=1738959412",
+          "width": 1000,
+          "height": 1000
+        }
+      ],
+      "options": [
+        {
+          "name": "Pack Quantity",
+          "position": 1,
+          "values": ["Each", "6-Pack"]
+        }
+      ]
+    },
+    {
+      "id": 8715963171044,
+      "title": "Chicken Pho",
+      "handle": "chicken-pho-cup",
+      "body_html": "<h2>Vietnamese Style Noodle Soup with Chicken Thighs and Lime<br>\n</h2>\n<p>This popular street food is known the world over for its comforting effects. The steaming, savory, and immensely aromatic broth is the foundation of this restorative dish. Notes of cinnamon and star anise, followed by fresh ginger and clove keep it authentic. Braised chicken thighs, cabbage, scallion, and cilantro provide the sustenance needed for your busy day.</p>\n<ul>\n<li>16g of protein per serving!<br>\n</li>\n<li>Braised antibiotic-free dark meat chicken<br>\n</li>\n<li>Aromatic house-made Pho broth</li>\n<li>Ready in minutes!</li>\n<li>Gluten-free</li>\n</ul>\n<p><a title=\"CA Prop 65 Warning\" href=\"https://goodto-go.com/pages/california-proposition-65\" target=\"_blank\"><span class=\"a-list-item\"><span>Important <strong>WARNING</strong> for California Residents</span></span></a></p>\n<h6><span class=\"a-list-item\">Ingredients</span></h6>\n<p><strong>Chicken Pho</strong></p>\n<p><span><strong><span style=\"color: #db2827;\">INGREDIENTS</span>:</strong></span><span> </span>(notice how many you can pronounce!)<br>Dark Meat Chicken (Chicken Raised Without Antibiotics), Rice Noodles (Rice Flour, Water), Dried Cabbage, Powdered Chicken Broth, Grapeseed Oil, Ginger, Dried Scallion, Dried Shallots, Fish Sauce Powder (Anchovies, Salt, Maltodextrin), Crystallized Lime (Citric Acid, Lime Oil, Lime Juice), Sea Salt, Dried Cilantro, Dried Shiitake Mushroom Powder, Dried Jalapeno, Dried Cloves, Cinnamon, Star Anise</p>\n<p><strong>CONTAINS:</strong><span> </span>Fish (Anchovy)</p>\n<h6>FAQS</h6>\n<p><strong>Holy protein! Is that a typo?<br></strong>Nope, it's true—16g of protein per serving. Whether you're just hungry, looking for a satisying meal at the office, or competing for the next World's Strongest Man competition, look no further. This is our highest protein offering. <br></p>\n<p><meta charset=\"UTF-8\"><strong>Is this meal spicy?</strong><strong><br></strong><span>Yes, this meal has a good amount of spice. It is a Pho, after all! Heat is subjective, so if you are the type to find a medium salsa way too hot, then you might steer clear. If you have a tolerance for and enjoy spicy foods, you'll find this dish to be a nice medium-level heat.</span><br></p>\n<p><a href=\"https://goodto-go.com/pages/faq\" title=\"All Frequently Asked Questions page\" target=\"_blank\"><strong>SEE FAQ PAGE</strong></a></p>\n<h6>Cooking Directions</h6>\n<p><strong>X</strong><span> <span style=\"color: rgb(219, 40, 39);\"><strong>OPEN</strong></span> lid half-way </span></p>\n<p><strong>X</strong><span> Add <span style=\"color: rgb(219, 40, 39);\"><strong>1 CUP</strong></span> (240ML) water </span></p>\n<p><strong>X</strong><span> Microwave on high for ABOUT 2<span style=\"color: rgb(219, 40, 39);\"><strong>:30</strong></span>* (1,000W)</span></p>\n<p><strong>X</strong><span> <strong><span style=\"color: rgb(219, 40, 39);\">STIR WELL</span></strong>, cover and <span style=\"color: rgb(219, 40, 39);\"><strong>LET SIT FOR 6 MINS</strong></span></span></p>\n<p><strong>X</strong><span> Remove lid. <span style=\"color: rgb(219, 40, 39);\"><strong>STIR AGAIN</strong></span>. Enjoy! </span><br></p>\n<p><meta charset=\"UTF-8\"><em>*Microwave ovens may vary, adjust cook time accordingly</em></p>\n<p><span style=\"color: #ff0000;\"><strong>NO MICROWAVE? </strong><span style=\"color: rgb(0, 0, 0);\">No Problem! Add<span> <span style=\"color: rgb(219, 40, 39);\"><strong>1 CUP</strong></span> (240ML) of <span style=\"color: rgb(219, 40, 39);\"><strong>BOILING</strong></span> water, cover, let sit for about 10 mins.</span></span></span></p>",
+      "published_at": "2025-08-25T12:17:56-04:00",
+      "created_at": "2025-08-25T11:50:31-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Cup-v2",
+      "tags": [
+        "carnivore",
+        "coconut-free",
+        "cups",
+        "dairy-free",
+        "gluten-free",
+        "pad thai icons",
+        "Pescatarian",
+        "sesame-free",
+        "tree nut-free"
+      ],
+      "variants": [
+        {
+          "id": 46645036613860,
+          "title": "Each",
+          "option1": "Each",
+          "option2": null,
+          "option3": null,
+          "sku": "9063",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 78216810168548,
+            "product_id": 8715963171044,
+            "position": 1,
+            "created_at": "2025-08-25T11:59:11-04:00",
+            "updated_at": "2025-09-22T16:25:36-04:00",
+            "alt": "hover",
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ChickenPho_CUP_9063_Front_S25.png?v=1758572736",
+            "variant_ids": [46645036613860]
+          },
+          "available": true,
+          "price": "4.99",
+          "grams": 72,
+          "compare_at_price": "4.99",
+          "position": 1,
+          "product_id": 8715963171044,
+          "created_at": "2025-08-25T11:50:32-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 46645036646628,
+          "title": "6-Pack",
+          "option1": "6-Pack",
+          "option2": null,
+          "option3": null,
+          "sku": "9063cs",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 78219544035556,
+            "product_id": 8715963171044,
+            "position": 2,
+            "created_at": "2025-08-25T15:09:08-04:00",
+            "updated_at": "2025-08-25T15:09:10-04:00",
+            "alt": null,
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ChickenPho_CUP_6-Pack_9063cs_F25.png?v=1756148950",
+            "variant_ids": [46645036646628]
+          },
+          "available": true,
+          "price": "28.45",
+          "grams": 635,
+          "compare_at_price": "28.45",
+          "position": 2,
+          "product_id": 8715963171044,
+          "created_at": "2025-08-25T11:50:32-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 78216810168548,
+          "created_at": "2025-08-25T11:59:11-04:00",
+          "position": 1,
+          "updated_at": "2025-09-22T16:25:36-04:00",
+          "product_id": 8715963171044,
+          "variant_ids": [46645036613860],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ChickenPho_CUP_9063_Front_S25.png?v=1758572736",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78219544035556,
+          "created_at": "2025-08-25T15:09:08-04:00",
+          "position": 2,
+          "updated_at": "2025-08-25T15:09:10-04:00",
+          "product_id": 8715963171044,
+          "variant_ids": [46645036646628],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ChickenPho_CUP_6-Pack_9063cs_F25.png?v=1756148950",
+          "width": 2000,
+          "height": 2000
+        }
+      ],
+      "options": [
+        {
+          "name": "Pack Quantity",
+          "position": 1,
+          "values": ["Each", "6-Pack"]
+        }
+      ]
+    },
+    {
+      "id": 9184958382308,
+      "title": "The Thru Hiker Food Kit",
+      "handle": "the-thru-hiker-food-kit-1",
+      "body_html": "<h2>10 Breakfasts + 20 Entrées</h2>\n<p><meta charset=\"UTF-8\"><span>With almost 13,000 calories and 468g of protein, you can be confident the Thru Hiker Food Kit will match your pace on the trail. But you don't have to be hiking the AT or PCT—it's perfectly suited for canoe/kayak camping, sailing, road trips, or feeding the entire family during power outages. Go with this kit and save when compared to ordering each meal separately!</span><span></span></p>\n<ul>\n<li>REAL FOOD: Simple ingredients you can pronounce</li>\n<li>10 Breakfasts:<br>\n<ul>\n<li><a href=\"https://goodto-go.com/collections/breakfast/products/ranchero-scramble\" title=\"Good To-Go Ranchero Scramble\" target=\"_blank\">3 Ranchero Scramble</a></li>\n<li><a href=\"https://goodto-go.com/products/oatmeal\" title=\"Good To-Go Oatmeal\" target=\"_blank\">4 Oatmeal</a></li>\n<li><a href=\"https://goodto-go.com/products/granola\" title=\"Good To-Go Granola\" target=\"_blank\">3 Granola</a></li>\n</ul>\n</li>\n<li>20 Entrees:<br>\n<ul>\n<li><a title=\"Good To-Go Mushroom Risotto\" href=\"https://goodto-go.com/products/herbed-mushroom-risotto\" target=\"_blank\">4 Mushroom Risotto</a></li>\n<li><a href=\"https://goodto-go.com/products/thai-curry\" title=\"Good To-Go Thai Curry\" rel=\"noopener\" target=\"_blank\">3 Thai Curry</a></li>\n<li><a href=\"https://goodto-go.com/products/pad-thai\" title=\"Good To-Go Pad Thai\" target=\"_blank\">4 Pad Thai</a></li>\n<li><a href=\"https://goodto-go.com/products/chicken-pho\" title=\"Good To-Go Chicken Pho\" rel=\"noopener\" target=\"_blank\">3 Chicken Pho</a></li>\n<li><a href=\"https://goodto-go.com/collections/entrees/products/whiskey-bbq-pork\" title=\"Good To-Go Whiskey BBQ Pork\" rel=\"noopener\" target=\"_blank\">3 Whiskey BBQ Pork</a></li>\n<li><a href=\"https://goodto-go.com/collections/entrees/products/cowboy-casserole\" title=\"Good To-Go Cowboy Casserole\" rel=\"noopener\" target=\"_blank\">3 Cowboy Casserole</a></li>\n</ul>\n<ul></ul>\n</li>\n<li>\n<span>Handcrafted in Maine</span><span></span>\n</li>\n<li><span>Dehydrated, not freeze-dried</span></li>\n<li>Vegan, Carnivore and Pescatarian options included</li>\n<li>Gluten-free</li>\n</ul>\n<p><meta charset=\"UTF-8\"><span>This product has been lab tested with an extended </span><span class=\"outlook-search-highlight\">shelf</span><span> </span><span class=\"outlook-search-highlight\">life and</span><span> will have a minimum of two years to consume until its expiration date.</span></p>\n<p><a href=\"https://goodto-go.com/pages/california-proposition-65\" title=\"CA Prop 65 Warning\" target=\"_blank\"><span class=\"a-list-item\"><span>Important <strong>WARNING</strong> for California Residents</span></span></a></p>",
+      "published_at": "2026-08-10T10:32:41-04:00",
+      "created_at": "2026-08-10T09:42:14-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Food Kit",
+      "tags": ["gluten-free"],
+      "variants": [
+        {
+          "id": 49620377501924,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "5510THR",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "295.95",
+          "grams": 3992,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9184958382308,
+          "created_at": "2026-08-10T09:42:15-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 82008219517156,
+          "created_at": "2026-05-12T13:07:29-04:00",
+          "position": 1,
+          "updated_at": "2026-05-12T13:07:31-04:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/Thru_Hiker_4_2.jpg?v=1778605651",
+          "width": 4000,
+          "height": 4000
+        },
+        {
+          "id": 73498424443108,
+          "created_at": "2025-01-14T13:09:20-05:00",
+          "position": 2,
+          "updated_at": "2025-03-03T17:19:52-05:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/2_GTG_ThruHikerKit_ThaiCurry_5510THR_S25.jpg?v=1741040392",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 73498424475876,
+          "created_at": "2025-01-14T13:09:20-05:00",
+          "position": 3,
+          "updated_at": "2025-03-03T17:19:52-05:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/3_GTG_ThruHikertKit_Mushroom_Risotto_5510THR_S25.jpg?v=1741040392",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 73498424508644,
+          "created_at": "2025-01-14T13:09:21-05:00",
+          "position": 4,
+          "updated_at": "2025-03-03T17:19:52-05:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/4_GTG_ThruHikerKit_Granola_5510THR_S25.jpg?v=1741040392",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 81836140822756,
+          "created_at": "2026-05-01T18:11:03-04:00",
+          "position": 5,
+          "updated_at": "2026-05-01T18:11:05-04:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/Thru_Hiker_2.jpg?v=1777673465",
+          "width": 4000,
+          "height": 4000
+        },
+        {
+          "id": 81836140789988,
+          "created_at": "2026-05-01T18:11:03-04:00",
+          "position": 6,
+          "updated_at": "2026-05-01T18:11:05-04:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/Thru_Hiker_1.jpg?v=1777673465",
+          "width": 4000,
+          "height": 4000
+        },
+        {
+          "id": 81836140724452,
+          "created_at": "2026-05-01T18:11:02-04:00",
+          "position": 7,
+          "updated_at": "2026-05-01T18:11:05-04:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/Thru_Hiker_3.jpg?v=1777673465",
+          "width": 4000,
+          "height": 4000
+        },
+        {
+          "id": 73498424574180,
+          "created_at": "2025-01-14T13:09:26-05:00",
+          "position": 8,
+          "updated_at": "2025-03-03T17:19:52-05:00",
+          "product_id": 9184958382308,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_ThruHiker_Web_Image_S25_c3ae562f-48c8-4ff2-9502-4b88cd676710.jpg?v=1741040392",
+          "width": 2000,
+          "height": 2000
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 8738420293860,
+      "title": "Variety 8-Pack of Cups",
+      "handle": "variety-6-pack-of-cups",
+      "body_html": "<h2>Can't Decide? Try Them All! Our Variety Pack includes Two of Each Flavor.<br>\n</h2>\n<p>Variety is the spice of life. It's also a great way to try all of Good To-Go's meals in one convenient pack. Plus, variety packs are a savvy way to save vs buying each meal individually. </p>\n<ul>\n<li>8 delicious meals in one pack</li>\n<li>4 unique flavors<br>\n</li>\n<li>Something for everyone<br>\n</li>\n<li>Vegetarian, vegan, carnivore, pescatarian options</li>\n<li>Gluten-free</li>\n</ul>\n<ul></ul>\n<h6>Ingredients</h6>\n<p><strong>CUBAN RICE BOWL</strong></p>\n<p><span style=\"color: #ff0000;\"><strong>INGREDIENTS:</strong></span><span> </span>(notice how many you can pronounce!)<br><span>O</span>nion, Instant Long Grain Rice, Dried Black Beans, Poblano Pepper, Sour Cream Powder (Cultured Cream, Nonfat Milk), Plantain Chips (Plantain, Non Hydrogenated Palm Oil, Salt), Garlic, Dried Tomato Flakes, Grapeseed Oil, Sweet Rice Flour, Cilantro, Red Wine Vinegar, Dried Leeks, Ground Cumin, Sea Salt, Black Pepper, Dried Cilantro, Crystallized Lime (Citric Acid, Lime Oil, Lime Juice) </p>\n<p><strong>CONTAINS:</strong> Milk</p>\n<p><strong><br>MUSHROOM RISOTTO<br></strong></p>\n<p><span style=\"color: #ff0000;\"><strong>INGREDIENTS:</strong></span><span> </span>(notice how many you can pronounce!)<br><span>Arborio Rice, Cremini Mushrooms, Onion, White Wine, Extra Virgin Olive Oil, Nutritional Yeast, Garlic, Sweet Rice Flour, Walnuts, Basil, Kosher Salt, Dried Thyme, Black Pepper </span></p>\n<p><strong>CONTAINS:</strong><span> </span>Walnuts</p>\n<p><strong><br>PAD THAI</strong></p>\n<p><span style=\"color: #ff0000;\"><strong>INGREDIENTS:</strong></span><span> </span>(notice how many you can pronounce!)<br>Rice Noodles (Rice Flour, Water), Carrots, Whole Pasteurized Eggs, Onion, Dry Roasted Peanuts, Bean Sprouts, Brown Sugar, Textured Vegetable Protein (Defatted Soy Flour), Grapeseed Oil, Fish Salt (Anchovy, Sea Salt), Sweet Rice Flour, Garlic, Tamarind Powder, Dried Ground Shrimp (Shrimp, Salt), Dried Scallions, Dried Cilantro, Lime Juice Powder (Maltodextrin, Lime Juice, Lime Oil), Ground Turmeric, Dried Thai Chiles </p>\n<p><strong>CONTAINS:</strong><span> </span>Peanuts, Eggs, Soybean, Anchovy, Shrimp, Sulfites</p>\n<p><span><strong><br>CHICKEN PHO</strong></span></p>\n<p><span><span style=\"color: #ff0000;\"><strong>INGREDIENTS:</strong></span> </span>(notice how many you can pronounce!)<br><span><meta charset=\"utf-8\">Dark Meat Chicken (Chicken Raised Without Antibiotics), Rice Noodles (Rice Flour, Water), Dried Cabbage, Powdered Chicken Broth, Grapeseed Oil, Ginger, Dried Scallion, Dried Shallots, Fish Sauce Powder (Anchovies, Salt, Maltodextrin), Crystallized Lime (Citric Acid, Lime Oil, Lime Juice), Sea Salt, Dried Cilantro, Dried Shiitake Mushroom Powder, Dried Jalapeno, Dried Cloves, Cinnamon, Star Anise </span></p>\n<p><strong>CONTAINS:</strong><span> Fish (Anchovy)</span></p>\n<h6>FAQS</h6>\n<p><strong>How long to prepare?<br></strong>Under 10 minutes for each meal. They may not be 'instant,' but they are dang close!<br></p>\n<p><meta charset=\"UTF-8\"><strong>How do these compare to your camp meals?<br></strong>Essentially, these are the same meals, packaged and prepared for the microwave. The same quality you'd expect from Good To-Go, and made in Maine, USA.</p>\n<h6>Cooking Directions</h6>\n<p><strong>X</strong><span> <span style=\"color: rgb(219, 40, 39);\"><strong>OPEN</strong></span> lid half-way </span></p>\n<p><strong>X</strong><span> Add <span style=\"color: rgb(219, 40, 39);\"><strong>WATER</strong></span> <meta charset=\"utf-8\">(refer to specific meal for water measurement)</span></p>\n<p><strong>X</strong><span> Microwave on high <meta charset=\"utf-8\">(refer to specific meal for time)*</span></p>\n<p><strong>X</strong><span> <strong><span style=\"color: rgb(219, 40, 39);\">STIR WELL</span></strong>, cover and <span style=\"color: rgb(219, 40, 39);\"><strong>LET SIT </strong><span style=\"color: rgb(0, 0, 0);\">for a short while</span></span></span></p>\n<p><strong>X</strong><span> Remove lid. <span style=\"color: rgb(219, 40, 39);\"><strong>STIR AGAIN</strong></span>. Enjoy! </span><br></p>\n<p><meta charset=\"UTF-8\"><em>*Microwave ovens may vary, adjust cook time accordingly</em></p>\n<p><span style=\"color: #ff0000;\"><strong>NO MICROWAVE? </strong><span style=\"color: rgb(0, 0, 0);\">No Problem! Add<span> <span style=\"color: rgb(219, 40, 39);\"><strong>BOILING</strong></span> water, cover, let sit for about 10 mins.</span></span></span><span style=\"color: #ff0000;\"><strong></strong></span></p>",
+      "published_at": "2025-11-25T10:25:32-05:00",
+      "created_at": "2025-09-19T13:34:35-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Cup",
+      "tags": [
+        "coconut-free",
+        "cups",
+        "egg-free",
+        "fish-free",
+        "gluten-free",
+        "no added sugar",
+        "peanut-free",
+        "sesame-free",
+        "shellfish-free",
+        "soy-free",
+        "sulfite-free",
+        "tree nut-free",
+        "Vegetarian"
+      ],
+      "variants": [
+        {
+          "id": 46755857072356,
+          "title": "Each",
+          "option1": "Each",
+          "option2": null,
+          "option3": null,
+          "sku": "9502cp",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 78540038308068,
+            "product_id": 8738420293860,
+            "position": 1,
+            "created_at": "2025-09-22T16:17:05-04:00",
+            "updated_at": "2025-09-22T16:17:07-04:00",
+            "alt": "hover",
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/CUPS_Variety_8-Pack_9502cp_F25.png?v=1758572227",
+            "variant_ids": [46755857072356]
+          },
+          "available": true,
+          "price": "37.95",
+          "grams": 635,
+          "compare_at_price": "28.45",
+          "position": 1,
+          "product_id": 8738420293860,
+          "created_at": "2025-09-19T13:34:36-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 78540038308068,
+          "created_at": "2025-09-22T16:17:05-04:00",
+          "position": 1,
+          "updated_at": "2025-09-22T16:17:07-04:00",
+          "product_id": 8738420293860,
+          "variant_ids": [46755857072356],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/CUPS_Variety_8-Pack_9502cp_F25.png?v=1758572227",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78216810168548,
+          "created_at": "2025-08-25T11:59:11-04:00",
+          "position": 2,
+          "updated_at": "2025-09-22T16:25:36-04:00",
+          "product_id": 8738420293860,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/ChickenPho_CUP_9063_Front_S25.png?v=1758572736",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78215576191204,
+          "created_at": "2025-08-25T10:56:30-04:00",
+          "position": 3,
+          "updated_at": "2025-09-22T16:25:36-04:00",
+          "product_id": 8738420293860,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/Risotto_CUP_9052_Front_S25_fdbef83d-8047-44ac-b8fd-99d5442886cc.png?v=1758572736",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78215376306404,
+          "created_at": "2025-08-25T10:35:01-04:00",
+          "position": 4,
+          "updated_at": "2025-09-22T16:25:36-04:00",
+          "product_id": 8738420293860,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/CubanRiceBowl_CUP_9062_Front_S25_v2_c23c6398-75ad-4b44-b6a3-9fd1c8e55a33.png?v=1758572736",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 78153394815204,
+          "created_at": "2025-08-21T16:15:55-04:00",
+          "position": 5,
+          "updated_at": "2025-09-22T16:25:36-04:00",
+          "product_id": 8738420293860,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/PadThai_CUP_9055_Front_S25_v2.png?v=1758572736",
+          "width": 2000,
+          "height": 2000
+        }
+      ],
+      "options": [
+        {
+          "name": "Pack Quantity",
+          "position": 1,
+          "values": ["Each"]
+        }
+      ]
+    },
+    {
+      "id": 11156867207,
+      "title": "e-Gift Cards",
+      "handle": "gift-card",
+      "body_html": "<p>Can’t remember if your hiking buddy is vegan or vegetarian? Not entirely sure if your loved one would prefer a spicy meal on their next camping trip? Let them choose! Select an e-Gift Card and skip the guesswork.<br></p>\n<p>Good To-Go e-Gift Cards are delivered via email upon purchase. No physical card will be sent. They do not expire and may only be redeemed at goodto-go.com. Promotional and discount offers are not applicable to the purchase of e-Gift Cards.</p>\n<h6>FAQS</h6>\n<p><strong>Is this a physical Gift Card?<br></strong>No, this is an electronic version of a gift card. It will be sent to you via the email you provide at checkout.<br></p>\n<p><strong>How will I receive my e-Gift Card?<br></strong>Upon purchasing your e-Gift Card, you will first receive an order confirmation. Please note: This the order confirmation does not contain the <span data-mce-fragment=\"1\">e-Gift Card.</span> Please allow up to 3 business days for our team to process your order. At the time your order and payment are processed, you will receive an email containing your <span data-mce-fragment=\"1\">e-Gift Card.</span></p>\n<p><strong>How do I give an e-Gift Card to someone as a gift?<br></strong><span>This is entirely up to you, however many will print the email and include it in a physical card, and/or forward the email you receive, containing the e-Gift Card, to that lucky someone's email address. </span><br></p>\n<p> </p>",
+      "published_at": "2022-07-26T12:33:55-04:00",
+      "created_at": "2017-08-18T11:13:51-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good to Go D2c",
+      "product_type": "Gift Cards",
+      "tags": [],
+      "variants": [
+        {
+          "id": 51431002055,
+          "title": "$25",
+          "option1": "$25",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098844803300,
+            "product_id": 11156867207,
+            "position": 1,
+            "created_at": "2022-10-12T19:29:47-04:00",
+            "updated_at": "2022-10-12T19:29:47-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 999,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_GiftCard_25.png?v=1665617387",
+            "variant_ids": [51431002055]
+          },
+          "available": true,
+          "price": "25.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 11156867207,
+          "created_at": "2017-08-18T11:13:51-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 51431002119,
+          "title": "$50",
+          "option1": "$50",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098844836068,
+            "product_id": 11156867207,
+            "position": 2,
+            "created_at": "2022-10-12T19:29:47-04:00",
+            "updated_at": "2022-10-12T19:29:47-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 999,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_50.png?v=1665617387",
+            "variant_ids": [51431002119]
+          },
+          "available": true,
+          "price": "50.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 11156867207,
+          "created_at": "2017-08-18T11:13:51-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 31380798603309,
+          "title": "$75",
+          "option1": "$75",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098844868836,
+            "product_id": 11156867207,
+            "position": 3,
+            "created_at": "2022-10-12T19:29:47-04:00",
+            "updated_at": "2022-10-12T19:29:47-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 999,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_75.png?v=1665617387",
+            "variant_ids": [31380798603309]
+          },
+          "available": true,
+          "price": "75.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 11156867207,
+          "created_at": "2019-12-05T15:48:46-05:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 51431002183,
+          "title": "$100",
+          "option1": "$100",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 40098844901604,
+            "product_id": 11156867207,
+            "position": 4,
+            "created_at": "2022-10-12T19:29:47-04:00",
+            "updated_at": "2022-10-12T19:29:47-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 999,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_100.png?v=1665617387",
+            "variant_ids": [51431002183]
+          },
+          "available": true,
+          "price": "100.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 11156867207,
+          "created_at": "2017-08-18T11:13:51-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 46263289348324,
+          "title": "$250",
+          "option1": "$250",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 75546901643492,
+            "product_id": 11156867207,
+            "position": 5,
+            "created_at": "2025-04-25T13:50:02-04:00",
+            "updated_at": "2025-04-25T13:50:13-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_250.png?v=1745603413",
+            "variant_ids": [46263289348324]
+          },
+          "available": true,
+          "price": "250.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 5,
+          "product_id": 11156867207,
+          "created_at": "2025-04-24T14:16:57-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 46263289381092,
+          "title": "$500",
+          "option1": "$500",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 75546901545188,
+            "product_id": 11156867207,
+            "position": 6,
+            "created_at": "2025-04-25T13:49:50-04:00",
+            "updated_at": "2025-04-25T13:50:13-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_500.png?v=1745603413",
+            "variant_ids": [46263289381092]
+          },
+          "available": true,
+          "price": "500.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 6,
+          "product_id": 11156867207,
+          "created_at": "2025-04-24T14:16:57-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        },
+        {
+          "id": 46263289413860,
+          "title": "$1000",
+          "option1": "$1000",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": {
+            "id": 75546901577956,
+            "product_id": 11156867207,
+            "position": 7,
+            "created_at": "2025-04-25T13:49:50-04:00",
+            "updated_at": "2025-04-25T13:50:13-04:00",
+            "alt": null,
+            "width": 1000,
+            "height": 1000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_1000.png?v=1745603413",
+            "variant_ids": [46263289413860]
+          },
+          "available": true,
+          "price": "1000.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 7,
+          "product_id": 11156867207,
+          "created_at": "2025-04-24T14:16:57-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 40098844803300,
+          "created_at": "2022-10-12T19:29:47-04:00",
+          "position": 1,
+          "updated_at": "2022-10-12T19:29:47-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [51431002055],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_GiftCard_25.png?v=1665617387",
+          "width": 1000,
+          "height": 999
+        },
+        {
+          "id": 40098844836068,
+          "created_at": "2022-10-12T19:29:47-04:00",
+          "position": 2,
+          "updated_at": "2022-10-12T19:29:47-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [51431002119],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_50.png?v=1665617387",
+          "width": 1000,
+          "height": 999
+        },
+        {
+          "id": 40098844868836,
+          "created_at": "2022-10-12T19:29:47-04:00",
+          "position": 3,
+          "updated_at": "2022-10-12T19:29:47-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [31380798603309],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_75.png?v=1665617387",
+          "width": 1000,
+          "height": 999
+        },
+        {
+          "id": 40098844901604,
+          "created_at": "2022-10-12T19:29:47-04:00",
+          "position": 4,
+          "updated_at": "2022-10-12T19:29:47-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [51431002183],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/products/GTG_eGiftCard_100.png?v=1665617387",
+          "width": 1000,
+          "height": 999
+        },
+        {
+          "id": 75546901643492,
+          "created_at": "2025-04-25T13:50:02-04:00",
+          "position": 5,
+          "updated_at": "2025-04-25T13:50:13-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [46263289348324],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_250.png?v=1745603413",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 75546901545188,
+          "created_at": "2025-04-25T13:49:50-04:00",
+          "position": 6,
+          "updated_at": "2025-04-25T13:50:13-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [46263289381092],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_500.png?v=1745603413",
+          "width": 1000,
+          "height": 1000
+        },
+        {
+          "id": 75546901577956,
+          "created_at": "2025-04-25T13:49:50-04:00",
+          "position": 7,
+          "updated_at": "2025-04-25T13:50:13-04:00",
+          "product_id": 11156867207,
+          "variant_ids": [46263289413860],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_eGiftCard_1000.png?v=1745603413",
+          "width": 1000,
+          "height": 1000
+        }
+      ],
+      "options": [
+        {
+          "name": "Denominations",
+          "position": 1,
+          "values": ["$25", "$50", "$75", "$100", "$250", "$500", "$1000"]
+        }
+      ]
+    },
+    {
+      "id": 8017682202852,
+      "title": "Pasta Marinara",
+      "handle": "pasta-marinara-cup",
+      "body_html": "<h2>Italian Tomato Sauce With Brown Rice Pasta</h2>\n<p><span>There is nothing more comforting than a steaming bowl of slow simmered marinara sauce over pasta. </span>Our classic Italian tomato sauce is served with the finest brown rice pasta we could find.</p>\n<ul>\n<li>Brown rice pasta that even wheat pasta enthusiasts love</li>\n<li>Classic Italian herbs like basil, oregano and thyme flavor the marinara sauce</li>\n<li>True comfort food</li>\n<li>Gluten-free</li>\n<li>Vegan</li>\n</ul>\n<ul></ul>\n<ul></ul>\n<p><a href=\"https://goodto-go.com/pages/california-proposition-65\" title=\"CA Prop 65 Warning\" target=\"_blank\"><span class=\"a-list-item\"><span>Important <strong>WARNING</strong> for California Residents</span></span></a></p>\n<h6>Ingredients</h6>\n<p><span><strong>Pasta Marinara</strong></span></p>\n<p><span style=\"color: #ff0000;\" data-mce-style=\"color: #ff0000;\"><strong>INGREDIENTS:</strong></span><span> </span>(notice how many you can pronounce!)<br>Onion, Brown Rice Pasta (Organic Brown Rice, Organic White Rice), Tomato Powder (Tomato), Nutritional Yeast, Garlic, Extra Virgin Olive Oil, Coconut Sugar, Sea Salt, Dried Thyme, Dried Oregano, Dried Basil, Black Pepper, Red Pepper Flakes</p>\n<p data-mce-fragment=\"1\"><strong data-mce-fragment=\"1\">CONTAINS:</strong><span data-mce-fragment=\"1\"> Coconut</span></p>\n<h6>FAQS</h6>\n<p><strong>Is your gluten-free pasta any good?<br></strong>We get it. Most gluten-free pastas leave a lot to be desired. This is exactly why we were very selective when choosing a pasta for this dish. We chose to use a brown-rice pasta that has a similar look and feel to traditional wheat-based pastas. But more importantly, it's delicious. Try for yourself and see why so many have fallen in love with this gluten-free and vegan entrée.</p>\n<p><strong>Why is my sauce watery?<br></strong>Give it a bit more time, and stir well. Dehydrated marinara sauce can take a little extra time to come back to its full glory. If you notice yours seems a bit watery and not as thick as you'd expect, following these simple steps should do the trick</p>\n<h6>Cooking Directions</h6>\n<p><span style=\"color: #ff0000;\" data-mce-style=\"color: #ff0000;\"><strong>MICROWAVE METHOD</strong></span></p>\n<p><strong>X</strong><span> Remove lid from container </span></p>\n<p><strong>X</strong><span> Add a little more than 2/3 cup (165ML) water to this meal </span></p>\n<p><strong>X</strong><span> Microwave on high for 1 min 45 secs* </span></p>\n<p><strong>X</strong><span> Remove from microwave, stir well, cover and let sit for 8 mins</span></p>\n<p><strong>X</strong><span> Uncover. Stir again. Eat. Smile. </span><br></p>\n<p><em>﻿*Microwave ovens may vary, adjust cook time accordingly</em></p>\n<p><span style=\"color: #ff0000;\" data-mce-style=\"color: #ff0000;\"><strong>BOILING WATER METHOD</strong></span></p>\n<p><strong>X</strong><span> Remove lid from container </span></p>\n<p><strong>X</strong><span> <meta charset=\"UTF-8\">Add a little more than 2/3 cup (165ML) boiling water to this meal and stir well </span></p>\n<p><strong>X</strong><span> Cover and let sit for 14 mins</span></p>\n<p><strong>X</strong><span> Uncover. Stir again. Eat. Smile.</span> </p>",
+      "published_at": "2023-08-07T16:15:01-04:00",
+      "created_at": "2023-08-07T16:06:06-04:00",
+      "updated_at": "2026-08-10T14:03:01-04:00",
+      "vendor": "Good To-Go",
+      "product_type": "Cup",
+      "tags": [
+        "cups",
+        "egg-free",
+        "fish-free",
+        "gluten-free",
+        "no added sugar",
+        "pasta marinara icons",
+        "peanut-free",
+        "sesame-free",
+        "shellfish-free",
+        "soy-free",
+        "sulfite-free",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "variants": [
+        {
+          "id": 44085070659812,
+          "title": "8-Pack",
+          "option1": "8-Pack",
+          "option2": null,
+          "option3": null,
+          "sku": "9004cs",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": {
+            "id": 72099541123300,
+            "product_id": 8017682202852,
+            "position": 1,
+            "created_at": "2024-11-07T13:06:09-05:00",
+            "updated_at": "2025-09-19T11:13:13-04:00",
+            "alt": null,
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/PastaMarinara_CUP_8_Pack_9004cs_F23.png?v=1758294793",
+            "variant_ids": [44085070659812]
+          },
+          "available": false,
+          "price": "24.00",
+          "grams": 640,
+          "compare_at_price": "37.75",
+          "position": 1,
+          "product_id": 8017682202852,
+          "created_at": "2023-08-07T16:06:06-04:00",
+          "updated_at": "2026-08-10T14:03:01-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 72099541123300,
+          "created_at": "2024-11-07T13:06:09-05:00",
+          "position": 1,
+          "updated_at": "2025-09-19T11:13:13-04:00",
+          "product_id": 8017682202852,
+          "variant_ids": [44085070659812],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/PastaMarinara_CUP_8_Pack_9004cs_F23.png?v=1758294793",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 58899924451556,
+          "created_at": "2023-09-18T16:23:58-04:00",
+          "position": 2,
+          "updated_at": "2025-09-19T11:13:13-04:00",
+          "product_id": 8017682202852,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_PastaMarinaraCup_InHand_Studio_DB_Square_LowRes.jpg?v=1758294793",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 58899925696740,
+          "created_at": "2023-09-18T16:24:22-04:00",
+          "position": 3,
+          "updated_at": "2025-09-19T11:13:13-04:00",
+          "product_id": 8017682202852,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_PastaMarinaraCup_wLid_DuoColor_Studio_DB_F23_Square_LowRes.jpg?v=1758294793",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 57659535229156,
+          "created_at": "2023-08-28T14:32:07-04:00",
+          "position": 4,
+          "updated_at": "2025-09-19T11:13:13-04:00",
+          "product_id": 8017682202852,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/PastaMarinara_TopDown_Cup.jpg?v=1758294793",
+          "width": 2000,
+          "height": 2000
+        },
+        {
+          "id": 56466451136740,
+          "created_at": "2023-08-07T16:08:29-04:00",
+          "position": 5,
+          "updated_at": "2023-08-07T16:08:34-04:00",
+          "product_id": 8017682202852,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/1658/5791/files/GTG_PastaMarinara_CUP_Back_Vector_LowRes.png?v=1691438914",
+          "width": 2000,
+          "height": 2000
+        }
+      ],
+      "options": [
+        {
+          "name": "Pack Quantity",
+          "position": 1,
+          "values": ["8-Pack"]
+        }
+      ]
+    }
+  ]
+}

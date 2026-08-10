@@ -13,20 +13,25 @@ export interface ShopifyProduct {
   variants: { available: boolean; requires_shipping: boolean }[];
 }
 
-interface ShopifyProductsResponse {
-  products: ShopifyProduct[];
+interface ShopifyProductsResponse<T> {
+  products: T[];
 }
 
 const DEFAULT_PAGE_SIZE = 250;
 
 // Every Shopify storefront's products.json paginates via limit/page; loop
-// until a page returns fewer than the page size.
-export async function fetchShopifyProducts(
+// until a page returns fewer than the page size. Generic over T (defaulting
+// to the common ShopifyProduct shape) so a vendor that needs fields this
+// shared interface doesn't model -- e.g. Good To-Go reading variant.grams --
+// can type its own extended product shape without redeclaring this loop.
+export async function fetchShopifyProducts<
+  T extends ShopifyProduct = ShopifyProduct,
+>(
   baseUrl: string,
   fetchImpl: typeof fetch,
   pageSize: number = DEFAULT_PAGE_SIZE,
-): Promise<ShopifyProduct[]> {
-  const products: ShopifyProduct[] = [];
+): Promise<T[]> {
+  const products: T[] = [];
 
   for (let page = 1; ; page++) {
     const res = await fetchImpl(
@@ -38,7 +43,7 @@ export async function fetchShopifyProducts(
       );
     }
 
-    const body = (await res.json()) as ShopifyProductsResponse;
+    const body = (await res.json()) as ShopifyProductsResponse<T>;
     products.push(...body.products);
 
     if (body.products.length < pageSize) {
