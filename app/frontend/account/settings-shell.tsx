@@ -91,7 +91,7 @@ export default function SettingsShell({
           />
         </Box>
         <Divider orientation={isWideLayout ? "vertical" : "horizontal"} />
-        <Box flex={1} p="xl" style={{ minWidth: 0 }}>
+        <Box flex={1} p={{ base: "md", sm: "xl" }} style={{ minWidth: 0 }}>
           {tabContent[activeTab]}
         </Box>
       </Flex>
