@@ -41,7 +41,7 @@ export interface SearchPlacesOptions {
 // preserve the ranked order on the way out.
 export async function searchPlaces(
   searchQuery: string,
-  { state, limit = 20, includeLowValue = false }: SearchPlacesOptions = {},
+  { state, limit = 6, includeLowValue = false }: SearchPlacesOptions = {},
 ) {
   const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
@@ -102,7 +102,7 @@ export interface SearchMealPlanItemsOptions {
 export async function searchMealPlanItems(
   searchQuery: string,
   userId: string,
-  { excludeTripId, meal, limit = 20 }: SearchMealPlanItemsOptions = {},
+  { excludeTripId, meal, limit = 6 }: SearchMealPlanItemsOptions = {},
 ): Promise<MealPlanItemSearchResult[]> {
   const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
@@ -258,6 +258,7 @@ SELECT "PublicMealItem".id
 export async function searchCategories(
   searchQuery: string,
   forUserId: string | null = null,
+  limit = 6,
 ) {
   const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
@@ -266,7 +267,9 @@ export async function searchCategories(
 SELECT "GearCategory".id
   FROM "GearCategory"
   WHERE "GearCategory".data_fts @@ to_tsquery('english', ${formattedQuery})
-    AND (public=TRUE OR "userId"=${forUserId});
+    AND (public=TRUE OR "userId"=${forUserId})
+  ORDER BY ts_rank("GearCategory".data_fts, to_tsquery('english', ${formattedQuery})) DESC
+  LIMIT ${limit};
 `;
 
   return db.gearCategory.findMany({

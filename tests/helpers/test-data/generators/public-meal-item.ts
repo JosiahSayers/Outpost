@@ -10,7 +10,7 @@ export default function makePublicMealItem(
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     name: faker.commerce.productName(),
-    brand: faker.company.name(),
+    brand: faker.company.name().slice(0, 25),
     calories: faker.number.int({ min: 100, max: 1000 }),
     waterMl: null,
     dryWeightGrams: null,
