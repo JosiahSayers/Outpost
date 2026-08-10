@@ -1,10 +1,15 @@
 import { db } from "$/utils/db";
-import { searchCategories, searchMealPlanItems } from "$/utils/search-helpers";
+import {
+  searchCategories,
+  searchMealPlanItems,
+  searchPublicMealItems,
+} from "$/utils/search-helpers";
 import { faker } from "@faker-js/faker";
 import { beforeEach, describe, expect, it } from "bun:test";
 import type {
   GearCategory,
   MealPlanDay,
+  PublicMealItem,
   Trip,
   User,
 } from "../../../generated/prisma/client";
@@ -357,6 +362,159 @@ describe("searchMealPlanItems", () => {
       );
       expect(matches).toHaveLength(1);
       expect(matches[0]!.source).toBe("public");
+    });
+  });
+});
+
+describe("searchPublicMealItems", () => {
+  it("returns a row for a matching query", async () => {
+    const expectedMatch = await db.publicMealItem.findFirst({
+      where: { name: "White Chicken Chili" },
+      include: { image: true },
+    });
+    const { items } = await searchPublicMealItems("white chicken chili");
+    expect(items).toContainEqual(expectedMatch!);
+  });
+
+  it("returns a row for a partial match", async () => {
+    const expectedMatch = await db.publicMealItem.findFirst({
+      where: { name: "Beef Stroganoff" },
+      include: { image: true },
+    });
+    const { items } = await searchPublicMealItems("strogan");
+    expect(items).toContainEqual(expectedMatch!);
+  });
+
+  it("does not error on tsquery syntax characters", async () => {
+    const { items } = await searchPublicMealItems("chicken & chili");
+    expect(items.some((item) => item.name === "White Chicken Chili")).toBe(
+      true,
+    );
+  });
+
+  it("returns an empty array for a query that is only punctuation", async () => {
+    const { items, hasMore } = await searchPublicMealItems("&");
+    expect(items).toEqual([]);
+    expect(hasMore).toBe(false);
+  });
+
+  it("lists all items ordered by name when no query is given", async () => {
+    const { items } = await searchPublicMealItems(undefined);
+    expect(items.map((item) => item.name)).toEqual(
+      [...items.map((item) => item.name)].sort(),
+    );
+    expect(items.length).toBeGreaterThan(0);
+  });
+
+  describe("vendor filter", () => {
+    let otherVendorItem: PublicMealItem;
+
+    beforeEach(async () => {
+      otherVendorItem = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          name: "Other Vendor Chili",
+          sourceVendor: "other_vendor",
+          sourceProductId: "9000000000099",
+        }),
+      });
+    });
+
+    it("filters raw-SQL results (with a query) to the given vendor", async () => {
+      const { items } = await searchPublicMealItems("chili", {
+        vendor: ["other_vendor"],
+      });
+      expect(items.map((item) => item.id)).toEqual([otherVendorItem.id]);
+    });
+
+    it("filters browse results (no query) to the given vendor", async () => {
+      const { items } = await searchPublicMealItems(undefined, {
+        vendor: ["other_vendor"],
+      });
+      expect(items.map((item) => item.id)).toEqual([otherVendorItem.id]);
+    });
+  });
+
+  describe("brand filter", () => {
+    let otherBrandItem: PublicMealItem;
+
+    beforeEach(async () => {
+      otherBrandItem = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          name: "Other Brand Chili",
+          brand: "Some Other Brand",
+          sourceProductId: "9000000000098",
+        }),
+      });
+    });
+
+    it("filters raw-SQL results (with a query) to the given brand", async () => {
+      const { items } = await searchPublicMealItems("chili", {
+        brand: ["Some Other Brand"],
+      });
+      expect(items.map((item) => item.id)).toEqual([otherBrandItem.id]);
+    });
+
+    it("filters browse results (no query) to the given brand", async () => {
+      const { items } = await searchPublicMealItems(undefined, {
+        brand: ["Some Other Brand"],
+      });
+      expect(items.map((item) => item.id)).toEqual([otherBrandItem.id]);
+    });
+  });
+
+  describe("pagination", () => {
+    it("respects take", async () => {
+      const { items } = await searchPublicMealItems(undefined, { take: 1 });
+      expect(items).toHaveLength(1);
+    });
+
+    it("respects skip", async () => {
+      const { items: all } = await searchPublicMealItems(undefined, {
+        take: 50,
+      });
+      const { items: skipped } = await searchPublicMealItems(undefined, {
+        take: 50,
+        skip: 1,
+      });
+      expect(skipped.map((item) => item.id)).toEqual(
+        all.slice(1).map((item) => item.id),
+      );
+    });
+
+    describe("hasMore", () => {
+      it("is true when more rows exist past the current page (no query)", async () => {
+        const total = await db.publicMealItem.count();
+        const { hasMore } = await searchPublicMealItems(undefined, {
+          take: total - 1,
+        });
+        expect(hasMore).toBe(true);
+      });
+
+      it("is false on the last page (no query)", async () => {
+        const total = await db.publicMealItem.count();
+        const { hasMore } = await searchPublicMealItems(undefined, {
+          take: total,
+        });
+        expect(hasMore).toBe(false);
+      });
+
+      it("is true when more matching rows exist past the current page (with a query)", async () => {
+        await db.publicMealItem.create({
+          data: make("PublicMealItem", { name: "Second Chicken Dish" }),
+        });
+
+        const { hasMore } = await searchPublicMealItems("chicken", {
+          take: 1,
+        });
+        expect(hasMore).toBe(true);
+      });
+
+      it("is false when the query's last page is reached", async () => {
+        const { hasMore } = await searchPublicMealItems("white chicken chili", {
+          take: 15,
+        });
+        expect(hasMore).toBe(false);
+      });
     });
   });
 });

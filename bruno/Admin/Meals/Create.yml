@@ -1,0 +1,29 @@
+info:
+  name: Create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/meals"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Beef Stroganoff",
+        "brand": "Peak Refuel",
+        "calories": 640,
+        "waterMl": 296,
+        "dryWeightGrams": 156,
+        "sourceVendor": "peak_refuel",
+        "sourceProductId": "9000000000002",
+        "sourceUrl": "https://peakrefuel.com/products/beef-stroganoff"
+      //   "sourceImageUrl": "https://example.com/beef-stroganoff.png"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

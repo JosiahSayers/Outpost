@@ -1,6 +1,9 @@
 import type { MealPlanItemSearchResult } from "$/transformers/meal-plan/item-search-result";
 import { db } from "$/utils/db";
+import type { Image, PublicMealItem } from "../../generated/prisma/client";
 import type { MealName } from "../../generated/prisma/enums";
+
+type PublicMealItemWithImage = PublicMealItem & { image: Image | null };
 
 // Turn free-text input into a prefix-match tsquery: each whitespace-delimited
 // token becomes a `token:*` prefix term, all required (`&`). Mirrors
@@ -174,6 +177,82 @@ LIMIT ${limit};
       return item ? { source: "public", item } : undefined;
     })
     .filter((result) => result !== undefined);
+}
+
+export interface SearchPublicMealItemsOptions {
+  vendor?: string[];
+  brand?: string[];
+  take?: number;
+  skip?: number;
+}
+
+// Powers the admin meal catalog search/browse. searchQuery is optional --
+// with none, this is just a filtered, paginated listing of PublicMealItem
+// ordered by name. With one, it's the same rank-ids-then-hydrate FTS pattern
+// as searchPlaces/searchCategories, with the vendor/brand filters and
+// pagination applied inside the ranking query so LIMIT/OFFSET land on the
+// post-filter result set rather than truncating before filtering.
+// Pages by take+1: fetching one extra row (dropped before hydration) tells
+// the caller whether a next page exists without a second COUNT(*) query --
+// admin browsing just needs next/prev, not an exact total.
+export async function searchPublicMealItems(
+  searchQuery: string | undefined,
+  {
+    vendor = [],
+    brand = [],
+    take = 15,
+    skip = 0,
+  }: SearchPublicMealItemsOptions = {},
+): Promise<{ items: PublicMealItemWithImage[]; hasMore: boolean }> {
+  const vendorFilter = vendor.length ? vendor : null;
+  const brandFilter = brand.length ? brand : null;
+
+  const formattedQuery = searchQuery ? toPrefixTsQuery(searchQuery) : "";
+  if (searchQuery && !formattedQuery) return { items: [], hasMore: false };
+
+  let rankedIds: string[];
+
+  if (formattedQuery) {
+    const results = await db.$queryRaw<Array<{ id: string }>>`
+SELECT "PublicMealItem".id
+  FROM "PublicMealItem"
+  WHERE "PublicMealItem".data_fts @@ to_tsquery('english', ${formattedQuery})
+    AND (${vendorFilter}::text[] IS NULL OR "PublicMealItem"."sourceVendor" = ANY(${vendorFilter}))
+    AND (${brandFilter}::text[] IS NULL OR "PublicMealItem".brand = ANY(${brandFilter}))
+  ORDER BY ts_rank("PublicMealItem".data_fts, to_tsquery('english', ${formattedQuery})) DESC,
+           "PublicMealItem".name ASC
+  LIMIT ${take + 1} OFFSET ${skip};
+`;
+    rankedIds = results.map((result) => result.id);
+  } else {
+    const rows = await db.publicMealItem.findMany({
+      where: {
+        sourceVendor: vendorFilter ? { in: vendorFilter } : undefined,
+        brand: brandFilter ? { in: brandFilter } : undefined,
+      },
+      select: { id: true },
+      orderBy: { name: "asc" },
+      take: take + 1,
+      skip,
+    });
+    rankedIds = rows.map((row) => row.id);
+  }
+
+  const hasMore = rankedIds.length > take;
+  rankedIds = rankedIds.slice(0, take);
+
+  const items = await db.publicMealItem.findMany({
+    where: { id: { in: rankedIds } },
+    include: { image: true },
+  });
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+
+  return {
+    items: rankedIds
+      .map((id) => itemsById.get(id))
+      .filter((item) => item !== undefined),
+    hasMore,
+  };
 }
 
 export async function searchCategories(
