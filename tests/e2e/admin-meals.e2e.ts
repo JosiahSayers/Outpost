@@ -145,8 +145,9 @@ test.describe("Selecting a meal", () => {
   }) => {
     const vendor = uniqueVendor("reload_vendor");
     const name = uniqueName("Reload Selection Meal");
+    const sourceUrl = `https://example.com/products/${crypto.randomUUID().slice(0, 8)}`;
     await db.publicMealItem.create({
-      data: make("PublicMealItem", { name, sourceVendor: vendor }),
+      data: make("PublicMealItem", { name, sourceVendor: vendor, sourceUrl }),
     });
     await signInAs(await makeUser({ admin: true }));
     await page.goto(`/console/meals?vendor=${encodeURIComponent(vendor)}`);
@@ -154,6 +155,10 @@ test.describe("Selecting a meal", () => {
     await page.getByText(name).click();
 
     await expect(page.getByLabel("Name")).toHaveValue(name);
+    await expect(page.getByRole("link", { name: sourceUrl })).toHaveAttribute(
+      "href",
+      sourceUrl,
+    );
     expect(new URL(page.url()).searchParams.get("meal")).toBeTruthy();
 
     await page.reload();
@@ -179,6 +184,11 @@ test.describe("Creating a meal", () => {
     await form.getByLabel("Source vendor").fill(sourceVendor);
     await form.getByLabel("Source product id").fill(sourceProductId);
     await form.getByLabel("Source URL").fill(sourceUrl);
+
+    const sourceUrlLink = form.getByRole("link", { name: sourceUrl });
+    await expect(sourceUrlLink).toBeVisible();
+    await expect(sourceUrlLink).toHaveAttribute("href", sourceUrl);
+
     await form.getByRole("button", { name: "Add meal" }).click();
 
     await expect(

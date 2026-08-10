@@ -1,6 +1,7 @@
 import { defineJobGroup } from "$/jobs/define-job-group";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { runVendorImport } from "$/jobs/workers/public-meal-catalog/run-vendor-import";
+import { backpackersPantryScraper } from "$/jobs/workers/public-meal-catalog/vendors/backpackers-pantry";
 import { mountainHouseScraper } from "$/jobs/workers/public-meal-catalog/vendors/mountain-house";
 import { packitGourmetScraper } from "$/jobs/workers/public-meal-catalog/vendors/packit-gourmet";
 import { peakRefuelScraper } from "$/jobs/workers/public-meal-catalog/vendors/peak-refuel";
@@ -17,19 +18,28 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       name: peakRefuelScraper.vendorId,
       processor: (job) => runVendorImport(job, peakRefuelScraper),
       defaultJobOptions,
-      schedule: { id: "import-peak-refuel-nightly", pattern: "1 0 * * *" },
+      schedule: { id: "import-peak-refuel", pattern: "1 0 * * 0" },
     },
     {
       name: packitGourmetScraper.vendorId,
       processor: (job) => runVendorImport(job, packitGourmetScraper),
       defaultJobOptions,
-      schedule: { id: "import-packit-gourmet-nightly", pattern: "11 0 * * *" },
+      schedule: { id: "import-packit-gourmet", pattern: "11 0 * * 1" },
     },
     {
       name: mountainHouseScraper.vendorId,
       processor: (job) => runVendorImport(job, mountainHouseScraper),
       defaultJobOptions,
-      schedule: { id: "import-mountain-house-nightly", pattern: "21 0 * * *" },
+      schedule: { id: "import-mountain-house", pattern: "21 0 * * 2" },
+    },
+    {
+      name: backpackersPantryScraper.vendorId,
+      processor: (job) => runVendorImport(job, backpackersPantryScraper),
+      defaultJobOptions,
+      schedule: {
+        id: "import-backpackers-pantry",
+        pattern: "31 0 * * 3",
+      },
     },
     // future vendors added here as their own entry
   ],
