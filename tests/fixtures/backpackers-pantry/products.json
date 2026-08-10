@@ -1,0 +1,151 @@
+{
+  "products": [
+    {
+      "id": 4906838982788,
+      "handle": "pad-thai",
+      "title": "Pad Thai",
+      "vendor": "backpackerspantry-dev",
+      "product_type": "Food",
+      "tags": [
+        "2 Servings",
+        "Collection_Backpacking",
+        "Collection_Entrees",
+        "Dairy Free",
+        "Entree",
+        "Gluten Free",
+        "Shelf Life: 3 Years",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "body_html": "<div>\n<p><span style=\"font-weight: 400;\">This delicious blend of rice noodles and veggies in a flavor-packed Thai peanut sauce allows you to enjoy authentic Thai street food no matter where your adventures take you.</span></p>\n<ul>\n<li style=\"font-weight: 400;\">Calories: 760</li>\n<li style=\"font-weight: 400;\">Protein: 24g</li>\n<li style=\"font-weight: 400;\">Diet: Gluten-Free, Dairy-Free, Vegan, Vegetarian, Soy-Free</li>\n<li style=\"font-weight: 400;\">Allergens: Peanuts</li>\n<li style=\"font-weight: 400;\">Weight: 6.2 oz</li>\n</ul>\n</div>\n<ul></ul>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/Pad.Thai.Main.jpg?v=1778192188"
+        },
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/Pad.Thai.Back.jpg?v=1778192188"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 8223402131693,
+      "handle": "freeze-dried-cinnamon-apples",
+      "title": "Freeze-Dried Cinnamon Apples",
+      "vendor": "Backpacker's Pantry",
+      "product_type": "Food",
+      "tags": [
+        "Fruit",
+        "Gluten Free",
+        "Shelf Life: 3 Years",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "body_html": "<p>Real freeze-dried Cinnamon Apples! A tasty and fun snack that is lightweight and perfect for hiking.</p>\n<ul>\n<li>Ready-to-Eat</li>\n<li>3 Year Shelf Life</li>\n<li>100% Real Fruit</li>\n<li>Made in USA</li>\n</ul>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/Cinnamon_Apples_Front.jpg?v=1777315584"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9489613914349,
+      "handle": "3-day-meal-kit-meat",
+      "title": "3 Day Meal Kit - Meat",
+      "vendor": "Backpacker's Pantry",
+      "product_type": "Food",
+      "tags": ["Collection_Emergency", "Shelf Life: 3 Years"],
+      "body_html": "<p>This 3 Day Emergency Survival Kit with mixed protein for one person is essential for any emergency situation.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/3DayMixedEmergencyMealKit.jpg?v=1693245805"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 5369437913248,
+      "handle": "backpackers-pantry-online-gift-card",
+      "title": "Backpacker's Pantry Online Gift Card",
+      "vendor": "backpackerspantry-dev",
+      "product_type": "Gift Card",
+      "tags": [],
+      "body_html": "<p>Give the gift of adventure! A Backpacker's Pantry online gift card is the perfect gift for the adventurer in your life.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/products/GiftCard10-100.png?v=1699473117"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": false
+        }
+      ]
+    },
+    {
+      "id": 9365804482797,
+      "handle": "get-outside-feed-your-soul-t-shirt",
+      "title": "Get Outside & Feed Your Soul T-Shirt",
+      "vendor": "backpackerspantry-dev",
+      "product_type": "Gear",
+      "tags": ["gear"],
+      "body_html": "<p>A reminder you can wear on your back.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/Backpackers.Pantry.Merch.Tee.Front.jpg?v=1778597337"
+        }
+      ],
+      "variants": [
+        {
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 7536211296493,
+      "handle": "blueberry-peach-crisp",
+      "title": "Blueberry Peach Crisp",
+      "vendor": "backpackerspantry-dev",
+      "product_type": "Food",
+      "tags": [
+        "2 Servings",
+        "Breakfast",
+        "Collection_Dessert",
+        "Dessert",
+        "Gluten Free",
+        "Shelf Life: 3 Years",
+        "Vegetarian"
+      ],
+      "body_html": "<p>Sweet blueberries and juicy peaches topped with a buttery brown sugar oat crisp.</p>\n<ul>\n<li>Calories: 540</li>\n<li>Weight: 4.6 oz</li>\n</ul>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0317/7640/7684/files/Blueberry.Peach.Crisp.Main.jpg?v=1778194232"
+        }
+      ],
+      "variants": [
+        {
+          "available": false,
+          "requires_shipping": true
+        }
+      ]
+    }
+  ]
+}
