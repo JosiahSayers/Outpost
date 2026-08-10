@@ -1,5 +1,5 @@
 import { useAdminMealsMetadata } from "$/frontend/utils/api/admin-meals";
-import { MultiSelect, Stack, TextInput } from "@mantine/core";
+import { Divider, MultiSelect, Stack, Switch, TextInput } from "@mantine/core";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 
 interface MealFiltersProps {
@@ -9,6 +9,8 @@ interface MealFiltersProps {
   onVendorChange: (value: string[]) => void;
   brand: string[];
   onBrandChange: (value: string[]) => void;
+  incompleteOnly: boolean;
+  onIncompleteOnlyChange: (value: boolean) => void;
 }
 
 export default function MealFilters({
@@ -18,6 +20,8 @@ export default function MealFilters({
   onVendorChange,
   brand,
   onBrandChange,
+  incompleteOnly,
+  onIncompleteOnlyChange,
 }: MealFiltersProps) {
   const metadata = useAdminMealsMetadata();
   // brand is nullable on PublicMealItem, so distinct values can include null
@@ -33,6 +37,7 @@ export default function MealFilters({
         leftSection={<MagnifyingGlassIcon size={16} />}
         value={search}
         onChange={(event) => onSearchChange(event.currentTarget.value)}
+        disabled={incompleteOnly}
       />
       <MultiSelect
         aria-label="Vendor"
@@ -42,7 +47,7 @@ export default function MealFilters({
         onChange={onVendorChange}
         searchable
         clearable
-        disabled={metadata.isPending}
+        disabled={incompleteOnly || metadata.isPending}
         nothingFoundMessage="No vendors"
       />
       <MultiSelect
@@ -53,8 +58,17 @@ export default function MealFilters({
         onChange={onBrandChange}
         searchable
         clearable
-        disabled={metadata.isPending}
+        disabled={incompleteOnly || metadata.isPending}
         nothingFoundMessage="No brands"
+      />
+      <Divider my={2} />
+      <Switch
+        label="Incomplete only"
+        description="Meals missing brand, calories, water, dry weight, or an image"
+        checked={incompleteOnly}
+        onChange={(event) =>
+          onIncompleteOnlyChange(event.currentTarget.checked)
+        }
       />
     </Stack>
   );
