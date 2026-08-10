@@ -97,6 +97,18 @@ describe("toggling packed", () => {
   });
 });
 
+describe("quantity", () => {
+  it("does not show a quantity when quantity is 1", () => {
+    renderItemRow({ quantity: 1 });
+    expect(screen.queryByText(/×/)).not.toBeInTheDocument();
+  });
+
+  it("shows the quantity when greater than 1", () => {
+    renderItemRow({ quantity: 3 });
+    expect(screen.getByText("×3")).toBeInTheDocument();
+  });
+});
+
 describe("assigned gear", () => {
   it("renders the assigned gear's name and weight", () => {
     renderItemRow({ assignedGear: gear({ name: "Trekking poles" }) });

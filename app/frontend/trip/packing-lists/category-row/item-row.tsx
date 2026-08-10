@@ -38,13 +38,21 @@ export default function ItemRow({
         onChange={(e) => onTogglePacked(item.id, e.currentTarget.checked)}
       />
       <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-        <Text
-          size="sm"
-          c={item.status.packed ? "dimmed" : undefined}
-          truncate="end"
-        >
-          {item.name}
-        </Text>
+        <Group gap={4} wrap="nowrap">
+          <Text
+            size="sm"
+            c={item.status.packed ? "dimmed" : undefined}
+            truncate="end"
+            style={{ flexShrink: 1, minWidth: 0 }}
+          >
+            {item.name}
+          </Text>
+          {item.quantity > 1 && (
+            <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+              ×{item.quantity}
+            </Text>
+          )}
+        </Group>
         {item.assignedGear && (
           <GearLine gear={item.assignedGear} quantity={item.quantity} />
         )}
