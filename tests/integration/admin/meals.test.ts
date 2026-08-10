@@ -59,6 +59,315 @@ describe("GET /established-metadata", () => {
   });
 });
 
+describe("GET /incomplete", () => {
+  const completeOverrides = {
+    brand: "Complete Brand",
+    calories: 500,
+    waterMl: 300,
+    dryWeightGrams: 120,
+    sourceImageUrl: "https://example.com/images/complete.png",
+  };
+
+  it("requires a valid session", async () => {
+    await request(app).get("/admin/meals/incomplete").expect(401);
+  });
+
+  it("requires an admin role", async () => {
+    await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", authCookies)
+      .expect(403);
+  });
+
+  it("includes an item missing brand", async () => {
+    const missingBrand = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        brand: null,
+        sourceProductId: "incomplete-brand",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingBrand.id }),
+      ]),
+    );
+  });
+
+  it("includes an item missing calories", async () => {
+    const missingCalories = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        calories: null,
+        sourceProductId: "incomplete-calories",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingCalories.id }),
+      ]),
+    );
+  });
+
+  it("includes an item missing waterMl", async () => {
+    const missingWaterMl = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        waterMl: null,
+        sourceProductId: "incomplete-water-ml",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingWaterMl.id }),
+      ]),
+    );
+  });
+
+  it("includes an item missing dryWeightGrams", async () => {
+    const missingDryWeight = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        dryWeightGrams: null,
+        sourceProductId: "incomplete-dry-weight",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingDryWeight.id }),
+      ]),
+    );
+  });
+
+  it("includes an item missing an image", async () => {
+    const missingImage = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        imageId: null,
+        sourceProductId: "incomplete-image-id",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingImage.id }),
+      ]),
+    );
+  });
+
+  it("includes an item missing sourceImageUrl", async () => {
+    const missingSourceImageUrl = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        sourceImageUrl: null,
+        sourceProductId: "incomplete-source-image-url",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: missingSourceImageUrl.id }),
+      ]),
+    );
+  });
+
+  it("excludes an item with every flagged field populated", async () => {
+    const image = await db.image.create({
+      data: make("Image"),
+    });
+    const complete = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        imageId: image.id,
+        sourceProductId: "fully-complete",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: complete.id })]),
+    );
+  });
+
+  it("returns the admin item shape", async () => {
+    const missingBrand = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        brand: null,
+        sourceProductId: "incomplete-shape",
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: missingBrand.id,
+          name: missingBrand.name,
+          brand: null,
+          calories: completeOverrides.calories,
+          waterMl: completeOverrides.waterMl,
+          dryWeightGrams: completeOverrides.dryWeightGrams,
+          sourceVendor: missingBrand.sourceVendor,
+          sourceProductId: "incomplete-shape",
+          sourceUrl: missingBrand.sourceUrl,
+          sourceImageUrl: completeOverrides.sourceImageUrl,
+          imageUrl: null,
+        }),
+      ]),
+    );
+  });
+
+  it("paginates using take and skip, and reports the total and pageSize", async () => {
+    await db.publicMealItem.createMany({
+      data: [
+        make("PublicMealItem", { brand: null, sourceProductId: "page-1" }),
+        make("PublicMealItem", { brand: null, sourceProductId: "page-2" }),
+        make("PublicMealItem", { brand: null, sourceProductId: "page-3" }),
+      ],
+    });
+    const total = await db.publicMealItem.count({
+      where: {
+        OR: [
+          { brand: null },
+          { calories: null },
+          { waterMl: null },
+          { dryWeightGrams: null },
+          { imageId: null },
+          { sourceImageUrl: null },
+        ],
+      },
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .query({ take: 2, skip: 0 })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toHaveLength(2);
+    expect(response.body.total).toBe(total);
+    expect(response.body.pageSize).toBe(2);
+  });
+
+  it("orders results by createdAt descending", async () => {
+    const older = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        brand: null,
+        sourceProductId: "order-older",
+        createdAt: new Date("2020-01-01"),
+      }),
+    });
+    const newer = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        brand: null,
+        sourceProductId: "order-newer",
+        createdAt: new Date("2024-01-01"),
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ids: string[] = response.body.items.map(
+      (item: { id: string }) => item.id,
+    );
+    expect(ids.indexOf(newer.id)).toBeLessThan(ids.indexOf(older.id));
+  });
+
+  it("rejects a take above the maximum", async () => {
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .query({ take: 51 })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "query",
+        errors: [expect.objectContaining({ code: "too_big", path: ["take"] })],
+      }),
+    ]);
+  });
+
+  it("rejects a take below the minimum", async () => {
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .query({ take: 0 })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "query",
+        errors: [
+          expect.objectContaining({ code: "too_small", path: ["take"] }),
+        ],
+      }),
+    ]);
+  });
+
+  it("rejects unrecognized query params", async () => {
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .query({ notAParam: "x" })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "query",
+        errors: [expect.objectContaining({ code: "unrecognized_keys" })],
+      }),
+    ]);
+  });
+});
+
 describe("GET /", () => {
   it("requires a valid session", async () => {
     await request(app).get("/admin/meals").expect(401);

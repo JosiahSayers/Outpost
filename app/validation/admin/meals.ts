@@ -9,6 +9,11 @@ export const mealSearchParams = z.strictObject({
   skip: numberQueryParam(0),
 });
 
+export const incompleteParams = z.strictObject({
+  take: numberQueryParam(15, { min: 1, max: 50 }),
+  skip: numberQueryParam(0),
+});
+
 export const createMeal = z.strictObject({
   name: z.string().min(5).max(50),
   brand: z.string().max(25).optional(),
