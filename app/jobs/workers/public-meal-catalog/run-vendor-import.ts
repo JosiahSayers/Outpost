@@ -73,6 +73,10 @@ export async function runVendorImport<Product>(
   for (const product of products) {
     if (scraper.shouldSkip(product)) {
       skipped++;
+      await job.updateProgress({
+        processed: processed + skipped,
+        total: products.length,
+      });
       continue;
     }
 
@@ -110,6 +114,10 @@ export async function runVendorImport<Product>(
 
     coverage.record(row);
     processed++;
+    await job.updateProgress({
+      processed: processed + skipped,
+      total: products.length,
+    });
   }
 
   const failedFields = detectSystemicFieldFailures(
