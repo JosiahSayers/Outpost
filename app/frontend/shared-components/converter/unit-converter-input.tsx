@@ -89,7 +89,7 @@ export default function UnitConverterInput<Unit extends string>({
         onChange={(val) => {
           setDisplayValue(val);
           if (typeof val === "number") {
-            commit(val * multiplier);
+            commit(Math.round(val * multiplier));
             return;
           }
           if (val === "") {
@@ -104,7 +104,12 @@ export default function UnitConverterInput<Unit extends string>({
           // the last fully-parsed 1.7 — while the displayed text (set
           // above) keeps showing exactly what was typed, dot and all.
           const parsed = Number(val);
-          if (!Number.isNaN(parsed)) commit(parsed * multiplier);
+          // Rounded here (not just at the form's submit boundary) because
+          // every field wired up to this component is an Int column
+          // (waterMl/dryWeightGrams/grams) -- leaving the fractional ml/gram
+          // in form state fails z.int() validation on every keystroke,
+          // before the field is ever submitted.
+          if (!Number.isNaN(parsed)) commit(Math.round(parsed * multiplier));
         }}
         {...numberInputProps}
       />

@@ -6,6 +6,7 @@ import {
 } from "$/frontend/utils/api/gear-inventory";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
+import { gearInventoryItemFields } from "$/validation/gear-inventory";
 import {
   Button,
   Combobox,
@@ -27,7 +28,13 @@ const formSchema = z.object({
   categoryName: z.string().min(1, { error: "Category is required" }),
   categoryId: z.string().optional(),
   quantity: z.int().min(1),
-  grams: z.preprocess((v) => (v === "" ? undefined : v), z.number().optional()),
+  // grams is an Int on the backend -- reusing the field straight from the
+  // backend schema (rather than a hand-rolled z.number()) keeps live
+  // validation as strict as what the server will actually accept.
+  grams: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    gearInventoryItemFields.shape.grams,
+  ),
 });
 
 interface Props {

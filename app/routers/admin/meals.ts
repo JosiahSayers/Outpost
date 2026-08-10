@@ -1,11 +1,13 @@
 import { processProductImage } from "$/jobs/workers/public-meal-catalog/image";
 import { transformers } from "$/transformers";
+import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
 import { logger } from "$/utils/logger";
 import { searchPublicMealItems } from "$/utils/search-helpers";
 import {
   createMeal,
   editMeal,
+  incompleteParams,
   mealSearchParams,
 } from "$/validation/admin/meals";
 import { idParam } from "$/validation/shared";
@@ -35,6 +37,46 @@ adminMealsRouter.get("/established-metadata", async (req, res) => {
     brands: uniqueBrands.map((brand) => brand.brand),
   });
 });
+
+adminMealsRouter.get(
+  "/incomplete",
+  validate({ query: incompleteParams }),
+  async (req, res) => {
+    const where = {
+      OR: [
+        { brand: null },
+        { calories: null },
+        { waterMl: null },
+        { dryWeightGrams: null },
+        { imageId: null },
+        { sourceImageUrl: null },
+      ],
+    };
+    const [incompleteMeals, incompleteCount] = await db.$transaction([
+      db.publicMealItem.findMany({
+        where,
+        include: {
+          image: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: req.query.skip,
+        take: req.query.take,
+      }),
+      db.publicMealItem.count({ where }),
+    ]);
+
+    const page = paginate(
+      incompleteMeals,
+      transformers.admin.publicMealItem,
+      incompleteCount,
+      req.query.take,
+    );
+
+    return res.json(page);
+  },
+);
 
 adminMealsRouter.get(
   "/",

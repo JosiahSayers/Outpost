@@ -2,7 +2,10 @@ import MealDetailPanel from "$/frontend/admin/meals/meal-detail-panel";
 import MealFilters from "$/frontend/admin/meals/meal-filters";
 import MealResultList from "$/frontend/admin/meals/meal-result-list";
 import PrevNextPager from "$/frontend/admin/shared/prev-next-pager";
-import { useAdminMealsSearch } from "$/frontend/utils/api/admin-meals";
+import {
+  useAdminMealsIncomplete,
+  useAdminMealsSearch,
+} from "$/frontend/utils/api/admin-meals";
 import type { ClientAdminPublicMealItem } from "$/transformers/admin/public-meal-item";
 import {
   Anchor,
@@ -33,6 +36,10 @@ interface SearchState {
   // than only in `panel` below) so a page refresh doesn't lose the
   // selection -- see the hydration effect further down.
   selectedId: string | null;
+  // When on, the list is driven by GET /admin/meals/incomplete instead of
+  // the search endpoint, and searchInput/vendor/brand are ignored -- see
+  // MealFilters, which disables those fields while this is true.
+  incompleteOnly: boolean;
 }
 
 function parseSearchState(search: string): SearchState {
@@ -44,6 +51,7 @@ function parseSearchState(search: string): SearchState {
     brand: params.getAll("brand"),
     page: Number.isInteger(page) && page > 0 ? page : 1,
     selectedId: params.get("meal"),
+    incompleteOnly: params.get("incomplete") === "1",
   };
 }
 
@@ -54,6 +62,7 @@ function buildSearchUrl(state: SearchState): string {
   state.brand.forEach((b) => params.append("brand", b));
   if (state.page > 1) params.set("page", String(state.page));
   if (state.selectedId) params.set("meal", state.selectedId);
+  if (state.incompleteOnly) params.set("incomplete", "1");
   const query = params.toString();
   return query ? `/console/meals?${query}` : "/console/meals";
 }
@@ -76,7 +85,8 @@ export default function AdminMeals() {
   const [state, setState] = useState<SearchState>(() =>
     parseSearchState(initialSearch),
   );
-  const { searchInput, vendor, brand, page, selectedId } = state;
+  const { searchInput, vendor, brand, page, selectedId, incompleteOnly } =
+    state;
 
   useEffect(() => {
     navigate(buildSearchUrl(state), { replace: true });
@@ -87,16 +97,32 @@ export default function AdminMeals() {
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
   const isWideLayout = useMediaQuery("(min-width: 62em)");
 
-  const { data, isPending, isFetching, isError } = useAdminMealsSearch(
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const searchResult = useAdminMealsSearch(
     debouncedSearch,
     vendor,
     brand,
-    (page - 1) * PAGE_SIZE,
+    skip,
     PAGE_SIZE,
+    { enabled: !incompleteOnly },
   );
+  const incompleteResult = useAdminMealsIncomplete(skip, PAGE_SIZE, {
+    enabled: incompleteOnly,
+  });
 
-  const results = data?.items ?? [];
-  const hasMore = data?.hasMore ?? false;
+  const { isPending, isFetching, isError } = incompleteOnly
+    ? incompleteResult
+    : searchResult;
+
+  const results = incompleteOnly
+    ? (incompleteResult.data?.items ?? [])
+    : (searchResult.data?.items ?? []);
+  const hasMore = incompleteOnly
+    ? incompleteResult.data
+      ? skip + incompleteResult.data.items.length < incompleteResult.data.total
+      : false
+    : (searchResult.data?.hasMore ?? false);
 
   // Restores the panel from a `meal` id in the URL (e.g. on page refresh) by
   // matching it against whatever page of results is currently loaded. If it
@@ -155,6 +181,14 @@ export default function AdminMeals() {
               onVendorChange={(value) => updateFilters({ vendor: value })}
               brand={brand}
               onBrandChange={(value) => updateFilters({ brand: value })}
+              incompleteOnly={incompleteOnly}
+              onIncompleteOnlyChange={(value) =>
+                setState((current) => ({
+                  ...current,
+                  incompleteOnly: value,
+                  page: 1,
+                }))
+              }
             />
 
             <Paper withBorder mt="sm" p={6} mih={120}>

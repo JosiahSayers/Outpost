@@ -84,7 +84,7 @@ describe("typing a number", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Water" }), {
       target: { value: "2" },
     });
-    expect(onChange).toHaveBeenCalledWith(473.176473);
+    expect(onChange).toHaveBeenCalledWith(473);
     await waitFor(() => {});
   });
 });
@@ -176,7 +176,7 @@ describe("typing a decimal", () => {
     fireEvent.change(input, { target: { value: "1.5" } });
     await waitFor(() => {});
 
-    expect(spy).toHaveBeenLastCalledWith(354.88235475);
+    expect(spy).toHaveBeenLastCalledWith(355);
   });
 
   it("commits the value shown when backspacing down to a trailing decimal point, not a stale earlier value", async () => {

@@ -84,7 +84,7 @@ describe("typing a number", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Weight" }), {
       target: { value: "2" },
     });
-    expect(onChange).toHaveBeenCalledWith(56.69904625);
+    expect(onChange).toHaveBeenCalledWith(57);
     await waitFor(() => {});
   });
 });

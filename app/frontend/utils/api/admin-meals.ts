@@ -19,6 +19,12 @@ export interface AdminMealsSearchResult {
   hasMore: boolean;
 }
 
+export interface AdminMealsIncompleteResult {
+  items: ClientAdminPublicMealItem[];
+  total: number;
+  pageSize: number;
+}
+
 export const adminMealKeys = {
   all: ["admin", "meals"] as const,
   metadata: () => [...adminMealKeys.all, "metadata"] as const,
@@ -40,7 +46,19 @@ export const adminMealKeys = {
       skip,
       take,
     ] as const,
+  incompleteLists: () => [...adminMealKeys.all, "incomplete"] as const,
+  incomplete: (skip: number, take: number) =>
+    [...adminMealKeys.incompleteLists(), skip, take] as const,
 };
+
+// lists() and incompleteLists() are separate branches of the key tree (see
+// adminMealKeys above), so invalidating one doesn't touch the other --
+// mutations need both to keep the plain search list and the "incomplete
+// only" list in sync with each other.
+function invalidateMealLists(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: adminMealKeys.lists() });
+  queryClient.invalidateQueries({ queryKey: adminMealKeys.incompleteLists() });
+}
 
 export function useAdminMealsMetadata() {
   return useQuery({
@@ -56,6 +74,7 @@ export function useAdminMealsSearch(
   brand: string[],
   skip: number,
   take: number,
+  options?: { enabled?: boolean },
 ) {
   const trimmed = query.trim();
 
@@ -72,6 +91,33 @@ export function useAdminMealsSearch(
       return apiClient<AdminMealsSearchResult>(`/admin/meals?${params}`);
     },
     placeholderData: keepPreviousData,
+    enabled: options?.enabled,
+  });
+}
+
+// Flags public meal items missing brand/calories/waterMl/dryWeightGrams/
+// image/sourceImageUrl -- see GET /admin/meals/incomplete. Paired with
+// useAdminMealsSearch behind an `enabled` toggle in AdminMeals rather than
+// merged into one hook, since the two endpoints return different shapes
+// (total+pageSize vs. hasMore) and take no query/vendor/brand params.
+export function useAdminMealsIncomplete(
+  skip: number,
+  take: number,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: adminMealKeys.incomplete(skip, take),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        skip: String(skip),
+        take: String(take),
+      });
+      return apiClient<AdminMealsIncompleteResult>(
+        `/admin/meals/incomplete?${params}`,
+      );
+    },
+    placeholderData: keepPreviousData,
+    enabled: options?.enabled,
   });
 }
 
@@ -85,9 +131,7 @@ export function useCreateMeal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminMealKeys.lists() });
-    },
+    onSuccess: () => invalidateMealLists(queryClient),
   });
 }
 
@@ -101,9 +145,7 @@ export function useUpdateMeal(id: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminMealKeys.lists() });
-    },
+    onSuccess: () => invalidateMealLists(queryClient),
   });
 }
 
@@ -113,8 +155,6 @@ export function useDeleteMeal() {
   return useMutation({
     mutationFn: (id: string) =>
       apiClient(`/admin/meals/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminMealKeys.lists() });
-    },
+    onSuccess: () => invalidateMealLists(queryClient),
   });
 }
