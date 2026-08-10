@@ -5,7 +5,7 @@ import type { VendorScraper } from "$/jobs/workers/public-meal-catalog/run-vendo
 import type { ScrapedPublicMealItem } from "$/jobs/workers/public-meal-catalog/merge";
 import { db } from "$/utils/db";
 import type { Job, JobType } from "bullmq";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { make } from "../../../helpers/test-data/make";
 
 interface FakeProduct {
@@ -44,11 +44,16 @@ function scraped(
   };
 }
 
-function makeJob(): Job {
+function makeJob(
+  updateProgress: ReturnType<
+    typeof mock<(progress: { processed: number; total: number }) => void>
+  > = mock((_progress: { processed: number; total: number }) => {}),
+): Job {
   return {
     id: "test-job-id",
     name: "fake_vendor",
     data: {},
+    updateProgress,
   } as unknown as Job;
 }
 
@@ -99,6 +104,25 @@ describe("runVendorImport", () => {
       },
     });
     expect(row?.name).toBe("Included Meal");
+  });
+
+  it("reports progress after every product, skipped or not, against the full fetched total", async () => {
+    const updateProgress = mock(
+      (_progress: { processed: number; total: number }) => {},
+    );
+    const scraper = fakeScraper("fake_vendor", [
+      { scraped: scraped({ sourceProductId: "1" }) },
+      { skip: true, scraped: scraped({ sourceProductId: "2" }) },
+      { scraped: scraped({ sourceProductId: "3" }) },
+    ]);
+
+    await runVendorImport(makeJob(updateProgress), scraper);
+
+    expect(updateProgress.mock.calls.map(([progress]) => progress)).toEqual([
+      { processed: 1, total: 3 },
+      { processed: 2, total: 3 },
+      { processed: 3, total: 3 },
+    ]);
   });
 
   it("preserves a previously-stored value when a re-scrape comes back null", async () => {
