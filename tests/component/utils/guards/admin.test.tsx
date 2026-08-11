@@ -193,6 +193,33 @@ describe("when there is a session for an admin user without MFA enabled", () => 
   });
 });
 
+describe("when there is a session for an admin user missing both MFA and a verified email", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = {
+      user: { role: "admin", twoFactorEnabled: false, emailVerified: false },
+    };
+    isPending = false;
+    sessionError = null;
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/console", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("navigates to the security settings page first, ahead of the profile page", () => {
+    expect(navigate).toHaveBeenCalledWith(
+      "/account/security?adminMfaRequired=true",
+      undefined,
+    );
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("when there is a session for an admin user with an unverified email", () => {
   const navigate = mock(() => {});
 
@@ -211,9 +238,9 @@ describe("when there is a session for an admin user with an unverified email", (
     );
   });
 
-  it("navigates to the security settings page with a flag explaining why", () => {
+  it("navigates to the profile settings page with a flag explaining why", () => {
     expect(navigate).toHaveBeenCalledWith(
-      "/account/security?adminMfaRequired=true",
+      "/account/profile?adminEmailVerificationRequired=true",
       undefined,
     );
   });

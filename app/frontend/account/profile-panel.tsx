@@ -1,6 +1,7 @@
 import { authClient } from "$/frontend/utils/auth-client";
-import { Anchor, Badge, Group, Stack, Text, Title } from "@mantine/core";
+import { Alert, Anchor, Badge, Group, Stack, Text, Title } from "@mantine/core";
 import { useState } from "react";
+import { useSearchParams } from "wouter";
 
 interface ProfilePanelProps {
   name: string;
@@ -13,6 +14,9 @@ export default function ProfilePanel({
   email,
   emailVerified,
 }: ProfilePanelProps) {
+  const [searchParams] = useSearchParams();
+  const adminEmailVerificationRequired =
+    searchParams.get("adminEmailVerificationRequired") === "true";
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -29,6 +33,16 @@ export default function ProfilePanel({
   return (
     <Stack gap="md">
       <Title order={3}>Profile</Title>
+
+      {adminEmailVerificationRequired && (
+        <Alert
+          color="trail-dust"
+          title="Admin access requires a verified email"
+        >
+          Verify your email address before you can access the admin console.
+        </Alert>
+      )}
+
       <Stack gap="md">
         <div>
           <Text size="xs" fw={700} tt="uppercase" c="dimmed">

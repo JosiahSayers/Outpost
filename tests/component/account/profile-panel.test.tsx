@@ -3,18 +3,25 @@ import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
+import { Router } from "wouter";
 
 function renderPanel(
   props: Partial<React.ComponentProps<typeof ProfilePanel>> = {},
+  search = "",
 ) {
   return render(
     <MantineProvider>
-      <ProfilePanel
-        name="Josiah Sayers"
-        email="josiah.sayers@me.com"
-        emailVerified
-        {...props}
-      />
+      <Router
+        hook={() => ["/account/profile", () => {}]}
+        searchHook={() => search}
+      >
+        <ProfilePanel
+          name="Josiah Sayers"
+          email="josiah.sayers@me.com"
+          emailVerified
+          {...props}
+        />
+      </Router>
     </MantineProvider>,
   );
 }
@@ -51,5 +58,21 @@ describe("ProfilePanel", () => {
     expect(
       screen.getByRole("button", { name: "Resend verification email" }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the admin verification banner when redirected here with adminEmailVerificationRequired", () => {
+    renderPanel({}, "adminEmailVerificationRequired=true");
+
+    expect(
+      screen.getByText("Admin access requires a verified email"),
+    ).toBeInTheDocument();
+  });
+
+  it("does not show the admin verification banner otherwise", () => {
+    renderPanel();
+
+    expect(
+      screen.queryByText("Admin access requires a verified email"),
+    ).not.toBeInTheDocument();
   });
 });

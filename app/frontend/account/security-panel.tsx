@@ -71,8 +71,8 @@ export default function SecurityPanel() {
 
       {adminMfaRequired && (
         <Alert color="trail-dust" title="Admin access requires MFA">
-          Your admin account needs two-factor authentication enabled and a
-          verified email address before you can access the admin console.
+          Enable two-factor authentication before you can access the admin
+          console.
         </Alert>
       )}
 
