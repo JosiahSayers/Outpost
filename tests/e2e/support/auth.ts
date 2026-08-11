@@ -57,8 +57,15 @@ export async function createUser(
   });
 
   // Promote before any session is created so the session reflects the role.
+  // twoFactorEnabled/emailVerified reflect a fully-onboarded admin, which
+  // requireAdminMfaEnrolled and useAdminGuard now require for admin
+  // console/API access -- see prisma/seeds/dev/user.ts for the same fix
+  // applied to the dev/integration-test admin fixture.
   if (options.admin) {
-    await db.user.update({ where: { id: user.id }, data: { role: "admin" } });
+    await db.user.update({
+      where: { id: user.id },
+      data: { role: "admin", twoFactorEnabled: true, emailVerified: true },
+    });
   }
 
   if (options.seedGear) {
