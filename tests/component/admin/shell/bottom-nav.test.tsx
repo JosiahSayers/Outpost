@@ -21,7 +21,7 @@ it("shows the primary nav items in the bottom bar", () => {
 
   expect(screen.getByText("Home")).toBeInTheDocument();
   expect(screen.getByText("User Search")).toBeInTheDocument();
-  expect(screen.getByText("Audit Log")).toBeInTheDocument();
+  expect(screen.getByText("Feedback")).toBeInTheDocument();
   expect(screen.getByText("Queues")).toBeInTheDocument();
   expect(screen.getByText("More")).toBeInTheDocument();
 });
@@ -40,5 +40,32 @@ describe("the More drawer", () => {
     renderBottomNav();
 
     expect(screen.queryByText("Demo Account")).not.toBeInTheDocument();
+  });
+
+  it("links overflow items to their href so they're actually navigable", async () => {
+    renderBottomNav();
+
+    fireEvent.click(screen.getByText("More"));
+
+    await waitFor(() => screen.getByText("Public Meals"));
+    expect(screen.getByText("Public Meals").closest("a")).toHaveAttribute(
+      "href",
+      "/console/meals",
+    );
+  });
+
+  it("marks coming-soon overflow items as disabled", async () => {
+    renderBottomNav();
+
+    fireEvent.click(screen.getByText("More"));
+
+    await waitFor(() => screen.getByText("Demo Account"));
+    expect(screen.getByRole("link", { name: /Demo Account/ })).toHaveAttribute(
+      "data-disabled",
+      "true",
+    );
+    expect(
+      screen.getByRole("link", { name: /Feature Flags/ }),
+    ).toHaveAttribute("data-disabled", "true");
   });
 });

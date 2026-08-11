@@ -71,7 +71,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: StackIcon,
     section: "System",
     description:
-      "BullMQ dashboard — 3 queues, 16 waiting, 1 failed job needing attention.",
+      "BullMQ dashboard where you can check the status of background jobs",
   },
   {
     label: "Feature Flags",
