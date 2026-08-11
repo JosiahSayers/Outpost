@@ -5,6 +5,7 @@ import { backpackersPantryScraper } from "$/jobs/workers/public-meal-catalog/ven
 import { farmToSummitScraper } from "$/jobs/workers/public-meal-catalog/vendors/farm-to-summit";
 import { goodToGoScraper } from "$/jobs/workers/public-meal-catalog/vendors/good-to-go";
 import { itacateScraper } from "$/jobs/workers/public-meal-catalog/vendors/itacate";
+import { luxeflyBasecampScraper } from "$/jobs/workers/public-meal-catalog/vendors/luxefly-basecamp";
 import { mountainHouseScraper } from "$/jobs/workers/public-meal-catalog/vendors/mountain-house";
 import { nomadNutritionScraper } from "$/jobs/workers/public-meal-catalog/vendors/nomad-nutrition";
 import { packitGourmetScraper } from "$/jobs/workers/public-meal-catalog/vendors/packit-gourmet";
@@ -68,6 +69,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       processor: (job) => runVendorImport(job, itacateScraper),
       defaultJobOptions,
       schedule: { id: "import-itacate", pattern: "1 1 * * 0" },
+    },
+    {
+      name: luxeflyBasecampScraper.vendorId,
+      processor: (job) => runVendorImport(job, luxeflyBasecampScraper),
+      defaultJobOptions,
+      schedule: { id: "import-luxefly-basecamp", pattern: "1 1 * * 1" },
     },
     // future vendors added here as their own entry
   ],
