@@ -24,18 +24,22 @@ function isSettingsTab(value: string | undefined): value is SettingsTab {
 interface SettingsShellProps {
   name: string;
   email: string;
+  emailVerified: boolean;
   tab?: string;
 }
 
 export default function SettingsShell({
   name,
   email,
+  emailVerified,
   tab,
 }: SettingsShellProps) {
   const activeTab: SettingsTab = isSettingsTab(tab) ? tab : "profile";
   const isWideLayout = useMediaQuery("(min-width: 48em)");
   const tabContent: Record<SettingsTab, ReactNode> = {
-    profile: <ProfilePanel name={name} email={email} />,
+    profile: (
+      <ProfilePanel name={name} email={email} emailVerified={emailVerified} />
+    ),
     preferences: <PreferencesPanel />,
     security: <SecurityPanel />,
   } as const;

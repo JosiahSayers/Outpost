@@ -51,8 +51,6 @@ describe("MfaSection", () => {
     expect(
       screen.getByRole("button", { name: "Enable two-factor authentication" }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Current password"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Current password")).not.toBeInTheDocument();
   });
 });

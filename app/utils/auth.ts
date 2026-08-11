@@ -29,6 +29,11 @@ export const baseAuthConfig = {
       sendVerifyEmailQueue.add(user.email, { user, url });
     },
     sendOnSignUp: false,
+    // Without this, /verify-email updates the DB row but never refreshes
+    // the session's cookie cache -- the client keeps reading the stale
+    // cached emailVerified value for up to cookieCache.maxAge (5 minutes)
+    // until a new session is created (e.g. signing back in).
+    autoSignInAfterVerification: true,
   },
   session: {
     cookieCache: {

@@ -2,6 +2,7 @@ import type { DefinedJob } from "$/jobs/define-job";
 import type { DefinedJobGroup } from "$/jobs/define-job-group";
 import sendPasswordChangedEmailJob from "$/jobs/workers/email/password-changed";
 import sendResetPasswordEmailJob from "$/jobs/workers/email/reset-password";
+import sendVerifyEmailJob from "$/jobs/workers/email/verify-email";
 import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
@@ -23,6 +24,7 @@ export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   moveToFinishedJob,
   sendResetPasswordEmailJob,
   sendPasswordChangedEmailJob,
+  sendVerifyEmailJob,
   ingestPadUsJob,
   ingestPadUsChunkJob,
   finalizePadUsIngestJob,

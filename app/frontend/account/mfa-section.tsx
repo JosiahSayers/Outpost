@@ -41,10 +41,8 @@ export default function MfaSection() {
 
   const [disableOpened, { open: openDisable, close: closeDisable }] =
     useDisclosure(false);
-  const [
-    regenerateOpened,
-    { open: openRegenerate, close: closeRegenerate },
-  ] = useDisclosure(false);
+  const [regenerateOpened, { open: openRegenerate, close: closeRegenerate }] =
+    useDisclosure(false);
   const [disablePassword, setDisablePassword] = useState("");
   const [regeneratePassword, setRegeneratePassword] = useState("");
   const [regeneratedCodes, setRegeneratedCodes] = useState<string[]>([]);
@@ -232,7 +230,9 @@ export default function MfaSection() {
             Scan this code with your authenticator app (Google Authenticator,
             1Password, Authy, etc.).
           </Text>
-          <div style={{ background: "white", padding: 12, width: "fit-content" }}>
+          <div
+            style={{ background: "white", padding: 12, width: "fit-content" }}
+          >
             <QRCode value={totpURI} size={180} />
           </div>
           {secret && (
@@ -268,8 +268,8 @@ export default function MfaSection() {
         <Stack maw={360} gap="sm">
           <Alert color="green">Two-factor authentication is enabled.</Alert>
           <Text size="sm">
-            Save these backup codes somewhere safe. Each one can be used once
-            to sign in if you lose access to your authenticator app. They
+            Save these backup codes somewhere safe. Each one can be used once to
+            sign in if you lose access to your authenticator app. They
             won&rsquo;t be shown again.
           </Text>
           <Code block>{backupCodes.join("\n")}</Code>
@@ -293,8 +293,8 @@ export default function MfaSection() {
       >
         <Stack gap="sm">
           <Text size="sm" c="dimmed">
-            You&rsquo;ll no longer be asked for a code at sign-in. Confirm
-            your password to disable it.
+            You&rsquo;ll no longer be asked for a code at sign-in. Confirm your
+            password to disable it.
           </Text>
           <PasswordInput
             label="Current password"
@@ -345,8 +345,8 @@ export default function MfaSection() {
           ) : (
             <>
               <Text size="sm" c="dimmed">
-                This replaces your existing backup codes. Confirm your
-                password to continue.
+                This replaces your existing backup codes. Confirm your password
+                to continue.
               </Text>
               <PasswordInput
                 label="Current password"
