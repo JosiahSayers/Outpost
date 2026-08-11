@@ -1,23 +1,22 @@
 import { test as base, expect, type Page } from "@playwright/test";
-import { createUser, type CreateUserOptions, type TestUser } from "./auth";
+import {
+  createUser,
+  getSessionCookies,
+  type CreateUserOptions,
+  type TestUser,
+} from "./auth";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
-
-// Sign a page's browser context in as the given user by hitting the real
-// sign-in endpoint. `page.request` shares the context's cookie jar, so every
-// subsequent navigation is authenticated — no UI round-trip needed. The
-// explicit Origin header keeps Better Auth's origin check happy for a
-// non-browser-initiated request.
+// Sign a page's browser context in as the given user by minting a session
+// directly and setting it as a cookie, rather than POSTing real credentials
+// to /sign-in/email. Real credential sign-in goes through the twoFactor
+// plugin, which intercepts it for any user with twoFactorEnabled set (e.g.
+// admin fixtures -- see the testUtils() comment in auth.ts) and never
+// produces a session without a real second-factor answer. Cookies set here
+// land in the same jar `page.request` and `page.goto` both read from, so
+// every subsequent navigation is authenticated with no UI round-trip needed.
 async function signInAs(page: Page, user: TestUser): Promise<void> {
-  const response = await page.request.post("/api/auth/sign-in/email", {
-    data: { email: user.email, password: user.password },
-    headers: { Origin: BASE_URL },
-  });
-  if (!response.ok()) {
-    throw new Error(
-      `Failed to sign in as ${user.email}: ${response.status()} ${await response.text()}`,
-    );
-  }
+  const cookies = await getSessionCookies(user.id);
+  await page.context().addCookies(cookies);
 }
 
 type Fixtures = {
