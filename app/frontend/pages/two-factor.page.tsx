@@ -27,13 +27,22 @@ export default function TwoFactorPage() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
+  // Accepts an explicit code so the PinInput's onComplete (which hands us
+  // the just-completed value directly) doesn't fall back to the `code`
+  // state, which hasn't re-rendered with the final digit yet at that point.
+  const handleSubmit = async (submittedCode: string = code) => {
     setLoading(true);
     setServerError(null);
 
     const { error } = useBackupCode
-      ? await authClient.twoFactor.verifyBackupCode({ code, trustDevice })
-      : await authClient.twoFactor.verifyTotp({ code, trustDevice });
+      ? await authClient.twoFactor.verifyBackupCode({
+          code: submittedCode,
+          trustDevice,
+        })
+      : await authClient.twoFactor.verifyTotp({
+          code: submittedCode,
+          trustDevice,
+        });
 
     setLoading(false);
 

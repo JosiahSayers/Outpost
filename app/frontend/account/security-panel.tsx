@@ -1,8 +1,10 @@
+import MfaSection from "$/frontend/account/mfa-section";
 import { authClient } from "$/frontend/utils/auth-client";
 import { newPasswordFields, refineNewPasswordsMatch } from "$/validation/auth";
 import {
   Alert,
   Button,
+  Divider,
   PasswordInput,
   Stack,
   Text,
@@ -108,6 +110,10 @@ export default function SecurityPanel() {
           </Button>
         </Stack>
       </form>
+
+      <Divider my="md" />
+
+      <MfaSection />
     </Stack>
   );
 }
