@@ -1,5 +1,6 @@
 import { sendPasswordChangedEmailQueue } from "$/jobs/workers/email/password-changed";
 import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
+import { sendVerifyEmailQueue } from "$/jobs/workers/email/verify-email";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
@@ -18,6 +19,17 @@ export const baseAuthConfig = {
       sendResetPasswordEmailQueue.add(user.email, { user, url });
     },
   },
+  // Verification isn't required to sign in yet -- admins alone are gated on
+  // it (requireAdminMfaEnrolled), everyone else can leave their email
+  // unverified indefinitely. This just makes verification possible: new
+  // users get sent a link on sign-up, and existing users can trigger one
+  // themselves from the Profile tab's "resend" action.
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      sendVerifyEmailQueue.add(user.email, { user, url });
+    },
+    sendOnSignUp: false,
+  },
   session: {
     cookieCache: {
       enabled: true,
@@ -33,6 +45,7 @@ export const baseAuthConfig = {
     customRules: {
       "/sign-up/email": { window: 60, max: 5 },
       "/request-password-reset": { window: 60, max: 3 },
+      "/send-verification-email": { window: 60, max: 3 },
     },
   },
   advanced: {
