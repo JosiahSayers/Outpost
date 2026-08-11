@@ -28,6 +28,7 @@ export default function AccountPage() {
       <SettingsShell
         name={session.data?.user.name ?? ""}
         email={session.data?.user.email ?? ""}
+        emailVerified={!!session.data?.user.emailVerified}
         tab={tab}
       />
     </PageContainer>

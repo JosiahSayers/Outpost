@@ -52,7 +52,7 @@ export default function SignInPage() {
     setLoading(true);
     setServerError(null);
 
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
       callbackURL: redirect ?? "/dashboard",
@@ -60,9 +60,14 @@ export default function SignInPage() {
 
     setLoading(false);
 
+    // better-auth's client type doesn't declare `twoFactorRedirect` on this
+    // response even though it's present at runtime when 2FA is required —
+    // narrow with `in` per better-auth's own guidance for this case.
+    const needsTwoFactor = !!data && "twoFactorRedirect" in data;
+
     if (error) {
       setServerError(error.message ?? "Sign in failed. Please try again.");
-    } else {
+    } else if (!needsTwoFactor) {
       // A full navigation (not wouter's client-side `navigate`) so the next
       // page mounts with a fresh session atom. better-auth's client caches
       // the pre-sign-in (logged-out) session and only invalidates it via a
@@ -72,6 +77,8 @@ export default function SignInPage() {
       // again once the cache catches up.
       window.location.href = redirect || "/dashboard";
     }
+    // If twoFactorRedirect is set, the twoFactorClient's onTwoFactorRedirect
+    // hook (auth-client.ts) has already navigated to /two-factor.
   };
 
   return (

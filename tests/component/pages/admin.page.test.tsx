@@ -6,7 +6,13 @@ import { describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
 let sessionData: {
-  user: { name: string; email: string; role?: string };
+  user: {
+    name: string;
+    email: string;
+    role?: string;
+    twoFactorEnabled?: boolean;
+    emailVerified?: boolean;
+  };
 } | null = null;
 let isPending = false;
 
@@ -94,6 +100,8 @@ describe("when signed in as an admin user", () => {
         name: "Josiah Sayers",
         email: "josiah.sayers@me.com",
         role: "admin",
+        twoFactorEnabled: true,
+        emailVerified: true,
       },
     };
     isPending = false;

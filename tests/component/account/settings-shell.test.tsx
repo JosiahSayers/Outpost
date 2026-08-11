@@ -29,6 +29,7 @@ function renderShell(initialPath = "/account/profile") {
                 <SettingsShell
                   name="Josiah Sayers"
                   email="josiah.sayers@me.com"
+                  emailVerified
                   tab={params.tab}
                 />
               )}

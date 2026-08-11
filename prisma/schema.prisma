@@ -47,6 +47,8 @@ model User {
   banned                          Boolean?                 @default(false)
   banReason                       String?
   banExpires                      DateTime?
+  twoFactorEnabled                Boolean?                 @default(false)
+  twoFactors                      TwoFactor[]
   accountSettingValues            AccountSettingValue[]
   communicationAuditLogsInitiated CommunicationAuditLog[]  @relation("initiatedBy")
   communicationAuditLogsReceived  CommunicationAuditLog[]  @relation("recipient")
@@ -96,6 +98,20 @@ model Account {
 
   @@index([userId])
   @@map("account")
+}
+
+model TwoFactor {
+  id                      String    @id @default(uuid())
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(false)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+
+  @@index([userId])
+  @@map("two_factor")
 }
 
 model Verification {
@@ -531,9 +547,9 @@ model MealPlanDayItem {
 // value on re-scrape, so a gap here means it's never successfully been parsed
 // nor fixed by an admin (BTP-110, not yet built).
 model PublicMealItem {
-  id             String   @id @default(uuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   name           String
   brand          String?
@@ -564,9 +580,9 @@ model PublicMealItem {
 // referenced by PublicMealItem; kept as its own model rather than inlined
 // fields so other features can reuse it later without a schema change.
 model Image {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   r2Key       String @unique
   contentType String

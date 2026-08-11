@@ -20,6 +20,7 @@ import RegisterPage from "$/frontend/pages/register.page";
 import ResetPasswordPage from "$/frontend/pages/reset-password.page";
 import SignInPage from "$/frontend/pages/sign-in.page";
 import TripPage from "$/frontend/pages/trip.page";
+import TwoFactorPage from "$/frontend/pages/two-factor.page";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="/packing-lists/:id" component={PackingListPage} />
               <Route path="/trips/:id" component={TripPage} />
               <Route path="/sign-in" component={SignInPage} />
+              <Route path="/two-factor" component={TwoFactorPage} />
               <Route path="/register" component={RegisterPage} />
               <Route path="/forgot-password" component={ForgotPasswordPage} />
               <Route path="/reset-password" component={ResetPasswordPage} />

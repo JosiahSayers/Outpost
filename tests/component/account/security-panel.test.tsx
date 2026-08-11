@@ -3,11 +3,17 @@ import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "bun:test";
+import { Router } from "wouter";
 
-function renderPanel() {
+function renderPanel(search = "") {
   return render(
     <MantineProvider>
-      <SecurityPanel />
+      <Router
+        hook={() => ["/account/security", () => {}]}
+        searchHook={() => search}
+      >
+        <SecurityPanel />
+      </Router>
     </MantineProvider>,
   );
 }
@@ -90,5 +96,19 @@ describe("SecurityPanel", () => {
     await waitFor(() =>
       expect(screen.getByText("Passwords do not match")).toBeInTheDocument(),
     );
+  });
+
+  it("shows the admin MFA banner when redirected here with adminMfaRequired", () => {
+    renderPanel("adminMfaRequired=true");
+
+    expect(screen.getByText("Admin access requires MFA")).toBeInTheDocument();
+  });
+
+  it("does not show the admin MFA banner otherwise", () => {
+    renderPanel();
+
+    expect(
+      screen.queryByText("Admin access requires MFA"),
+    ).not.toBeInTheDocument();
   });
 });

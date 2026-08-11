@@ -42,6 +42,11 @@ export async function createUsers() {
 
   await db.user.update({
     where: { email: "admin@test.com" },
-    data: { role: "admin" },
+    // twoFactorEnabled/emailVerified reflect a fully-onboarded admin, which
+    // requireAdminMfaEnrolled now requires for admin console/API access.
+    // There's no matching TwoFactor secret row, so this account can't
+    // actually complete a TOTP challenge -- fine for a fixture that only
+    // needs to pass the gate, not sign in with a real second factor.
+    data: { role: "admin", twoFactorEnabled: true, emailVerified: true },
   });
 }

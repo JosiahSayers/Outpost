@@ -3,7 +3,9 @@ import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 
-let sessionData: { user: { role?: string } } | null = null;
+let sessionData: {
+  user: { role?: string; twoFactorEnabled?: boolean; emailVerified?: boolean };
+} | null = null;
 let isPending = false;
 let sessionError: { status: number } | null = null;
 const refetch = mock(() => {});
@@ -142,11 +144,13 @@ describe("when there is a session for a non-admin user", () => {
   });
 });
 
-describe("when there is a session for an admin user", () => {
+describe("when there is a session for an admin user with MFA enabled and a verified email", () => {
   const navigate = mock(() => {});
 
   beforeEach(() => {
-    sessionData = { user: { role: "admin" } };
+    sessionData = {
+      user: { role: "admin", twoFactorEnabled: true, emailVerified: true },
+    };
     isPending = false;
     sessionError = null;
     refetch.mockClear();
@@ -160,5 +164,84 @@ describe("when there is a session for an admin user", () => {
 
   it("does not navigate", () => {
     expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("when there is a session for an admin user without MFA enabled", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = {
+      user: { role: "admin", twoFactorEnabled: false, emailVerified: true },
+    };
+    isPending = false;
+    sessionError = null;
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/console", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("navigates to the security settings page with a flag explaining why", () => {
+    expect(navigate).toHaveBeenCalledWith(
+      "/account/security?adminMfaRequired=true",
+      undefined,
+    );
+  });
+});
+
+describe("when there is a session for an admin user missing both MFA and a verified email", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = {
+      user: { role: "admin", twoFactorEnabled: false, emailVerified: false },
+    };
+    isPending = false;
+    sessionError = null;
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/console", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("navigates to the security settings page first, ahead of the profile page", () => {
+    expect(navigate).toHaveBeenCalledWith(
+      "/account/security?adminMfaRequired=true",
+      undefined,
+    );
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("when there is a session for an admin user with an unverified email", () => {
+  const navigate = mock(() => {});
+
+  beforeEach(() => {
+    sessionData = {
+      user: { role: "admin", twoFactorEnabled: true, emailVerified: false },
+    };
+    isPending = false;
+    sessionError = null;
+    refetch.mockClear();
+    navigate.mockClear();
+    render(
+      <Router hook={() => ["/console", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  it("navigates to the profile settings page with a flag explaining why", () => {
+    expect(navigate).toHaveBeenCalledWith(
+      "/account/profile?adminEmailVerificationRequired=true",
+      undefined,
+    );
   });
 });

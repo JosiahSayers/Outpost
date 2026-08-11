@@ -15,6 +15,7 @@ export default function makeUser(overrides: OptionalPartial<User> = {}): User {
     banned: false,
     banReason: null,
     banExpires: null,
+    twoFactorEnabled: false,
     ...overrides,
   };
 }

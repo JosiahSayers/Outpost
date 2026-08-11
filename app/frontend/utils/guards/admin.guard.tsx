@@ -18,6 +18,16 @@ export function useAdminGuard() {
 
     if (session.data.user.role !== "admin") {
       navigate("/dashboard");
+      return;
+    }
+
+    if (!session.data.user.twoFactorEnabled) {
+      navigate("/account/security?adminMfaRequired=true");
+      return;
+    }
+
+    if (!session.data.user.emailVerified) {
+      navigate("/account/profile?adminEmailVerificationRequired=true");
     }
   }, [session.data, session.isPending]);
 
