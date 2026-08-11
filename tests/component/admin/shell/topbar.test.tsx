@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, mock } from "bun:test";
@@ -15,12 +16,18 @@ mock.module("$/frontend/utils/auth-client", () => ({
 import Topbar from "$/frontend/admin/shell/topbar";
 
 function renderTopbar() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+
   return render(
-    <MantineProvider>
-      <Router hook={() => ["/console", () => {}]}>
-        <Topbar />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Router hook={() => ["/console", () => {}]}>
+          <Topbar />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

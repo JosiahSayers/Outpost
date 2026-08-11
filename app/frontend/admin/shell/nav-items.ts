@@ -29,7 +29,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/console/users",
     icon: MagnifyingGlassIcon,
     description:
-      "Look up any account by name or email — the entry point for impersonation, resets, and sessions.",
+      "Look up any account by name or email. Impersonation, resets, and sessions live here.",
   },
   {
     label: "Feedback",
@@ -71,7 +71,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: StackIcon,
     section: "System",
     description:
-      "BullMQ dashboard — 3 queues, 16 waiting, 1 failed job needing attention.",
+      "BullMQ dashboard where you can check the status of background jobs",
   },
   {
     label: "Feature Flags",

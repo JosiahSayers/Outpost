@@ -1,5 +1,10 @@
+import { redisConnection } from "$/jobs/workers/default-options";
+import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
+import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { getStat } from "$/utils/admin/stats";
 import { db } from "$/utils/db";
+import type { Queue } from "bullmq";
+import { Worker } from "bullmq";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { DateTime, Settings } from "luxon";
 import type { User } from "../../../generated/prisma/client";
@@ -57,6 +62,38 @@ function freezeNow(iso: string): Date {
     .toJSDate();
 }
 
+// Forces `count` jobs on a real queue into the "failed" state so
+// getFailedJobs' `queue.getFailedCount()` calls have something to see. Spins
+// up a throwaway Worker (the app's own worker for this queue is never
+// started in tests -- see define-job.ts) with attempts:1 so each job fails
+// on its first try with no retry/backoff delay.
+async function failJobs(queue: Queue, count: number) {
+  const worker = new Worker(
+    queue.name,
+    async () => {
+      throw new Error("forced failure for test");
+    },
+    { connection: redisConnection, autorun: false, concurrency: count },
+  );
+
+  let remaining = count;
+  const allFailed = new Promise<void>((resolve) => {
+    worker.on("failed", () => {
+      remaining -= 1;
+      if (remaining === 0) resolve();
+    });
+  });
+
+  worker.run();
+  await Promise.all(
+    Array.from({ length: count }, () =>
+      queue.add("test-job", {}, { attempts: 1 }),
+    ),
+  );
+  await allFailed;
+  await worker.close();
+}
+
 describe("getStat", () => {
   describe("total_users", () => {
     it("returns the total user count", async () => {
@@ -99,25 +136,6 @@ describe("getStat", () => {
 
       expect(stat.delta).toBe("+0 this week");
       expect(stat.trend).toBe(null);
-    });
-  });
-
-  describe("banned_users", () => {
-    it("counts only banned users", async () => {
-      const before = await db.user.count({ where: { banned: true } });
-      await createUser({ banned: true });
-      await createUser({ banned: false });
-
-      const stat = await getStat("banned_users");
-
-      expect(stat).toEqual({
-        stat: "banned_users",
-        label: "Banned Users",
-        value: `${before + 1}`,
-        delta: null,
-        trend: null,
-        sort: 2,
-      });
     });
   });
 
@@ -175,16 +193,103 @@ describe("getStat", () => {
   });
 
   describe("failed_jobs", () => {
-    it("returns a placeholder stat", async () => {
+    it("reports an upward trend and a reassuring delta when no jobs have failed", async () => {
       const stat = await getStat("failed_jobs");
 
       expect(stat).toEqual({
         stat: "failed_jobs",
         label: "Failed Jobs",
         value: "0",
-        delta: null,
-        trend: null,
+        delta: "Jobs are looking good",
+        trend: "up",
         sort: 4,
+      });
+    });
+
+    it("counts failed jobs on a single queue", async () => {
+      await failJobs(createNotificationQueue, 2);
+
+      const stat = await getStat("failed_jobs");
+
+      expect(stat).toEqual({
+        stat: "failed_jobs",
+        label: "Failed Jobs",
+        value: "2",
+        delta: "2 jobs need your attention",
+        trend: "down",
+        sort: 4,
+      });
+    });
+
+    it("sums failed jobs across every queue in the registry", async () => {
+      await failJobs(createNotificationQueue, 1);
+      await failJobs(sendResetPasswordEmailQueue, 2);
+
+      const stat = await getStat("failed_jobs");
+
+      expect(stat.value).toBe("3");
+      expect(stat.delta).toBe("3 jobs need your attention");
+      expect(stat.trend).toBe("down");
+    });
+  });
+
+  describe("incomplete_meals", () => {
+    it("counts meals missing calories, waterMl, dryWeightGrams, or sourceImageUrl", async () => {
+      const before = await db.publicMealItem.count({
+        where: {
+          OR: [
+            { dryWeightGrams: null },
+            { waterMl: null },
+            { calories: null },
+            { sourceImageUrl: null },
+          ],
+        },
+      });
+      await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          calories: 500,
+          waterMl: 250,
+          dryWeightGrams: 120,
+          sourceImageUrl: "https://example.com/meal.png",
+        }),
+      });
+      await db.publicMealItem.create({
+        data: make("PublicMealItem", { calories: null }),
+      });
+
+      const stat = await getStat("incomplete_meals");
+
+      expect(stat).toEqual({
+        stat: "incomplete_meals",
+        label: "Incomplete Meals",
+        value: `${before + 1}`,
+        delta: `${before + 1} meals need your attention`,
+        trend: "down",
+        sort: 5,
+      });
+    });
+
+    it("reports an upward trend and a reassuring delta when no meals are incomplete", async () => {
+      await db.publicMealItem.deleteMany({
+        where: {
+          OR: [
+            { dryWeightGrams: null },
+            { waterMl: null },
+            { calories: null },
+            { sourceImageUrl: null },
+          ],
+        },
+      });
+
+      const stat = await getStat("incomplete_meals");
+
+      expect(stat).toEqual({
+        stat: "incomplete_meals",
+        label: "Incomplete Meals",
+        value: "0",
+        delta: "0 meals need your attention",
+        trend: "up",
+        sort: 5,
       });
     });
   });

@@ -17,14 +17,6 @@ const STATS: AdminStat[] = [
     sort: 1,
   },
   {
-    stat: "banned_users",
-    label: "Banned Users",
-    value: "6",
-    delta: null,
-    trend: null,
-    sort: 2,
-  },
-  {
     stat: "active_sessions",
     label: "Active Sessions",
     value: "214",
@@ -36,9 +28,17 @@ const STATS: AdminStat[] = [
     stat: "failed_jobs",
     label: "Failed Jobs",
     value: "1",
-    delta: "packing-list-export",
+    delta: "1 jobs need your attention",
     trend: "down",
     sort: 4,
+  },
+  {
+    stat: "incomplete_meals",
+    label: "Incomplete Meals",
+    value: "9",
+    delta: "9 meals need your attention",
+    trend: "down",
+    sort: 5,
   },
 ];
 

@@ -1,4 +1,5 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { expect, it, mock } from "bun:test";
@@ -15,14 +16,20 @@ mock.module("$/frontend/utils/auth-client", () => ({
 import AdminShell from "$/frontend/admin/shell";
 
 it("renders the topbar, sidebar nav, and children", () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+
   render(
-    <MantineProvider>
-      <Router hook={() => ["/console", () => {}]}>
-        <AdminShell>
-          <div>Overview content</div>
-        </AdminShell>
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Router hook={() => ["/console", () => {}]}>
+          <AdminShell>
+            <div>Overview content</div>
+          </AdminShell>
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 
   expect(screen.getByText("Admin")).toBeInTheDocument();

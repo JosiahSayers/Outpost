@@ -1,15 +1,50 @@
 import BottomNavLink from "$/frontend/admin/shell/bottom-nav-link";
-import { ADMIN_NAV_ITEMS } from "$/frontend/admin/shell/nav-items";
+import {
+  ADMIN_NAV_ITEMS,
+  type AdminNavItem,
+} from "$/frontend/admin/shell/nav-items";
 import {
   Badge,
   Drawer,
   Group,
+  NavLink,
   Stack,
   Text,
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react";
+import { Link, useRoute } from "wouter";
+
+function OverflowItemLink({
+  item,
+  onNavigate,
+}: {
+  item: AdminNavItem;
+  onNavigate: () => void;
+}) {
+  const [isActive] = useRoute(item.href);
+  const Icon = item.icon;
+
+  return (
+    <NavLink
+      component={item.external ? undefined : Link}
+      href={item.href}
+      onClick={item.comingSoon ? undefined : onNavigate}
+      label={item.label}
+      leftSection={<Icon size={16} />}
+      active={isActive}
+      disabled={item.comingSoon}
+      rightSection={
+        item.comingSoon ? (
+          <Badge color="stone-gray" variant="light" size="xs">
+            Soon
+          </Badge>
+        ) : undefined
+      }
+    />
+  );
+}
 
 // The bottom bar only has room for a handful of icons — the rest live behind
 // "More" so mobile doesn't need a different information architecture than
@@ -17,7 +52,7 @@ import { DotsThreeCircleIcon } from "@phosphor-icons/react";
 const PRIMARY_HREFS = [
   "/console",
   "/console/users",
-  "/console/audit-log",
+  "/console/feedback",
   "/console/queues",
 ];
 
@@ -69,19 +104,13 @@ export default function BottomNav() {
         position="bottom"
         size="xs"
       >
-        <Stack gap="sm">
+        <Stack gap={0}>
           {overflowItems.map((item) => (
-            <Group key={item.href} justify="space-between" wrap="nowrap">
-              <Group gap="xs" c={item.comingSoon ? "dimmed" : undefined}>
-                <item.icon size={16} />
-                <Text size="sm">{item.label}</Text>
-              </Group>
-              {item.comingSoon && (
-                <Badge color="stone-gray" variant="light" size="xs">
-                  Soon
-                </Badge>
-              )}
-            </Group>
+            <OverflowItemLink
+              item={item}
+              key={item.href}
+              onNavigate={closeMore}
+            />
           ))}
         </Stack>
       </Drawer>
