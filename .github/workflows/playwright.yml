@@ -43,6 +43,13 @@ jobs:
           # so it needs its own DB connection string. The db service's port
           # is published to the host by docker-compose.dev.yml.
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/outpost
+          # tests/e2e/support/auth.ts's provisioningAuth (used by signInAs to
+          # mint sessions via testUtils) signs session cookies with this
+          # secret. It must match the app container's BETTER_AUTH_SECRET
+          # (docker-compose.ci.yml) exactly, or the app rejects every
+          # cookie's signature and every fixture-authenticated test fails.
+          BETTER_AUTH_SECRET: really-bad-secret
+          BETTER_AUTH_URL: http://localhost:3000
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
