@@ -5,6 +5,9 @@ jobs:
   playwright:
     name: Playwright Tests
     runs-on: ubuntu-latest
+    # No default timeout is 6 hours -- a stuck runner would otherwise block
+    # the PR indefinitely instead of failing fast so CI can retry.
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
