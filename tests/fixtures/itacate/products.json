@@ -1,0 +1,546 @@
+{
+  "products": [
+    {
+      "id": 7301800263872,
+      "title": "Campsite Lentejas (Lentils)",
+      "handle": "campsite-lentejas",
+      "body_html": "<p><strong><span data-contrast=\"none\">Product Description</span></strong></p>\n<p><span data-contrast=\"none\">Our sopa de lentejas is a deliciously</span><span data-contrast=\"none\"> hearty backpacking lentil soup made with a rich tomato and cilantro broth that rehydrates in minutes. <meta charset=\"utf-8\">Naturally high in plant-based protein, this comforting meal is perfect for backpacking trips, camp dinners, and outdoor adventures, packed with flavor for when you want something healthy, satisfying, and easy — because sometimes lazy lentejas just hit different after a long day outside.<br><br>Single Serving | Not Spicy | Vegan <meta charset=\"utf-8\">| 24g Protein | 490 Cal | 4.0 oz <br><br><br><i><meta charset=\"utf-8\"> <strong>CALIFORNIA PROPOSITION 65 WARNING:</strong><span> Can expose you to arsenic, a carcinogen and reproductive toxicant. See www.p65warnings.ca.gov/food</span></i><br></span></p>\n<ul></ul>\n<ul></ul>",
+      "published_at": "2026-03-23T22:40:51-07:00",
+      "created_at": "2022-06-30T16:45:53-07:00",
+      "updated_at": "2026-08-10T18:05:03-07:00",
+      "vendor": "Itacate Foods",
+      "product_type": "Backpacking Food",
+      "tags": ["dinner", "lunch", "meal", "Mexican", "vegan"],
+      "variants": [
+        {
+          "id": 42953597911232,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "FML03S",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "13.95",
+          "grams": 123,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7301800263872,
+          "created_at": "2022-06-30T16:45:53-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 36928591888576,
+          "created_at": "2023-12-14T20:29:13-08:00",
+          "position": 1,
+          "updated_at": "2024-01-18T11:43:21-08:00",
+          "product_id": 7301800263872,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/CampsiteLentejas_Front.jpg?v=1705607001",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 36886699475136,
+          "created_at": "2023-12-02T19:08:27-08:00",
+          "position": 2,
+          "updated_at": "2025-11-09T19:23:06-08:00",
+          "product_id": 7301800263872,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Itacate_Foods_Campsite_Lentejas_bowl.jpg?v=1762744986",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 54564576657600,
+          "created_at": "2026-05-10T12:06:50-07:00",
+          "position": 3,
+          "updated_at": "2026-05-10T12:35:10-07:00",
+          "product_id": 7301800263872,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Campsite_Lentils_cooked.jpg?v=1778441710",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 36928593985728,
+          "created_at": "2023-12-14T20:29:41-08:00",
+          "position": 4,
+          "updated_at": "2023-12-14T20:29:43-08:00",
+          "product_id": 7301800263872,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/CampsiteLentejas_Back.jpg?v=1702614583",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 45556026605760,
+          "created_at": "2025-07-28T12:20:47-07:00",
+          "position": 5,
+          "updated_at": "2025-07-28T12:20:49-07:00",
+          "product_id": 7301800263872,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/ITA_DSC1948.jpg?v=1753730449",
+          "width": 4240,
+          "height": 2832
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 7301795578048,
+      "title": "Charge-up Chilaquiles",
+      "handle": "charge-up-chilaquiles",
+      "body_html": "<p><strong><span data-contrast=\"none\">Product Description</span><span data-ccp-props='{\"201341983\":0,\"335559685\":0,\"335559738\":40,\"335559739\":0,\"335559740\":259}'> </span></strong></p>\n<p><meta charset=\"utf-8\"><span>A flavorful backpacking breakfast inspired by traditional and classic Mexican green chilaquiles. Tortilla chips smothered in spicy tomatillo salsa and topped with beans, egg, and panela cheese creates a comforting and energizing camp meal any time of day.</span></p>\n<p><span data-contrast=\"none\"><meta charset=\"utf-8\"> <span>Single Serving | Spice Level: Medium | Vegetarian | 490 Cal | 17g Protein | 3.5 oz</span><br><br><meta charset=\"utf-8\"> <strong>CALIFORNIA PROPOSITION 65 WARNING:</strong><span> Can expose you to arsenic, a carcinogen and reproductive toxicant. See www.p65warnings.ca.gov/food</span><br></span></p>",
+      "published_at": "2026-03-23T22:40:27-07:00",
+      "created_at": "2022-06-30T16:40:20-07:00",
+      "updated_at": "2026-08-10T18:05:03-07:00",
+      "vendor": "Itacate Foods",
+      "product_type": "Backpacking Food",
+      "tags": ["breakfast", "dinner", "lunch", "meal", "Mexican", "vegaterian"],
+      "variants": [
+        {
+          "id": 42953588801728,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "FML01S",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "13.95",
+          "grams": 108,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7301795578048,
+          "created_at": "2022-06-30T16:40:20-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 41028071981248,
+          "created_at": "2024-11-25T20:07:53-08:00",
+          "position": 1,
+          "updated_at": "2024-11-25T20:07:54-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Untitled_design_1.jpg?v=1732594074",
+          "width": 1400,
+          "height": 1400
+        },
+        {
+          "id": 36886706684096,
+          "created_at": "2023-12-02T19:11:18-08:00",
+          "position": 2,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/5.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36886704128192,
+          "created_at": "2023-12-02T19:10:16-08:00",
+          "position": 3,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/4.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36886706651328,
+          "created_at": "2023-12-02T19:11:01-08:00",
+          "position": 4,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/11.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36928608108736,
+          "created_at": "2023-12-14T20:32:55-08:00",
+          "position": 5,
+          "updated_at": "2023-12-14T20:33:00-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Charge-UpChilaquiles_Back.jpg?v=1702614780",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 45555981549760,
+          "created_at": "2025-07-28T12:19:58-07:00",
+          "position": 6,
+          "updated_at": "2025-07-28T12:20:01-07:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/ITA_DSC1960.jpg?v=1753730401",
+          "width": 4068,
+          "height": 2717
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 7676196126912,
+      "title": "Aventura Arróz con Leche",
+      "handle": "aventura-arroz-con-leche",
+      "body_html": "<p><span><strong>Product Description</strong><br><br>Our trail-ready take on traditional arroz con leche. Made with coconut milk, strawberries, chia, and cinnamon, this lightweight backpacking dessert doubles as a delicious outdoor breakfast.</span></p>\n<p><span>Lightweight, packable, and easy to make — just add water and enjoy wherever the trail takes you.</span></p>\n<p>Single Serving | Vegan | 450 Cal | 7g Protein | 3.5 oz<br><br></p>\n<p><meta charset=\"utf-8\"><strong>CALIFORNIA PROPOSITION 65 WARNING:</strong> Can expose you to arsenic, a carcinogen and reproductive toxicant. See www.p65warnings.ca.gov/food</p>",
+      "published_at": "2025-04-13T22:00:02-07:00",
+      "created_at": "2024-01-02T12:26:51-08:00",
+      "updated_at": "2026-08-10T18:05:03-07:00",
+      "vendor": "Itacate Foods",
+      "product_type": "Backpacking Food",
+      "tags": ["breakfast", "dessert", "meal", "vegan", "vegaterian"],
+      "variants": [
+        {
+          "id": 46290682020032,
+          "title": "1ct",
+          "option1": "1ct",
+          "option2": null,
+          "option3": null,
+          "sku": "FDS01S",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 37151934120128,
+            "product_id": 7676196126912,
+            "position": 3,
+            "created_at": "2024-02-07T20:18:48-08:00",
+            "updated_at": "2026-03-24T11:04:02-07:00",
+            "alt": "Arroz con leche backpacking pouch resting on a rock on the mountain",
+            "width": 3500,
+            "height": 3500,
+            "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Itacate_Foods_Aventura_Arroz_con_leche.jpg?v=1774375442",
+            "variant_ids": [46290682020032]
+          },
+          "available": true,
+          "price": "7.95",
+          "grams": 108,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7676196126912,
+          "created_at": "2025-04-13T21:19:41-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 54564576592064,
+          "created_at": "2026-05-10T12:06:50-07:00",
+          "position": 1,
+          "updated_at": "2026-05-10T12:15:35-07:00",
+          "product_id": 7676196126912,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Arroz_Con_Leche_Front_package.jpg?v=1778440535",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 54564576624832,
+          "created_at": "2026-05-10T12:06:50-07:00",
+          "position": 2,
+          "updated_at": "2026-05-10T12:16:22-07:00",
+          "product_id": 7676196126912,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Aventura_Arroz_Con_Leche_on_the_trail_front.jpg?v=1778440582",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 37151934120128,
+          "created_at": "2024-02-07T20:18:48-08:00",
+          "position": 3,
+          "updated_at": "2026-03-24T11:04:02-07:00",
+          "product_id": 7676196126912,
+          "variant_ids": [46290682020032],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Itacate_Foods_Aventura_Arroz_con_leche.jpg?v=1774375442",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 37059125838016,
+          "created_at": "2024-01-21T15:12:11-08:00",
+          "position": 4,
+          "updated_at": "2026-03-24T11:04:02-07:00",
+          "product_id": 7676196126912,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/arroz_con_leche_in_action.jpg?v=1774375442",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 37059125805248,
+          "created_at": "2024-01-21T15:12:11-08:00",
+          "position": 5,
+          "updated_at": "2026-03-24T11:04:02-07:00",
+          "product_id": 7676196126912,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/backpacking.jpg?v=1774375442",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 37059133472960,
+          "created_at": "2024-01-21T15:13:27-08:00",
+          "position": 6,
+          "updated_at": "2026-02-02T20:20:16-08:00",
+          "product_id": 7676196126912,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Itacate_Foods_ArrozConLecheBack.jpg?v=1770092416",
+          "width": 3500,
+          "height": 3500
+        }
+      ],
+      "options": [
+        {
+          "name": "quantity",
+          "position": 1,
+          "values": ["1ct"]
+        }
+      ]
+    },
+    {
+      "id": 7388354150592,
+      "title": "Itacate Gift Card",
+      "handle": "itacate-gift-card",
+      "body_html": "Give the gift of delicious Latin backcountry meals!",
+      "published_at": "2022-11-11T09:23:33-08:00",
+      "created_at": "2022-10-25T14:44:03-07:00",
+      "updated_at": "2026-08-10T18:05:03-07:00",
+      "vendor": "Itacate Foods",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {
+          "id": 43253559525568,
+          "title": "$10.00",
+          "option1": "$10.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "10.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7388354150592,
+          "created_at": "2022-10-25T14:44:03-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        },
+        {
+          "id": 43253559558336,
+          "title": "$25.00",
+          "option1": "$25.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "25.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 7388354150592,
+          "created_at": "2022-10-25T14:44:03-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        },
+        {
+          "id": 43253559591104,
+          "title": "$50.00",
+          "option1": "$50.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "50.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 7388354150592,
+          "created_at": "2022-10-25T14:44:03-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        },
+        {
+          "id": 43253559623872,
+          "title": "$100.00",
+          "option1": "$100.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "100.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 7388354150592,
+          "created_at": "2022-10-25T14:44:03-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 35379667861696,
+          "created_at": "2022-11-09T14:27:23-08:00",
+          "position": 1,
+          "updated_at": "2022-11-09T14:27:24-08:00",
+          "product_id": 7388354150592,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/products/Itacate_GiftCard_8_87a9ee97-665b-4049-bf25-9e59eb72c61b.jpg?v=1668032844",
+          "width": 1080,
+          "height": 680
+        }
+      ],
+      "options": [
+        {
+          "name": "Denominations",
+          "position": 1,
+          "values": ["$10.00", "$25.00", "$50.00", "$100.00"]
+        }
+      ]
+    },
+    {
+      "id": 9999999999999,
+      "title": "Discontinued Test Meal",
+      "handle": "discontinued-out-of-stock-meal",
+      "body_html": "<p><strong><span data-contrast=\"none\">Product Description</span><span data-ccp-props='{\"201341983\":0,\"335559685\":0,\"335559738\":40,\"335559739\":0,\"335559740\":259}'> </span></strong></p>\n<p><meta charset=\"utf-8\"><span>A flavorful backpacking breakfast inspired by traditional and classic Mexican green chilaquiles. Tortilla chips smothered in spicy tomatillo salsa and topped with beans, egg, and panela cheese creates a comforting and energizing camp meal any time of day.</span></p>\n<p><span data-contrast=\"none\"><meta charset=\"utf-8\"> <span>Single Serving | Spice Level: Medium | Vegetarian | 490 Cal | 17g Protein | 3.5 oz</span><br><br><meta charset=\"utf-8\"> <strong>CALIFORNIA PROPOSITION 65 WARNING:</strong><span> Can expose you to arsenic, a carcinogen and reproductive toxicant. See www.p65warnings.ca.gov/food</span><br></span></p>",
+      "published_at": "2026-03-23T22:40:27-07:00",
+      "created_at": "2022-06-30T16:40:20-07:00",
+      "updated_at": "2026-08-10T18:05:03-07:00",
+      "vendor": "Itacate Foods",
+      "product_type": "Backpacking Food",
+      "tags": ["breakfast", "dinner", "lunch", "meal", "Mexican", "vegaterian"],
+      "variants": [
+        {
+          "id": 9999999999998,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "FML01S",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "13.95",
+          "grams": 108,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9999999999999,
+          "created_at": "2022-06-30T16:40:20-07:00",
+          "updated_at": "2026-08-10T18:05:03-07:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 41028071981248,
+          "created_at": "2024-11-25T20:07:53-08:00",
+          "position": 1,
+          "updated_at": "2024-11-25T20:07:54-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Untitled_design_1.jpg?v=1732594074",
+          "width": 1400,
+          "height": 1400
+        },
+        {
+          "id": 36886706684096,
+          "created_at": "2023-12-02T19:11:18-08:00",
+          "position": 2,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/5.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36886704128192,
+          "created_at": "2023-12-02T19:10:16-08:00",
+          "position": 3,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/4.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36886706651328,
+          "created_at": "2023-12-02T19:11:01-08:00",
+          "position": 4,
+          "updated_at": "2024-01-18T11:43:39-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/11.jpg?v=1705607019",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 36928608108736,
+          "created_at": "2023-12-14T20:32:55-08:00",
+          "position": 5,
+          "updated_at": "2023-12-14T20:33:00-08:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/Charge-UpChilaquiles_Back.jpg?v=1702614780",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 45555981549760,
+          "created_at": "2025-07-28T12:19:58-07:00",
+          "position": 6,
+          "updated_at": "2025-07-28T12:20:01-07:00",
+          "product_id": 7301795578048,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0578/2385/4784/files/ITA_DSC1960.jpg?v=1753730401",
+          "width": 4068,
+          "height": 2717
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    }
+  ]
+}
