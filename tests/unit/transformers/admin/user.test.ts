@@ -62,7 +62,9 @@ describe("transformWithCounts", () => {
   it("returns the expected shape", () => {
     const user = make("User");
 
-    expect(transformWithCounts({ ...user, _count: ZERO_COUNTS })).toEqual({
+    expect(
+      transformWithCounts({ ...user, _count: ZERO_COUNTS, twoFactors: [] }),
+    ).toEqual({
       id: user.id,
       banExpires: user.banExpires,
       banReason: user.banReason,
@@ -80,6 +82,10 @@ describe("transformWithCounts", () => {
         packingLists: 0,
         activeSessions: 0,
       },
+      mfa: {
+        enabled: false,
+        enrolledAt: null,
+      },
     });
   });
 
@@ -95,6 +101,7 @@ describe("transformWithCounts", () => {
           packingLists: 21,
           sessions: 2,
         },
+        twoFactors: [],
       }),
     ).toMatchObject({
       counts: {
@@ -103,6 +110,47 @@ describe("transformWithCounts", () => {
         packingLists: 21,
         activeSessions: 2,
       },
+    });
+  });
+
+  it("reports mfa as disabled with no enrollment date when the user has never enrolled", () => {
+    const user = make("User", { twoFactorEnabled: false });
+
+    expect(
+      transformWithCounts({ ...user, _count: ZERO_COUNTS, twoFactors: [] }),
+    ).toMatchObject({
+      mfa: { enabled: false, enrolledAt: null },
+    });
+  });
+
+  it("reports the verified two-factor record's createdAt as the enrollment date", () => {
+    const user = make("User", { twoFactorEnabled: true });
+    const enrolledAt = new Date("2024-03-01T00:00:00Z");
+
+    expect(
+      transformWithCounts({
+        ...user,
+        _count: ZERO_COUNTS,
+        twoFactors: [{ createdAt: enrolledAt, verified: true }],
+      }),
+    ).toMatchObject({
+      mfa: { enabled: true, enrolledAt },
+    });
+  });
+
+  it("ignores an unverified two-factor record left over from an abandoned enrollment", () => {
+    const user = make("User", { twoFactorEnabled: false });
+
+    expect(
+      transformWithCounts({
+        ...user,
+        _count: ZERO_COUNTS,
+        twoFactors: [
+          { createdAt: new Date("2024-03-01T00:00:00Z"), verified: false },
+        ],
+      }),
+    ).toMatchObject({
+      mfa: { enabled: false, enrolledAt: null },
     });
   });
 });

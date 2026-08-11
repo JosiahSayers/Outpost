@@ -7,6 +7,11 @@ export interface AdminUserCounts {
   activeSessions: number;
 }
 
+export interface AdminUserMfa {
+  enabled: boolean;
+  enrolledAt: Date | null;
+}
+
 type ClientAdminUserFields = Pick<
   User,
   | "id"
@@ -26,6 +31,7 @@ export type ClientAdminUser = ClientAdminUserFields;
 
 export type ClientAdminUserWithCounts = ClientAdminUserFields & {
   counts: AdminUserCounts;
+  mfa: AdminUserMfa;
 };
 
 interface UserWithCounts extends User {
@@ -35,6 +41,7 @@ interface UserWithCounts extends User {
     packingLists: number;
     sessions: number;
   };
+  twoFactors: Array<{ createdAt: Date; verified: boolean }>;
 }
 
 function transformFields(item: User): ClientAdminUserFields {
@@ -57,6 +64,15 @@ export function transform(item: User): ClientAdminUser {
   return transformFields(item);
 }
 
+function transformMfa(item: UserWithCounts): AdminUserMfa {
+  const verifiedTwoFactor = item.twoFactors.find((tf) => tf.verified);
+
+  return {
+    enabled: !!item.twoFactorEnabled,
+    enrolledAt: verifiedTwoFactor?.createdAt ?? null,
+  };
+}
+
 export function transformWithCounts(
   item: UserWithCounts,
 ): ClientAdminUserWithCounts {
@@ -68,5 +84,6 @@ export function transformWithCounts(
       packingLists: item._count.packingLists,
       activeSessions: item._count.sessions,
     },
+    mfa: transformMfa(item),
   };
 }

@@ -1,5 +1,6 @@
 import ToolCard from "$/frontend/admin/overview/tool-card";
 import { formatJoinedDate } from "$/frontend/admin/user-search/format-date";
+import MfaBadge from "$/frontend/admin/user-search/mfa-badge";
 import { adminActions } from "$/frontend/admin/user-search/user-detail-panel/admin-actions";
 import StatTile from "$/frontend/admin/user-search/user-detail-panel/stat-tile";
 import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
@@ -36,9 +37,16 @@ export default function UserDetailPanel({ user }: UserDetailPanelProps) {
           </Group>
           <Group gap={6} mt={2}>
             <UserStatusBadge user={user} />
+            <MfaBadge user={user} />
           </Group>
           <Text size="xs" c="dimmed" mt={4}>
             Joined {formatJoinedDate(user.createdAt)}
+            {user.mfa.enrolledAt && (
+              <>
+                {" "}
+                &middot; MFA enrolled {formatJoinedDate(user.mfa.enrolledAt)}
+              </>
+            )}
           </Text>
         </Stack>
       </Group>

@@ -44,6 +44,11 @@ adminUserRouter.get(
               sessions: { where: { expiresAt: { gt: new Date() } } },
             },
           },
+          twoFactors: {
+            select: { createdAt: true, verified: true },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
         },
       }),
       db.user.count({ where }),

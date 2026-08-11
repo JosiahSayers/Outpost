@@ -43,6 +43,10 @@ function makeUser(
       packingLists: 21,
       activeSessions: 2,
     },
+    mfa: {
+      enabled: false,
+      enrolledAt: null,
+    },
     ...overrides,
   };
 }

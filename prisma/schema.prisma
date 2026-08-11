@@ -109,6 +109,7 @@ model TwoFactor {
   verified                Boolean   @default(false)
   failedVerificationCount Int       @default(0)
   lockedUntil             DateTime?
+  createdAt               DateTime  @default(now())
 
   @@index([userId])
   @@map("two_factor")

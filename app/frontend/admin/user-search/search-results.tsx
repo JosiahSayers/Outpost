@@ -1,3 +1,4 @@
+import MfaBadge from "$/frontend/admin/user-search/mfa-badge";
 import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
 import { formatJoinedDate } from "$/frontend/admin/user-search/format-date";
 import { getInitials } from "$/frontend/utils/get-initials";
@@ -35,6 +36,7 @@ export default function SearchResults({
             <Table.Tr>
               <Table.Th>User</Table.Th>
               <Table.Th>Status</Table.Th>
+              <Table.Th>MFA</Table.Th>
               <Table.Th>Joined</Table.Th>
               <Table.Th>Activity</Table.Th>
               <Table.Th />
@@ -70,6 +72,9 @@ export default function SearchResults({
                 </Table.Td>
                 <Table.Td>
                   <UserStatusBadge user={user} />
+                </Table.Td>
+                <Table.Td>
+                  <MfaBadge user={user} />
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">{formatJoinedDate(user.createdAt)}</Text>
@@ -116,7 +121,10 @@ export default function SearchResults({
                     {user.email}
                   </Text>
                 </div>
-                <UserStatusBadge user={user} />
+                <Group gap={4} wrap="nowrap">
+                  <UserStatusBadge user={user} />
+                  <MfaBadge user={user} />
+                </Group>
               </Group>
               <Group gap={8} mt={6}>
                 <Text size="xs" c="dimmed">
