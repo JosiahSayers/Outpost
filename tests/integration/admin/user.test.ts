@@ -86,6 +86,10 @@ describe("GET /", () => {
           packingLists: 0,
           activeSessions: 0,
         },
+        mfa: {
+          enabled: false,
+          enrolledAt: null,
+        },
       },
     ]);
     expect(response.body.total).toBe(1);
@@ -240,6 +244,86 @@ describe("GET /", () => {
       expect.objectContaining({
         id: match.id,
         counts: expect.objectContaining({ activeSessions: 1 }),
+      }),
+    ]);
+  });
+
+  it("reports mfa as disabled for a user who has never enrolled", async () => {
+    const match = await db.user.create({
+      data: make("User", {
+        name: "Zzyzx Mfa Never Enrolled",
+        twoFactorEnabled: false,
+      }),
+    });
+    createdUserIds.push(match.id);
+
+    const response = await request(app)
+      .get("/admin/users")
+      .query({ search: "zzyzx mfa never enrolled" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.users).toEqual([
+      expect.objectContaining({
+        id: match.id,
+        mfa: { enabled: false, enrolledAt: null },
+      }),
+    ]);
+  });
+
+  it("reports mfa as enabled with the enrollment date for an enrolled user", async () => {
+    const match = await db.user.create({
+      data: make("User", {
+        name: "Zzyzx Mfa Enrolled",
+        twoFactorEnabled: true,
+      }),
+    });
+    createdUserIds.push(match.id);
+    const enrolledAt = new Date("2024-05-01T00:00:00Z");
+    await db.twoFactor.create({
+      data: make("TwoFactor", {
+        userId: match.id,
+        verified: true,
+        createdAt: enrolledAt,
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/users")
+      .query({ search: "zzyzx mfa enrolled" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.users).toEqual([
+      expect.objectContaining({
+        id: match.id,
+        mfa: { enabled: true, enrolledAt: enrolledAt.toISOString() },
+      }),
+    ]);
+  });
+
+  it("ignores an unverified two-factor record left over from an abandoned enrollment", async () => {
+    const match = await db.user.create({
+      data: make("User", {
+        name: "Zzyzx Mfa Abandoned",
+        twoFactorEnabled: false,
+      }),
+    });
+    createdUserIds.push(match.id);
+    await db.twoFactor.create({
+      data: make("TwoFactor", { userId: match.id, verified: false }),
+    });
+
+    const response = await request(app)
+      .get("/admin/users")
+      .query({ search: "zzyzx mfa abandoned" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.users).toEqual([
+      expect.objectContaining({
+        id: match.id,
+        mfa: { enabled: false, enrolledAt: null },
       }),
     ]);
   });

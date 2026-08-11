@@ -26,6 +26,10 @@ function makeUser(
       packingLists: 21,
       activeSessions: 2,
     },
+    mfa: {
+      enabled: false,
+      enrolledAt: null,
+    },
     ...overrides,
   };
 }
@@ -53,6 +57,29 @@ describe("account header", () => {
   it("shows a Verified badge for a verified, unbanned user", () => {
     renderPanel(makeUser({ emailVerified: true, banned: false }));
     expect(screen.getByText("Verified")).toBeInTheDocument();
+  });
+});
+
+describe("mfa status", () => {
+  it("shows an MFA badge and the enrollment date for an enrolled user", () => {
+    renderPanel(
+      makeUser({
+        mfa: {
+          enabled: true,
+          enrolledAt: new Date("2023-02-14T00:00:00Z"),
+        },
+      }),
+    );
+
+    expect(screen.getByText("MFA")).toBeInTheDocument();
+    expect(screen.getByText(/MFA enrolled/)).toBeInTheDocument();
+  });
+
+  it("shows a No MFA badge and no enrollment date for a user who hasn't enrolled", () => {
+    renderPanel(makeUser({ mfa: { enabled: false, enrolledAt: null } }));
+
+    expect(screen.getByText("No MFA")).toBeInTheDocument();
+    expect(screen.queryByText(/MFA enrolled/)).not.toBeInTheDocument();
   });
 });
 
