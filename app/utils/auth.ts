@@ -4,9 +4,10 @@ import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
-import { admin } from "better-auth/plugins";
+import { admin, twoFactor } from "better-auth/plugins";
 
 export const baseAuthConfig = {
+  appName: "Outpost",
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
@@ -47,7 +48,7 @@ export const baseAuthConfig = {
         process.env.NODE_ENV === "production" ? ["172.16.0.0/12"] : [],
     },
   },
-  plugins: [admin()],
+  plugins: [admin(), twoFactor()],
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/change-password") {
