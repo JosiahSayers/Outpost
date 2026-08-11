@@ -51,9 +51,9 @@ describe("shouldSkip", () => {
     expect(shouldSkip(findProduct("nomad-nutrition-gift-card"))).toBe(true);
   });
 
-  it("skips a product whose only variant is unavailable", () => {
+  it("includes a meal whose only variant is out of stock, since a user may already own it or source it elsewhere", () => {
     expect(shouldSkip(findProduct("discontinued-out-of-stock-meal"))).toBe(
-      true,
+      false,
     );
   });
 });

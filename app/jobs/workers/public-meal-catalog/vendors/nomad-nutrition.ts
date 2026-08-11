@@ -37,14 +37,15 @@ export interface NomadNutritionProduct extends Omit<
   variants: NomadNutritionVariant[];
 }
 
+// Deliberately doesn't exclude a meal just because every variant is
+// currently unavailable on Nomad Nutrition's own site -- a user may already
+// own it from a prior restock, or be able to source it elsewhere, so it
+// stays importable rather than disappearing from the catalog while sold out.
 export function shouldSkip(product: NomadNutritionProduct): boolean {
   if (product.product_type !== INCLUDED_PRODUCT_TYPE) {
     return true;
   }
-  if (BUNDLE_TITLE_PATTERN.test(product.title)) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return BUNDLE_TITLE_PATTERN.test(product.title);
 }
 
 // Every single-meal product on the site has exactly one variant (there's no

@@ -73,8 +73,8 @@ describe("shouldSkip", () => {
     expect(shouldSkip(findProduct("maple-pecan-trail-cookies"))).toBe(false);
   });
 
-  it("skips a product whose only variant is unavailable", () => {
-    expect(shouldSkip(findProduct("monster-trail-cookies"))).toBe(true);
+  it("includes a Snack whose only variant is out of stock, since a user may already own it or source it elsewhere", () => {
+    expect(shouldSkip(findProduct("monster-trail-cookies"))).toBe(false);
   });
 
   it("skips a variety pack by title even though it's in stock and Meal-typed", () => {

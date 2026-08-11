@@ -25,11 +25,12 @@ export interface MountainHouseProduct extends ShopifyProduct {
   html: string;
 }
 
+// Deliberately doesn't exclude a product just because every variant is
+// currently unavailable on Mountain House's own site -- a user may already
+// own it from a prior restock, or be able to source it elsewhere, so it
+// stays importable rather than disappearing from the catalog while sold out.
 export function shouldSkip(product: ShopifyProduct): boolean {
-  if (product.tags.some((tag) => EXCLUDED_TAGS.has(tag))) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return product.tags.some((tag) => EXCLUDED_TAGS.has(tag));
 }
 
 // Nutrition facts (calories, serving size/weight) only exist on the product
@@ -98,11 +99,10 @@ export function parseProduct(
   };
 }
 
-// Unlike Peak Refuel, the fields needed to decide inclusion
-// (product_type/tags/availability) are already in the products.json feed, so
-// filtering happens before fetching each product's detail page -- fetching
-// all ~110 listings just to discard more than half of them for their
-// nutrition panel would be pure waste.
+// Unlike Peak Refuel, the fields needed to decide inclusion (tags) are
+// already in the products.json feed, so filtering happens before fetching
+// each product's detail page -- fetching all ~110 listings just to discard
+// more than half of them for their nutrition panel would be pure waste.
 export async function fetchProducts(
   fetchImpl: typeof fetch = fetch,
 ): Promise<MountainHouseProduct[]> {

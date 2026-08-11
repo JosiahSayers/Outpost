@@ -187,8 +187,8 @@ describe("shouldSkip", () => {
     expect(shouldSkip(inStockProduct)).toBe(false);
   });
 
-  it("skips a product whose og:availability meta tag reports oos", () => {
-    expect(shouldSkip(outOfStockProduct)).toBe(true);
+  it("includes a product whose og:availability meta tag reports oos, since a user may already own it or source it elsewhere", () => {
+    expect(shouldSkip(outOfStockProduct)).toBe(false);
   });
 });
 

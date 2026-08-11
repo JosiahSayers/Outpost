@@ -28,11 +28,12 @@ export interface ItacateProduct extends Omit<ShopifyProduct, "variants"> {
   variants: ItacateVariant[];
 }
 
+// Deliberately doesn't exclude a meal just because every variant is
+// currently unavailable on Itacate's own site -- a user may already own it
+// from a prior restock, or be able to source it elsewhere, so it stays
+// importable rather than disappearing from the catalog while sold out.
 export function shouldSkip(product: ItacateProduct): boolean {
-  if (product.product_type !== INCLUDED_PRODUCT_TYPE) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return product.product_type !== INCLUDED_PRODUCT_TYPE;
 }
 
 // Every meal states its nutrition facts as a single pipe-delimited line in

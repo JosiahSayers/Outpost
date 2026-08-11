@@ -44,14 +44,15 @@ export interface GoodToGoProduct extends Omit<ShopifyProduct, "variants"> {
   variants: GoodToGoVariant[];
 }
 
+// Deliberately doesn't exclude a product just because every variant is
+// currently unavailable on Good To-Go's own site -- a user may already own
+// it from a prior restock, or be able to source it elsewhere, so it stays
+// importable rather than disappearing from the catalog while sold out.
 export function shouldSkip(product: GoodToGoProduct): boolean {
   if (!ALLOWED_PRODUCT_TYPES.has(product.product_type)) {
     return true;
   }
-  if (VARIETY_TITLE_PATTERN.test(product.title)) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return VARIETY_TITLE_PATTERN.test(product.title);
 }
 
 function stripHtml(html: string): string {
