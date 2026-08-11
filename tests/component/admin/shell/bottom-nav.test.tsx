@@ -64,8 +64,9 @@ describe("the More drawer", () => {
       "data-disabled",
       "true",
     );
-    expect(
-      screen.getByRole("link", { name: /Feature Flags/ }),
-    ).toHaveAttribute("data-disabled", "true");
+    expect(screen.getByRole("link", { name: /Feature Flags/ })).toHaveAttribute(
+      "data-disabled",
+      "true",
+    );
   });
 });
