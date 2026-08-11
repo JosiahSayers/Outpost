@@ -30,3 +30,28 @@ it("labels the not-yet-built tools as Soon and leaves shipped tools unbadged", (
   expect(screen.queryByText("Up next")).not.toBeInTheDocument();
   expect(screen.getAllByText("Soon").length).toBe(3);
 });
+
+it("groups tools with a section under a Support or System heading", () => {
+  render(
+    <MantineProvider>
+      <ToolGrid />
+    </MantineProvider>,
+  );
+
+  expect(screen.getByText("Support")).toBeInTheDocument();
+  expect(screen.getByText("System")).toBeInTheDocument();
+});
+
+it("renders the sectionless tool ahead of the grouped sections", () => {
+  render(
+    <MantineProvider>
+      <ToolGrid />
+    </MantineProvider>,
+  );
+
+  const position = (text: string) =>
+    screen.getByText(text).compareDocumentPosition(screen.getByText("Support"));
+
+  // DOCUMENT_POSITION_FOLLOWING (4) means "Support" comes after the given node.
+  expect(position("User Search") & Node.DOCUMENT_POSITION_FOLLOWING).toBe(4);
+});

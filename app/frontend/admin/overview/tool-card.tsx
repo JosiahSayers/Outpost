@@ -1,17 +1,24 @@
 import type { AdminNavItem } from "$/frontend/admin/shell/nav-items";
 import { Anchor, Badge, Card, Group, Text, ThemeIcon } from "@mantine/core";
 import { useHover } from "@mantine/hooks";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "wouter";
 
 interface ToolCardProps {
   tool: AdminNavItem;
   isPrimary: boolean;
+  variant?: "grid" | "hero";
 }
 
-export default function ToolCard({ tool, isPrimary }: ToolCardProps) {
+export default function ToolCard({
+  tool,
+  isPrimary,
+  variant = "grid",
+}: ToolCardProps) {
   const { hovered, ref } = useHover<HTMLDivElement>();
   const Icon = tool.icon;
   const accentColor = isPrimary ? "trail-green" : "stone-gray";
+  const isHero = variant === "hero";
 
   const card = (
     <Card
@@ -20,6 +27,9 @@ export default function ToolCard({ tool, isPrimary }: ToolCardProps) {
       padding="lg"
       style={{
         opacity: tool.comingSoon ? 0.8 : 1,
+        backgroundColor: isHero
+          ? `var(--mantine-color-${accentColor}-0)`
+          : undefined,
         borderColor: hovered
           ? `var(--mantine-color-${accentColor}-4)`
           : undefined,
@@ -30,23 +40,54 @@ export default function ToolCard({ tool, isPrimary }: ToolCardProps) {
         cursor: tool.comingSoon ? "not-allowed" : "pointer",
       }}
     >
-      <Group justify="space-between" align="flex-start" mb="xs">
-        <ThemeIcon size={34} radius="sm" variant="light" color={accentColor}>
-          <Icon size={18} />
-        </ThemeIcon>
-        {tool.comingSoon && (
-          <Badge color={accentColor} variant="light" size="xs">
-            {isPrimary ? "Up next" : "Soon"}
-          </Badge>
-        )}
-      </Group>
+      {isHero ? (
+        <Group wrap="nowrap" gap="md">
+          <ThemeIcon size={40} radius="sm" variant="light" color={accentColor}>
+            <Icon size={20} />
+          </ThemeIcon>
+          <div style={{ flex: 1 }}>
+            <Text fw={700} size="sm" mb={2}>
+              {tool.label}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {tool.description}
+            </Text>
+          </div>
+          <ThemeIcon variant="transparent" color={accentColor} size={16}>
+            <ArrowRightIcon size={16} />
+          </ThemeIcon>
+        </Group>
+      ) : (
+        <>
+          <Group justify="space-between" align="flex-start" mb="xs">
+            <ThemeIcon
+              size={34}
+              radius="sm"
+              variant="light"
+              color={accentColor}
+            >
+              <Icon size={18} />
+            </ThemeIcon>
+            {tool.comingSoon && (
+              <Badge color={accentColor} variant="light" size="xs">
+                {isPrimary ? "Up next" : "Soon"}
+              </Badge>
+            )}
+          </Group>
 
-      <Text fw={700} size="sm" mb={4}>
-        {tool.label}
-      </Text>
-      <Text size="xs" c="dimmed">
-        {tool.description}
-      </Text>
+          <Text
+            fw={700}
+            size="sm"
+            mb={4}
+            c={tool.comingSoon ? "dimmed" : undefined}
+          >
+            {tool.label}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {tool.description}
+          </Text>
+        </>
+      )}
     </Card>
   );
 

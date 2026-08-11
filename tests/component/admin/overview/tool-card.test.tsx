@@ -14,11 +14,15 @@ const baseTool: AdminNavItem = {
   description: "Look up any account by name or email.",
 };
 
-function renderComponent(tool: AdminNavItem, isPrimary: boolean) {
+function renderComponent(
+  tool: AdminNavItem,
+  isPrimary: boolean,
+  variant?: "grid" | "hero",
+) {
   render(
     <Router hook={() => ["/console", () => {}]}>
       <MantineProvider>
-        <ToolCard tool={tool} isPrimary={isPrimary} />
+        <ToolCard tool={tool} isPrimary={isPrimary} variant={variant} />
       </MantineProvider>
     </Router>,
   );
@@ -90,6 +94,24 @@ describe("ToolCard", () => {
     it("links to the external href", () => {
       const anchor = screen.getByText("User Search").closest("a");
       expect(anchor).toHaveAttribute("href", "/admin/queues");
+    });
+  });
+
+  describe("when rendered as the hero variant", () => {
+    beforeEach(() =>
+      renderComponent({ ...baseTool, comingSoon: false }, true, "hero"),
+    );
+
+    it("renders the label and description", () => {
+      expect(screen.getByText("User Search")).toBeInTheDocument();
+      expect(
+        screen.getByText("Look up any account by name or email."),
+      ).toBeInTheDocument();
+    });
+
+    it("links to the tool's href", () => {
+      const anchor = screen.getByText("User Search").closest("a");
+      expect(anchor).toHaveAttribute("href", "/console/users");
     });
   });
 });

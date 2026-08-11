@@ -29,7 +29,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/console/users",
     icon: MagnifyingGlassIcon,
     description:
-      "Look up any account by name or email — the entry point for impersonation, resets, and sessions.",
+      "Look up any account by name or email. Impersonation, resets, and sessions live here.",
   },
   {
     label: "Feedback",
