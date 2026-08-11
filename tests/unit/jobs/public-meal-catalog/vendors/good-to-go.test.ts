@@ -69,9 +69,9 @@ describe("parseDryWeightGrams", () => {
 
   it("returns null when there's no 'Each' variant", () => {
     // pasta-marinara-cup's only variant is an "8-Pack" -- confirmed live,
-    // this is an out-of-stock legacy SKU that fetchProducts filters out
-    // before ever calling parseProduct, but the parse function itself
-    // should still degrade to null rather than picking the pack's weight.
+    // an out-of-stock legacy SKU that's still imported (out-of-stock no
+    // longer filters a product out), so the parse function itself needs to
+    // degrade to null rather than picking the pack's weight.
     expect(parseDryWeightGrams(findProduct("pasta-marinara-cup"))).toBeNull();
   });
 });
@@ -97,8 +97,8 @@ describe("shouldSkip", () => {
     expect(shouldSkip(findProduct("variety-6-pack-of-cups"))).toBe(true);
   });
 
-  it("skips a product whose only variant is unavailable", () => {
-    expect(shouldSkip(findProduct("pasta-marinara-cup"))).toBe(true);
+  it("includes a product whose only variant is out of stock, since a user may already own it or source it elsewhere", () => {
+    expect(shouldSkip(findProduct("pasta-marinara-cup"))).toBe(false);
   });
 });
 

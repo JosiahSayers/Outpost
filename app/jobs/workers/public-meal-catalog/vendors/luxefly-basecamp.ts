@@ -44,6 +44,10 @@ export interface LuxeflyBasecampProduct extends Omit<
   variants: LuxeflyBasecampVariant[];
 }
 
+// Deliberately doesn't exclude a meal just because every variant is
+// currently unavailable on Luxefly Basecamp's own site -- a user may already
+// own it from a prior restock, or be able to source it elsewhere, so it
+// stays importable rather than disappearing from the catalog while sold out.
 export function shouldSkip(product: LuxeflyBasecampProduct): boolean {
   if (product.tags.some((tag) => EXCLUDED_TAGS.has(tag))) {
     return true;
@@ -51,10 +55,7 @@ export function shouldSkip(product: LuxeflyBasecampProduct): boolean {
   if (SUBSCRIPTION_TITLE_PATTERN.test(product.title)) {
     return true;
   }
-  if (product.variants.every((variant) => !variant.requires_shipping)) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return product.variants.every((variant) => !variant.requires_shipping);
 }
 
 // Meals offering both an "individual" and a "serves 2" size are still a

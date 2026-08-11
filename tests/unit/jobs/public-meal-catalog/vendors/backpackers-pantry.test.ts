@@ -107,8 +107,8 @@ describe("shouldSkip", () => {
     ).toBe(true);
   });
 
-  it("skips a product whose only variant is unavailable", () => {
-    expect(shouldSkip(findListingProduct("blueberry-peach-crisp"))).toBe(true);
+  it("includes a Food item whose only variant is out of stock, since a user may already own it or source it elsewhere", () => {
+    expect(shouldSkip(findListingProduct("blueberry-peach-crisp"))).toBe(false);
   });
 });
 
@@ -163,7 +163,7 @@ describe("parseProduct", () => {
 });
 
 describe("fetchProducts", () => {
-  it("filters by product type/tag/availability before fetching detail pages, then parses only the survivors", async () => {
+  it("filters by product type/tag before fetching detail pages, then parses only the survivors", async () => {
     const fetchImpl = mock(async (url: string) => {
       if (url.includes("/products.json")) {
         return new Response(JSON.stringify(fixture));
@@ -176,20 +176,26 @@ describe("fetchProducts", () => {
           loadHtml("product-freeze-dried-cinnamon-apples.html"),
         );
       }
+      if (url.includes("/products/blueberry-peach-crisp")) {
+        // Out of stock, but still a plain Food item -- reuses the pad-thai
+        // detail-page fixture since only the handle survives into the
+        // assertion below, not the parsed content.
+        return new Response(loadHtml("product-pad-thai.html"));
+      }
       throw new Error(`Unexpected fetch during test: ${url}`);
     });
 
     const result = await fetchProducts(fetchImpl as unknown as typeof fetch);
 
     expect(result.map((p) => p.handle).sort()).toEqual([
+      "blueberry-peach-crisp",
       "freeze-dried-cinnamon-apples",
       "pad-thai",
     ]);
     // 1 listing page (6 products < the 250 page size, so no second page) + a
-    // detail-page fetch for only the 2 survivors -- the gift card, gear,
-    // bundle, and out-of-stock fixture products must never trigger a
-    // request.
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    // detail-page fetch for only the 3 survivors -- the gift card, gear, and
+    // bundle fixture products must never trigger a request.
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 
   it("throws when products.json responds with a non-OK status", async () => {

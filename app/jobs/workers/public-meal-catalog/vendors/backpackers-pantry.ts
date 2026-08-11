@@ -27,14 +27,16 @@ export interface BackpackersPantryProduct extends ShopifyProduct {
   html: string;
 }
 
+// Deliberately doesn't exclude a product just because every variant is
+// currently unavailable on Backpacker's Pantry's own site -- a user may
+// already own it from a prior restock, or be able to source it elsewhere,
+// so it stays importable rather than disappearing from the catalog while
+// sold out.
 export function shouldSkip(product: ShopifyProduct): boolean {
   if (product.product_type !== INCLUDED_PRODUCT_TYPE) {
     return true;
   }
-  if (product.tags.includes(EXCLUDED_TAG)) {
-    return true;
-  }
-  return product.variants.every((variant) => !variant.available);
+  return product.tags.includes(EXCLUDED_TAG);
 }
 
 // Calories/weight are published as a plain bullet list right in the product

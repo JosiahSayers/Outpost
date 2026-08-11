@@ -1,0 +1,661 @@
+{
+  "products": [
+    {
+      "id": 4519065813103,
+      "title": "Orange Pecan Granola",
+      "handle": "alpen-fuel-orange-pecan-granola",
+      "body_html": "<p>When you are craving a simple meal loaded with flavor, reach for Orange Pecan Granola.\u00a0 Every small batch is infused with fresh orange zest and is loaded with hearty pecans to keep you energized for miles of adventure.\u00a0 A crowd favorite, this meal is sure to find a permanent place in your backpack.</p>\n<ul>\n<li>\n<strong>PREP</strong><span>\u00a0</span>- quick 5 minute prep with hot or cold water (contains powdered milk)<br>\n</li>\n<li>\n<strong>NUTRITION</strong><span>\u00a0</span>- gluten free, vegetarian, and low sodium</li>\n<li>\n<strong>INGREDIENTS</strong><span>\u00a0</span>- all natural, clean ingredients</li>\n<li>\n<strong>FUEL</strong><span>\u00a0</span>- endurance tailored nutrition\u00a0keeps you fueled\u00a0for 3-4 hours\u00a0with steady energy, no bloating or sugar crashes!</li>\n<li>\n<strong>CALORIES</strong><span>\u00a0</span>- 630</li>\n<li>\n<strong>PROTEIN -\u00a0</strong>18g</li>\n<li>\n<strong>WEIGHT</strong><span>\u00a0</span>- 4.4oz</li>\n<li>\n<strong>SHELF LIFE</strong><span>\u00a0</span>- 18 months</li>\n<li>\n<strong>SMALL BATCH</strong><span>\u00a0</span>- made\u00a0in small batches by a Montana owned small business</li>\n</ul>\n<p data-mce-fragment=\"1\"><strong data-mce-fragment=\"1\">How to make:</strong></p>\n<p data-mce-fragment=\"1\">Mix with 4-5oz of hot or cold water<br data-mce-fragment=\"1\">Stir thoroughly<br data-mce-fragment=\"1\">Wait 5 minutes and enjoy!</p>\n<p data-mce-fragment=\"1\"><strong>Ingredients:</strong> Granola (Organic Gluten Free Rolled Oats, Pecans, Organic Maple Syrup, Organic Coconut Oil, Brown Rice Crisps, Sugar, Salt, Orange Zest, Orange Extract, Cinnamon), Nonfat Powdered Milk<br><strong>Contains:</strong> Coconuts, Milk, Pecans</p>",
+      "published_at": "2026-01-07T22:22:59-07:00",
+      "created_at": "2020-08-05T14:02:57-06:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Angry Pika Food Co.",
+      "product_type": "Meal",
+      "tags": ["Faire", "meals"],
+      "variants": [
+        {
+          "id": 31929259720815,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "9.49",
+          "grams": 133,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 4519065813103,
+          "created_at": "2020-08-05T14:02:58-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 41322314530988,
+          "created_at": "2026-01-07T22:21:51-07:00",
+          "position": 1,
+          "updated_at": "2026-01-07T22:22:24-07:00",
+          "product_id": 4519065813103,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Orange_Pecan_front.png?v=1767849744",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 14650477772911,
+          "created_at": "2020-10-16T14:02:49-06:00",
+          "position": 2,
+          "updated_at": "2026-01-07T22:22:24-07:00",
+          "product_id": 4519065813103,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/DSC_0470.jpg?v=1767849744",
+          "width": 2918,
+          "height": 2918
+        },
+        {
+          "id": 41322314989740,
+          "created_at": "2026-01-07T22:22:02-07:00",
+          "position": 3,
+          "updated_at": "2026-01-07T22:22:24-07:00",
+          "product_id": 4519065813103,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Orange_Pecan_back.png?v=1767849744",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 14594052259951,
+          "created_at": "2020-09-25T16:17:43-06:00",
+          "position": 4,
+          "updated_at": "2026-01-07T22:22:24-07:00",
+          "product_id": 4519065813103,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/OrangePecan_Nutrition.png?v=1767849744",
+          "width": 250,
+          "height": 471
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 7764639449260,
+      "title": "Maple Pecan Trail Cookies",
+      "handle": "maple-pecan-trail-cookies",
+      "body_html": "<p><span></span><span>Angry Pika Trail Cookies are the only cookie custom made for life on the trail.\u00a0 </span>They are super durable, contain lots of fat and protein for sustained energy, and taste amazing!\u00a0 Unlike candy bars and granola bars,\u00a0our Trail Cookies can be easily eaten in both hot and below freezing temperatures.</p>\n<p>Maple Pecan Trail Cookies - A souped-up oatmeal cookie with pecans, coconut flakes, and a maple finish.\u00a0 Each 4.3oz pouch contains 8 cookies.</p>\n<ul>\n<li><span><strong>TASTE</strong><span>\u00a0</span>-\u00a0Our variety of flavors is a welcome relief\u00a0from the same old tired granola bars you have been eating for years.\u00a0 Plus, they are cookies.\u00a0 Everyone loves cookies.</span></li>\n<li>\n<strong>NUTRITION</strong><span>\u00a0</span>- Gluten free, vegan, and low sodium (only 4% DV sodium on average per serving).</li>\n<li>\n<strong>VERSATILITY</strong> - Is it a snack, dessert, or meal replacement?\u00a0 Perfect for your backpack, road trip, gym bag, or ski jacket pocket.</li>\n<li>\n<strong>DURABILITY\u00a0</strong>-\u00a0The opposite of a Hidden Valley granola bar, these babies are up for adventure.</li>\n<li>\n<strong>CALORIES</strong><span>\u00a0</span>- 640 calories per pouch!</li>\n<li>\n<strong>FUEL</strong><span>\u00a0</span>- Endurance tailored nutrition\u00a0keeps you fueled with steady energy, no bloating or sugar crashes!</li>\n<li>\n<strong>RESEALABLE POUCH\u00a0</strong>-\u00a0Keeps your backpack or jacket pocket free of crumbs.</li>\n<li>\n<strong>SHELF LIFE</strong><span>\u00a0</span>- 12 months</li>\n<li>\n<strong>SMALL BATCH</strong><span>\u00a0</span>- Made\u00a0in small batches by a Montana owned small business.</li>\n</ul>\n<p><strong>Ingredients</strong>:\u00a0\u00a0Organic Gluten Free Rolled Oats, Organic Maple Syrup, Gluten Free Flour (Rice Flour, Brown Rice Flour, Whole Sorghum Flour, Tapioca Starch, Potato Starch, Cellulose, Vitamin and Mineral Blend), Organic Coconut Oil, Almond Butter, Pecans, Coconut Flakes, Brown Rice Crisps, Vanilla, Xanthan Gum, Flax, Baking Powder, Cinnamon, Salt, Maple Extract<br>Contains: Almonds, Coconuts, Pecans</p>\n<p>\u00a0</p>",
+      "published_at": "2024-01-11T11:34:46-07:00",
+      "created_at": "2024-01-11T10:17:29-07:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Alpen Fuel",
+      "product_type": "Snack",
+      "tags": ["Faire"],
+      "variants": [
+        {
+          "id": 42971646263468,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "8.99",
+          "grams": 128,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7764639449260,
+          "created_at": "2024-01-11T10:17:29-07:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 38932957462700,
+          "created_at": "2025-04-17T16:21:24-06:00",
+          "position": 1,
+          "updated_at": "2026-02-08T14:03:23-07:00",
+          "product_id": 7764639449260,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Maple_Pecan_front.png?v=1770584603",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 38932957495468,
+          "created_at": "2025-04-17T16:21:24-06:00",
+          "position": 2,
+          "updated_at": "2026-02-08T14:03:23-07:00",
+          "product_id": 7764639449260,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Maple_Pecan_back.png?v=1770584603",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 36997079662764,
+          "created_at": "2024-06-26T15:30:03-06:00",
+          "position": 3,
+          "updated_at": "2026-02-08T14:03:23-07:00",
+          "product_id": 7764639449260,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/JJL02243_squarelowres.png?v=1770584603",
+          "width": 1168,
+          "height": 1168
+        },
+        {
+          "id": 43153200382124,
+          "created_at": "2026-07-06T21:57:21-06:00",
+          "position": 4,
+          "updated_at": "2026-07-06T21:57:23-06:00",
+          "product_id": 7764639449260,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Maple_Pecan_Open_4aec979c-1b16-4dc4-976d-a71f9751b144.png?v=1783396643",
+          "width": 1638,
+          "height": 1638
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 7764635091116,
+      "title": "Monster Trail Cookies",
+      "handle": "monster-trail-cookies",
+      "body_html": "<p><span></span><span>Angry Pika Trail Cookies are the only cookie custom made for life on the trail.\u00a0 </span>They are super durable, contain lots of fat and protein for sustained energy, and taste amazing!\u00a0 Unlike candy bars and granola bars,\u00a0our Trail Cookies can be easily eaten in both hot and below freezing temperatures.</p>\n<p>Monster Trail Cookies - A crowd favorite classic made with peanuts, mini M&amp;Ms, and chocolate chips. Each 4.3oz pouch contains 8 cookies.<br></p>\n<ul>\n<li><span><strong>TASTE</strong><span>\u00a0</span>-\u00a0Our variety of flavors is a welcome relief\u00a0from the same old tired granola bars you have been eating for years.\u00a0 Plus, they are cookies.\u00a0 Everyone loves cookies.</span></li>\n<li>\n<strong>NUTRITION</strong><span>\u00a0</span>- Gluten free, vegetarian, and low sodium (only 5% DV sodium per serving).</li>\n<li>\n<strong>VERSATILITY</strong> - Is it a snack, dessert, or meal replacement?\u00a0 Perfect for your backpack, road trip, gym bag, or ski jacket pocket.</li>\n<li>\n<strong>DURABILITY\u00a0</strong>-\u00a0The opposite of a Hidden Valley granola bar, these babies are up for adventure.</li>\n<li>\n<strong>CALORIES</strong><span>\u00a0</span>- 660\u00a0calories per pouch!</li>\n<li>\n<strong>FUEL</strong><span>\u00a0</span>- Endurance tailored nutrition\u00a0keeps you fueled with steady energy, no bloating or sugar crashes!</li>\n<li>\n<strong>RESEALABLE POUCH\u00a0</strong>-\u00a0Keeps your backpack or jacket pocket free of crumbs.</li>\n<li>\n<strong>SHELF LIFE</strong><span>\u00a0</span>- 12 months</li>\n<li>\n<strong>SMALL BATCH</strong><span>\u00a0</span>- Made\u00a0in small batches by a Montana owned small business.</li>\n</ul>\n<p><strong>Ingredients</strong>:\u00a0 Organic Gluten Free Rolled Oats, Organic Maple Syrup, Gluten Free Flour (Rice Flour, Brown Rice Flour, Whole Sorghum Flour, Tapioca Starch, Potato Starch, Cellulose, Vitamin and Mineral Blend), Organic Coconut Oil, Peanut Butter (Roasted Peanuts, Sugar, Hydrogenated Vegetable Oil), Peanuts, Semi-Sweet Chocolate (Sugar, Chocolate Liquor, Milkfat, Cocoa Butter, Soy Lecithin), M&amp;Ms (Milk Chocolate (Sugar, Chocolate, Skim Milk, Cocoa Butter, Milkfat, Lactose, Soy Lecithin, Salt, Artificial Flavors), Sugar, Cornstarch, Corn Syrup, Dextrin, FD&amp;C Blue 2 Lake, Blue 1 Lake, Yellow 5, Yellow 6, Yellow 6 Lake, Red 40, Red 40 Lake, Blue 1, Yellow 5 Lake, Blue 2), Carnauba Wax, Gum Acacia), Brown Rice Crisps, Vanilla, Xanthan Gum, Flax, Baking Powder, Cinnamon, Salt<br>Contains: Coconuts, Milk, Peanuts, Soy</p>\n<p>\u00a0</p>",
+      "published_at": "2024-01-11T11:34:28-07:00",
+      "created_at": "2024-01-11T10:15:28-07:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Alpen Fuel",
+      "product_type": "Snack",
+      "tags": [],
+      "variants": [
+        {
+          "id": 42971615592620,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "8.99",
+          "grams": 128,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7764635091116,
+          "created_at": "2024-01-11T10:15:28-07:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 38932964212908,
+          "created_at": "2025-04-17T16:23:21-06:00",
+          "position": 1,
+          "updated_at": "2026-02-08T14:03:23-07:00",
+          "product_id": 7764635091116,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Monster_front.png?v=1770584603",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 38932964016300,
+          "created_at": "2025-04-17T16:23:03-06:00",
+          "position": 2,
+          "updated_at": "2026-02-08T14:03:23-07:00",
+          "product_id": 7764635091116,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Monsterback.png?v=1770584603",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 43153043816620,
+          "created_at": "2026-07-06T21:47:42-06:00",
+          "position": 3,
+          "updated_at": "2026-07-06T21:47:43-06:00",
+          "product_id": 7764635091116,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Monster_Open_23ca166c-a027-4718-bb87-03233f758735.png?v=1783396063",
+          "width": 1638,
+          "height": 1638
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 4509381984367,
+      "title": "Granola Variety Pack",
+      "handle": "granola-variety-pack",
+      "body_html": "<p><span></span><span>Angry Pika granola meals are the most convenient high calorie breakfast meals on the market!\u00a0 They have been field tested by endurance athletes, ultralight backpackers, and hunters from New Mexico to Alaska.\u00a0 No matter what your backcountry adventure throws at you, attack it head on by fueling your body with clean, balanced energy - Angry Pika Granola.</span><br></p>\n<ul>\n<li><span><strong>TASTE</strong> - amazing variety of flavors\u00a0you can enjoy day after day on the trail</span></li>\n<li>\n<strong>PREP</strong> - quick 5 minute prep with hot or cold water\u00a0- all meals contain powdered milk</li>\n<li>\n<strong>NUTRITION</strong> - gluten free, vegetarian, and low sodium (only 12% DV sodium on average)</li>\n<li>\n<strong>INGREDIENTS</strong> - all natural, clean ingredients</li>\n<li>\n<strong>CALORIES</strong> - 630-770 calories, the highest calorie granola breakfast meals on the market!</li>\n<li>\n<strong>FUEL</strong> - endurance tailored nutrition\u00a0keeps you fueled\u00a0for 3-4 hours\u00a0with steady energy, no bloating or sugar crashes!</li>\n<li>\n<strong>BULK</strong> - low bulk, 30% less packaging and bulk than\u00a0other meals</li>\n<li>\n<strong>SHELF LIFE</strong><span>\u00a0</span>- 18 months</li>\n<li>\n<strong>SMALL BATCH</strong> - made\u00a0in small batches by a Montana owned small business</li>\n</ul>\n<p><strong>The Variety Pack contains:</strong></p>\n<p>1x\u00a0<a title=\"Angry Pika Caramel Apple Granola\" href=\"https://angrypikafood.com/collections/backpacking-meals/products/caramel-apple-granola\">Caramel Apple</a><br>1x\u00a0<a title=\"Angry Pika Lemon Berry Granola\" href=\"https://angrypikafood.com/collections/backpacking-meals/products/lemon-berry-granola-1\">Lemon Berry Granola</a><br>1x <a href=\"https://angrypikafood.com/products/chocolate-strawberry-granola\" title=\"Angry Pika Chocolate Strawberry Granola\">Chocolate Strawberry Granola</a><br>1x\u00a0<a href=\"https://angrypikafood.com/collections/backpacking-meals/products/cranberry-white-chocolate-granola-nut-free\" title=\"Angry Pika Cranberry White Chocolate Granola\">Cranberry White Chocolate (nut-free)</a></p>\n<p><strong>How to make:</strong><br></p>\n<p>Mix with 4-5oz of hot or cold water<br>Stir thoroughly<br>Wait 5 minutes and enjoy!</p>",
+      "published_at": "2025-05-06T22:34:56-06:00",
+      "created_at": "2020-07-16T11:31:43-06:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Angry Pika Food Co.",
+      "product_type": "Meal",
+      "tags": ["meals"],
+      "variants": [
+        {
+          "id": 31878759743599,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "37.99",
+          "grams": 680,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 4509381984367,
+          "created_at": "2020-07-16T11:31:44-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 39132932898988,
+          "created_at": "2025-05-06T22:34:01-06:00",
+          "position": 1,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Granola_Variety.png?v=1746592585",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 31197346070700,
+          "created_at": "2021-11-29T15:19:43-07:00",
+          "position": 2,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/CaramelApple_a5066066-1835-44d0-aad3-3c510af59fc3.jpg?v=1746592585",
+          "width": 2848,
+          "height": 2848
+        },
+        {
+          "id": 22969934348460,
+          "created_at": "2020-12-07T14:49:20-07:00",
+          "position": 3,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/DSC_0482_2397f9d6-6f85-4a03-b7d2-bfda2c84446d.jpg?v=1746592585",
+          "width": 2972,
+          "height": 2972
+        },
+        {
+          "id": 22969934545068,
+          "created_at": "2020-12-07T14:49:21-07:00",
+          "position": 4,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/DSC_0500_93729441-1f32-4706-8588-888b73d3c65f.jpg?v=1746592585",
+          "width": 3033,
+          "height": 3033
+        },
+        {
+          "id": 32386037252268,
+          "created_at": "2022-04-12T14:24:30-06:00",
+          "position": 5,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/CranberryWhiteChocolate_ef3e8aff-26eb-4b48-8e40-25ebe37175e1.jpg?v=1746592585",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "id": 39046360400044,
+          "created_at": "2025-04-25T21:00:43-06:00",
+          "position": 6,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Caramel_Apple_back.png?v=1746592585",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 38933142241452,
+          "created_at": "2025-04-17T17:13:44-06:00",
+          "position": 7,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Lemon_Berry_back.png?v=1746592585",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 38933144993964,
+          "created_at": "2025-04-17T17:14:53-06:00",
+          "position": 8,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Chocolate_Strawberry_back.png?v=1746592585",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 38933132607660,
+          "created_at": "2025-04-17T17:10:19-06:00",
+          "position": 9,
+          "updated_at": "2025-05-06T22:36:25-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/Cranberry_White_Chocolate_back.png?v=1746592585",
+          "width": 3500,
+          "height": 3500
+        },
+        {
+          "id": 39345489379500,
+          "created_at": "2025-05-29T21:48:03-06:00",
+          "position": 10,
+          "updated_at": "2025-05-29T21:48:04-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/DSCF1339.jpg?v=1748576884",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 39345489412268,
+          "created_at": "2025-05-29T21:48:03-06:00",
+          "position": 11,
+          "updated_at": "2025-05-29T21:48:04-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/DSCF1353.jpg?v=1748576884",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 39345467654316,
+          "created_at": "2025-05-29T21:43:47-06:00",
+          "position": 12,
+          "updated_at": "2025-05-29T21:44:16-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/jon_eating_lowres.jpg?v=1748576656",
+          "width": 4907,
+          "height": 3827
+        },
+        {
+          "id": 39345292673196,
+          "created_at": "2025-05-29T21:22:23-06:00",
+          "position": 13,
+          "updated_at": "2025-05-29T21:47:12-06:00",
+          "product_id": 4509381984367,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/angry_pika_and_snowy_backpacking_lowres_284140bf-4a9f-4a71-bead-96a6eab2f0b6.jpg?v=1748576832",
+          "width": 5458,
+          "height": 3723
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 7447694082220,
+      "title": "Angry Pika Gift Card",
+      "handle": "angry-pika-gift-card",
+      "body_html": "<p><span data-mce-fragment=\"1\">Not sure what to get the person who has everything?\u00a0 Angry Pika gift cards can be used for any backcountry food product in our store.\u00a0 And they don't expire!\u00a0 After you purchase the card, we will email you a unique checkout code.</span></p>",
+      "published_at": "2025-09-09T21:36:50-06:00",
+      "created_at": "2022-09-09T10:08:25-06:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Angry Pika Food Co.",
+      "product_type": "Gift Cards",
+      "tags": [],
+      "variants": [
+        {
+          "id": 42013088219308,
+          "title": "$10.00",
+          "option1": "$10.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "10.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 7447694082220,
+          "created_at": "2022-09-09T10:08:26-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        },
+        {
+          "id": 42013088252076,
+          "title": "$25.00",
+          "option1": "$25.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "25.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 7447694082220,
+          "created_at": "2022-09-09T10:08:26-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        },
+        {
+          "id": 42013088284844,
+          "title": "$50.00",
+          "option1": "$50.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "50.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 7447694082220,
+          "created_at": "2022-09-09T10:08:26-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        },
+        {
+          "id": 42013088317612,
+          "title": "$100.00",
+          "option1": "$100.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "100.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 7447694082220,
+          "created_at": "2022-09-09T10:08:26-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 33991334690988,
+          "created_at": "2022-10-19T16:17:23-06:00",
+          "position": 1,
+          "updated_at": "2022-10-19T16:17:25-06:00",
+          "product_id": 7447694082220,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/products/kari-shea-485935-unsplash_eb1af5d2-8e36-4743-a1f7-40bb2f325b5a.jpg?v=1666217845",
+          "width": 3520,
+          "height": 3519
+        }
+      ],
+      "options": [
+        {
+          "name": "Denominations",
+          "position": 1,
+          "values": ["$10.00", "$25.00", "$50.00", "$100.00"]
+        }
+      ]
+    },
+    {
+      "id": 8258493513900,
+      "title": "Unisex Pika t-shirt",
+      "handle": "unisex-pika-t-shirt",
+      "body_html": "You are sure to get plenty of comments when you wear our feisty Angry Pika shirt!<br>\n<br>\n\u2022 100% combed and ring-spun cotton (Heather colors contain polyester)<br>\n\u2022 Fabric weight: 4.2 oz./yd.\u00b2 (142 g/m\u00b2)<br>\n\u2022 Pre-shrunk fabric<br>\n\u2022 Side-seamed construction<br>\n\u2022 Shoulder-to-shoulder taping<br>\n\u2022 Blank product sourced from Nicaragua, Mexico, Honduras, or the US<br>\n<br>\nThis product is made especially for you as soon as you place an order, which is why it takes us a bit longer to deliver it to you. Making products on demand instead of in bulk helps reduce overproduction, so thank you for making thoughtful purchasing decisions!<p><strong class=\"size-guide-title\">Size guide</strong></p><div class=\"table-responsive dynamic\" data-unit-system=\"imperial\"><table cellpadding=\"5\"><tbody>\n<tr>\n<td>\u00a0</td>\n<td><strong>LENGTH (inches)</strong></td>\n<td><strong>WIDTH (inches)</strong></td>\n<td><strong>CHEST (inches)</strong></td>\n</tr>\n<tr>\n<td><strong>S</strong></td>\n<td>28</td>\n<td>18</td>\n<td>34-37</td>\n</tr>\n<tr>\n<td><strong>M</strong></td>\n<td>29</td>\n<td>20</td>\n<td>38-41</td>\n</tr>\n<tr>\n<td><strong>L</strong></td>\n<td>30</td>\n<td>22</td>\n<td>42-45</td>\n</tr>\n<tr>\n<td><strong>XL</strong></td>\n<td>31</td>\n<td>24</td>\n<td>46-49</td>\n</tr>\n<tr>\n<td><strong>2XL</strong></td>\n<td>32</td>\n<td>26</td>\n<td>50-53</td>\n</tr>\n<tr>\n<td><strong>3XL</strong></td>\n<td>33</td>\n<td>28</td>\n<td>54-57</td>\n</tr>\n<tr>\n<td><strong>4XL</strong></td>\n<td>34</td>\n<td>30</td>\n<td>58-61</td>\n</tr>\n</tbody></table></div>",
+      "published_at": "2025-06-08T15:34:02-06:00",
+      "created_at": "2025-06-08T15:33:56-06:00",
+      "updated_at": "2026-08-10T19:52:59-06:00",
+      "vendor": "Angry Pika Food Co.",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {
+          "id": 44474094092460,
+          "title": "Heather Olive / S",
+          "option1": "Heather Olive",
+          "option2": "S",
+          "option3": null,
+          "sku": "4832982_21302",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 39452729082028,
+            "product_id": 8258493513900,
+            "position": 1,
+            "created_at": "2025-06-08T15:33:56-06:00",
+            "updated_at": "2025-06-08T15:33:59-06:00",
+            "alt": "Product mockup",
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/unisex-staple-t-shirt-heather-olive-front-684601b7bec58.jpg?v=1749418439",
+            "variant_ids": [
+              44474094092460, 44474094125228, 44474094157996, 44474094190764,
+              44474094223532, 44474094256300, 44474094289068
+            ]
+          },
+          "available": true,
+          "price": "25.00",
+          "grams": 130,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 8258493513900,
+          "created_at": "2025-06-08T15:34:00-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        },
+        {
+          "id": 44474094125228,
+          "title": "Heather Olive / M",
+          "option1": "Heather Olive",
+          "option2": "M",
+          "option3": null,
+          "sku": "4832982_21303",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 39452729082028,
+            "product_id": 8258493513900,
+            "position": 1,
+            "created_at": "2025-06-08T15:33:56-06:00",
+            "updated_at": "2025-06-08T15:33:59-06:00",
+            "alt": "Product mockup",
+            "width": 2000,
+            "height": 2000,
+            "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/unisex-staple-t-shirt-heather-olive-front-684601b7bec58.jpg?v=1749418439",
+            "variant_ids": [
+              44474094092460, 44474094125228, 44474094157996, 44474094190764,
+              44474094223532, 44474094256300, 44474094289068
+            ]
+          },
+          "available": true,
+          "price": "25.00",
+          "grams": 142,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 8258493513900,
+          "created_at": "2025-06-08T15:34:00-06:00",
+          "updated_at": "2026-08-10T19:52:59-06:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 39452729082028,
+          "created_at": "2025-06-08T15:33:56-06:00",
+          "position": 1,
+          "updated_at": "2025-06-08T15:33:59-06:00",
+          "product_id": 8258493513900,
+          "variant_ids": [
+            44474094092460, 44474094125228, 44474094157996, 44474094190764,
+            44474094223532, 44474094256300, 44474094289068
+          ],
+          "src": "https://cdn.shopify.com/s/files/1/0080/2177/0351/files/unisex-staple-t-shirt-heather-olive-front-684601b7bec58.jpg?v=1749418439",
+          "width": 2000,
+          "height": 2000
+        }
+      ],
+      "options": [
+        {
+          "name": "Color",
+          "position": 1,
+          "values": [
+            "Heather Olive",
+            "Heather Deep Teal",
+            "Mauve",
+            "Heather Orange",
+            "Athletic Heather",
+            "Baby Blue"
+          ]
+        },
+        {
+          "name": "Size",
+          "position": 2,
+          "values": ["S", "M", "L", "XL", "2XL", "3XL", "4XL"]
+        }
+      ]
+    }
+  ]
+}

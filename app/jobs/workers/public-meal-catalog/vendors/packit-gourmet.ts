@@ -47,12 +47,14 @@ function parseListingPage(html: string): ProductRef[] {
   return refs;
 }
 
-// Out-of-stock is only exposed on the product detail page itself (a meta
-// tag), not reliably on every listing card, so this is checked here rather
-// than during the listing crawl.
-export function shouldSkip(product: PackitGourmetProduct): boolean {
-  const $ = cheerio.load(product.html);
-  return $('meta[property="og:availability"]').attr("content") === "oos";
+// Deliberately doesn't exclude a product just because its og:availability
+// meta tag reports out of stock on Packit Gourmet's own site -- a user may
+// already own it from a prior restock, or be able to source it elsewhere,
+// so it stays importable rather than disappearing from the catalog while
+// sold out. The four crawled category listings (see CATEGORY_PATHS) are
+// this scraper's only membership filter.
+export function shouldSkip(_product: PackitGourmetProduct): boolean {
+  return false;
 }
 
 // The "About" bullet list (calories/net weight) and "Instructions" steps

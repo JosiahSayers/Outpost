@@ -104,12 +104,12 @@ describe("shouldSkip", () => {
     );
   });
 
-  it("skips a product whose only variant is unavailable", () => {
+  it("includes a product whose only variant is out of stock, since a user may already own it or source it elsewhere", () => {
     expect(
       shouldSkip(
         findListingProduct("mexican-style-adobo-rice-chicken-pro-pak"),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 
@@ -160,10 +160,16 @@ describe("parseProduct", () => {
 });
 
 describe("fetchProducts", () => {
-  it("filters by tag/availability before fetching detail pages, then parses only the survivors", async () => {
+  it("filters by tag before fetching detail pages, then parses only the survivors", async () => {
     const fetchImpl = mock(async (url: string) => {
       if (url.includes("/products.json")) {
         return new Response(JSON.stringify(fixture));
+      }
+      if (url.includes("mexican-style-adobo-rice-chicken-pro-pak")) {
+        // Out of stock, but still untagged -- reuses the beef-stew-pro-pak
+        // detail-page fixture since only the handle survives into the
+        // assertion below, not the parsed content.
+        return new Response(loadHtml("product-beef-stew-pro-pak.html"));
       }
       if (url.includes("beef-stew-pro-pak")) {
         return new Response(loadHtml("product-beef-stew-pro-pak.html"));
@@ -179,11 +185,12 @@ describe("fetchProducts", () => {
     expect(result.map((p) => p.handle).sort()).toEqual([
       "beef-stew-pouch",
       "beef-stew-pro-pak",
+      "mexican-style-adobo-rice-chicken-pro-pak",
     ]);
     // 1 listing page (7 products < the 250 page size, so no second page) + a
-    // detail-page fetch for only the 2 survivors -- the other 5 fixture
-    // products must never trigger a request.
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    // detail-page fetch for only the 3 survivors -- the other 4 tagged
+    // fixture products must never trigger a request.
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 
   it("throws when products.json responds with a non-OK status", async () => {

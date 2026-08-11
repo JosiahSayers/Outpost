@@ -1,6 +1,7 @@
 import { defineJobGroup } from "$/jobs/define-job-group";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { runVendorImport } from "$/jobs/workers/public-meal-catalog/run-vendor-import";
+import { angryPikaScraper } from "$/jobs/workers/public-meal-catalog/vendors/angry-pika";
 import { backpackersPantryScraper } from "$/jobs/workers/public-meal-catalog/vendors/backpackers-pantry";
 import { farmToSummitScraper } from "$/jobs/workers/public-meal-catalog/vendors/farm-to-summit";
 import { goodToGoScraper } from "$/jobs/workers/public-meal-catalog/vendors/good-to-go";
@@ -75,6 +76,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       processor: (job) => runVendorImport(job, luxeflyBasecampScraper),
       defaultJobOptions,
       schedule: { id: "import-luxefly-basecamp", pattern: "1 1 * * 1" },
+    },
+    {
+      name: angryPikaScraper.vendorId,
+      processor: (job) => runVendorImport(job, angryPikaScraper),
+      defaultJobOptions,
+      schedule: { id: "import-angry-pika", pattern: "1 1 * * 2" },
     },
     // future vendors added here as their own entry
   ],
