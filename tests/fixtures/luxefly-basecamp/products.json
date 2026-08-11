@@ -1,0 +1,617 @@
+{
+  "products": [
+    {
+      "id": 10010129531177,
+      "title": "Chicken Marbella",
+      "handle": "chicken-marbella",
+      "body_html": "<p>Delicious high protein 51 G.</p>\n<p>Silver Pallet classic bistro dish, with quick rehydrate pearl cous-cous pasta.</p>\n<p>organic chicken thigh, green olives, and prunes, with brown sugar, organic red vinegar and white wine. </p>\n<p> </p>\n<p> </p>\n<p> </p>\n\n<p> </p>\n<div data-itsgot-user=\"1369\" data-itsgot-external-variant-id=\"52601910853929\" data-itsgot-label=\"23547\"></div>\n<script async=\"async\" src=\"//itsgot.com/embed.js\"></script>",
+      "published_at": "2026-03-23T20:02:19-04:00",
+      "created_at": "2026-02-06T17:02:56-05:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [
+        "chicken",
+        "dairy free",
+        "high protein",
+        "meat",
+        "meaty",
+        "pasta",
+        "protein",
+        "wholesale"
+      ],
+      "variants": [
+        {
+          "id": 52601910853929,
+          "title": "5.5 ounces",
+          "option1": "5.5 ounces",
+          "option2": null,
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "23.00",
+          "grams": 170,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 10010129531177,
+          "created_at": "2026-02-06T17:02:57-05:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 55004287172905,
+          "created_at": "2026-03-23T19:57:55-04:00",
+          "position": 1,
+          "updated_at": "2026-03-23T19:57:56-04:00",
+          "product_id": 10010129531177,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_20302.heic?v=1774310276",
+          "width": 4280,
+          "height": 4812
+        },
+        {
+          "id": 55004296184105,
+          "created_at": "2026-03-23T20:01:14-04:00",
+          "position": 2,
+          "updated_at": "2026-03-23T20:01:16-04:00",
+          "product_id": 10010129531177,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_2121.jpg?v=1774310476",
+          "width": 1179,
+          "height": 2071
+        }
+      ],
+      "options": [
+        {
+          "name": "size",
+          "position": 1,
+          "values": ["5.5 ounces"]
+        }
+      ]
+    },
+    {
+      "id": 9485243973929,
+      "title": "Wild Oregon Mushrooms and Creamy Polenta with red Oaxacan mole",
+      "handle": "wild-oregon-mushrooms-and-creamy-polenta-with-red-oaxacan-mole",
+      "body_html": "<p>One of our classic Luxefly meal bags, featuring a generous mix of wild Oregon mushrooms -such as chanterelles, morels, and black trumpet-alongside select cultivated varieties like oyster mushrooms. Prepared with creamy organic polenta and finished with a rich red mole recipe handed down for generations and prepared by Carmela, one of our Luxefly chefs. </p>\n<p>Naturally gluten free.</p>\n<p> </p>\n<p> </p>\n\n<p> </p>\n<div data-itsgot-user=\"1369\" data-itsgot-external-variant-id=\"49832965800233\" data-itsgot-label=\"11982\"></div>\n<script async=\"async\" src=\"//itsgot.com/embed.js\"></script>",
+      "published_at": "2024-09-16T11:58:59-04:00",
+      "created_at": "2024-09-16T11:58:59-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [
+        "cheese",
+        "comfort",
+        "gluten free",
+        "hearty",
+        "high fiber",
+        "vegetarian"
+      ],
+      "variants": [
+        {
+          "id": 49832935063849,
+          "title": "individual 3.5 ounces",
+          "option1": "individual 3.5 ounces",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "14.00",
+          "grams": 170,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9485243973929,
+          "created_at": "2025-02-09T14:08:10-05:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        },
+        {
+          "id": 49832965800233,
+          "title": "6 ounces serves 2+",
+          "option1": "6 ounces serves 2+",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "20.00",
+          "grams": 170,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9485243973929,
+          "created_at": "2025-02-09T14:11:35-05:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 49382102630697,
+          "created_at": "2025-01-24T17:07:11-05:00",
+          "position": 1,
+          "updated_at": "2025-09-02T12:35:34-04:00",
+          "product_id": 9485243973929,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/img_4428.jpg?v=1756830934",
+          "width": 3072,
+          "height": 4096
+        },
+        {
+          "id": 53543660519721,
+          "created_at": "2025-10-24T20:55:14-04:00",
+          "position": 2,
+          "updated_at": "2025-10-24T20:59:30-04:00",
+          "product_id": 9485243973929,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_9939.jpg?v=1761353970",
+          "width": 1024,
+          "height": 819
+        },
+        {
+          "id": 53543661076777,
+          "created_at": "2025-10-24T20:55:16-04:00",
+          "position": 3,
+          "updated_at": "2025-10-24T20:59:30-04:00",
+          "product_id": 9485243973929,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_9949.jpg?v=1761353970",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 53543662289193,
+          "created_at": "2025-10-24T20:55:19-04:00",
+          "position": 4,
+          "updated_at": "2025-10-24T20:59:30-04:00",
+          "product_id": 9485243973929,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_9948.jpg?v=1761353970",
+          "width": 1024,
+          "height": 819
+        }
+      ],
+      "options": [
+        {
+          "name": "Size",
+          "position": 1,
+          "values": ["individual 3.5 ounces", "6 ounces serves 2+"]
+        }
+      ]
+    },
+    {
+      "id": 9491534414121,
+      "title": "Digital Gift Card",
+      "handle": "give-the-gift-of-healthy-nutritious-anywhere-meals",
+      "body_html": "<p>Give the gift of healthy nutritious anywhere meals!</p>",
+      "published_at": "2024-09-21T11:07:09-04:00",
+      "created_at": "2024-09-21T11:02:30-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [
+        "backcountry meals",
+        "backpacking meals",
+        "camp food",
+        "camping meals. freeze dried meals",
+        "climbing",
+        "hiking",
+        "organic freeze dried meals",
+        "through hiking",
+        "vanlife"
+      ],
+      "variants": [
+        {
+          "id": 49299926188329,
+          "title": "$100.00",
+          "option1": "$100.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "100.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9491534414121,
+          "created_at": "2024-09-21T11:02:30-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        },
+        {
+          "id": 49299928514857,
+          "title": "$20.00",
+          "option1": "$20.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "20.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 5,
+          "product_id": 9491534414121,
+          "created_at": "2024-09-21T11:04:17-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        },
+        {
+          "id": 49299928547625,
+          "title": "$60.00",
+          "option1": "$60.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "60.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 6,
+          "product_id": 9491534414121,
+          "created_at": "2024-09-21T11:04:17-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        },
+        {
+          "id": 49299928580393,
+          "title": "$200.00",
+          "option1": "$200.00",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "200.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 7,
+          "product_id": 9491534414121,
+          "created_at": "2024-09-21T11:04:17-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 47874076836137,
+          "created_at": "2024-09-21T11:07:10-04:00",
+          "position": 1,
+          "updated_at": "2024-09-21T11:07:11-04:00",
+          "product_id": 9491534414121,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/F7F32A02-F856-449C-BE86-9755F5B1CE40.jpg?v=1726931231",
+          "width": 1180,
+          "height": 1572
+        },
+        {
+          "id": 47874084897065,
+          "created_at": "2024-09-21T11:07:33-04:00",
+          "position": 2,
+          "updated_at": "2024-09-21T11:07:35-04:00",
+          "product_id": 9491534414121,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/F5D3D0B3-1043-4292-B8C7-07ADABBA4CFB.jpg?v=1726931255",
+          "width": 1868,
+          "height": 2048
+        }
+      ],
+      "options": [
+        {
+          "name": "Denominations",
+          "position": 1,
+          "values": ["$100.00", "$20.00", "$60.00", "$200.00"]
+        }
+      ]
+    },
+    {
+      "id": 9360565207337,
+      "title": "Titanium Fork",
+      "handle": "titanium-fork",
+      "body_html": "",
+      "published_at": "2024-06-20T12:17:54-04:00",
+      "created_at": "2024-06-20T12:17:54-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": ["merch"],
+      "variants": [
+        {
+          "id": 48865761132841,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "12.99",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9360565207337,
+          "created_at": "2024-06-20T12:17:55-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 46520414667049,
+          "created_at": "2024-06-20T00:34:13-04:00",
+          "position": 1,
+          "updated_at": "2024-06-20T00:34:15-04:00",
+          "product_id": 9360565207337,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/IMG_0839.heic?v=1718858055",
+          "width": 3024,
+          "height": 4032
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 9332550402345,
+      "title": "Luxefly Basecamp Subscription 1x every 30 days - 3 bags (includes a 20% discount)",
+      "handle": "saucefly-basecamp-subscription-1x-every-30-days-3-bags-includes-a-20-discount",
+      "body_html": "<p class=\"\" style=\"white-space:pre-wrap;\">Be the first to receive our curated new flavors, and stock up on the classic favorites. Let us know if you have any dietary restrictions and we will make sure that you have first access and get exactly what you need. Receive our quick selection form a week before shipment, so that you can choose what you like.</p>",
+      "published_at": "2024-06-07T14:50:45-04:00",
+      "created_at": "2024-06-07T14:50:45-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {
+          "id": 48772031381801,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "SQ3076064",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "57.00",
+          "grams": 510,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9332550402345,
+          "created_at": "2024-06-07T14:50:45-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 47181201670441,
+          "created_at": "2024-08-03T16:51:57-04:00",
+          "position": 1,
+          "updated_at": "2025-09-03T14:34:42-04:00",
+          "product_id": 9332550402345,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/bahn_mi_fork_plate.jpg?v=1756924482",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 47181228540201,
+          "created_at": "2024-08-03T17:02:48-04:00",
+          "position": 2,
+          "updated_at": "2025-06-22T11:02:40-04:00",
+          "product_id": 9332550402345,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/biscuits_bag.jpg?v=1750604560",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 47181247840553,
+          "created_at": "2024-08-03T17:07:09-04:00",
+          "position": 3,
+          "updated_at": "2024-08-03T17:07:11-04:00",
+          "product_id": 9332550402345,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/butternutsoup_with_bag.jpg?v=1722719231",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "id": 47181250330921,
+          "created_at": "2024-08-03T17:08:54-04:00",
+          "position": 4,
+          "updated_at": "2025-09-02T13:10:39-04:00",
+          "product_id": 9332550402345,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/roasted_root_hero.jpg?v=1756833039",
+          "width": 1024,
+          "height": 819
+        },
+        {
+          "id": 47181254918441,
+          "created_at": "2024-08-03T16:55:41-04:00",
+          "position": 5,
+          "updated_at": "2024-08-03T16:55:42-04:00",
+          "product_id": 9332550402345,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/chile_relleno_river.jpg?v=1722718542",
+          "width": 1024,
+          "height": 1536
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 9485240795433,
+      "title": "Black and Blueberry Shortbread Cobbler",
+      "handle": "black-and-blueberry-shortbread-cobbler",
+      "body_html": "<p>A sweet treat that travels beautifully. </p>\n<p>This delicious cobbler features organic blackberries and blueberries picked from a farm next to chef Sara's home and dried at peak seasonal ripeness. Finished with fresh baked shortbread, an oat crumble and a gently sweet creme anglaise, it's rich, comforting, and not overly sweet. </p>\n<p>Try snacking straight from the bag! </p>\n\n<p> </p>\n<div data-itsgot-user=\"1369\" data-itsgot-label=\"11673\"></div>\n<script async=\"async\" src=\"//itsgot.com/embed.js\"></script>",
+      "published_at": "2024-09-16T11:49:30-04:00",
+      "created_at": "2024-09-16T11:49:30-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [
+        "baked",
+        "bakery",
+        "blueberry",
+        "cobbler",
+        "crumble",
+        "dessert",
+        "sweet",
+        "treat",
+        "vegetarian"
+      ],
+      "variants": [
+        {
+          "id": 49275275870505,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "18.00",
+          "grams": 142,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9485240795433,
+          "created_at": "2024-09-16T11:49:31-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 47811911516457,
+          "created_at": "2024-09-16T11:48:32-04:00",
+          "position": 1,
+          "updated_at": "2025-09-13T15:55:45-04:00",
+          "product_id": 9485240795433,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/cobblerpdf.jpg?v=1757793345",
+          "width": 712,
+          "height": 712
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    },
+    {
+      "id": 9332550893865,
+      "title": "Filet Mignon Beef Stroganoff",
+      "handle": "filet-mignon-beef-stroganoff",
+      "body_html": "<p style=\"white-space: pre-wrap;\" class=\"\"><br></p>\n<p>Discover the pinnacle of comfort cuisine with our filet mignon stroganoff, where succulent beef tenderloin meets a velvety cream sauce infused with shiitake and cremini mushrooms. Each ingredient has been thoughtfully selected to deliver layers of flavor—the umami richness of shiitake paired with the subtle earthiness of cremini creates an exceptionally refined sauce. This is stroganoff reimagined for the discerning palate, offering timeless elegance in every spoonful.</p>\n<p> </p>\n\n<p> </p>\n<div data-itsgot-user=\"1369\" data-itsgot-label=\"11672\"></div>\n<script async=\"async\" src=\"//itsgot.com/embed.js\"></script>",
+      "published_at": "2024-06-07T14:50:50-04:00",
+      "created_at": "2024-06-07T14:50:50-04:00",
+      "updated_at": "2026-08-10T21:19:30-04:00",
+      "vendor": "Luxefly Basecamp",
+      "product_type": "",
+      "tags": [
+        "beef",
+        "comfort",
+        "creamy",
+        "hearty",
+        "high protein",
+        "meat",
+        "protein",
+        "rich"
+      ],
+      "variants": [
+        {
+          "id": 48772032233769,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "SQ9139886",
+          "requires_shipping": true,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "28.00",
+          "grams": 170,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9332550893865,
+          "created_at": "2024-06-07T14:50:50-04:00",
+          "updated_at": "2026-08-10T21:19:30-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 54708559872297,
+          "created_at": "2026-02-23T00:07:30-05:00",
+          "position": 1,
+          "updated_at": "2026-02-23T00:12:46-05:00",
+          "product_id": 9332550893865,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/stroganoff_cooked.jpg?v=1771823566",
+          "width": 2500,
+          "height": 1667
+        },
+        {
+          "id": 56036296720681,
+          "created_at": "2026-07-09T09:56:01-04:00",
+          "position": 2,
+          "updated_at": "2026-07-09T09:56:03-04:00",
+          "product_id": 9332550893865,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/filet.jpg?v=1783605363",
+          "width": 4284,
+          "height": 5712
+        },
+        {
+          "id": 54708559708457,
+          "created_at": "2026-02-23T00:07:28-05:00",
+          "position": 3,
+          "updated_at": "2026-02-23T00:12:46-05:00",
+          "product_id": 9332550893865,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0872/5813/6873/files/strogawater.jpg?v=1771823566",
+          "width": 2500,
+          "height": 1667
+        }
+      ],
+      "options": [
+        {
+          "name": "Title",
+          "position": 1,
+          "values": ["Default Title"]
+        }
+      ]
+    }
+  ]
+}
