@@ -1,18 +1,19 @@
+import { registry } from "$/jobs/registry";
 import { db } from "$/utils/db";
 import { DateTime } from "luxon";
 
 export const supportedStats = [
   "total_users",
-  "banned_users",
   "active_sessions",
   "failed_jobs",
+  "incomplete_meals",
 ] as const;
 
 export const statSort: Record<SupportedStat, number> = {
   total_users: 1,
-  banned_users: 2,
   active_sessions: 3,
   failed_jobs: 4,
+  incomplete_meals: 5,
 } as const;
 
 export type SupportedStat = (typeof supportedStats)[number];
@@ -32,10 +33,10 @@ export async function getStat(stat: SupportedStat): Promise<AdminStat> {
       return getTotalUsers();
     case "active_sessions":
       return getActiveSessions();
-    case "banned_users":
-      return getBannedUsers();
     case "failed_jobs":
       return getFailedJobs();
+    case "incomplete_meals":
+      return getPublicMeals();
   }
 }
 
@@ -55,16 +56,25 @@ async function getTotalUsers(): Promise<AdminStat> {
   };
 }
 
-async function getBannedUsers(): Promise<AdminStat> {
-  const totalBanned = await db.user.count({ where: { banned: true } });
+async function getPublicMeals(): Promise<AdminStat> {
+  const incompleteCount = await db.publicMealItem.count({
+    where: {
+      OR: [
+        { dryWeightGrams: null },
+        { waterMl: null },
+        { calories: null },
+        { sourceImageUrl: null },
+      ],
+    },
+  });
 
   return {
-    stat: "banned_users",
-    label: "Banned Users",
-    value: `${totalBanned}`,
-    delta: null,
-    trend: null,
-    sort: statSort["banned_users"],
+    stat: "incomplete_meals",
+    label: "Incomplete Meals",
+    value: incompleteCount.toString(),
+    delta: `${incompleteCount} meals need your attention`,
+    trend: incompleteCount > 0 ? "down" : "up",
+    sort: statSort["incomplete_meals"],
   };
 }
 
@@ -92,14 +102,23 @@ async function getActiveSessions(): Promise<AdminStat> {
 }
 
 async function getFailedJobs(): Promise<AdminStat> {
-  // TODO: This needs implemented still
+  let failedJobCount = 0;
+  for (const job of registry) {
+    const failedCount = (await job.queue.getFailedCount()) ?? 0;
+    failedJobCount += failedCount;
+  }
+
+  const delta =
+    failedJobCount > 0
+      ? `${failedJobCount} jobs need your attention`
+      : "Jobs are looking good";
 
   return {
     stat: "failed_jobs",
     label: "Failed Jobs",
-    value: "0",
-    delta: null,
-    trend: null,
+    value: failedJobCount.toString(),
+    delta,
+    trend: failedJobCount > 0 ? "down" : "up",
     sort: statSort["failed_jobs"],
   };
 }
