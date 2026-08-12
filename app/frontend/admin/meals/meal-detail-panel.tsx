@@ -17,6 +17,7 @@ import {
   Group,
   NumberInput,
   Stack,
+  Switch,
   Text,
   TextInput,
   Title,
@@ -24,6 +25,7 @@ import {
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { TrashIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 import { z } from "zod";
 
 interface MealDetailPanelProps {
@@ -98,6 +100,7 @@ export default function MealDetailPanel({
   const createMealMutation = useCreateMeal();
   const updateMeal = useUpdateMeal(meal?.id ?? "");
   const deleteMeal = useDeleteMeal();
+  const [deleteMealIgnoreOption, setDeleteMealIgnoreOption] = useState(true);
   const isSaving = createMealMutation.isPending || updateMeal.isPending;
 
   const form = useForm<FormValues>({
@@ -251,17 +254,32 @@ export default function MealDetailPanel({
           opened={confirmOpened}
           onClose={confirm.close}
           onConfirm={() => {
-            deleteMeal.mutate(meal.id, {
-              onSuccess: onDeleted,
-              onError: notifyError("Couldn't delete meal"),
-            });
+            deleteMeal.mutate(
+              {
+                id: meal.id,
+                ignore: deleteMealIgnoreOption ? "true" : "false",
+              },
+              {
+                onSuccess: onDeleted,
+                onError: notifyError("Couldn't delete meal"),
+              },
+            );
           }}
           title="Delete this meal?"
           confirmLabel="Delete"
         >
-          Delete <strong>{meal.name}</strong> from the public catalog? This
-          can&rsquo;t be undone. Trips that already added this item keep their
-          own copy, unaffected.
+          <>
+            Delete <strong>{meal.name}</strong> from the public catalog? This
+            can&rsquo;t be undone. Trips that already added this item keep their
+            own copy, unaffected.
+          </>
+
+          <Switch
+            checked={deleteMealIgnoreOption}
+            onChange={(e) => setDeleteMealIgnoreOption(e.currentTarget.checked)}
+            label="Ignore this meal during future imports?"
+            mt="md"
+          />
         </ConfirmDeleteModal>
       )}
     </>
