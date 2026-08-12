@@ -9,7 +9,9 @@ import {
 import { describe, expect, it } from "bun:test";
 import { makeTestDocument, pageCount } from "../../../../helpers/pdf";
 
-function item(overrides: Partial<MealPlanSectionItem> = {}): MealPlanSectionItem {
+function item(
+  overrides: Partial<MealPlanSectionItem> = {},
+): MealPlanSectionItem {
   return {
     meal: "breakfast",
     name: "Oatmeal",

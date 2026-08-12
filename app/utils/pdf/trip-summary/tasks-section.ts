@@ -1,5 +1,8 @@
 import { capHeightCenterOffset } from "../packing-list-generator";
-import type { TripTask, TripTaskPhase } from "../../../../generated/prisma/client";
+import type {
+  TripTask,
+  TripTaskPhase,
+} from "../../../../generated/prisma/client";
 import {
   contentWidth,
   currentFontMetrics,

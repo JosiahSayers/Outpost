@@ -301,7 +301,8 @@ export function drawPackingListSection(
       const textOffsetFromCheckboxX = isFoodSection
         ? checkboxSize * 2 + foodCheckboxGap + checkboxGap
         : checkboxGap;
-      const sectionTextWidth = columnWidth - textOffsetFromCheckboxX - checkboxSize;
+      const sectionTextWidth =
+        columnWidth - textOffsetFromCheckboxX - checkboxSize;
 
       let titleTopMargin = index === 0 ? 0 : 24;
       const sectionTitleOptions = {
@@ -398,7 +399,11 @@ export function drawPackingListSection(
       document.fontSize(8).font("Source Sans 3").lineGap(lineGap);
 
       if (isFoodSection && section.checkboxLegend) {
-        const didMove = columnCalculations(section.checkboxLegend, columnWidth, 8);
+        const didMove = columnCalculations(
+          section.checkboxLegend,
+          columnWidth,
+          8,
+        );
         if (didMove) drawContinuationLabel();
         document
           .font("Source Sans 3 SemiBold")

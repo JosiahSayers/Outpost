@@ -1,11 +1,16 @@
 import { ActionIcon, Menu } from "@mantine/core";
-import { DotsThreeVerticalIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  DotsThreeVerticalIcon,
+  PrinterIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 interface Props {
+  onPrint: () => void;
   onDelete: () => void;
 }
 
-export default function TripActionsMenu({ onDelete }: Props) {
+export default function TripActionsMenu({ onPrint, onDelete }: Props) {
   return (
     <Menu position="bottom-end" withinPortal>
       <Menu.Target>
@@ -14,6 +19,9 @@ export default function TripActionsMenu({ onDelete }: Props) {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
+        <Menu.Item leftSection={<PrinterIcon size={14} />} onClick={onPrint}>
+          Print summary
+        </Menu.Item>
         <Menu.Item
           color="red"
           leftSection={<TrashIcon size={14} />}

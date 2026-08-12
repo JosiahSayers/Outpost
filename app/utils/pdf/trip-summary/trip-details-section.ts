@@ -1,5 +1,10 @@
 import type { Trip } from "../../../../generated/prisma/client";
-import { LOGO_RESERVED_WIDTH, contentWidth, drawFieldRow, drawSectionHeading } from "./shared";
+import {
+  LOGO_RESERVED_WIDTH,
+  contentWidth,
+  drawFieldRow,
+  drawSectionHeading,
+} from "./shared";
 
 export type TripDetailsSectionInput = Pick<
   Trip,

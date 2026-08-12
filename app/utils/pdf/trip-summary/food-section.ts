@@ -42,15 +42,13 @@ export function foodDaysToSections(
       name: `Food — ${formatDayLabel(day)}`,
       sortPosition: 1000 + index,
       checkboxLegend: "Bought · Packed",
-      items: day.items.map(
-        (item, itemIndex): PackingListSectionItemInput => ({
-          name: `${item.name} · ${MEAL_LABEL[item.meal]}`,
-          quantity: item.quantity,
-          optional: false,
-          sortPosition: itemIndex,
-          assignedGear: null,
-          foodStatus: { purchased: item.purchased, packed: item.packed },
-        }),
-      ),
+      items: day.items.map((item, itemIndex): PackingListSectionItemInput => ({
+        name: `${item.name} · ${MEAL_LABEL[item.meal]}`,
+        quantity: item.quantity,
+        optional: false,
+        sortPosition: itemIndex,
+        assignedGear: null,
+        foodStatus: { purchased: item.purchased, packed: item.packed },
+      })),
     }));
 }

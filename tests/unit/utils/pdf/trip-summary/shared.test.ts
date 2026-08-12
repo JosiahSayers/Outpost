@@ -46,8 +46,7 @@ describe("ensureSpace", () => {
 
   it("adds a page once the needed height would overflow the bottom margin", () => {
     const document = makeTestDocument();
-    document.y =
-      document.page.height - document.page.margins.bottom - 5;
+    document.y = document.page.height - document.page.margins.bottom - 5;
     ensureSpace(document, 20);
     expect(pageCount(document)).toBe(2);
     expect(document.y).toBe(document.page.margins.top);
@@ -87,7 +86,8 @@ describe("drawSectionHeading", () => {
     const freshPageAdvance = document.y - document.page.margins.top;
 
     drawSectionHeading(document, "Tasks");
-    const secondHeadingAdvance = document.y - (document.page.margins.top + freshPageAdvance);
+    const secondHeadingAdvance =
+      document.y - (document.page.margins.top + freshPageAdvance);
 
     // The second heading, starting mid-page, gets an 18pt top margin the
     // first one (starting at the page's own top margin) doesn't.
@@ -113,14 +113,10 @@ describe("withContinuationHeader", () => {
     const document = makeTestDocument();
     const redraw = mock(() => {});
 
-    withContinuationHeader(
-      document,
-      redraw,
-      () => {
-        document.addPage();
-        document.addPage();
-      },
-    );
+    withContinuationHeader(document, redraw, () => {
+      document.addPage();
+      document.addPage();
+    });
 
     expect(redraw).toHaveBeenCalledTimes(2);
   });

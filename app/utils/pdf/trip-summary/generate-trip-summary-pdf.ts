@@ -13,10 +13,7 @@ import {
 } from "./trip-details-section";
 
 export type TripSummarySection =
-  | "details"
-  | "tasks"
-  | "mealPlan"
-  | "packingList";
+  "details" | "tasks" | "mealPlan" | "packingList";
 
 export interface TripSummaryPdfOptions {
   sections: Set<TripSummarySection>;

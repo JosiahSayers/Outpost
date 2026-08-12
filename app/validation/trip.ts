@@ -1,4 +1,8 @@
-import { arrayQueryParam, isoDate, numberQueryParam } from "$/validation/shared";
+import {
+  arrayQueryParam,
+  isoDate,
+  numberQueryParam,
+} from "$/validation/shared";
 import z from "zod";
 import { TripStatus } from "../../generated/prisma/enums";
 

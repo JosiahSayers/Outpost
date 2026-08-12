@@ -14,7 +14,13 @@ const foodDay = {
   dayNumber: 1,
   date: null,
   items: [
-    { meal: "breakfast" as const, name: "Oatmeal", quantity: 1, purchased: true, packed: false },
+    {
+      meal: "breakfast" as const,
+      name: "Oatmeal",
+      quantity: 1,
+      purchased: true,
+      packed: false,
+    },
   ],
 };
 

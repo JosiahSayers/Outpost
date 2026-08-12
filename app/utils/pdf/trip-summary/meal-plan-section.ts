@@ -170,12 +170,10 @@ function drawMealGroup(
       .font(itemWater === null ? "Source Sans 3 SemiBold" : "Source Sans 3")
       .fontSize(9)
       .fillColor([100, 100, 100])
-      .text(
-        itemWater === null ? "no value" : `${itemWater} ml`,
-        waterX,
-        rowY,
-        { width: WATER_COL_WIDTH, align: "right" },
-      );
+      .text(itemWater === null ? "no value" : `${itemWater} ml`, waterX, rowY, {
+        width: WATER_COL_WIDTH,
+        align: "right",
+      });
 
     document.y = rowY + rowHeight;
   });
