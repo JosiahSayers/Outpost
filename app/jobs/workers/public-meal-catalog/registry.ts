@@ -5,6 +5,7 @@ import { angryPikaScraper } from "$/jobs/workers/public-meal-catalog/vendors/ang
 import { backpackersPantryScraper } from "$/jobs/workers/public-meal-catalog/vendors/backpackers-pantry";
 import { farmToSummitScraper } from "$/jobs/workers/public-meal-catalog/vendors/farm-to-summit";
 import { goodToGoScraper } from "$/jobs/workers/public-meal-catalog/vendors/good-to-go";
+import { greenbellyScraper } from "$/jobs/workers/public-meal-catalog/vendors/greenbelly";
 import { itacateScraper } from "$/jobs/workers/public-meal-catalog/vendors/itacate";
 import { luxeflyBasecampScraper } from "$/jobs/workers/public-meal-catalog/vendors/luxefly-basecamp";
 import { mountainHouseScraper } from "$/jobs/workers/public-meal-catalog/vendors/mountain-house";
@@ -89,6 +90,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       processor: (job) => runVendorImport(job, wildZoraScraper),
       defaultJobOptions,
       schedule: { id: "import-wild-zora", pattern: "1 1 * * 3" },
+    },
+    {
+      name: greenbellyScraper.vendorId,
+      processor: (job) => runVendorImport(job, greenbellyScraper),
+      defaultJobOptions,
+      schedule: { id: "import-greenbelly", pattern: "1 1 * * 4" },
     },
     // future vendors added here as their own entry
   ],
