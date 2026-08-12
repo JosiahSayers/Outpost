@@ -42,6 +42,7 @@ function makeMeal(
     sourceProductId: "chili-1",
     sourceUrl: "https://example.com/products/chili-1",
     sourceImageUrl: null,
+    overrideImageUrl: null,
     imageUrl: null,
     ...overrides,
   };
@@ -88,6 +89,34 @@ describe("opening the delete confirmation", () => {
     openDeleteConfirm();
 
     expect(ignoreSwitch()).toBeChecked();
+  });
+});
+
+describe("prefilling the photo field", () => {
+  it("uses the override url when one is set", () => {
+    renderPanel({
+      meal: makeMeal({
+        sourceImageUrl: "https://cdn.example.com/vendor.png",
+        overrideImageUrl: "https://cdn.example.com/override.png",
+      }),
+    });
+
+    expect(screen.getByLabelText("Source image URL")).toHaveValue(
+      "https://cdn.example.com/override.png",
+    );
+  });
+
+  it("falls back to the tracked source url when there is no override", () => {
+    renderPanel({
+      meal: makeMeal({
+        sourceImageUrl: "https://cdn.example.com/vendor.png",
+        overrideImageUrl: null,
+      }),
+    });
+
+    expect(screen.getByLabelText("Source image URL")).toHaveValue(
+      "https://cdn.example.com/vendor.png",
+    );
   });
 });
 

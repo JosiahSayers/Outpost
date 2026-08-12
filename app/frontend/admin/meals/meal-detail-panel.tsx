@@ -113,7 +113,10 @@ export default function MealDetailPanel({
       sourceVendor: meal?.sourceVendor ?? "",
       sourceProductId: meal?.sourceProductId ?? "",
       sourceUrl: meal?.sourceUrl ?? "",
-      sourceImageUrl: meal?.sourceImageUrl ?? "",
+      // The override (if an admin has set one) is what's actually in effect
+      // -- prefill with that rather than the vendor's tracked source url so
+      // the field reflects what the admin will see re-processed on save.
+      sourceImageUrl: meal?.overrideImageUrl ?? meal?.sourceImageUrl ?? "",
     },
     validate: schemaResolver(mealFormSchema, { sync: true }),
   });
@@ -234,7 +237,7 @@ export default function MealDetailPanel({
 
           <TextInput
             label="Source image URL"
-            description="Changing this re-fetches and reprocesses the product image"
+            description="Changing this re-fetches and reprocesses the product image. The override sticks until the vendor's own photo changes."
             {...form.getInputProps("sourceImageUrl")}
           />
 

@@ -1,6 +1,6 @@
 import { app } from "$/server";
 import { db } from "$/utils/db";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
 import type { PublicMealItem } from "../../../generated/prisma/client";
 import { getAuthCookies } from "../../helpers/auth";
@@ -600,6 +600,7 @@ describe("POST /", () => {
       sourceProductId: validBody.sourceProductId,
       sourceUrl: validBody.sourceUrl,
       sourceImageUrl: null,
+      overrideImageUrl: null,
       imageUrl: null,
     });
 
@@ -898,6 +899,144 @@ describe("PATCH /:id", () => {
         errors: [expect.objectContaining({ code: "unrecognized_keys" })],
       }),
     ]);
+  });
+
+  describe("editing the photo", () => {
+    // Force createR2Client() to return null so processProductImage takes its
+    // "R2 not configured" fallback and never attempts a real network fetch --
+    // these tests exercise the router's override-persistence logic, not
+    // image processing itself (covered separately in image.test.ts).
+    let originalR2AccountId: string | undefined;
+    beforeEach(() => {
+      originalR2AccountId = process.env.R2_ACCOUNT_ID;
+      delete process.env.R2_ACCOUNT_ID;
+    });
+    afterEach(() => {
+      if (originalR2AccountId !== undefined) {
+        process.env.R2_ACCOUNT_ID = originalR2AccountId;
+      }
+    });
+
+    it("records the admin's photo as an override without touching the tracked source url", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({
+          sourceImageUrl: "https://vendor.example.com/admin-override.png",
+        })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.sourceImageUrl).toBe(
+        "https://vendor.example.com/original.png",
+      );
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+    });
+
+    it("clears a previous override when the admin sets the photo back to the tracked source url", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/old-override.png",
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ sourceImageUrl: "https://vendor.example.com/original.png" })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBeNull();
+    });
+
+    it("leaves an existing override untouched when the edit doesn't include a photo change", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/admin-override.png",
+          calories: 500,
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ calories: 850 })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+      expect(updated.calories).toBe(850);
+    });
+
+    it("leaves the override untouched when the form resends it unchanged alongside an unrelated field edit", async () => {
+      // The real client always resends sourceImageUrl (prefilled with the
+      // active override) on every save -- this is the realistic shape of a
+      // request, not the "field omitted" case above.
+      const image = await db.image.create({ data: make("Image") });
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/admin-override.png",
+          imageId: image.id,
+          calories: 500,
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({
+          calories: 850,
+          sourceImageUrl: "https://vendor.example.com/admin-override.png",
+        })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+      expect(updated.imageId).toBe(image.id);
+      expect(updated.calories).toBe(850);
+    });
+
+    it("leaves an existing image attached when the edit doesn't include a photo change", async () => {
+      const image = await db.image.create({ data: make("Image") });
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", { imageId: image.id }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ calories: 850 })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.imageId).toBe(image.id);
+    });
   });
 });
 

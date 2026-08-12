@@ -323,6 +323,73 @@ describe("runVendorImport", () => {
     expect(result.skipped).toBe(0);
   });
 
+  it("keeps an admin's photo override in place when the re-scrape's image url matches the known source", async () => {
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        sourceImageUrl: "https://cdn.example.com/vendor-photo.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      {
+        scraped: scraped({
+          sourceProductId: "1",
+          imageUrl: "https://cdn.example.com/vendor-photo.png",
+        }),
+      },
+    ]);
+
+    await runVendorImport(makeJob(), scraper, { r2Client: null });
+
+    const row = await db.publicMealItem.findUniqueOrThrow({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: "fake_vendor",
+          sourceProductId: "1",
+        },
+      },
+    });
+    expect(row.overrideImageUrl).toBe(
+      "https://cdn.example.com/admin-override.png",
+    );
+  });
+
+  it("clears an admin's photo override once the vendor's source image url changes", async () => {
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        sourceImageUrl: "https://cdn.example.com/vendor-photo-old.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      {
+        scraped: scraped({
+          sourceProductId: "1",
+          imageUrl: "https://cdn.example.com/vendor-photo-new.png",
+        }),
+      },
+    ]);
+
+    await runVendorImport(makeJob(), scraper, { r2Client: null });
+
+    const row = await db.publicMealItem.findUniqueOrThrow({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: "fake_vendor",
+          sourceProductId: "1",
+        },
+      },
+    });
+    expect(row.overrideImageUrl).toBeNull();
+    expect(row.sourceImageUrl).toBe(
+      "https://cdn.example.com/vendor-photo-new.png",
+    );
+  });
+
   it("does not notify for a field a vendor scraper excludes via trackedFields, even at 100% null", async () => {
     // Mirrors Mountain House excluding waterMl -- a field it structurally
     // never publishes, so alerting on it every run would be a permanent

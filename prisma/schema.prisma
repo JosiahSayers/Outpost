@@ -564,6 +564,11 @@ model PublicMealItem {
   // Last-seen image URL from the source. Compared against the current scrape
   // so an unchanged image is never re-downloaded/re-uploaded on every run.
   sourceImageUrl String?
+  // Admin-set replacement photo URL (BTP-136). Persists across import runs
+  // as long as sourceImageUrl doesn't change -- mergePublicMealItem clears
+  // this the moment the vendor's own source image url moves, since at that
+  // point the override is stale and the fresh scrape should win.
+  overrideImageUrl String?
 
   sourceVendor    String // e.g. "peak_refuel"
   sourceProductId String // vendor's own product id -- the upsert key together with sourceVendor

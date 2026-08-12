@@ -34,6 +34,7 @@ function existingRow(overrides: Partial<PublicMealItem> = {}): PublicMealItem {
     dryWeightGrams: 100,
     imageId: "old-image-id",
     sourceImageUrl: "https://cdn.example.com/old.png",
+    overrideImageUrl: null,
     sourceVendor: "peak_refuel",
     sourceProductId: "123",
     sourceUrl: "https://peakrefuel.com/products/example-old-url",
@@ -52,6 +53,7 @@ describe("mergePublicMealItem", () => {
       waterMl: 237,
       dryWeightGrams: 140,
       sourceImageUrl: "https://cdn.example.com/example.png",
+      overrideImageUrl: null,
       sourceUrl: "https://peakrefuel.com/products/example",
       sourceVendor: "peak_refuel",
       sourceProductId: "123",
@@ -110,5 +112,53 @@ describe("mergePublicMealItem", () => {
 
     expect(result.name).toBe("New Name");
     expect(result.sourceUrl).toBe("https://peakrefuel.com/products/new-url");
+  });
+
+  it("keeps an admin's photo override when the fresh scrape's image url matches the known source", () => {
+    const result = mergePublicMealItem(
+      scraped({ imageUrl: "https://cdn.example.com/old.png" }),
+      existingRow({
+        sourceImageUrl: "https://cdn.example.com/old.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    );
+
+    expect(result.sourceImageUrl).toBe("https://cdn.example.com/old.png");
+    expect(result.overrideImageUrl).toBe(
+      "https://cdn.example.com/admin-override.png",
+    );
+  });
+
+  it("keeps an admin's photo override when the scrape didn't find an image at all", () => {
+    const result = mergePublicMealItem(
+      scraped({ imageUrl: null }),
+      existingRow({
+        sourceImageUrl: "https://cdn.example.com/old.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    );
+
+    expect(result.overrideImageUrl).toBe(
+      "https://cdn.example.com/admin-override.png",
+    );
+  });
+
+  it("clears an admin's photo override once the source image url changes", () => {
+    const result = mergePublicMealItem(
+      scraped({ imageUrl: "https://cdn.example.com/new.png" }),
+      existingRow({
+        sourceImageUrl: "https://cdn.example.com/old.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    );
+
+    expect(result.sourceImageUrl).toBe("https://cdn.example.com/new.png");
+    expect(result.overrideImageUrl).toBeNull();
+  });
+
+  it("has no override to carry forward when there is no existing row", () => {
+    const result = mergePublicMealItem(scraped(), null);
+
+    expect(result.overrideImageUrl).toBeNull();
   });
 });

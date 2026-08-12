@@ -31,6 +31,13 @@ export function mergePublicMealItem(
   scraped: ScrapedPublicMealItem,
   existing: PublicMealItem | null,
 ): MergedPublicMealItemFields {
+  // An admin's photo override (BTP-136) rides along untouched as long as the
+  // vendor's own source image url hasn't moved since we last saw it -- once
+  // it does, the override is stale (the product photo genuinely changed at
+  // the source) so it's dropped and the fresh scrape takes over instead.
+  const sourceImageUrlChanged =
+    scraped.imageUrl != null && scraped.imageUrl !== existing?.sourceImageUrl;
+
   return {
     name: scraped.name,
     brand: scraped.brand ?? existing?.brand ?? null,
@@ -38,6 +45,9 @@ export function mergePublicMealItem(
     waterMl: scraped.waterMl ?? existing?.waterMl ?? null,
     dryWeightGrams: scraped.dryWeightGrams ?? existing?.dryWeightGrams ?? null,
     sourceImageUrl: scraped.imageUrl ?? existing?.sourceImageUrl ?? null,
+    overrideImageUrl: sourceImageUrlChanged
+      ? null
+      : (existing?.overrideImageUrl ?? null),
     sourceUrl: scraped.sourceUrl,
     sourceVendor: scraped.sourceVendor,
     sourceProductId: scraped.sourceProductId,
