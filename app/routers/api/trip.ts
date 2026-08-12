@@ -1,6 +1,7 @@
 import { createDefaultMealPlan } from "$/frontend/utils/default-data/meal-plan-day";
 import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-tasks";
 import { userCanEditTrip } from "$/middleware/authorization/trip";
+import { pdfRateLimiter } from "$/middleware/rate-limit";
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { tripLinkRouter } from "$/routers/api/trip/link";
 import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
@@ -8,9 +9,15 @@ import { tripPackingListRouter } from "$/routers/api/trip/packing-list";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
+import { generateTripSummaryPdf } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { db } from "$/utils/db";
 import { idParam } from "$/validation/shared";
-import { editTrip, newTrip, tripSearch } from "$/validation/trip";
+import {
+  editTrip,
+  newTrip,
+  tripSearch,
+  tripSummaryPdfQuery,
+} from "$/validation/trip";
 import { Router } from "express";
 import validate from "express-zod-safe";
 
@@ -82,6 +89,70 @@ tripRouter.get(
       },
     });
     return res.json({ trip: transformers.fullTrip(trip!) });
+  },
+);
+
+tripRouter.get(
+  "/:id/summary-pdf",
+  pdfRateLimiter,
+  userCanEditTrip,
+  validate({ params: idParam, query: tripSummaryPdfQuery }),
+  async (req, res) => {
+    const trip = await db.trip.findUnique({
+      where: { id: req.params.id },
+      include: {
+        tasks: true,
+        mealPlanDays: {
+          include: {
+            items: { include: { mealPlanItem: true } },
+          },
+        },
+        links: true,
+        packingList: {
+          include: {
+            packingList: {
+              include: {
+                packingListSections: {
+                  include: {
+                    items: {
+                      include: {
+                        tripPackingListItemStatuses: true,
+                        assignedGear: {
+                          include: {
+                            category: true,
+                          },
+                        },
+                        category: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${trip!.name} - Trip Summary.pdf"`,
+    );
+
+    // The unit to render is resolved client-side and passed straight
+    // through — see tripSummaryPdfQuery in app/validation/trip.ts for why.
+    return await generateTripSummaryPdf(
+      trip!,
+      {
+        sections: new Set(req.query.sections),
+        taskBlank: req.query.taskStatus === "blank",
+        packingListBlank: req.query.packingListStatus === "blank",
+        fluidUnit: req.query.fluidUnit,
+        weightUnit: req.query.weightUnit,
+      },
+      res,
+    );
   },
 );
 

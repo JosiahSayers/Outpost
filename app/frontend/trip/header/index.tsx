@@ -1,5 +1,6 @@
 import ConfirmDeleteModal from "$/frontend/packing-list/confirm-delete-modal";
 import LocationSearchEditor from "$/frontend/trip/header/location-search-editor";
+import PrintSummaryModal from "$/frontend/trip/header/print-summary-modal";
 import TripActionsMenu from "$/frontend/trip/header/trip-actions-menu";
 import TripDates from "$/frontend/trip/header/trip-dates";
 import TripName from "$/frontend/trip/header/trip-name";
@@ -20,6 +21,7 @@ interface Props {
 export default function Header({ trip }: Props) {
   const [, navigate] = useLocation();
   const [confirmOpened, confirm] = useDisclosure(false);
+  const [printOpened, print] = useDisclosure(false);
   const updateTrip = useUpdateTrip(trip.id);
   const deleteTrip = useDeleteTrip(trip.id);
   const isWideLayout = useMediaQuery("(min-width: 48em)");
@@ -70,7 +72,7 @@ export default function Header({ trip }: Props) {
           </Group>
 
           <Box style={{ flexShrink: 0 }}>
-            <TripActionsMenu onDelete={confirm.open} />
+            <TripActionsMenu onPrint={print.open} onDelete={confirm.open} />
           </Box>
         </Group>
         {isWideLayout === false && (
@@ -122,6 +124,12 @@ export default function Header({ trip }: Props) {
       >
         Remove <strong>{trip.name}</strong>? This can&apos;t be undone.
       </ConfirmDeleteModal>
+
+      <PrintSummaryModal
+        opened={printOpened}
+        onClose={print.close}
+        tripId={trip.id}
+      />
     </Paper>
   );
 }

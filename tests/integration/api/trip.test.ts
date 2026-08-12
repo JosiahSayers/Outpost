@@ -1030,6 +1030,172 @@ describe("GET /:id", () => {
   });
 });
 
+describe("GET /:id/summary-pdf", () => {
+  let userId: string;
+  let tripId: string;
+
+  beforeEach(async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    userId = user!.id;
+
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId }),
+    });
+    tripId = trip.id;
+  });
+
+  it("requires a valid session", async () => {
+    await request(app).get(`/api/trips/${tripId}/summary-pdf`).expect(401);
+  });
+
+  it("returns 404 when the trip does not exist", async () => {
+    await request(app)
+      .get("/api/trips/does-not-exist/summary-pdf")
+      .set("Cookie", authCookies)
+      .expect(404);
+  });
+
+  it("returns 403 when the trip belongs to another user", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf`)
+      .set("Cookie", user2AuthCookies)
+      .expect(403);
+  });
+
+  it("returns 400 when an unknown section is requested", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?sections=notasection`)
+      .set("Cookie", authCookies)
+      .expect(400);
+  });
+
+  it("transfers a pdf document for a trip with no tasks, meal plan, or packing list", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(
+        "content-disposition",
+        `inline; filename="Appalachian Trail - Trip Summary.pdf"`,
+      )
+      .expect(200);
+  });
+
+  it("transfers a pdf document for a trip with tasks, a meal plan, and an assigned packing list", async () => {
+    await db.tripTask.create({
+      data: make("TripTask", {
+        tripId,
+        name: "Reserve permits",
+        phase: "before",
+        complete: true,
+      }),
+    });
+
+    const day = await db.mealPlanDay.create({
+      data: make("MealPlanDay", {
+        tripId,
+        dayNumber: 1,
+        date: new Date("2026-08-14"),
+      }),
+    });
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId, name: "Oatmeal", waterMl: 350 }),
+    });
+    await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
+        mealPlanDayId: day.id,
+        mealPlanItemId: mealPlanItem.id,
+        meal: "breakfast",
+        purchased: true,
+      }),
+    });
+
+    const packingList = await db.packingList.create({
+      data: { name: "Gear", userId },
+    });
+    const tripPackingList = await db.tripPackingList.create({
+      data: make("TripPackingList", { tripId, packingListId: packingList.id }),
+    });
+    const section = await db.packingListSection.create({
+      data: { name: "Shelter", sortPosition: 1, packingListId: packingList.id },
+    });
+    const item = await db.packingListItem.create({
+      data: { name: "Tent", sortPosition: 1, packingListSectionId: section.id },
+    });
+    await db.tripPackingListItemStatus.create({
+      data: make("TripPackingListItemStatus", {
+        tripPackingListId: tripPackingList.id,
+        packingListItemId: item.id,
+        packed: true,
+      }),
+    });
+
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
+
+  it("accepts a filtered sections query with blank task/packing-list status", async () => {
+    await request(app)
+      .get(
+        `/api/trips/${tripId}/summary-pdf?sections=tasks&sections=mealPlan&taskStatus=blank&packingListStatus=blank`,
+      )
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
+
+  it("accepts an explicit fluidUnit/weightUnit query and still renders the meal plan", async () => {
+    const day = await db.mealPlanDay.create({
+      data: make("MealPlanDay", { tripId, dayNumber: 1 }),
+    });
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId, waterMl: 500 }),
+    });
+    await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
+        mealPlanDayId: day.id,
+        mealPlanItemId: mealPlanItem.id,
+        meal: "breakfast",
+      }),
+    });
+
+    await request(app)
+      .get(
+        `/api/trips/${tripId}/summary-pdf?sections=mealPlan&fluidUnit=fluidOunce&weightUnit=pounds`,
+      )
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
+
+  it("defaults fluidUnit/weightUnit to mL/grams when omitted", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
+
+  it("returns 400 for an invalid fluidUnit", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?fluidUnit=gallons`)
+      .set("Cookie", authCookies)
+      .expect(400);
+  });
+
+  it("returns 400 for an invalid weightUnit", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?weightUnit=stone`)
+      .set("Cookie", authCookies)
+      .expect(400);
+  });
+});
+
 describe("PATCH /:id", () => {
   it("requires a valid session", async () => {
     const user = await db.user.findUnique({
