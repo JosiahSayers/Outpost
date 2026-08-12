@@ -1,0 +1,148 @@
+{
+  "products": [
+    {
+      "id": 780828180571,
+      "handle": "wild-zora-summit-savory-chicken-3-oz",
+      "title": "Meals To Go - Summit Savory Chicken",
+      "vendor": "Wild Zora",
+      "product_type": "meals",
+      "tags": [
+        "AIP",
+        "chicken",
+        "Dairy-Free",
+        "Gluten Free",
+        "meals",
+        "Meat",
+        "Nut-free",
+        "Paleo",
+        "subscription"
+      ],
+      "body_html": "<p>Ingredients: Free-Range Chicken, Organic Spinach, Broccoli, Sweet Potato, Onion, Organic Carrot, Mushroom, Organic Lemon, Green Onion, Organic Parsley, Organic Cilantro, Turmeric, Organic Garlic, Sea Salt.</p>\n<p>Net dry weight 3oz/85g.</p>\n<p>36-month shelf-life.</p>\n<p>Summit Savory Chicken is a subtle balance of free-range chicken, broccoli, and sweet potato to keep you full and happy wherever life takes you!</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/files/SUM_front.png?v=1770939979"
+        },
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/products/2021SummitBackWhite.png?v=1770939979"
+        }
+      ],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    },
+    {
+      "id": 1580619989055,
+      "handle": "wild-zora-bedrock-beef-chili-3-oz",
+      "title": "Meals To Go - Bedrock Beef Chili",
+      "vendor": "Wild Zora",
+      "product_type": "meals",
+      "tags": [
+        "beef",
+        "Dairy-Free",
+        "Gluten Free",
+        "Meat",
+        "Nut-free",
+        "Paleo",
+        "spicy",
+        "subscription"
+      ],
+      "body_html": "<p>Ingredients: 100% Grass-Fed Beef, Sweet Potato, Organic Carrots, Onion, Organic Tomato, Green Bell Pepper, Red Bell Pepper, Sea Salt, Green Onion, Cayenne Pepper, Cumin, Organic Garlic, Black Pepper, Coriander Seed.</p>\n<p>Bedrock Beef Chili is the classic chili taste you know and love. Made with 100% grass-fed beef, sweet potato, and a blend of mild peppers, you can enjoy this hearty meal anywhere life takes you!</p>\n<p>Net weight 3oz/85g and 12-month shelf-life.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/products/2021MountainFrontWhite.png?v=1762460667"
+        }
+      ],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    },
+    {
+      "id": 6774884040767,
+      "handle": "wild-zora-quick-quinoa-meal-herb-roasted-chicken-with-spinach-carrots-herbs-3-oz",
+      "title": "Quinoa Meals – Herb Roasted Chicken with Spinach, Carrots & Herbs",
+      "vendor": "Wild Zora",
+      "product_type": "Quinoa",
+      "tags": [
+        "chicken",
+        "Dairy-Free",
+        "Gluten Free",
+        "meals",
+        "Meat",
+        "nightshade free",
+        "Nut-free",
+        "quinoa"
+      ],
+      "body_html": "<p>Ingredients: Organic Quinoa, Free-Range Chicken, Organic Carrots, Organic Garlic, Organic Onion, Organic Spinach, Sea Salt, Celery, Turmeric, Organic Rosemary, Organic Parsley</p>\n<p>Oil Ingredients: 100% Cold Pressed Extra Virgin Olive Oil</p>\n<p>A simple, homey comfort meal, Herb Roasted Chicken Quick Quinoa Meal draws inspiration from all the best parts of Chicken Noodle Soup. *Nightshade-Free and AIP-diet friendly!</p>\n<p>3oz/86g dry weight, plus 10g olive oil packet.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/files/NEWQuinoa_RoastedChicken_10-22.png?v=1762469381"
+        },
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/files/NEW_Quinoa_Rosemary_Chicken_Back.png?v=1733277388"
+        }
+      ],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    },
+    {
+      "id": 1381029019711,
+      "handle": "wild-zora-aip-meals-4-pack",
+      "title": "AIP Meals 4-Pack",
+      "vendor": "Wild Zora",
+      "product_type": "meals",
+      "tags": [
+        "AIP",
+        "Dairy-Free",
+        "Gluten Free",
+        "meals",
+        "Meat",
+        "multipack",
+        "nightshade free",
+        "Nut-free",
+        "Paleo",
+        "samples",
+        "subscription"
+      ],
+      "body_html": "<p>Enjoy our two Single-Serve freeze-dried meals – AIP Meals To Go! Get two of each: Mountain Beef Stew and Summit Savory Chicken.</p>\n<p>Each meal with net dry weight 3oz/85g and 36-month shelf-life.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/products/2021AIPMealsWhite.png?v=1762460239"
+        }
+      ],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    },
+    {
+      "id": 4650933420095,
+      "handle": "meals-savory-multi-pack",
+      "title": "Meals To Go - Savory Variety 4-Pack",
+      "vendor": "PMTG",
+      "product_type": "meals",
+      "tags": [
+        "beef",
+        "Dairy-Free",
+        "Gluten Free",
+        "meals",
+        "Meat",
+        "multipack",
+        "Nut-free",
+        "Paleo",
+        "samples",
+        "spicy",
+        "subscription"
+      ],
+      "body_html": "<p>Four of our best-selling savory meals in one bundle.</p>\n<p>Each meal with net dry weight 3oz/85g and 36-month shelf-life.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0712/2497/products/savoryVariety4pack.png?v=1629318911"
+        }
+      ],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    },
+    {
+      "id": 9999999999999,
+      "handle": "wild-zora-trailblazer-turkey-3-oz",
+      "title": "Meals To Go - Trailblazer Turkey",
+      "vendor": "Wild Zora",
+      "product_type": "meals",
+      "tags": ["Dairy-Free", "Gluten Free", "meals", "Meat", "Paleo"],
+      "body_html": "<p>Ingredients: Free-Range Turkey, Organic Carrots, Onion, Sea Salt.</p>\n<p>A hearty turkey meal for the trail.</p>",
+      "images": [],
+      "variants": [{ "requires_shipping": true, "available": true }]
+    }
+  ]
+}
