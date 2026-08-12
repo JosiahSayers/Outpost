@@ -30,7 +30,7 @@ const MEAL_LABEL: Record<MealName, string> = {
   snacks: "Snacks",
 };
 
-function groupByMeal(
+export function groupByMeal(
   items: MealPlanSectionItem[],
 ): Array<{ meal: MealName; items: MealPlanSectionItem[] }> {
   return MEAL_ORDER.map((meal) => ({
@@ -42,11 +42,11 @@ function groupByMeal(
 // A single item's total water is its per-unit value times how many of it
 // are planned for that meal — null propagates (an unknown per-unit value
 // makes the row's total unknown too, regardless of quantity).
-function itemWaterTotal(item: MealPlanSectionItem): number | null {
+export function itemWaterTotal(item: MealPlanSectionItem): number | null {
   return item.waterMl === null ? null : item.waterMl * item.quantity;
 }
 
-function sumWater(items: MealPlanSectionItem[]): {
+export function sumWater(items: MealPlanSectionItem[]): {
   totalMl: number;
   missingCount: number;
 } {
@@ -60,7 +60,7 @@ function sumWater(items: MealPlanSectionItem[]): {
   return { totalMl, missingCount };
 }
 
-function formatWaterSummary(items: MealPlanSectionItem[]): string {
+export function formatWaterSummary(items: MealPlanSectionItem[]): string {
   const { totalMl, missingCount } = sumWater(items);
   if (missingCount === items.length) return "no value";
   return missingCount > 0

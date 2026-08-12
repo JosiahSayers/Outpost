@@ -24,7 +24,7 @@ export interface TripSummaryPdfOptions {
   packingListBlank: boolean;
 }
 
-function toMealPlanDays(trip: FullTrip): MealPlanSectionDay[] {
+export function toMealPlanDays(trip: FullTrip): MealPlanSectionDay[] {
   return trip.mealPlanDays
     .slice()
     .sort((a, b) => a.dayNumber - b.dayNumber)
@@ -40,7 +40,7 @@ function toMealPlanDays(trip: FullTrip): MealPlanSectionDay[] {
     }));
 }
 
-function toFoodDays(trip: FullTrip): FoodSectionDay[] {
+export function toFoodDays(trip: FullTrip): FoodSectionDay[] {
   return trip.mealPlanDays
     .slice()
     .sort((a, b) => a.dayNumber - b.dayNumber)

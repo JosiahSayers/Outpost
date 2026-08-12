@@ -21,7 +21,7 @@ const STATUS_LABEL: Record<Trip["status"], string> = {
 // reimplemented server-side since that helper reads `navigator.language`
 // (browser-only). Trip dates are calendar days, not instants, so formatting
 // stays in UTC (the timezone they're stored in) rather than any local offset.
-function formatDateRange(start: Date | null, end: Date | null): string {
+export function formatDateRange(start: Date | null, end: Date | null): string {
   if (!start && !end) return "Dates TBD";
 
   const fmt = new Intl.DateTimeFormat("en-US", {
