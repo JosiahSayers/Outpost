@@ -39,6 +39,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 container_files
 
+# Throwaway PDF previews generated while working on pdf generators
+tmp/pdf-previews
+
 # Playwright
 playwright-report
 tests/e2e/.auth

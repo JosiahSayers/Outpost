@@ -1,10 +1,29 @@
-import { isoDate, numberQueryParam } from "$/validation/shared";
+import { arrayQueryParam, isoDate, numberQueryParam } from "$/validation/shared";
 import z from "zod";
 import { TripStatus } from "../../generated/prisma/enums";
 
 export const tripSearch = z.strictObject({
   take: numberQueryParam(3),
   skip: numberQueryParam(0),
+});
+
+const tripSummarySection = z.enum([
+  "details",
+  "tasks",
+  "mealPlan",
+  "packingList",
+]);
+const tripSummaryPrintStatus = z.enum(["carryover", "blank"]);
+
+export const tripSummaryPdfQuery = z.strictObject({
+  sections: arrayQueryParam(tripSummarySection, [
+    "details",
+    "tasks",
+    "mealPlan",
+    "packingList",
+  ]),
+  taskStatus: tripSummaryPrintStatus.default("carryover"),
+  packingListStatus: tripSummaryPrintStatus.default("carryover"),
 });
 
 export function withTripDateRange<

@@ -1,7 +1,10 @@
 import type { FullPackingList } from "$/transformers/packing-list";
 import type { PackingListItemTransformerInput } from "$/transformers/packing-list-item";
 import PDFDocument from "pdfkit";
-import type { User } from "../../../generated/prisma/client";
+import type {
+  TripPackingListItemStatus,
+  User,
+} from "../../../generated/prisma/client";
 
 // pdfkit positions text by the top of the font's ascender box, which varies
 // by font. This returns the offset that centers the font's cap-height
@@ -153,6 +156,50 @@ export async function generatePackingListPdf(
 
   document.moveDown().moveDown().moveDown();
 
+  drawPackingListSection(document, packingList.packingListSections);
+
+  document.end();
+}
+
+export type PackingListSectionItemInput = Pick<
+  PackingListItemTransformerInput,
+  "name" | "quantity" | "optional" | "sortPosition" | "assignedGear"
+> & {
+  tripPackingListItemStatuses?: TripPackingListItemStatus[];
+  // Food items merged in from the meal plan carry two independent
+  // checkboxes (bought/packed) instead of gear's single packed status.
+  foodStatus?: { purchased: boolean; packed: boolean };
+};
+
+export type PackingListSectionInput = {
+  name: string;
+  sortPosition: number;
+  items: PackingListSectionItemInput[];
+  // Present only for food sections — a short line drawn once beneath the
+  // title (e.g. "Bought · Packed") explaining what the two checkboxes mean.
+  checkboxLegend?: string;
+};
+
+function getItemStatus(
+  item: PackingListSectionItemInput,
+): TripPackingListItemStatus | undefined {
+  return item.tripPackingListItemStatuses?.[0];
+}
+
+// Draws the categorized, 3-column checkbox list — the delicate part of the
+// existing packing-list PDF (column balancing, page overflow, widow
+// prevention). Takes an already-open document and draws from its current
+// x/y, so it can be reused for a standalone packing list (via
+// generatePackingListPdf above) or as one section of the combined trip
+// summary PDF, which draws its own heading beforehand instead of this
+// generator's title/description/reference block.
+export function drawPackingListSection(
+  document: PDFKit.PDFDocument,
+  sections: PackingListSectionInput[],
+  options: { blank?: boolean } = {},
+): void {
+  const blank = options.blank ?? true;
+
   document.fillColor("black");
 
   // pdfkit doesn't expose the active font's metrics publicly; read them off
@@ -189,7 +236,9 @@ export async function generatePackingListPdf(
       columnGap -
       columnGap) /
     3;
-  const columnTextWidth = columnWidth - checkboxGap - checkboxSize;
+  // Gap between a food row's two checkboxes (bought/packed) — narrower than
+  // checkboxGap since it's just separating the pair, not leading into text.
+  const foodCheckboxGap = 6;
 
   const moveToNextColumn = () => {
     checkboxX =
@@ -235,9 +284,25 @@ export async function generatePackingListPdf(
     return false;
   };
 
-  packingList.packingListSections
+  sections
+    .slice()
     .sort((a, b) => a.sortPosition - b.sortPosition)
     .forEach((section, index) => {
+      // Not-needed is a decision about trip relevance, not checked state —
+      // it's excluded whether printing blank or carried-over.
+      const includedItems = section.items.filter(
+        (item) => !getItemStatus(item)?.notNeeded,
+      );
+      if (includedItems.length === 0) return;
+
+      // Food sections carry a bought/packed pair instead of one checkbox,
+      // so they need more horizontal room reserved before the item text.
+      const isFoodSection = !!section.checkboxLegend;
+      const textOffsetFromCheckboxX = isFoodSection
+        ? checkboxSize * 2 + foodCheckboxGap + checkboxGap
+        : checkboxGap;
+      const sectionTextWidth = columnWidth - textOffsetFromCheckboxX - checkboxSize;
+
       let titleTopMargin = index === 0 ? 0 : 24;
       const sectionTitleOptions = {
         width: columnWidth,
@@ -262,7 +327,7 @@ export async function generatePackingListPdf(
           .lineGap(lineGap);
       };
 
-      const sortedItems = section.items.slice().sort(compareItemsForDisplay);
+      const sortedItems = includedItems.slice().sort(compareItemsForDisplay);
       const firstItem = sortedItems[0];
 
       // A title alone at the bottom of a column, with all of its items
@@ -280,19 +345,27 @@ export async function generatePackingListPdf(
       });
 
       let firstContentHeight = 0;
+      if (isFoodSection && section.checkboxLegend) {
+        document.font("Source Sans 3 SemiBold").fontSize(7).lineGap(lineGap);
+        firstContentHeight +=
+          8 +
+          document.heightOfString(section.checkboxLegend, {
+            width: columnWidth,
+          });
+      }
       if (firstItem) {
         if (firstItem.optional) {
           document
             .font("Source Sans 3 SemiBold")
             .fontSize(10)
             .lineGap(lineGap * 2);
-          firstContentHeight =
+          firstContentHeight +=
             12 + document.heightOfString("Optional:", { width: columnWidth });
         } else {
           document.font("Source Sans 3").fontSize(8).lineGap(lineGap);
-          firstContentHeight = document.heightOfString(
+          firstContentHeight += document.heightOfString(
             getItemDisplayName(firstItem) + getQuantityLabel(firstItem),
-            { width: columnTextWidth },
+            { width: sectionTextWidth },
           );
         }
       }
@@ -324,6 +397,27 @@ export async function generatePackingListPdf(
 
       document.fontSize(8).font("Source Sans 3").lineGap(lineGap);
 
+      if (isFoodSection && section.checkboxLegend) {
+        const didMove = columnCalculations(section.checkboxLegend, columnWidth, 8);
+        if (didMove) drawContinuationLabel();
+        document
+          .font("Source Sans 3 SemiBold")
+          .fontSize(7)
+          .fillColor([130, 130, 130])
+          .text(
+            section.checkboxLegend,
+            checkboxX,
+            document.y + (didMove ? 0 : 8),
+            { width: columnWidth },
+          );
+        document.moveDown(0.6);
+        document
+          .fillColor("black")
+          .fontSize(8)
+          .font("Source Sans 3")
+          .lineGap(lineGap);
+      }
+
       let lastItemWasOptional = false;
       sortedItems.forEach((item) => {
         if (item.optional && !lastItemWasOptional) {
@@ -345,20 +439,34 @@ export async function generatePackingListPdf(
 
         const didMove = columnCalculations(
           displayName + quantityLabel,
-          columnTextWidth,
+          sectionTextWidth,
           1,
         );
         if (didMove) drawContinuationLabel();
 
-        document
-          .rect(checkboxX, document.y, checkboxSize, checkboxSize)
-          .stroke();
+        const drawCheckbox = (x: number, checked: boolean) => {
+          document.rect(x, document.y, checkboxSize, checkboxSize).stroke();
+          if (checked) {
+            document.rect(x, document.y, checkboxSize, checkboxSize).fill();
+          }
+        };
+
+        if (isFoodSection) {
+          const purchased = !blank && (item.foodStatus?.purchased ?? false);
+          const packed = !blank && (item.foodStatus?.packed ?? false);
+          drawCheckbox(checkboxX, purchased);
+          drawCheckbox(checkboxX + checkboxSize + foodCheckboxGap, packed);
+        } else {
+          const checked = !blank && (getItemStatus(item)?.packed ?? false);
+          drawCheckbox(checkboxX, checked);
+        }
+
         document.text(
           displayName,
-          checkboxX + checkboxGap,
+          checkboxX + textOffsetFromCheckboxX,
           document.y +
             capHeightCenterOffset(checkboxSize, currentFontMetrics()),
-          { width: columnTextWidth, continued: !!quantityLabel },
+          { width: sectionTextWidth, continued: !!quantityLabel },
         );
         if (quantityLabel) {
           document
@@ -368,6 +476,4 @@ export async function generatePackingListPdf(
         }
       });
     });
-
-  document.end();
 }

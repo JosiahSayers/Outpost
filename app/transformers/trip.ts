@@ -46,7 +46,7 @@ export type ClientFullTrip = ClientTrip & {
   packingList: ClientTripPackingList | null;
 };
 
-type FullTrip = Trip & {
+export type FullTrip = Trip & {
   tasks: TripTask[];
   mealPlanDays: FullMealPlanDayInput[];
   links: TripLink[];
