@@ -1,9 +1,11 @@
+import type { FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import type { MealName } from "../../../../generated/prisma/client";
 import {
   contentWidth,
   drawSectionHeading,
   ensureSpace,
   formatDayLabel,
+  formatFluidMl,
   withContinuationHeader,
 } from "./shared";
 
@@ -60,12 +62,15 @@ export function sumWater(items: MealPlanSectionItem[]): {
   return { totalMl, missingCount };
 }
 
-export function formatWaterSummary(items: MealPlanSectionItem[]): string {
+export function formatWaterSummary(
+  items: MealPlanSectionItem[],
+  unit: FluidUnit,
+): string {
   const { totalMl, missingCount } = sumWater(items);
   if (missingCount === items.length) return "no value";
   return missingCount > 0
-    ? `${totalMl} ml · ${missingCount} missing`
-    : `${totalMl} ml`;
+    ? `${formatFluidMl(totalMl, unit)} · ${missingCount} missing`
+    : formatFluidMl(totalMl, unit);
 }
 
 const DAY_HEADER_HEIGHT = 20;
@@ -74,6 +79,7 @@ function drawDayHeader(
   document: PDFKit.PDFDocument,
   day: MealPlanSectionDay,
   continued: boolean,
+  unit: FluidUnit,
 ) {
   ensureSpace(document, DAY_HEADER_HEIGHT);
   const rowY = document.y;
@@ -92,10 +98,15 @@ function drawDayHeader(
     .font(missingCount > 0 ? "Source Sans 3 SemiBold" : "Source Sans 3")
     .fontSize(8)
     .fillColor([100, 100, 100])
-    .text(formatWaterSummary(day.items), document.page.margins.left, rowY, {
-      width: contentWidth(document),
-      align: "right",
-    });
+    .text(
+      formatWaterSummary(day.items, unit),
+      document.page.margins.left,
+      rowY,
+      {
+        width: contentWidth(document),
+        align: "right",
+      },
+    );
 
   const ruleY = rowY + 13;
   document
@@ -123,6 +134,7 @@ function drawMealGroup(
   document: PDFKit.PDFDocument,
   meal: MealName,
   items: MealPlanSectionItem[],
+  unit: FluidUnit,
 ) {
   const itemX = document.page.margins.left + MEAL_COL_WIDTH + COL_GAP;
   const itemWidth =
@@ -151,7 +163,7 @@ function drawMealGroup(
         .fontSize(7)
         .fillColor(missingCount > 0 ? [100, 100, 100] : "black")
         .text(
-          formatWaterSummary(items),
+          formatWaterSummary(items, unit),
           document.page.margins.left,
           rowY + 11,
           { width: MEAL_COL_WIDTH },
@@ -170,10 +182,15 @@ function drawMealGroup(
       .font(itemWater === null ? "Source Sans 3 SemiBold" : "Source Sans 3")
       .fontSize(9)
       .fillColor([100, 100, 100])
-      .text(itemWater === null ? "no value" : `${itemWater} ml`, waterX, rowY, {
-        width: WATER_COL_WIDTH,
-        align: "right",
-      });
+      .text(
+        itemWater === null ? "no value" : formatFluidMl(itemWater, unit),
+        waterX,
+        rowY,
+        {
+          width: WATER_COL_WIDTH,
+          align: "right",
+        },
+      );
 
     document.y = rowY + rowHeight;
   });
@@ -182,6 +199,7 @@ function drawMealGroup(
 export function drawMealPlanSection(
   document: PDFKit.PDFDocument,
   days: MealPlanSectionDay[],
+  unit: FluidUnit,
 ): void {
   if (days.every((day) => day.items.length === 0)) return;
 
@@ -192,14 +210,14 @@ export function drawMealPlanSection(
     document,
     () => {
       drawSectionHeading(document, "Meal Plan (continued)");
-      if (currentDay) drawDayHeader(document, currentDay, true);
+      if (currentDay) drawDayHeader(document, currentDay, true, unit);
     },
     () => {
       for (const day of days) {
         currentDay = day;
-        drawDayHeader(document, day, false);
+        drawDayHeader(document, day, false, unit);
         for (const group of groupByMeal(day.items)) {
-          drawMealGroup(document, group.meal, group.items);
+          drawMealGroup(document, group.meal, group.items, unit);
         }
       }
     },

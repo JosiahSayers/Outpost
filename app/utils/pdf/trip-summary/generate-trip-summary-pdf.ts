@@ -1,3 +1,7 @@
+import {
+  FLUID_DEFAULT_UNIT,
+  FluidUnit,
+} from "$/frontend/shared-components/converter/fluid-conversions";
 import type { FullTrip } from "$/transformers/trip";
 import PDFDocument from "pdfkit";
 import type { FoodSectionDay } from "./food-section";
@@ -19,6 +23,18 @@ export interface TripSummaryPdfOptions {
   sections: Set<TripSummarySection>;
   taskBlank: boolean;
   packingListBlank: boolean;
+  fluidUnit: FluidUnit;
+}
+
+// The Meal Plan section's water values should match what the user sees on
+// the trip page (liquid_viewing_unit), but that setting may not be set
+// (most users haven't touched it — see the new-user-settings notification
+// job) or may hold a stale/invalid value. Falls back to the same default
+// the frontend's unit-conversion hooks use outside a detectable locale.
+export function resolveFluidUnit(value: string | null | undefined): FluidUnit {
+  return value && (Object.values(FluidUnit) as string[]).includes(value)
+    ? (value as FluidUnit)
+    : FLUID_DEFAULT_UNIT;
 }
 
 export function toMealPlanDays(trip: FullTrip): MealPlanSectionDay[] {
@@ -125,7 +141,7 @@ export async function generateTripSummaryPdf(
     drawTasksSection(document, trip.tasks, { blank: options.taskBlank });
   }
   if (options.sections.has("mealPlan")) {
-    drawMealPlanSection(document, toMealPlanDays(trip));
+    drawMealPlanSection(document, toMealPlanDays(trip), options.fluidUnit);
   }
   if (options.sections.has("packingList")) {
     const gearSections =

@@ -1,12 +1,29 @@
+import { FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import type { FullTrip } from "$/transformers/trip";
 import {
   generateTripSummaryPdf,
+  resolveFluidUnit,
   toFoodDays,
   toMealPlanDays,
   type TripSummaryPdfOptions,
 } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { describe, expect, it } from "bun:test";
 import { Writable } from "node:stream";
+
+describe("resolveFluidUnit", () => {
+  it("passes through a valid stored unit", () => {
+    expect(resolveFluidUnit("fluidOunce")).toBe(FluidUnit.fluidOunce);
+  });
+
+  it("falls back to the app default when nothing is stored", () => {
+    expect(resolveFluidUnit(undefined)).toBe(FluidUnit.ml);
+    expect(resolveFluidUnit(null)).toBe(FluidUnit.ml);
+  });
+
+  it("falls back to the app default for a stale/invalid stored value", () => {
+    expect(resolveFluidUnit("gallons")).toBe(FluidUnit.ml);
+  });
+});
 
 function tripWithMealPlanDays(mealPlanDays: unknown): FullTrip {
   return { mealPlanDays } as unknown as FullTrip;
@@ -246,6 +263,7 @@ describe("generateTripSummaryPdf", () => {
       sections: new Set(),
       taskBlank: false,
       packingListBlank: false,
+      fluidUnit: FluidUnit.ml,
     });
 
     expect(isValidPdf(pdf)).toBe(true);
@@ -260,6 +278,7 @@ describe("generateTripSummaryPdf", () => {
       sections: new Set(["details", "tasks", "mealPlan", "packingList"]),
       taskBlank: false,
       packingListBlank: false,
+      fluidUnit: FluidUnit.ml,
     });
 
     expect(isValidPdf(pdf)).toBe(true);
@@ -272,6 +291,7 @@ describe("generateTripSummaryPdf", () => {
       sections: new Set(["packingList"]),
       taskBlank: false,
       packingListBlank: false,
+      fluidUnit: FluidUnit.ml,
     });
 
     expect(isValidPdf(pdf)).toBe(true);
@@ -286,6 +306,7 @@ describe("generateTripSummaryPdf", () => {
       sections: new Set(["tasks", "packingList"]),
       taskBlank: true,
       packingListBlank: true,
+      fluidUnit: FluidUnit.ml,
     });
 
     expect(isValidPdf(pdf)).toBe(true);
@@ -298,11 +319,13 @@ describe("generateTripSummaryPdf", () => {
       sections: new Set(["details"]),
       taskBlank: false,
       packingListBlank: false,
+      fluidUnit: FluidUnit.ml,
     });
     const detailsAndTasksAndMeals = await renderTripSummaryToBuffer(trip, {
       sections: new Set(["details", "tasks", "mealPlan"]),
       taskBlank: false,
       packingListBlank: false,
+      fluidUnit: FluidUnit.ml,
     });
 
     expect(detailsAndTasksAndMeals.length).toBeGreaterThan(detailsOnly.length);

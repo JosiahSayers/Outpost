@@ -1,3 +1,4 @@
+import { FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import {
   drawMealPlanSection,
   formatWaterSummary,
@@ -57,19 +58,34 @@ describe("sumWater", () => {
 
 describe("formatWaterSummary", () => {
   it("shows just the total when nothing is missing", () => {
-    expect(formatWaterSummary([item({ waterMl: 300 })])).toBe("300 ml");
+    expect(formatWaterSummary([item({ waterMl: 300 })], FluidUnit.ml)).toBe(
+      "300 mL",
+    );
   });
 
   it("appends a missing count when some items are missing a value", () => {
     expect(
-      formatWaterSummary([item({ waterMl: 300 }), item({ waterMl: null })]),
-    ).toBe("300 ml · 1 missing");
+      formatWaterSummary(
+        [item({ waterMl: 300 }), item({ waterMl: null })],
+        FluidUnit.ml,
+      ),
+    ).toBe("300 mL · 1 missing");
   });
 
   it("shows 'no value' when every item is missing a value", () => {
     expect(
-      formatWaterSummary([item({ waterMl: null }), item({ waterMl: null })]),
+      formatWaterSummary(
+        [item({ waterMl: null }), item({ waterMl: null })],
+        FluidUnit.ml,
+      ),
     ).toBe("no value");
+  });
+
+  it("converts the total into the requested unit instead of always showing mL", () => {
+    // 1000 mL == 4.22675... US cups, rounded to 2 decimal places.
+    expect(
+      formatWaterSummary([item({ waterMl: 1000 })], FluidUnit.cupsUS),
+    ).toBe("4.23 cups");
   });
 });
 
@@ -106,10 +122,14 @@ describe("drawMealPlanSection", () => {
   it("draws nothing when every day has zero items", () => {
     const document = makeTestDocument();
     const before = document.y;
-    drawMealPlanSection(document, [
-      { dayNumber: 1, date: null, items: [] },
-      { dayNumber: 2, date: null, items: [] },
-    ]);
+    drawMealPlanSection(
+      document,
+      [
+        { dayNumber: 1, date: null, items: [] },
+        { dayNumber: 2, date: null, items: [] },
+      ],
+      FluidUnit.ml,
+    );
     expect(document.y).toBe(before);
     expect(pageCount(document)).toBe(1);
   });
@@ -117,28 +137,32 @@ describe("drawMealPlanSection", () => {
   it("draws nothing for an empty days array", () => {
     const document = makeTestDocument();
     const before = document.y;
-    drawMealPlanSection(document, []);
+    drawMealPlanSection(document, [], FluidUnit.ml);
     expect(document.y).toBe(before);
   });
 
   it("renders a typical multi-day, multi-meal plan without throwing", () => {
     const document = makeTestDocument();
     const before = document.y;
-    drawMealPlanSection(document, [
-      {
-        dayNumber: 1,
-        date: new Date("2026-08-14T00:00:00.000Z"),
-        items: [
-          item({ meal: "breakfast", name: "Oatmeal", waterMl: 350 }),
-          item({ meal: "dinner", name: "Chili mac", waterMl: null }),
-        ],
-      },
-      {
-        dayNumber: 2,
-        date: new Date("2026-08-15T00:00:00.000Z"),
-        items: [item({ meal: "lunch", name: "Tortillas", waterMl: 0 })],
-      },
-    ]);
+    drawMealPlanSection(
+      document,
+      [
+        {
+          dayNumber: 1,
+          date: new Date("2026-08-14T00:00:00.000Z"),
+          items: [
+            item({ meal: "breakfast", name: "Oatmeal", waterMl: 350 }),
+            item({ meal: "dinner", name: "Chili mac", waterMl: null }),
+          ],
+        },
+        {
+          dayNumber: 2,
+          date: new Date("2026-08-15T00:00:00.000Z"),
+          items: [item({ meal: "lunch", name: "Tortillas", waterMl: 0 })],
+        },
+      ],
+      FluidUnit.cupsUS,
+    );
     expect(document.y).toBeGreaterThan(before);
     expect(pageCount(document)).toBe(1);
   });
@@ -155,7 +179,7 @@ describe("drawMealPlanSection", () => {
       ],
     }));
 
-    drawMealPlanSection(document, days);
+    drawMealPlanSection(document, days, FluidUnit.ml);
 
     expect(pageCount(document)).toBeGreaterThan(1);
   });

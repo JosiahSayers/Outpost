@@ -1148,6 +1148,39 @@ describe("GET /:id/summary-pdf", () => {
       .expect("Content-Type", "application/pdf")
       .expect(200);
   });
+
+  it("still renders a meal plan when the user has a liquid_viewing_unit preference set", async () => {
+    const liquidViewingUnit = await db.accountSetting.findUniqueOrThrow({
+      where: { slug: "liquid_viewing_unit" },
+    });
+    await db.accountSettingValue.create({
+      data: {
+        userId,
+        accountSettingId: liquidViewingUnit.id,
+        value: "fluidOunce",
+      },
+    });
+
+    const day = await db.mealPlanDay.create({
+      data: make("MealPlanDay", { tripId, dayNumber: 1 }),
+    });
+    const mealPlanItem = await db.mealPlanItem.create({
+      data: make("MealPlanItem", { userId, waterMl: 500 }),
+    });
+    await db.mealPlanDayItem.create({
+      data: make("MealPlanDayItem", {
+        mealPlanDayId: day.id,
+        mealPlanItemId: mealPlanItem.id,
+        meal: "breakfast",
+      }),
+    });
+
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?sections=mealPlan`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
 });
 
 describe("PATCH /:id", () => {

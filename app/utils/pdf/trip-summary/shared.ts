@@ -5,6 +5,14 @@
 // That's all owned by the assembler so sections can flow continuously
 // across a single combined document regardless of which ones are selected.
 
+// Pure data (no React), safe to import server-side — app/validation/
+// account-settings.ts already does the same for this module.
+import {
+  FLUID_CONVERSIONS,
+  FLUID_UNIT_ABBREVIATION,
+  type FluidUnit,
+} from "$/frontend/shared-components/converter/fluid-conversions";
+
 // Matches the logo's own footprint in packing-list-generator.ts (height 22,
 // aspect ratio 430/107) plus a little breathing room, so section titles
 // never run under it in the top-right margin.
@@ -16,6 +24,19 @@ export function contentWidth(document: PDFKit.PDFDocument): number {
     document.page.margins.left -
     document.page.margins.right
   );
+}
+
+// No `navigator` on the server, so number formatting is pinned to en-US —
+// same reasoning as formatDayLabel below pinning its Intl.DateTimeFormat.
+// Mirrors app/frontend/utils/hooks/unit-conversion/use-fluid-display.ts's
+// conversion math so a PDF's water values match what the user sees on
+// screen for their liquid_viewing_unit account setting.
+export function formatFluidMl(ml: number, unit: FluidUnit): string {
+  const value = ml / FLUID_CONVERSIONS.multipliers[unit];
+  const formatted = new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 2,
+  }).format(value);
+  return `${formatted} ${FLUID_UNIT_ABBREVIATION[unit]}`;
 }
 
 // Shared by Meal Plan and the packing list's Food category, since both are
