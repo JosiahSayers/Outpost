@@ -9,10 +9,7 @@ import { tripPackingListRouter } from "$/routers/api/trip/packing-list";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
-import {
-  generateTripSummaryPdf,
-  resolveFluidUnit,
-} from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
+import { generateTripSummaryPdf } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { db } from "$/utils/db";
 import { idParam } from "$/validation/shared";
 import {
@@ -101,33 +98,31 @@ tripRouter.get(
   userCanEditTrip,
   validate({ params: idParam, query: tripSummaryPdfQuery }),
   async (req, res) => {
-    const [trip, liquidUnitSetting] = await Promise.all([
-      db.trip.findUnique({
-        where: { id: req.params.id },
-        include: {
-          tasks: true,
-          mealPlanDays: {
-            include: {
-              items: { include: { mealPlanItem: true } },
-            },
+    const trip = await db.trip.findUnique({
+      where: { id: req.params.id },
+      include: {
+        tasks: true,
+        mealPlanDays: {
+          include: {
+            items: { include: { mealPlanItem: true } },
           },
-          links: true,
-          packingList: {
-            include: {
-              packingList: {
-                include: {
-                  packingListSections: {
-                    include: {
-                      items: {
-                        include: {
-                          tripPackingListItemStatuses: true,
-                          assignedGear: {
-                            include: {
-                              category: true,
-                            },
+        },
+        links: true,
+        packingList: {
+          include: {
+            packingList: {
+              include: {
+                packingListSections: {
+                  include: {
+                    items: {
+                      include: {
+                        tripPackingListItemStatuses: true,
+                        assignedGear: {
+                          include: {
+                            category: true,
                           },
-                          category: true,
                         },
+                        category: true,
                       },
                     },
                   },
@@ -136,14 +131,8 @@ tripRouter.get(
             },
           },
         },
-      }),
-      db.accountSettingValue.findFirst({
-        where: {
-          userId: req.session!.user.id,
-          accountSetting: { slug: "liquid_viewing_unit" },
-        },
-      }),
-    ]);
+      },
+    });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -151,13 +140,16 @@ tripRouter.get(
       `inline; filename="${trip!.name} - Trip Summary.pdf"`,
     );
 
+    // The unit to render is resolved client-side and passed straight
+    // through — see tripSummaryPdfQuery in app/validation/trip.ts for why.
     return await generateTripSummaryPdf(
       trip!,
       {
         sections: new Set(req.query.sections),
         taskBlank: req.query.taskStatus === "blank",
         packingListBlank: req.query.packingListStatus === "blank",
-        fluidUnit: resolveFluidUnit(liquidUnitSetting?.value),
+        fluidUnit: req.query.fluidUnit,
+        weightUnit: req.query.weightUnit,
       },
       res,
     );

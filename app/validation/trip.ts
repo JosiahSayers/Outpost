@@ -1,4 +1,12 @@
 import {
+  FLUID_DEFAULT_UNIT,
+  FluidUnit,
+} from "$/frontend/shared-components/converter/fluid-conversions";
+import {
+  WEIGHT_DEFAULT_UNIT,
+  WeightUnit,
+} from "$/frontend/shared-components/converter/weight-conversions";
+import {
   arrayQueryParam,
   isoDate,
   numberQueryParam,
@@ -28,6 +36,12 @@ export const tripSummaryPdfQuery = z.strictObject({
   ]),
   taskStatus: tripSummaryPrintStatus.default("carryover"),
   packingListStatus: tripSummaryPrintStatus.default("carryover"),
+  // The unit to render water/weight values in. Resolved client-side (account
+  // setting, falling back to a locale guess via navigator.language) and
+  // passed in explicitly, since the server has no equivalent locale signal
+  // to reproduce that fallback with.
+  fluidUnit: z.enum(FluidUnit).default(FLUID_DEFAULT_UNIT),
+  weightUnit: z.enum(WeightUnit).default(WEIGHT_DEFAULT_UNIT),
 });
 
 export function withTripDateRange<

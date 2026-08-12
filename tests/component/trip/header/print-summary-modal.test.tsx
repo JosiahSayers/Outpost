@@ -2,7 +2,24 @@ import PrintSummaryModal from "$/frontend/trip/header/print-summary-modal";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, mock } from "bun:test";
+import { afterEach, describe, expect, it, mock } from "bun:test";
+
+// No AccountSettingsProvider in these tests, so PrintSummaryModal's
+// usePreferredUnit calls always fall through to locale detection (see
+// usePreferredUnit's own comment on degrading gracefully outside a
+// provider). Pin the locale explicitly rather than relying on happy-dom's
+// default, so these assertions don't silently depend on an environment
+// default that could change.
+function setLocale(language: string) {
+  Object.defineProperty(navigator, "language", {
+    value: language,
+    configurable: true,
+  });
+}
+
+afterEach(() => {
+  setLocale("en-US");
+});
 
 function renderComponent(onClose = mock()) {
   render(
@@ -38,6 +55,19 @@ describe("PrintSummaryModal", () => {
     expect(href).toContain("sections=packingList");
     expect(href).toContain("taskStatus=carryover");
     expect(href).toContain("packingListStatus=carryover");
+    // No account settings provider is present, so these come from locale
+    // detection off the en-US navigator.language pinned above.
+    expect(href).toContain("fluidUnit=cupsUS");
+    expect(href).toContain("weightUnit=ounces");
+  });
+
+  it("falls back to mL/grams for a locale with no region default", () => {
+    setLocale("de-DE");
+    renderComponent();
+
+    const href = exportLink().getAttribute("href")!;
+    expect(href).toContain("fluidUnit=ml");
+    expect(href).toContain("weightUnit=grams");
   });
 
   it("only shows the carry-over/blank toggle for a section while it's checked", () => {

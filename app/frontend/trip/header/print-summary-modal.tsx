@@ -1,3 +1,12 @@
+import { usePreferredUnit } from "$/frontend/account/use-preferred-unit";
+import {
+  FLUID_DEFAULT_UNIT,
+  FLUID_REGION_DEFAULT_UNIT,
+} from "$/frontend/shared-components/converter/fluid-conversions";
+import {
+  WEIGHT_DEFAULT_UNIT,
+  WEIGHT_REGION_DEFAULT_UNIT,
+} from "$/frontend/shared-components/converter/weight-conversions";
 import {
   buildTripSummaryPdfUrl,
   type TripSummaryPrintStatus,
@@ -46,6 +55,16 @@ export default function PrintSummaryModal({ opened, onClose, tripId }: Props) {
     useState<TripSummaryPrintStatus>("carryover");
   const [packingListStatus, setPackingListStatus] =
     useState<TripSummaryPrintStatus>("carryover");
+  const fluidUnit = usePreferredUnit(
+    "liquid_viewing_unit",
+    FLUID_REGION_DEFAULT_UNIT,
+    FLUID_DEFAULT_UNIT,
+  );
+  const weightUnit = usePreferredUnit(
+    "weight_viewing_unit",
+    WEIGHT_REGION_DEFAULT_UNIT,
+    WEIGHT_DEFAULT_UNIT,
+  );
 
   const selectedSections = (
     Object.keys(sections) as TripSummarySection[]
@@ -129,6 +148,8 @@ export default function PrintSummaryModal({ opened, onClose, tripId }: Props) {
                     sections: selectedSections,
                     taskStatus,
                     packingListStatus,
+                    fluidUnit,
+                    weightUnit,
                   })
                 : undefined
             }

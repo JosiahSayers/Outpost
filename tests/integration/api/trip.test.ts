@@ -1149,18 +1149,7 @@ describe("GET /:id/summary-pdf", () => {
       .expect(200);
   });
 
-  it("still renders a meal plan when the user has a liquid_viewing_unit preference set", async () => {
-    const liquidViewingUnit = await db.accountSetting.findUniqueOrThrow({
-      where: { slug: "liquid_viewing_unit" },
-    });
-    await db.accountSettingValue.create({
-      data: {
-        userId,
-        accountSettingId: liquidViewingUnit.id,
-        value: "fluidOunce",
-      },
-    });
-
+  it("accepts an explicit fluidUnit/weightUnit query and still renders the meal plan", async () => {
     const day = await db.mealPlanDay.create({
       data: make("MealPlanDay", { tripId, dayNumber: 1 }),
     });
@@ -1176,10 +1165,34 @@ describe("GET /:id/summary-pdf", () => {
     });
 
     await request(app)
-      .get(`/api/trips/${tripId}/summary-pdf?sections=mealPlan`)
+      .get(
+        `/api/trips/${tripId}/summary-pdf?sections=mealPlan&fluidUnit=fluidOunce&weightUnit=pounds`,
+      )
       .set("Cookie", authCookies)
       .expect("Content-Type", "application/pdf")
       .expect(200);
+  });
+
+  it("defaults fluidUnit/weightUnit to mL/grams when omitted", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf`)
+      .set("Cookie", authCookies)
+      .expect("Content-Type", "application/pdf")
+      .expect(200);
+  });
+
+  it("returns 400 for an invalid fluidUnit", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?fluidUnit=gallons`)
+      .set("Cookie", authCookies)
+      .expect(400);
+  });
+
+  it("returns 400 for an invalid weightUnit", async () => {
+    await request(app)
+      .get(`/api/trips/${tripId}/summary-pdf?weightUnit=stone`)
+      .set("Cookie", authCookies)
+      .expect(400);
   });
 });
 
