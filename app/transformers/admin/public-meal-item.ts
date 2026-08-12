@@ -15,6 +15,7 @@ export type ClientAdminPublicMealItem = Pick<
   | "sourceProductId"
   | "sourceUrl"
   | "sourceImageUrl"
+  | "overrideImageUrl"
 > & {
   imageUrl: string | null;
 };
@@ -33,6 +34,7 @@ export function transform(
     sourceProductId: item.sourceProductId,
     sourceUrl: item.sourceUrl,
     sourceImageUrl: item.sourceImageUrl,
+    overrideImageUrl: item.overrideImageUrl,
     imageUrl: item.image
       ? `${process.env.R2_PUBLIC_BASE_URL}/${item.image.r2Key}`
       : null,

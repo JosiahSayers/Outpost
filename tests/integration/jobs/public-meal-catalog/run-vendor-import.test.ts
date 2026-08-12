@@ -233,6 +233,163 @@ describe("runVendorImport", () => {
     expect(jobs).toHaveLength(0);
   });
 
+  it("skips a product that has been marked as ignored and does not create a PublicMealItem", async () => {
+    await db.ignoredPublicMealItem.create({
+      data: {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        ignoredById: adminUserId,
+      },
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      { scraped: scraped({ sourceProductId: "1", name: "Ignored Meal" }) },
+      { scraped: scraped({ sourceProductId: "2", name: "Included Meal" }) },
+    ]);
+
+    const result = await runVendorImport(makeJob(), scraper);
+
+    expect(result.processed).toBe(1);
+    expect(result.skipped).toBe(1);
+    const ignoredRow = await db.publicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: "fake_vendor",
+          sourceProductId: "1",
+        },
+      },
+    });
+    expect(ignoredRow).toBeNull();
+  });
+
+  it("does not re-create a PublicMealItem that was previously deleted and marked ignored", async () => {
+    await db.ignoredPublicMealItem.create({
+      data: {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        ignoredById: adminUserId,
+      },
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      { scraped: scraped({ sourceProductId: "1" }) },
+    ]);
+
+    await runVendorImport(makeJob(), scraper);
+
+    const count = await db.publicMealItem.count({
+      where: { sourceVendor: "fake_vendor", sourceProductId: "1" },
+    });
+    expect(count).toBe(0);
+  });
+
+  it("reports progress for an ignored product the same as any other skip", async () => {
+    await db.ignoredPublicMealItem.create({
+      data: {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        ignoredById: adminUserId,
+      },
+    });
+    const updateProgress = mock(
+      (_progress: { processed: number; total: number }) => {},
+    );
+    const scraper = fakeScraper("fake_vendor", [
+      { scraped: scraped({ sourceProductId: "1" }) },
+      { scraped: scraped({ sourceProductId: "2" }) },
+    ]);
+
+    await runVendorImport(makeJob(updateProgress), scraper);
+
+    expect(updateProgress.mock.calls.map(([progress]) => progress)).toEqual([
+      { processed: 1, total: 2 },
+      { processed: 2, total: 2 },
+    ]);
+  });
+
+  it("only ignores the exact sourceVendor/sourceProductId pair, not other products", async () => {
+    await db.ignoredPublicMealItem.create({
+      data: {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        ignoredById: adminUserId,
+      },
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      { scraped: scraped({ sourceProductId: "2", name: "Different Product" }) },
+    ]);
+
+    const result = await runVendorImport(makeJob(), scraper);
+
+    expect(result.processed).toBe(1);
+    expect(result.skipped).toBe(0);
+  });
+
+  it("keeps an admin's photo override in place when the re-scrape's image url matches the known source", async () => {
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        sourceImageUrl: "https://cdn.example.com/vendor-photo.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      {
+        scraped: scraped({
+          sourceProductId: "1",
+          imageUrl: "https://cdn.example.com/vendor-photo.png",
+        }),
+      },
+    ]);
+
+    await runVendorImport(makeJob(), scraper, { r2Client: null });
+
+    const row = await db.publicMealItem.findUniqueOrThrow({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: "fake_vendor",
+          sourceProductId: "1",
+        },
+      },
+    });
+    expect(row.overrideImageUrl).toBe(
+      "https://cdn.example.com/admin-override.png",
+    );
+  });
+
+  it("clears an admin's photo override once the vendor's source image url changes", async () => {
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceVendor: "fake_vendor",
+        sourceProductId: "1",
+        sourceImageUrl: "https://cdn.example.com/vendor-photo-old.png",
+        overrideImageUrl: "https://cdn.example.com/admin-override.png",
+      }),
+    });
+    const scraper = fakeScraper("fake_vendor", [
+      {
+        scraped: scraped({
+          sourceProductId: "1",
+          imageUrl: "https://cdn.example.com/vendor-photo-new.png",
+        }),
+      },
+    ]);
+
+    await runVendorImport(makeJob(), scraper, { r2Client: null });
+
+    const row = await db.publicMealItem.findUniqueOrThrow({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: "fake_vendor",
+          sourceProductId: "1",
+        },
+      },
+    });
+    expect(row.overrideImageUrl).toBeNull();
+    expect(row.sourceImageUrl).toBe(
+      "https://cdn.example.com/vendor-photo-new.png",
+    );
+  });
+
   it("does not notify for a field a vendor scraper excludes via trackedFields, even at 100% null", async () => {
     // Mirrors Mountain House excluding waterMl -- a field it structurally
     // never publishes, so alerting on it every run would be a permanent

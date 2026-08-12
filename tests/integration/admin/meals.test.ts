@@ -1,6 +1,6 @@
 import { app } from "$/server";
 import { db } from "$/utils/db";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
 import type { PublicMealItem } from "../../../generated/prisma/client";
 import { getAuthCookies } from "../../helpers/auth";
@@ -600,6 +600,7 @@ describe("POST /", () => {
       sourceProductId: validBody.sourceProductId,
       sourceUrl: validBody.sourceUrl,
       sourceImageUrl: null,
+      overrideImageUrl: null,
       imageUrl: null,
     });
 
@@ -899,15 +900,158 @@ describe("PATCH /:id", () => {
       }),
     ]);
   });
+
+  describe("editing the photo", () => {
+    // Force createR2Client() to return null so processProductImage takes its
+    // "R2 not configured" fallback and never attempts a real network fetch --
+    // these tests exercise the router's override-persistence logic, not
+    // image processing itself (covered separately in image.test.ts).
+    let originalR2AccountId: string | undefined;
+    beforeEach(() => {
+      originalR2AccountId = process.env.R2_ACCOUNT_ID;
+      delete process.env.R2_ACCOUNT_ID;
+    });
+    afterEach(() => {
+      if (originalR2AccountId !== undefined) {
+        process.env.R2_ACCOUNT_ID = originalR2AccountId;
+      }
+    });
+
+    it("records the admin's photo as an override without touching the tracked source url", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({
+          sourceImageUrl: "https://vendor.example.com/admin-override.png",
+        })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.sourceImageUrl).toBe(
+        "https://vendor.example.com/original.png",
+      );
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+    });
+
+    it("clears a previous override when the admin sets the photo back to the tracked source url", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/old-override.png",
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ sourceImageUrl: "https://vendor.example.com/original.png" })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBeNull();
+    });
+
+    it("leaves an existing override untouched when the edit doesn't include a photo change", async () => {
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/admin-override.png",
+          calories: 500,
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ calories: 850 })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+      expect(updated.calories).toBe(850);
+    });
+
+    it("leaves the override untouched when the form resends it unchanged alongside an unrelated field edit", async () => {
+      // The real client always resends sourceImageUrl (prefilled with the
+      // active override) on every save -- this is the realistic shape of a
+      // request, not the "field omitted" case above.
+      const image = await db.image.create({ data: make("Image") });
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          sourceImageUrl: "https://vendor.example.com/original.png",
+          overrideImageUrl: "https://vendor.example.com/admin-override.png",
+          imageId: image.id,
+          calories: 500,
+        }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({
+          calories: 850,
+          sourceImageUrl: "https://vendor.example.com/admin-override.png",
+        })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.overrideImageUrl).toBe(
+        "https://vendor.example.com/admin-override.png",
+      );
+      expect(updated.imageId).toBe(image.id);
+      expect(updated.calories).toBe(850);
+    });
+
+    it("leaves an existing image attached when the edit doesn't include a photo change", async () => {
+      const image = await db.image.create({ data: make("Image") });
+      const existing = await db.publicMealItem.create({
+        data: make("PublicMealItem", { imageId: image.id }),
+      });
+
+      await request(app)
+        .patch(`/admin/meals/${existing.id}`)
+        .send({ calories: 850 })
+        .set("Cookie", adminAuthCookies)
+        .expect(200);
+
+      const updated = await db.publicMealItem.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.imageId).toBe(image.id);
+    });
+  });
 });
 
 describe("DELETE /:id", () => {
   let existing: PublicMealItem;
+  let adminUserId: string;
 
   beforeEach(async () => {
     existing = await db.publicMealItem.create({
       data: make("PublicMealItem"),
     });
+    const admin = await db.user.findUniqueOrThrow({
+      where: { email: "admin@test.com" },
+    });
+    adminUserId = admin.id;
   });
 
   it("requires a valid session", async () => {
@@ -938,5 +1082,118 @@ describe("DELETE /:id", () => {
       where: { id: existing.id },
     });
     expect(deleted).toBeNull();
+  });
+
+  it("defaults ignore to false when the query param is omitted, and does not create an IgnoredPublicMealItem", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("does not create an IgnoredPublicMealItem when ignore=false", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "false" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("deletes the meal and creates an IgnoredPublicMealItem when ignore=true", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "true" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const deleted = await db.publicMealItem.findUnique({
+      where: { id: existing.id },
+    });
+    expect(deleted).toBeNull();
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toMatchObject({
+      sourceVendor: existing.sourceVendor,
+      sourceProductId: existing.sourceProductId,
+      ignoredById: adminUserId,
+    });
+  });
+
+  it("treats ignore case-insensitively", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "TRUE" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).not.toBeNull();
+  });
+
+  it("does not create an IgnoredPublicMealItem for any value other than 'true'", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "yes" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("rejects unrecognized query params", async () => {
+    const response = await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ notAParam: "x" })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "query",
+        errors: [expect.objectContaining({ code: "unrecognized_keys" })],
+      }),
+    ]);
   });
 });

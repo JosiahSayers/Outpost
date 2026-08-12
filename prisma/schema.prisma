@@ -57,6 +57,7 @@ model User {
   feedback                        Feedback[]
   feedbackNotes                   FeedbackNote[]
   feedbackAuditLogs               FeedbackAuditLog[]
+  ignoredPublicMealItems          IgnoredPublicMealItem[]
 
   @@unique([email])
   @@map("user")
@@ -563,6 +564,11 @@ model PublicMealItem {
   // Last-seen image URL from the source. Compared against the current scrape
   // so an unchanged image is never re-downloaded/re-uploaded on every run.
   sourceImageUrl String?
+  // Admin-set replacement photo URL (BTP-136). Persists across import runs
+  // as long as sourceImageUrl doesn't change -- mergePublicMealItem clears
+  // this the moment the vendor's own source image url moves, since at that
+  // point the override is stale and the fresh scrape should win.
+  overrideImageUrl String?
 
   sourceVendor    String // e.g. "peak_refuel"
   sourceProductId String // vendor's own product id -- the upsert key together with sourceVendor
@@ -575,6 +581,20 @@ model PublicMealItem {
 
   @@unique([sourceVendor, sourceProductId])
   @@index([data_fts], type: Gin)
+}
+
+model IgnoredPublicMealItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sourceVendor    String // Same as PublicMealItem.sourceVendor
+  sourceProductId String // Same as PublicMealItem.sourceProductId
+
+  ignoredBy   User   @relation(fields: [ignoredById], references: [id]) // Admin who marked the meal as ignored
+  ignoredById String
+
+  @@unique([sourceVendor, sourceProductId])
 }
 
 // A single stored image, backed by an object in Cloudflare R2. Currently only

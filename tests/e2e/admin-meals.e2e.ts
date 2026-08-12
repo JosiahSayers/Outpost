@@ -261,4 +261,86 @@ test.describe("Deleting a meal", () => {
       .poll(() => db.publicMealItem.findUnique({ where: { id: meal.id } }))
       .toBeNull();
   });
+
+  test("ignores the meal in future imports by default", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    const vendor = uniqueVendor("delete_ignore_vendor");
+    const name = uniqueName("Ignore Default Meal");
+    const meal = await db.publicMealItem.create({
+      data: make("PublicMealItem", { name, sourceVendor: vendor }),
+    });
+    await signInAs(await makeUser({ admin: true }));
+    await page.goto(
+      `/console/meals?vendor=${encodeURIComponent(vendor)}&meal=${meal.id}`,
+    );
+
+    const form = page.locator("form");
+    await expect(form.getByLabel("Name")).toHaveValue(name);
+    await form.getByRole("button", { name: "Delete" }).click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByRole("switch", {
+        name: "Ignore this meal during future imports?",
+      }),
+    ).toBeChecked();
+    await dialog.getByRole("button", { name: "Delete" }).click();
+
+    await expect
+      .poll(() =>
+        db.ignoredPublicMealItem.findUnique({
+          where: {
+            sourceVendor_sourceProductId: {
+              sourceVendor: meal.sourceVendor,
+              sourceProductId: meal.sourceProductId,
+            },
+          },
+        }),
+      )
+      .not.toBeNull();
+  });
+
+  test("does not ignore the meal when the toggle is switched off", async ({
+    page,
+    makeUser,
+    signInAs,
+  }) => {
+    const vendor = uniqueVendor("delete_no_ignore_vendor");
+    const name = uniqueName("No Ignore Meal");
+    const meal = await db.publicMealItem.create({
+      data: make("PublicMealItem", { name, sourceVendor: vendor }),
+    });
+    await signInAs(await makeUser({ admin: true }));
+    await page.goto(
+      `/console/meals?vendor=${encodeURIComponent(vendor)}&meal=${meal.id}`,
+    );
+
+    const form = page.locator("form");
+    await expect(form.getByLabel("Name")).toHaveValue(name);
+    await form.getByRole("button", { name: "Delete" }).click();
+
+    const dialog = page.getByRole("dialog");
+    await dialog
+      .getByRole("switch", {
+        name: "Ignore this meal during future imports?",
+      })
+      .click();
+    await dialog.getByRole("button", { name: "Delete" }).click();
+
+    await expect
+      .poll(() => db.publicMealItem.findUnique({ where: { id: meal.id } }))
+      .toBeNull();
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: meal.sourceVendor,
+          sourceProductId: meal.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
 });

@@ -153,8 +153,10 @@ export function useDeleteMeal() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiClient(`/admin/meals/${id}`, { method: "DELETE" }),
+    mutationFn: ({ id, ignore = "false" }: { id: string; ignore?: string }) => {
+      const params = new URLSearchParams({ ignore });
+      return apiClient(`/admin/meals/${id}?${params}`, { method: "DELETE" });
+    },
     onSuccess: () => invalidateMealLists(queryClient),
   });
 }

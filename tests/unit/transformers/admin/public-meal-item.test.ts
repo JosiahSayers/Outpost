@@ -9,6 +9,7 @@ describe("transform", () => {
       sourceProductId: "pr-1",
       sourceUrl: "https://example.com/products/pr-1",
       sourceImageUrl: "https://example.com/images/pr-1.jpg",
+      overrideImageUrl: "https://example.com/images/pr-1-override.jpg",
     });
 
     expect(transform({ ...item, image: null })).toEqual({
@@ -22,6 +23,7 @@ describe("transform", () => {
       sourceProductId: "pr-1",
       sourceUrl: "https://example.com/products/pr-1",
       sourceImageUrl: "https://example.com/images/pr-1.jpg",
+      overrideImageUrl: "https://example.com/images/pr-1-override.jpg",
       imageUrl: null,
     });
   });

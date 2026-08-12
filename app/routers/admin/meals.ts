@@ -6,6 +6,7 @@ import { logger } from "$/utils/logger";
 import { searchPublicMealItems } from "$/utils/search-helpers";
 import {
   createMeal,
+  deleteMealSearchParams,
   editMeal,
   incompleteParams,
   mealSearchParams,
@@ -150,14 +151,27 @@ adminMealsRouter.patch(
     }
 
     const updatedMeal = await db.$transaction(async (tx) => {
-      let imageId: string | null = null;
+      let imageId = existing.imageId;
+      // `undefined` means "don't touch the column". The form always resends
+      // sourceImageUrl (prefilled with whatever's currently in effect), so
+      // presence alone doesn't mean the admin changed the photo -- compare
+      // against the currently *effective* url (override, if any, else the
+      // tracked source) to tell an actual edit from a resubmitted no-op and
+      // avoid reprocessing the image on every unrelated field edit.
+      let overrideImageUrl: string | null | undefined = undefined;
+      const currentEffectiveImageUrl =
+        existing.overrideImageUrl ?? existing.sourceImageUrl;
 
-      if (req.body.sourceImageUrl) {
+      if (
+        req.body.sourceImageUrl &&
+        req.body.sourceImageUrl !== currentEffectiveImageUrl
+      ) {
+        const desiredImageUrl = req.body.sourceImageUrl;
         const imageResult = await processProductImage(
           {
             sourceVendor: existing.sourceVendor,
             sourceProductId: existing.sourceProductId,
-            imageUrl: req.body.sourceImageUrl,
+            imageUrl: desiredImageUrl,
             existing,
           },
           {
@@ -166,6 +180,12 @@ adminMealsRouter.patch(
           },
         );
         imageId = imageResult.imageId;
+        // `sourceImageUrl` (the vendor's own tracked source) is intentionally
+        // never written here -- it's ingest-owned bookkeeping (BTP-136). Only
+        // record an override when it actually diverges from that source;
+        // matching it back is the admin reverting to the vendor's photo.
+        overrideImageUrl =
+          desiredImageUrl === existing.sourceImageUrl ? null : desiredImageUrl;
       }
 
       return tx.publicMealItem.update({
@@ -176,11 +196,11 @@ adminMealsRouter.patch(
           calories: req.body.calories,
           waterMl: req.body.waterMl,
           dryWeightGrams: req.body.dryWeightGrams,
-          sourceImageUrl: req.body.sourceImageUrl,
           sourceVendor: req.body.sourceVendor,
           sourceProductId: req.body.sourceProductId,
           sourceUrl: req.body.sourceUrl,
           imageId,
+          ...(overrideImageUrl !== undefined ? { overrideImageUrl } : {}),
         },
         include: {
           image: true,
@@ -195,7 +215,7 @@ adminMealsRouter.patch(
 // delete
 adminMealsRouter.delete(
   "/:id",
-  validate({ params: idParam }),
+  validate({ params: idParam, query: deleteMealSearchParams }),
   async (req, res) => {
     const existing = await db.publicMealItem.findUnique({
       where: { id: req.params.id },
@@ -204,7 +224,19 @@ adminMealsRouter.delete(
       return res.sendStatus(404);
     }
 
-    await db.publicMealItem.delete({ where: { id: req.params.id } });
+    await db.$transaction(async (tx) => {
+      if (req.query.ignore.toLowerCase() === "true") {
+        await tx.ignoredPublicMealItem.create({
+          data: {
+            sourceProductId: existing.sourceProductId,
+            sourceVendor: existing.sourceVendor,
+            ignoredById: req.session!.user.id,
+          },
+        });
+      }
+      await tx.publicMealItem.delete({ where: { id: req.params.id } });
+    });
+
     return res.sendStatus(200);
   },
 );
