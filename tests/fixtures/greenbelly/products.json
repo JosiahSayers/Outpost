@@ -1,0 +1,157 @@
+{
+  "products": [
+    {
+      "id": 1280756164,
+      "handle": "meal2go",
+      "title": "Greenbelly Meals",
+      "vendor": "Greenbelly",
+      "product_type": "",
+      "tags": [],
+      "body_html": "",
+      "images": [
+        {
+          "id": 1,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/files/Variety.png?v=1683187616",
+          "variant_ids": []
+        },
+        {
+          "id": 2,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/files/DarkChocolateBanana.png?v=1683187616",
+          "variant_ids": [4630001412]
+        },
+        {
+          "id": 3,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/files/PeanutApricot.png?v=1683187616",
+          "variant_ids": [19912571012]
+        }
+      ],
+      "options": [
+        {
+          "name": "Meal Count",
+          "position": 1,
+          "values": ["30 ($7.83/Meal)", "15 ($8.67/Meal)", "5 ($9.00/Meal)"]
+        },
+        {
+          "name": "Flavor",
+          "position": 2,
+          "values": ["Variety", "Chocolate", "Apricot"]
+        }
+      ],
+      "variants": [
+        {
+          "id": 4630001284,
+          "available": true,
+          "requires_shipping": true,
+          "option1": "30 ($7.83/Meal)",
+          "option2": "Variety",
+          "grams": 4536
+        },
+        {
+          "id": 4630001412,
+          "available": true,
+          "requires_shipping": true,
+          "option1": "30 ($7.83/Meal)",
+          "option2": "Chocolate",
+          "grams": 4536
+        },
+        {
+          "id": 19912571012,
+          "available": true,
+          "requires_shipping": true,
+          "option1": "5 ($9.00/Meal)",
+          "option2": "Apricot",
+          "grams": 454
+        }
+      ]
+    },
+    {
+      "id": 7171590226018,
+      "handle": "greenbelly-meal2go-protein",
+      "title": "(NEW!) Greenbelly Meals Protein",
+      "vendor": "Greenbelly",
+      "product_type": "",
+      "tags": [],
+      "body_html": "",
+      "images": [
+        {
+          "id": 10,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/files/Protein.png",
+          "variant_ids": [41231668412514, 41231668543586, 41231668674658]
+        }
+      ],
+      "options": [
+        {
+          "name": "Meal Count",
+          "position": 1,
+          "values": ["30 ($7.83/Meal)", "15 ($8.67/Meal)", "5 ($9.00/Meal)"]
+        },
+        {
+          "name": "Flavor",
+          "position": 2,
+          "values": ["Chocolate Crunch"]
+        }
+      ],
+      "variants": [
+        {
+          "id": 41231668412514,
+          "available": true,
+          "requires_shipping": true,
+          "option1": "30 ($7.83/Meal)",
+          "option2": "Chocolate Crunch",
+          "grams": 4536
+        }
+      ]
+    },
+    {
+      "id": 6581599174754,
+      "handle": "mud-meals-2",
+      "title": "Mud Meal 2.0",
+      "vendor": "Greenbelly",
+      "product_type": "",
+      "tags": ["F-sale"],
+      "body_html": "",
+      "images": [
+        {
+          "id": 20,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/files/MMVariety.png",
+          "variant_ids": []
+        },
+        {
+          "id": 21,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/products/MMVanillaF.png?v=1684750115",
+          "variant_ids": [39384813863010]
+        },
+        {
+          "id": 22,
+          "src": "https://cdn.shopify.com/s/files/1/0384/0233/products/MMStrawberryF.png?v=1684750115",
+          "variant_ids": [39384813895778]
+        }
+      ],
+      "options": [
+        {
+          "name": "Flavor (One Bag)",
+          "position": 1,
+          "values": ["Vanilla | Original", "Strawberry | Plant Based"]
+        }
+      ],
+      "variants": [
+        {
+          "id": 39384813863010,
+          "available": false,
+          "requires_shipping": true,
+          "option1": "Vanilla | Original",
+          "option2": null,
+          "grams": 1134
+        },
+        {
+          "id": 39384813895778,
+          "available": false,
+          "requires_shipping": true,
+          "option1": "Strawberry | Plant Based",
+          "option2": null,
+          "grams": 1134
+        }
+      ]
+    }
+  ]
+}
