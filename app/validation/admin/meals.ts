@@ -15,7 +15,7 @@ export const incompleteParams = z.strictObject({
 });
 
 export const createMeal = z.strictObject({
-  name: z.string().min(5).max(50),
+  name: z.string().min(5).max(100),
   brand: z.string().max(25).optional(),
   calories: z.int().optional(),
   waterMl: z.int().optional(),
