@@ -903,11 +903,16 @@ describe("PATCH /:id", () => {
 
 describe("DELETE /:id", () => {
   let existing: PublicMealItem;
+  let adminUserId: string;
 
   beforeEach(async () => {
     existing = await db.publicMealItem.create({
       data: make("PublicMealItem"),
     });
+    const admin = await db.user.findUniqueOrThrow({
+      where: { email: "admin@test.com" },
+    });
+    adminUserId = admin.id;
   });
 
   it("requires a valid session", async () => {
@@ -938,5 +943,118 @@ describe("DELETE /:id", () => {
       where: { id: existing.id },
     });
     expect(deleted).toBeNull();
+  });
+
+  it("defaults ignore to false when the query param is omitted, and does not create an IgnoredPublicMealItem", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("does not create an IgnoredPublicMealItem when ignore=false", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "false" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("deletes the meal and creates an IgnoredPublicMealItem when ignore=true", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "true" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const deleted = await db.publicMealItem.findUnique({
+      where: { id: existing.id },
+    });
+    expect(deleted).toBeNull();
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toMatchObject({
+      sourceVendor: existing.sourceVendor,
+      sourceProductId: existing.sourceProductId,
+      ignoredById: adminUserId,
+    });
+  });
+
+  it("treats ignore case-insensitively", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "TRUE" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).not.toBeNull();
+  });
+
+  it("does not create an IgnoredPublicMealItem for any value other than 'true'", async () => {
+    await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ ignore: "yes" })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const ignored = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: existing.sourceVendor,
+          sourceProductId: existing.sourceProductId,
+        },
+      },
+    });
+    expect(ignored).toBeNull();
+  });
+
+  it("rejects unrecognized query params", async () => {
+    const response = await request(app)
+      .delete(`/admin/meals/${existing.id}`)
+      .query({ notAParam: "x" })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "query",
+        errors: [expect.objectContaining({ code: "unrecognized_keys" })],
+      }),
+    ]);
   });
 });

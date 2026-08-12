@@ -27,3 +27,7 @@ export const createMeal = z.strictObject({
 });
 
 export const editMeal = createMeal.partial();
+
+export const deleteMealSearchParams = z.strictObject({
+  ignore: z.string().default("false"),
+});

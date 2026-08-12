@@ -1,3 +1,5 @@
+import { getLogger } from "$/jobs/utils/logger-setup";
+import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import {
   createFieldCoverageTracker,
   detectSystemicFieldFailures,
@@ -7,8 +9,6 @@ import {
   type R2WriteClient,
 } from "$/jobs/workers/public-meal-catalog/image";
 import { mergePublicMealItem } from "$/jobs/workers/public-meal-catalog/merge";
-import { getLogger } from "$/jobs/utils/logger-setup";
-import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
 import type { Job } from "bullmq";
 
@@ -81,6 +81,23 @@ export async function runVendorImport<Product>(
     }
 
     const scraped = scraper.parseProduct(product);
+    const ignoreRecord = await db.ignoredPublicMealItem.findUnique({
+      where: {
+        sourceVendor_sourceProductId: {
+          sourceVendor: scraped.sourceVendor,
+          sourceProductId: scraped.sourceProductId,
+        },
+      },
+    });
+    if (ignoreRecord) {
+      skipped++;
+      await job.updateProgress({
+        processed: processed + skipped,
+        total: products.length,
+      });
+      continue;
+    }
+
     const existing = await db.publicMealItem.findUnique({
       where: {
         sourceVendor_sourceProductId: {

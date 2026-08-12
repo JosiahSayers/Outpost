@@ -6,6 +6,7 @@ import { logger } from "$/utils/logger";
 import { searchPublicMealItems } from "$/utils/search-helpers";
 import {
   createMeal,
+  deleteMealSearchParams,
   editMeal,
   incompleteParams,
   mealSearchParams,
@@ -195,7 +196,7 @@ adminMealsRouter.patch(
 // delete
 adminMealsRouter.delete(
   "/:id",
-  validate({ params: idParam }),
+  validate({ params: idParam, query: deleteMealSearchParams }),
   async (req, res) => {
     const existing = await db.publicMealItem.findUnique({
       where: { id: req.params.id },
@@ -204,7 +205,19 @@ adminMealsRouter.delete(
       return res.sendStatus(404);
     }
 
-    await db.publicMealItem.delete({ where: { id: req.params.id } });
+    await db.$transaction(async (tx) => {
+      if (req.query.ignore.toLowerCase() === "true") {
+        await tx.ignoredPublicMealItem.create({
+          data: {
+            sourceProductId: existing.sourceProductId,
+            sourceVendor: existing.sourceVendor,
+            ignoredById: req.session!.user.id,
+          },
+        });
+      }
+      await tx.publicMealItem.delete({ where: { id: req.params.id } });
+    });
+
     return res.sendStatus(200);
   },
 );

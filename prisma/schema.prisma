@@ -57,6 +57,7 @@ model User {
   feedback                        Feedback[]
   feedbackNotes                   FeedbackNote[]
   feedbackAuditLogs               FeedbackAuditLog[]
+  ignoredPublicMealItems          IgnoredPublicMealItem[]
 
   @@unique([email])
   @@map("user")
@@ -575,6 +576,20 @@ model PublicMealItem {
 
   @@unique([sourceVendor, sourceProductId])
   @@index([data_fts], type: Gin)
+}
+
+model IgnoredPublicMealItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sourceVendor    String // Same as PublicMealItem.sourceVendor
+  sourceProductId String // Same as PublicMealItem.sourceProductId
+
+  ignoredBy   User   @relation(fields: [ignoredById], references: [id]) // Admin who marked the meal as ignored
+  ignoredById String
+
+  @@unique([sourceVendor, sourceProductId])
 }
 
 // A single stored image, backed by an object in Cloudflare R2. Currently only
