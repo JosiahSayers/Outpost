@@ -7,7 +7,13 @@ import { MantineProvider } from "@mantine/core";
 import type { NotificationData } from "@mantine/notifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const showToast = mock((_notification: NotificationData) => "");
@@ -25,16 +31,23 @@ function jsonResponse(body: unknown) {
 const originalFetch = global.fetch;
 let healthResult: HealthCheckResult = {};
 
+const DELAY_MS = 20;
+
 function Display() {
-  useVersionDriftNotification(showToast);
+  useVersionDriftNotification(showToast, DELAY_MS);
   return <div data-testid="rendered" />;
 }
 
 function renderDisplay(initial: HealthCheckResult) {
   healthResult = initial;
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
+  // Pre-seed the cache synchronously (rather than relying on the mocked
+  // fetch's async resolution) so the initial hasDrift value -- and whether
+  // the notification's delay timer gets armed -- is settled by the time
+  // `render` returns, instead of racing the fetch mock's promise.
+  queryClient.setQueryData(healthKeys.check, initial);
 
   render(
     <QueryClientProvider client={queryClient}>
@@ -98,7 +111,16 @@ it("does not toast when the backend sha matches the running build", async () => 
 });
 
 describe("when the backend sha differs from the running build", () => {
-  it("shows a persistent toast with a working reload button", async () => {
+  it("does not toast before the delay elapses", async () => {
+    renderDisplay({ sha: "new-sha" });
+    expect(showToast).not.toHaveBeenCalled();
+
+    // Wait out the pending delay timer before the test ends, so it doesn't
+    // fire during a later test after this one's component has unmounted.
+    await new Promise((resolve) => setTimeout(resolve, DELAY_MS * 2));
+  });
+
+  it("shows a persistent toast with a working reload button once the delay elapses", async () => {
     renderDisplay({ sha: "new-sha" });
 
     await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
@@ -115,9 +137,26 @@ describe("when the backend sha differs from the running build", () => {
     const queryClient = renderDisplay({ sha: "new-sha" });
     await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
 
-    queryClient.setQueryData(healthKeys.check, { sha: "new-sha" });
+    act(() => {
+      queryClient.setQueryData(healthKeys.check, { sha: "new-sha" });
+    });
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it("never toasts if the drift resolves before the delay elapses", async () => {
+    const queryClient = renderDisplay({ sha: "new-sha" });
+
+    // Wrapped in act() so the resulting re-render (and the delay timer's
+    // cleanup) is flushed synchronously, rather than racing the timeout
+    // below against however long React takes to process the update.
+    act(() => {
+      queryClient.setQueryData(healthKeys.check, { sha: "current-sha" });
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, DELAY_MS * 3));
+
+    expect(showToast).not.toHaveBeenCalled();
   });
 });

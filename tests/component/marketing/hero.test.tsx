@@ -1,15 +1,26 @@
 import Hero from "$/frontend/marketing/hero";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, expect, it } from "bun:test";
+import { afterEach, beforeEach, expect, it } from "bun:test";
+import { mockHealthFetch } from "../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
 
 beforeEach(() => {
+  restoreFetch = mockHealthFetch();
   render(
-    <MantineProvider>
-      <Hero />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Hero />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
+});
+
+afterEach(() => {
+  restoreFetch();
 });
 
 it("renders the expected title", () => {

@@ -1,9 +1,9 @@
+import AppLink from "$/frontend/app-link";
 import AppLogo from "$/frontend/layout/app-shell/app-logo";
 import NotificationBell from "$/frontend/layout/app-shell/notification-bell";
 import { authClient } from "$/frontend/utils/auth-client";
 import { useNotificationArrivalAlert } from "$/frontend/utils/hooks/use-notification-arrival-alert";
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { Link } from "wouter";
 
 export default function Topbar() {
   const session = authClient.useSession();
@@ -23,21 +23,21 @@ export default function Topbar() {
       justify="space-between"
       wrap="nowrap"
     >
-      <Link href="/console">
+      <AppLink href="/console">
         <Group gap={8} wrap="nowrap" style={{ cursor: "pointer" }}>
           <AppLogo height={26} />
           <Badge color="bark-brown" variant="light" size="sm">
             Admin
           </Badge>
         </Group>
-      </Link>
+      </AppLink>
 
       <Group gap="md" wrap="nowrap">
-        <Link href="/dashboard">
+        <AppLink href="/dashboard">
           <Text size="sm" c="dimmed" style={{ cursor: "pointer" }}>
             ← Back to app
           </Text>
-        </Link>
+        </AppLink>
         <Stack gap={0} visibleFrom="sm" style={{ textAlign: "right" }}>
           <Text size="sm" fw={600} truncate>
             {name}

@@ -1,4 +1,5 @@
 import { formatShortDate } from "$/frontend/admin/feedback/format-date";
+import AppLink from "$/frontend/app-link";
 import { getInitials } from "$/frontend/utils/get-initials";
 import type { ClientFullAdminFeedback } from "$/transformers/admin/feedback";
 import {
@@ -10,7 +11,6 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { Link } from "wouter";
 
 interface Props {
   feedback: ClientFullAdminFeedback;
@@ -35,7 +35,7 @@ export default function MetaSidebar({ feedback }: Props) {
     <Paper withBorder p="md">
       <SidebarLabel>Submitted by</SidebarLabel>
       <Anchor
-        component={Link}
+        component={AppLink}
         href={`/console/users?search=${encodeURIComponent(feedback.user.email)}&user=${feedback.user.id}`}
         underline="never"
         c="inherit"
@@ -78,7 +78,7 @@ export default function MetaSidebar({ feedback }: Props) {
             {feedback.duplicates.map((duplicate) => (
               <Anchor
                 key={duplicate.id}
-                component={Link}
+                component={AppLink}
                 href={`/console/feedback/${duplicate.id}`}
                 size="xs"
               >

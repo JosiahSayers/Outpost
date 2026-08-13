@@ -11,7 +11,7 @@ import {
   UserIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { Link } from "wouter";
+import AppLink from "$/frontend/app-link";
 
 type SettingsTab = "profile" | "preferences" | "security";
 
@@ -49,28 +49,28 @@ export default function SettingsShell({
       <Flex direction={{ base: "column", sm: "row" }} gap={0} align="stretch">
         <Box w={{ base: "100%", sm: 190 }} p="xs" flex="none">
           <NavLink
-            component={Link}
+            component={AppLink}
             label="Profile"
             leftSection={<UserIcon size={16} />}
             active={activeTab === "profile"}
             to="/account/profile"
           />
           <NavLink
-            component={Link}
+            component={AppLink}
             label="Preferences"
             leftSection={<SlidersHorizontalIcon size={16} />}
             active={activeTab === "preferences"}
             to="/account/preferences"
           />
           <NavLink
-            component={Link}
+            component={AppLink}
             label="Security"
             leftSection={<LockIcon size={16} />}
             active={activeTab === "security"}
             to="/account/security"
           />
           <NavLink
-            component={Link}
+            component={AppLink}
             label="Notifications"
             leftSection={<BellIcon size={16} />}
             rightSection={
@@ -82,7 +82,7 @@ export default function SettingsShell({
             to="/account/notifications"
           />
           <NavLink
-            component={Link}
+            component={AppLink}
             label="Privacy"
             leftSection={<ShieldIcon size={16} />}
             rightSection={

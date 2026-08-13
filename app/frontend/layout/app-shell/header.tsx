@@ -1,3 +1,4 @@
+import AppLink from "$/frontend/app-link";
 import AppLogo from "$/frontend/layout/app-shell/app-logo";
 import FeedbackDrawer from "$/frontend/layout/app-shell/feedback-drawer";
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
@@ -17,7 +18,6 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Link } from "wouter";
 
 export default function Header() {
   const [opened, { toggle, close }] = useDisclosure(false);
@@ -48,9 +48,9 @@ export default function Header() {
           align="center"
           h="100%"
         >
-          <Link href={logoHref}>
+          <AppLink href={logoHref}>
             <AppLogo height={50} style={{ cursor: "pointer" }} />
-          </Link>
+          </AppLink>
           <Group visibleFrom="sm">
             {session.data && <NotificationBell pulse={pulsing} />}
             <HeaderLinks onOpenFeedback={openFeedback} />

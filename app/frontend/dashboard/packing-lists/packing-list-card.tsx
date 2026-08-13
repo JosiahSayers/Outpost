@@ -1,3 +1,4 @@
+import AppLink from "$/frontend/app-link";
 import type { ClientPackingList } from "$/transformers/packing-list";
 import { Anchor, Badge, Card, Group, Stack, Text } from "@mantine/core";
 import {
@@ -6,7 +7,6 @@ import {
   LockIcon,
   ListBulletsIcon,
 } from "@phosphor-icons/react";
-import { Link } from "wouter";
 
 interface Props {
   list: ClientPackingList;
@@ -29,7 +29,7 @@ export default function PackingListCard({ list }: Props) {
               style={{ flexShrink: 0, marginTop: 2 }}
             />
             <Anchor
-              component={Link}
+              component={AppLink}
               href={`/packing-lists/${list.id}`}
               fw={600}
               c="var(--mantine-color-text)"

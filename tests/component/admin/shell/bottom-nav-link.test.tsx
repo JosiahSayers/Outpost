@@ -1,11 +1,23 @@
 import BottomNavLink from "$/frontend/admin/shell/bottom-nav-link";
 import type { AdminNavItem } from "$/frontend/admin/shell/nav-items";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GaugeIcon } from "@phosphor-icons/react";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 const baseItem: AdminNavItem = {
   label: "Overview",
@@ -15,11 +27,13 @@ const baseItem: AdminNavItem = {
 
 function renderComponent(item: AdminNavItem, path = "/console") {
   render(
-    <Router hook={() => [path, () => {}]}>
-      <MantineProvider>
-        <BottomNavLink item={item} />
-      </MantineProvider>
-    </Router>,
+    <QueryClientProvider client={new QueryClient()}>
+      <Router hook={() => [path, () => {}]}>
+        <MantineProvider>
+          <BottomNavLink item={item} />
+        </MantineProvider>
+      </Router>
+    </QueryClientProvider>,
   );
 }
 

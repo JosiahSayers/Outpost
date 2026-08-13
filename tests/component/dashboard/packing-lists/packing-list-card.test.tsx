@@ -1,18 +1,32 @@
 import PackingListCard from "$/frontend/dashboard/packing-lists/packing-list-card";
 import type { ClientPackingList } from "$/transformers/packing-list";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function renderComponent(list: ClientPackingList) {
   render(
-    <Router hook={() => ["/dashboard", () => {}]}>
-      <MantineProvider>
-        <PackingListCard list={list} />
-      </MantineProvider>
-    </Router>,
+    <QueryClientProvider client={new QueryClient()}>
+      <Router hook={() => ["/dashboard", () => {}]}>
+        <MantineProvider>
+          <PackingListCard list={list} />
+        </MantineProvider>
+      </Router>
+    </QueryClientProvider>,
   );
 }
 

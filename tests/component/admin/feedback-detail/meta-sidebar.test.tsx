@@ -5,10 +5,22 @@ import type {
 } from "$/transformers/admin/feedback";
 import type { ClientAdminUser } from "$/transformers/admin/user";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function makeUser(): ClientAdminUser {
   return {
@@ -66,11 +78,13 @@ function makeFeedback(
 
 function renderSidebar(feedback: ClientFullAdminFeedback) {
   render(
-    <MantineProvider>
-      <Router hook={() => ["/console/feedback/feedback-1", () => {}]}>
-        <MetaSidebar feedback={feedback} />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Router hook={() => ["/console/feedback/feedback-1", () => {}]}>
+          <MetaSidebar feedback={feedback} />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

@@ -1,7 +1,7 @@
+import AppLink from "$/frontend/app-link";
 import type { ClientTrip } from "$/transformers/trip";
 import { Badge, Button, Card, Group, Text, Title } from "@mantine/core";
 import { CalendarBlankIcon, MapPinIcon } from "@phosphor-icons/react";
-import { Link } from "wouter";
 import type { TripStatus } from "../../../generated/prisma/enums";
 
 export const STATUS_COLOR: Record<TripStatus, string> = {
@@ -72,7 +72,7 @@ export default function TripCard({ trip }: { trip: ClientTrip }) {
       <div style={{ flex: 1 }} />
 
       <Button
-        component={Link}
+        component={AppLink}
         href={`/trips/${trip.id}`}
         variant="light"
         fullWidth

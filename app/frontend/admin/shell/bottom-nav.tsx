@@ -3,6 +3,7 @@ import {
   ADMIN_NAV_ITEMS,
   type AdminNavItem,
 } from "$/frontend/admin/shell/nav-items";
+import AppLink from "$/frontend/app-link";
 import {
   Badge,
   Drawer,
@@ -14,7 +15,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DotsThreeCircleIcon } from "@phosphor-icons/react";
-import { Link, useRoute } from "wouter";
+import { useRoute } from "wouter";
 
 function OverflowItemLink({
   item,
@@ -28,7 +29,7 @@ function OverflowItemLink({
 
   return (
     <NavLink
-      component={item.external ? undefined : Link}
+      component={item.external ? undefined : AppLink}
       href={item.href}
       onClick={item.comingSoon ? undefined : onNavigate}
       label={item.label}

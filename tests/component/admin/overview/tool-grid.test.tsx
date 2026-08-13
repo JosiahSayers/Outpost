@@ -1,16 +1,34 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { expect, it } from "bun:test";
+import { afterEach, beforeEach, expect, it } from "bun:test";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
 
 import ToolGrid from "$/frontend/admin/overview/tool-grid";
 
-it("renders a card for every tool except Overview", () => {
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
+
+function renderGrid() {
   render(
-    <MantineProvider>
-      <ToolGrid />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <ToolGrid />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
+}
+
+it("renders a card for every tool except Overview", () => {
+  renderGrid();
 
   expect(screen.queryByText("Overview")).not.toBeInTheDocument();
   expect(screen.getByText("User Search")).toBeInTheDocument();
@@ -21,33 +39,21 @@ it("renders a card for every tool except Overview", () => {
 });
 
 it("labels the not-yet-built tools as Soon and leaves shipped tools unbadged", () => {
-  render(
-    <MantineProvider>
-      <ToolGrid />
-    </MantineProvider>,
-  );
+  renderGrid();
 
   expect(screen.queryByText("Up next")).not.toBeInTheDocument();
   expect(screen.getAllByText("Soon").length).toBe(3);
 });
 
 it("groups tools with a section under a Support or System heading", () => {
-  render(
-    <MantineProvider>
-      <ToolGrid />
-    </MantineProvider>,
-  );
+  renderGrid();
 
   expect(screen.getByText("Support")).toBeInTheDocument();
   expect(screen.getByText("System")).toBeInTheDocument();
 });
 
 it("renders the sectionless tool ahead of the grouped sections", () => {
-  render(
-    <MantineProvider>
-      <ToolGrid />
-    </MantineProvider>,
-  );
+  renderGrid();
 
   const position = (text: string) =>
     screen.getByText(text).compareDocumentPosition(screen.getByText("Support"));

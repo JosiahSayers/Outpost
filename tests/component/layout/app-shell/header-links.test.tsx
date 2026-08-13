@@ -2,9 +2,10 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
 import { SignOutProvider } from "$/frontend/utils/sign-out-context";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
 
 let sessionData: {
   user: { name: string; email: string; role?: string };
@@ -21,6 +22,16 @@ mock.module("$/frontend/utils/auth-client", () => ({
 }));
 
 import HeaderLinks from "$/frontend/layout/app-shell/header-links";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function headerLinksTree(navigate: () => void) {
   return (
