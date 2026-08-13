@@ -2,9 +2,9 @@ import AppLink from "$/frontend/app-link";
 import AccountMenu from "$/frontend/layout/app-shell/account-menu";
 import { authClient } from "$/frontend/utils/auth-client";
 import { useSignOutContext } from "$/frontend/utils/sign-out-context";
-import { Group, Stack } from "@mantine/core";
+import { Anchor, Group, Stack } from "@mantine/core";
 import { useLayoutEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 
 interface HeaderLinksProps {
   stacked?: boolean;
@@ -72,8 +72,23 @@ export default function HeaderLinks({
 
   return (
     <Wrapper onClick={onNavigate}>
-      <AppLink href="/sign-in">Sign In</AppLink>
-      <AppLink href="/register">Register</AppLink>
+      <HeaderLink href="/sign-in">Sign In</HeaderLink>
+      <HeaderLink href="/register">Register</HeaderLink>
     </Wrapper>
+  );
+}
+
+function HeaderLink({ href, children }: { href: string; children: string }) {
+  const [isActive] = useRoute(href);
+
+  return (
+    <Anchor
+      component={AppLink}
+      href={href}
+      fw={isActive ? "bold" : "normal"}
+      underline={isActive ? "always" : "hover"}
+    >
+      {children}
+    </Anchor>
   );
 }

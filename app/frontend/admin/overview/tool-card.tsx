@@ -1,8 +1,8 @@
 import type { AdminNavItem } from "$/frontend/admin/shell/nav-items";
+import AppLink from "$/frontend/app-link";
 import { Anchor, Badge, Card, Group, Text, ThemeIcon } from "@mantine/core";
 import { useHover } from "@mantine/hooks";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { Link } from "wouter";
 
 interface ToolCardProps {
   tool: AdminNavItem;
@@ -98,7 +98,7 @@ export default function ToolCard({
   return (
     <Anchor
       href={tool.href}
-      component={tool.external ? undefined : Link}
+      component={tool.external ? undefined : AppLink}
       underline="never"
       c="inherit"
     >

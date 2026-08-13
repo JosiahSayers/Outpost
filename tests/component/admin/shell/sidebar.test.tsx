@@ -1,18 +1,32 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
 
 import Sidebar from "$/frontend/admin/shell/sidebar";
 
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
+
 function renderSidebar(path = "/console") {
   return render(
-    <MantineProvider>
-      <Router hook={() => [path, () => {}]}>
-        <Sidebar />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Router hook={() => [path, () => {}]}>
+          <Sidebar />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

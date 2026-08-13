@@ -1,6 +1,7 @@
 import type { AdminNavItem } from "$/frontend/admin/shell/nav-items";
+import AppLink from "$/frontend/app-link";
 import { Stack, Text, UnstyledButton } from "@mantine/core";
-import { Link, useRoute } from "wouter";
+import { useRoute } from "wouter";
 
 interface BottomNavLinkProps {
   item: AdminNavItem;
@@ -37,7 +38,7 @@ export default function BottomNavLink({ item }: BottomNavLinkProps) {
   }
 
   return (
-    <UnstyledButton component={Link} href={item.href}>
+    <UnstyledButton component={AppLink} href={item.href}>
       {content}
     </UnstyledButton>
   );

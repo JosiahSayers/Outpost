@@ -2,8 +2,9 @@ import {
   ADMIN_NAV_ITEMS,
   type AdminNavItem,
 } from "$/frontend/admin/shell/nav-items";
+import AppLink from "$/frontend/app-link";
 import { Badge, Box, NavLink, Text } from "@mantine/core";
-import { Link, useRoute } from "wouter";
+import { useRoute } from "wouter";
 
 const SECTIONS = ["Support", "System"] as const;
 
@@ -13,7 +14,7 @@ function NavItemLink({ item }: { item: AdminNavItem }) {
 
   return (
     <NavLink
-      component={item.external ? undefined : Link}
+      component={item.external ? undefined : AppLink}
       href={item.href}
       label={item.label}
       leftSection={<Icon size={16} />}

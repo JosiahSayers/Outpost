@@ -1,9 +1,21 @@
 import TripCard from "$/frontend/dashboard/trip-card";
 import type { ClientTrip } from "$/transformers/trip";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { mockHealthFetch } from "../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 const baseTrip: ClientTrip = {
   id: "1",
@@ -18,9 +30,11 @@ const baseTrip: ClientTrip = {
 
 function renderCard(trip: ClientTrip = baseTrip) {
   render(
-    <MantineProvider>
-      <TripCard trip={trip} />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <TripCard trip={trip} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

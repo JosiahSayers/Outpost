@@ -20,7 +20,6 @@ import {
   SignOutIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Link } from "wouter";
 
 interface AccountMenuProps {
   name: string;
@@ -153,7 +152,7 @@ export default function AccountMenu({
           </Box>
           <Menu.Divider />
           <Menu.Item
-            component={Link}
+            component={AppLink}
             href="/account"
             leftSection={<GearIcon size={16} />}
           >
@@ -161,7 +160,7 @@ export default function AccountMenu({
           </Menu.Item>
           {isAdmin && (
             <Menu.Item
-              component={Link}
+              component={AppLink}
               href="/console"
               leftSection={<ShieldIcon size={16} />}
             >

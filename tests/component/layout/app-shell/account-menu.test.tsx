@@ -3,12 +3,14 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
 
 const onSignOut = mock(() => {});
 const onNavigate = mock(() => {});
 const onOpenFeedback = mock(() => {});
+let restoreFetch: () => void;
 
 function renderMenu(
   props: Partial<React.ComponentProps<typeof AccountMenu>> = {},
@@ -35,6 +37,11 @@ beforeEach(() => {
   onSignOut.mockReset();
   onNavigate.mockReset();
   onOpenFeedback.mockReset();
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
 });
 
 // The Menu dropdown's contents are only reliably renderable/interactable in a

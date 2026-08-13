@@ -1,15 +1,26 @@
 import CallToAction from "$/frontend/marketing/call-to-action";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, expect, it } from "bun:test";
+import { afterEach, beforeEach, expect, it } from "bun:test";
+import { mockHealthFetch } from "../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
 
 beforeEach(() => {
+  restoreFetch = mockHealthFetch();
   render(
-    <MantineProvider>
-      <CallToAction />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <CallToAction />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
+});
+
+afterEach(() => {
+  restoreFetch();
 });
 
 it("renders the heading", () => {

@@ -1,17 +1,31 @@
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function renderComponent() {
   render(
-    <MantineProvider>
-      <Router hook={() => ["/trips/trip-1", () => {}]}>
-        <BackToDashboardLink />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Router hook={() => ["/trips/trip-1", () => {}]}>
+          <BackToDashboardLink />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

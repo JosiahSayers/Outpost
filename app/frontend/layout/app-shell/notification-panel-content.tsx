@@ -1,3 +1,4 @@
+import AppLink from "$/frontend/app-link";
 import NotificationRow from "$/frontend/layout/app-shell/notification-row";
 import {
   notificationKeys,
@@ -9,7 +10,6 @@ import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useDismissAnimation } from "$/frontend/utils/hooks/use-dismiss-animation";
 import { useUnreadNotificationCount } from "$/frontend/utils/hooks/use-unread-notification-count";
 import { Anchor, Center, Group, Loader, Stack, Text } from "@mantine/core";
-import { Link } from "wouter";
 
 const PANEL_QUERY = { dismissed: false, take: 5 };
 
@@ -89,7 +89,7 @@ export default function NotificationPanelContent({
         ))}
 
       <Anchor
-        component={Link}
+        component={AppLink}
         href="/notifications"
         onClick={onNavigate}
         size="xs"

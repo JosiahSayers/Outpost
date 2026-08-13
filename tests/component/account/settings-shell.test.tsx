@@ -6,9 +6,20 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Route, Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
+import { mockHealthFetch } from "../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function renderShell(initialPath = "/account/profile") {
   const queryClient = new QueryClient({

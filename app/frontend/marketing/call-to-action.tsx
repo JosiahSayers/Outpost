@@ -8,7 +8,6 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "wouter";
 
 export default function CallToAction() {
   return (
@@ -28,7 +27,7 @@ export default function CallToAction() {
             weekend.
           </Text>
           <Group>
-            <Button component={Link} href="/register" size="md">
+            <Button component={AppLink} href="/register" size="md">
               Create an account
             </Button>
             <AppLink href="/sign-in">Already have an account</AppLink>

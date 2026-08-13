@@ -1,9 +1,21 @@
 import UserDetailPanel from "$/frontend/admin/user-search/user-detail-panel";
 import type { ClientAdminUserWithCounts } from "$/transformers/admin/user";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { mockHealthFetch } from "../../../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 function makeUser(
   overrides: Partial<ClientAdminUserWithCounts> = {},
@@ -36,9 +48,11 @@ function makeUser(
 
 function renderPanel(user: ClientAdminUserWithCounts) {
   render(
-    <MantineProvider>
-      <UserDetailPanel user={user} />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <UserDetailPanel user={user} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

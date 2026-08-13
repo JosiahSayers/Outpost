@@ -1,18 +1,32 @@
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
 
 import BottomNav from "$/frontend/admin/shell/bottom-nav";
 
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
+
 function renderBottomNav(path = "/console") {
   return render(
-    <MantineProvider>
-      <Router hook={() => [path, () => {}]}>
-        <BottomNav />
-      </Router>
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <Router hook={() => [path, () => {}]}>
+          <BottomNav />
+        </Router>
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

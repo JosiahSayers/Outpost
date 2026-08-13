@@ -1,11 +1,23 @@
 import ToolCard from "$/frontend/admin/overview/tool-card";
 import type { AdminNavItem } from "$/frontend/admin/shell/nav-items";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { Router } from "wouter";
+import { mockHealthFetch } from "../../../helpers/mock-health-fetch";
+
+let restoreFetch: () => void;
+
+beforeEach(() => {
+  restoreFetch = mockHealthFetch();
+});
+
+afterEach(() => {
+  restoreFetch();
+});
 
 const baseTool: AdminNavItem = {
   label: "User Search",
@@ -20,11 +32,13 @@ function renderComponent(
   variant?: "grid" | "hero",
 ) {
   render(
-    <Router hook={() => ["/console", () => {}]}>
-      <MantineProvider>
-        <ToolCard tool={tool} isPrimary={isPrimary} variant={variant} />
-      </MantineProvider>
-    </Router>,
+    <QueryClientProvider client={new QueryClient()}>
+      <Router hook={() => ["/console", () => {}]}>
+        <MantineProvider>
+          <ToolCard tool={tool} isPrimary={isPrimary} variant={variant} />
+        </MantineProvider>
+      </Router>
+    </QueryClientProvider>,
   );
 }
 

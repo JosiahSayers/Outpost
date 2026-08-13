@@ -1,3 +1,4 @@
+import AppLink from "$/frontend/app-link";
 import { customPalettes } from "$/frontend/theme";
 import {
   Box,
@@ -8,7 +9,6 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "wouter";
 
 // This banner is a fixed, always-dark backdrop with fixed light text — it's
 // intentionally the same in light and dark mode, so it reads from the raw
@@ -49,7 +49,7 @@ export default function Hero() {
           </Stack>
           <Group>
             <Button
-              component={Link}
+              component={AppLink}
               href="/register"
               size="md"
               color="white"
@@ -58,7 +58,7 @@ export default function Hero() {
               Get started
             </Button>
             <Button
-              component={Link}
+              component={AppLink}
               href="/sign-in"
               size="md"
               variant="outline"
