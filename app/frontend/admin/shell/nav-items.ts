@@ -78,8 +78,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/console/feature-flags",
     icon: FlagIcon,
     section: "System",
-    comingSoon: true,
-    description:
-      "Toggle rollouts and kill switches without a deploy. 2 of 5 flags live.",
+    description: "Toggle rollouts and kill switches without a deploy.",
   },
 ];

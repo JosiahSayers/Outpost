@@ -3,6 +3,7 @@ import AppProviders from "$/frontend/app-providers";
 import AppShell from "$/frontend/layout/app-shell";
 import AccountPage from "$/frontend/pages/account.page";
 import AdminPage from "$/frontend/pages/admin.page";
+import AdminFeaturesPage from "$/frontend/pages/admin-features.page";
 import AdminFeedbackDetailPage from "$/frontend/pages/admin-feedback-detail.page";
 import AdminFeedbackPage from "$/frontend/pages/admin-feedback.page";
 import AdminMealsPage from "$/frontend/pages/admin-meals.page";
@@ -43,6 +44,7 @@ export default function App() {
           path="/console/feedback/:id"
           component={AdminFeedbackDetailPage}
         />
+        <Route path="/console/feature-flags" component={AdminFeaturesPage} />
         <Route>
           <AppShell>
             <Switch>

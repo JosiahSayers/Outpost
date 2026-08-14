@@ -42,7 +42,7 @@ it("labels the not-yet-built tools as Soon and leaves shipped tools unbadged", (
   renderGrid();
 
   expect(screen.queryByText("Up next")).not.toBeInTheDocument();
-  expect(screen.getAllByText("Soon").length).toBe(3);
+  expect(screen.getAllByText("Soon").length).toBe(2);
 });
 
 it("groups tools with a section under a Support or System heading", () => {
