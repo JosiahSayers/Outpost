@@ -1,6 +1,15 @@
 import { app } from "$/server";
 import { db } from "$/utils/db";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import * as ipLookup from "$/utils/ip-lookup";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import request from "supertest";
 import { getAuthCookies } from "../../helpers/auth";
 import { make } from "../../helpers/test-data/make";
@@ -16,10 +25,16 @@ beforeEach(async () => {
   authCookies = await getAuthCookies();
   adminAuthCookies = await getAuthCookies("admin@test.com");
   createdUserIds = [];
+  // The endpoint looks up a geo location for each session's IP address. In
+  // this environment there's no local IP database (it's 100+MB and not
+  // checked in), so lookupIp would otherwise just return null for every
+  // session -- stub it instead so tests can also assert on the found case.
+  spyOn(ipLookup, "lookupIp").mockResolvedValue(null);
 });
 
 afterEach(async () => {
   await db.user.deleteMany({ where: { id: { in: createdUserIds } } });
+  mock.restore();
 });
 
 describe("GET /:id/sessions", () => {
@@ -82,11 +97,65 @@ describe("GET /:id/sessions", () => {
           ipAddress: session.ipAddress,
           updatedAt: session.updatedAt.toISOString(),
           userAgent: session.userAgent,
+          location: null,
         },
       ],
       total: 1,
       pageSize: 10,
     });
+  });
+
+  it("includes the resolved location when the IP lookup finds one", async () => {
+    const target = await db.user.create({ data: make("User") });
+    createdUserIds.push(target.id);
+
+    const session = await db.session.create({
+      data: make("Session", { userId: target.id, ipAddress: "1.1.1.1" }),
+    });
+
+    spyOn(ipLookup, "lookupIp").mockResolvedValue({
+      city: { geoname_id: 1, names: { en: "Sydney" } },
+      country: { geoname_id: 2, iso_code: "AU", names: { en: "Australia" } },
+      subdivisions: [
+        { geoname_id: 3, iso_code: "NSW", names: { en: "New South Wales" } },
+      ],
+    } as any);
+
+    const response = await request(app)
+      .get(`/admin/users/${target.id}/sessions`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.sessions).toEqual([
+      expect.objectContaining({
+        id: session.id,
+        location: {
+          city: "Sydney",
+          country: "Australia",
+          subdivisions: ["New South Wales"],
+        },
+      }),
+    ]);
+  });
+
+  it("returns a null location when the session has no IP address", async () => {
+    const target = await db.user.create({ data: make("User") });
+    createdUserIds.push(target.id);
+
+    const lookupSpy = spyOn(ipLookup, "lookupIp");
+    const session = await db.session.create({
+      data: make("Session", { userId: target.id, ipAddress: null }),
+    });
+
+    const response = await request(app)
+      .get(`/admin/users/${target.id}/sessions`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.sessions).toEqual([
+      expect.objectContaining({ id: session.id, location: null }),
+    ]);
+    expect(lookupSpy).not.toHaveBeenCalled();
   });
 
   it("does not return sessions belonging to other users", async () => {

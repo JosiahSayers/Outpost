@@ -44,6 +44,8 @@ services:
       options:
         max-size: "20m"
         max-file: "5"
+    volumes:
+      - ./container_files/app/db-ip:/usr/src/app/db-ip
     env_file:
       - .env.staging
 
@@ -56,6 +58,8 @@ services:
       options:
         max-size: "20m"
         max-file: "5"
+    volumes:
+      - ./container_files/app/db-ip:/usr/src/app/db-ip
     env_file:
       - .env.staging
 

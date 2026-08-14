@@ -14,6 +14,46 @@ describe("transform", () => {
       ipAddress: session.ipAddress,
       updatedAt: session.updatedAt,
       userAgent: session.userAgent,
+      location: null,
+    });
+  });
+
+  it("returns a null location when none was resolved", () => {
+    const session = make("Session");
+
+    expect(transform({ ...session, location: null })).toMatchObject({
+      location: null,
+    });
+  });
+
+  it("transforms a resolved location", () => {
+    const session = make("Session");
+
+    expect(
+      transform({
+        ...session,
+        location: {
+          city: { geoname_id: 1, names: { en: "Sydney" } },
+          country: {
+            geoname_id: 2,
+            iso_code: "AU",
+            names: { en: "Australia" },
+          },
+          subdivisions: [
+            {
+              geoname_id: 3,
+              iso_code: "NSW",
+              names: { en: "New South Wales" },
+            },
+          ],
+        },
+      }),
+    ).toMatchObject({
+      location: {
+        city: "Sydney",
+        country: "Australia",
+        subdivisions: ["New South Wales"],
+      },
     });
   });
 

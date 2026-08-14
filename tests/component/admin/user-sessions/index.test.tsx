@@ -71,6 +71,60 @@ describe("on initial load", () => {
     await waitFor(() => screen.getByText("Chrome on macOS"));
     expect(screen.getByText("73.24.118.6")).toBeInTheDocument();
   });
+
+  it("shows DB-IP attribution linking to db-ip.com", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [makeSession()],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Chrome on macOS"));
+    expect(
+      screen.getByText("IP geolocation by DB-IP").closest("a"),
+    ).toHaveAttribute("href", "https://db-ip.com");
+  });
+});
+
+describe("a session's location", () => {
+  it("shows the resolved city, subdivision, and country", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [
+        makeSession({
+          location: {
+            city: "Portland",
+            country: "United States",
+            subdivisions: ["Oregon"],
+          },
+        }),
+      ],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Portland, Oregon, United States"),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows a dash when no location could be resolved", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [makeSession({ location: null })],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Chrome on macOS"));
+    expect(screen.getByText("-")).toBeInTheDocument();
+  });
 });
 
 describe("when there are no matching sessions", () => {
@@ -86,6 +140,23 @@ describe("when there are no matching sessions", () => {
     await waitFor(() =>
       expect(screen.getByText("No active sessions")).toBeInTheDocument(),
     );
+  });
+
+  it("does not show DB-IP attribution", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [],
+      total: 0,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() =>
+      expect(screen.getByText("No active sessions")).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText("IP geolocation by DB-IP"),
+    ).not.toBeInTheDocument();
   });
 });
 
