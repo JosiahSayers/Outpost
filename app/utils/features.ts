@@ -65,7 +65,7 @@ async function status(feature: Feature) {
   };
 }
 
-async function featureList() {
+function featureList() {
   return FEATURES.map((feature) => ({
     ...FEATURE_META[feature],
     feature,
