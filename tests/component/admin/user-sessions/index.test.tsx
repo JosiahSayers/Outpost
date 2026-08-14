@@ -82,10 +82,9 @@ describe("on initial load", () => {
     renderPage(queryClient);
 
     await waitFor(() => screen.getByText("Chrome on macOS"));
-    expect(screen.getByText("DB-IP").closest("a")).toHaveAttribute(
-      "href",
-      "https://db-ip.com",
-    );
+    expect(
+      screen.getByText("IP geolocation by DB-IP").closest("a"),
+    ).toHaveAttribute("href", "https://db-ip.com");
   });
 });
 
@@ -155,7 +154,9 @@ describe("when there are no matching sessions", () => {
     await waitFor(() =>
       expect(screen.getByText("No active sessions")).toBeInTheDocument(),
     );
-    expect(screen.queryByText("DB-IP")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("IP geolocation by DB-IP"),
+    ).not.toBeInTheDocument();
   });
 });
 
