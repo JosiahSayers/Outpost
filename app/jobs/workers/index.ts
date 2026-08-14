@@ -1,8 +1,10 @@
 import { registry } from "$/jobs/registry";
+import { dbIpCheckQueue } from "$/jobs/workers/db-ip/check-db-ip";
 import { cleanupOrphanedPadUsRuns } from "$/jobs/workers/protected-areas/cleanup-orphaned-runs";
 import { logger } from "$/utils/logger";
 
 await cleanupOrphanedPadUsRuns();
+await dbIpCheckQueue.add("app-start", {});
 
 // Each scheduler is registered independently -- one queue's scheduler
 // failing to upsert (e.g. a stale/colliding job id in Redis) must not stop
