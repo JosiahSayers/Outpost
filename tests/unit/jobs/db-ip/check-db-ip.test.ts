@@ -1,7 +1,6 @@
 import { checkDbIp } from "$/jobs/workers/db-ip/check-db-ip";
 import { dbIpDownloadQueue } from "$/jobs/workers/db-ip/download-db-ip";
-import { localCityFile } from "$/jobs/workers/db-ip/shared";
-import { localCityFileDate } from "$/utils/ip-lookup";
+import { localCityFile, localCityFileDate } from "$/utils/ip-lookup";
 import {
   afterEach,
   beforeEach,

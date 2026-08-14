@@ -2,7 +2,8 @@ import {
   downloadDbIp,
   type DownloadDbIpData,
 } from "$/jobs/workers/db-ip/download-db-ip";
-import { downloadUrl, localCityFile } from "$/jobs/workers/db-ip/shared";
+import { downloadUrl } from "$/jobs/workers/db-ip/shared";
+import { localCityFile } from "$/utils/ip-lookup";
 import {
   afterEach,
   beforeEach,

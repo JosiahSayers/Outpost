@@ -1,9 +1,9 @@
 import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
 import { dbIpDownloadQueue } from "$/jobs/workers/db-ip/download-db-ip";
-import { DB_IP_JOB_BASE, localCityFile } from "$/jobs/workers/db-ip/shared";
+import { DB_IP_JOB_BASE } from "$/jobs/workers/db-ip/shared";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
-import { localCityFileDate } from "$/utils/ip-lookup";
+import { localCityFile, localCityFileDate } from "$/utils/ip-lookup";
 import type { Job } from "bullmq";
 import { join } from "node:path";
 

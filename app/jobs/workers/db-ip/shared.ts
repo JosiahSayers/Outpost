@@ -1,6 +1,3 @@
-export const localCityFile = (year: string | number, month: string | number) =>
-  `dbip-city-lite-${year}-${month}.mmdb`;
-
 export const downloadUrl = (year: string | number, month: string | number) =>
   `https://download.db-ip.com/free/dbip-city-lite-${year}-${month}.mmdb.gz`;
 

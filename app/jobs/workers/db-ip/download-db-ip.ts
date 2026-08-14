@@ -1,11 +1,8 @@
 import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
-import {
-  DB_IP_JOB_BASE,
-  downloadUrl,
-  localCityFile,
-} from "$/jobs/workers/db-ip/shared";
+import { DB_IP_JOB_BASE, downloadUrl } from "$/jobs/workers/db-ip/shared";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
+import { localCityFile } from "$/utils/ip-lookup";
 import { timer } from "$/utils/performance";
 import type { Job } from "bullmq";
 import maxmind from "maxmind";
