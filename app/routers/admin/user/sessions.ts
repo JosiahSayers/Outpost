@@ -2,6 +2,7 @@ import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { auth } from "$/utils/auth";
 import { db } from "$/utils/db";
+import { lookupIp } from "$/utils/ip-lookup";
 import {
   adminSessionParam,
   adminSessionSearchQuery,
@@ -10,6 +11,8 @@ import { idParam } from "$/validation/shared";
 import { fromNodeHeaders } from "better-auth/node";
 import { Router } from "express";
 import validate from "express-zod-safe";
+import type { CityResponse } from "maxmind";
+import type { Session } from "../../../../generated/prisma/browser";
 import type { SessionFindManyArgs } from "../../../../generated/prisma/models";
 
 export const userSessionsRouter = Router({ mergeParams: true });
@@ -45,8 +48,28 @@ userSessionsRouter.get(
       }),
     ]);
 
+    let sessionsWithLocation: Array<
+      Session & { location: CityResponse | null }
+    > = [];
+    for (const session of sessions) {
+      let location: CityResponse | null = null;
+      if (!session.ipAddress) {
+        sessionsWithLocation.push({
+          ...session,
+          location,
+        });
+        continue;
+      }
+
+      location = await lookupIp(session.ipAddress);
+      sessionsWithLocation.push({
+        ...session,
+        location,
+      });
+    }
+
     const page = paginate(
-      sessions,
+      sessionsWithLocation,
       transformers.admin.session,
       total,
       req.query.take,

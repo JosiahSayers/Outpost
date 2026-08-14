@@ -48,6 +48,19 @@ describe("currentLocalCityFile", () => {
   });
 });
 
+describe("lookupIp when DB_IP_DIR is not configured", () => {
+  it("returns null instead of throwing", async () => {
+    const originalDir = Bun.env.DB_IP_DIR;
+    delete (Bun.env as Record<string, string | undefined>).DB_IP_DIR;
+
+    const result = await lookupIp("1.1.1.1");
+
+    expect(result).toBeNull();
+
+    Bun.env.DB_IP_DIR = originalDir;
+  });
+});
+
 describe("lookupIp", () => {
   const originalDir = Bun.env.DB_IP_DIR;
   let dir: string;

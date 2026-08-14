@@ -6,6 +6,8 @@ let maxmindInstance: Awaited<
 > | null = null;
 
 async function tryToOpenDb() {
+  if (!Bun.env.DB_IP_DIR) return;
+
   const filepath = join(Bun.env.DB_IP_DIR, currentLocalCityFile());
   if (await Bun.file(filepath).exists()) {
     maxmindInstance = await maxmind.open<CityResponse>(filepath);

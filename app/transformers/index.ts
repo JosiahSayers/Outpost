@@ -1,9 +1,9 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
 import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
 import {
+  transformListItem as adminFeedbackListItemTransform,
   transform as adminFeedbackTransform,
   transformFull as adminFullFeedbackTransform,
-  transformListItem as adminFeedbackListItemTransform,
 } from "$/transformers/admin/feedback";
 import { transform as adminFeedbackNoteTransform } from "$/transformers/admin/feedback-note";
 import { transform as adminPublicMealItemTransform } from "$/transformers/admin/public-meal-item";
@@ -14,6 +14,7 @@ import {
 } from "$/transformers/admin/user";
 import { transform as gearCategoryTransform } from "$/transformers/gear-category";
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
+import { transform as ipLocationTransform } from "$/transformers/ip-location";
 import { transform as mealPlanDayTransform } from "$/transformers/meal-plan/day";
 import { transform as mealPlanItemTransform } from "$/transformers/meal-plan/item";
 import { transform as mealPlanItemSearchResultTransform } from "$/transformers/meal-plan/item-search-result";
@@ -54,6 +55,7 @@ export const transformers = {
   tripPackingListItem: tripPackingListItemTransform,
   accountSetting: accountSettingTransform,
   userAccountSettings: userAccountSettingsTransform,
+  ipLocation: ipLocationTransform,
   admin: {
     feedback: adminFeedbackTransform,
     feedbackListItem: adminFeedbackListItemTransform,
