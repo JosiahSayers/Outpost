@@ -1,6 +1,7 @@
 import { sendPasswordChangedEmailQueue } from "$/jobs/workers/email/password-changed";
 import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
 import { sendVerifyEmailQueue } from "$/jobs/workers/email/verify-email";
+import { CLOUDFLARE_PROXY_RANGES } from "$/utils/cloudflare-proxy-ranges";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
@@ -55,15 +56,18 @@ export const baseAuthConfig = {
   },
   advanced: {
     ipAddress: {
-      // Caddy is the only reverse proxy in front of the app in production
-      // (docker-compose.staging.yml), and the app's port isn't published to
-      // the host, so only containers on the docker network can reach it.
-      // Trusting that range lets a client-spoofed X-Forwarded-For entry be
-      // stripped down to the real client IP instead of the header being
-      // discarded outright (Better Auth's default when it can't tell which
-      // hop to trust). Left empty elsewhere since there's no proxy to trust.
+      // Better Auth resolves the client IP by walking X-Forwarded-For from
+      // the right and skipping entries that match trustedProxies -- it
+      // only looks at the header's own values, never the actual socket
+      // peer. In production the header arrives as "<real client>,
+      // <cloudflare edge ip>" (Caddy appends its own connecting peer, which
+      // is Cloudflare, once the Caddyfile trusts it -- see
+      // docker-compose.staging.yml). So this must list Cloudflare's ranges
+      // (the entry that needs skipping), not the docker-bridge subnet,
+      // which never appears inside the header text at all. Left empty
+      // elsewhere since there's no proxy to trust.
       trustedProxies:
-        process.env.NODE_ENV === "production" ? ["172.16.0.0/12"] : [],
+        process.env.NODE_ENV === "production" ? CLOUDFLARE_PROXY_RANGES : [],
     },
   },
   plugins: [admin(), twoFactor()],
