@@ -227,6 +227,20 @@ export default function UserSessions({ userId }: UserSessionsProps) {
               disabled={isFetching}
             />
           )}
+
+          {!isLoading && !isError && sessions.length > 0 && (
+            <Text size="10px" c="dimmed" ta="right">
+              <Anchor
+                href="https://db-ip.com"
+                target="_blank"
+                rel="noreferrer"
+                size="10px"
+                c="dimmed"
+              >
+                IP geolocation by DB-IP
+              </Anchor>
+            </Text>
+          )}
         </>
       )}
     </Stack>
