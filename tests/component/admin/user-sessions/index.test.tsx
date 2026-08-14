@@ -73,6 +73,45 @@ describe("on initial load", () => {
   });
 });
 
+describe("a session's location", () => {
+  it("shows the resolved city, subdivision, and country", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [
+        makeSession({
+          location: {
+            city: "Portland",
+            country: "United States",
+            subdivisions: ["Oregon"],
+          },
+        }),
+      ],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Portland, Oregon, United States"),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows a dash when no location could be resolved", async () => {
+    const queryClient = makeQueryClient();
+    queryClient.setQueryData(adminSessionKeys.list(USER_ID, "active", 0, 10), {
+      sessions: [makeSession({ location: null })],
+      total: 1,
+      pageSize: 10,
+    });
+    renderPage(queryClient);
+
+    await waitFor(() => screen.getByText("Chrome on macOS"));
+    expect(screen.getByText("-")).toBeInTheDocument();
+  });
+});
+
 describe("when there are no matching sessions", () => {
   it("shows an empty state", async () => {
     const queryClient = makeQueryClient();

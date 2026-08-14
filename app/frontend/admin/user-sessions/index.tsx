@@ -1,6 +1,7 @@
 import AdminPagination from "$/frontend/admin/shared/pagination";
 import DeviceCell from "$/frontend/admin/user-sessions/device-cell";
 import { formatSessionDate } from "$/frontend/admin/user-sessions/format-date";
+import LocationCell from "$/frontend/admin/user-sessions/location-cell";
 import SessionRowMenu from "$/frontend/admin/user-sessions/session-row-menu";
 import SessionStatusBadge from "$/frontend/admin/user-sessions/session-status-badge";
 import {
@@ -147,6 +148,7 @@ export default function UserSessions({ userId }: UserSessionsProps) {
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th>Device</Table.Th>
+                      <Table.Th>Location</Table.Th>
                       <Table.Th>IP Address</Table.Th>
                       <Table.Th>Status</Table.Th>
                       <Table.Th>Impersonation</Table.Th>
@@ -162,6 +164,9 @@ export default function UserSessions({ userId }: UserSessionsProps) {
                       >
                         <Table.Td>
                           <DeviceCell userAgent={session.userAgent} />
+                        </Table.Td>
+                        <Table.Td>
+                          <LocationCell location={session.location} />
                         </Table.Td>
                         <Table.Td>
                           <Text size="sm" ff="monospace">
