@@ -79,6 +79,7 @@
     "express-zod-safe": "^3.2.1",
     "ioredis": "^6.0.0",
     "luxon": "^3.7.2",
+    "maxmind": "^5.0.7",
     "pdfkit": "^0.19.1",
     "pg": "^8.22.0",
     "rate-limit-redis": "^6.0.1",
