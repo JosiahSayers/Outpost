@@ -9,6 +9,7 @@ export interface AdminUserSearchResult {
 }
 
 export const adminUserKeys = {
+  searchAll: ["admin", "users", "search"] as const,
   search: (search: string, skip: number, take: number) =>
     ["admin", "users", "search", search, skip, take] as const,
 };

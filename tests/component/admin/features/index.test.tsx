@@ -100,7 +100,7 @@ describe("with features", () => {
     // visibility check apparently can't resolve cleanly for this tree, so
     // stick to a structural presence check.
     await waitFor(() => {
-      const panels = screen.getAllByText("Enabled for allowed users");
+      const panels = screen.getAllByText("Enabled for everyone");
       expect(panels[0]).toBeInTheDocument();
       expect(panels[1]).toBeInTheDocument();
     });

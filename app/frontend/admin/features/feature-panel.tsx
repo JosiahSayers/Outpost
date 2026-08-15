@@ -1,10 +1,15 @@
 import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
+import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import {
   useAdminFeatureDetail,
   useDisableFeatureForUser,
   useEnableFeatureForUser,
   useToggleFeature,
 } from "$/frontend/utils/api/admin-features";
+import {
+  adminUserKeys,
+  useAdminUserSearch,
+} from "$/frontend/utils/api/admin-users";
 import { getInitials } from "$/frontend/utils/get-initials";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { Feature } from "$/utils/features";
@@ -19,8 +24,8 @@ import {
   Stack,
   Switch,
   Text,
-  TextInput,
 } from "@mantine/core";
+import { useDebouncedValue } from "@mantine/hooks";
 import { XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -45,7 +50,10 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function FeaturePanel({ feature, isOpen }: Props) {
-  const [userId, setUserId] = useState("");
+  const [userQuery, setUserQuery] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
+  const [debouncedUserQuery] = useDebouncedValue(userQuery, 300);
+  const userSearch = useAdminUserSearch(debouncedUserQuery, 0, 5);
   const { data, isPending, isError } = useAdminFeatureDetail(feature, isOpen);
   const toggleFeature = useToggleFeature(feature);
   const enableForUser = useEnableFeatureForUser(feature);
@@ -72,11 +80,16 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
   }
 
   const detail = data.feature;
+  const enabledUserIds = new Set(detail.enabledUsers.map((user) => user.id));
+  const searchResults = (userSearch.data?.users ?? []).filter(
+    (user) => !enabledUserIds.has(user.id),
+  );
 
   function handleAddUser() {
-    const id = userId.trim();
-    if (!id) return;
-    setUserId("");
+    if (!selectedUserId) return;
+    const id = selectedUserId;
+    setUserQuery("");
+    setSelectedUserId(undefined);
     enableForUser.mutate(id, { onError: notifyError("Couldn't add user") });
   }
 
@@ -93,27 +106,62 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
               })
             }
             disabled={toggleFeature.isPending}
-            label="Enabled for allowed users"
-            description="Turns the flag on for users in the list below — not for everyone."
+            label="Enabled for everyone"
+            description="Turns the flag on for 100% of users. Users in the list below get it either way."
           />
         </div>
 
         <Box>
           <FieldLabel>Add user</FieldLabel>
-          <Group gap="xs" wrap="nowrap">
-            <TextInput
-              placeholder="User ID"
-              value={userId}
-              onChange={(e) => setUserId(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddUser();
-                }
-              }}
-              style={{ flex: 1 }}
-            />
-            <Button onClick={handleAddUser} disabled={!userId.trim()}>
+          <Group gap="xs" wrap="nowrap" align="flex-start">
+            <div style={{ flex: 1 }}>
+              <SearchCombobox
+                placeholder="Search by name or email…"
+                aria-label="Search users to add"
+                value={userQuery}
+                onValueChange={(value) => {
+                  setUserQuery(value);
+                  setSelectedUserId(undefined);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddUser();
+                  }
+                }}
+                results={searchResults}
+                isFetching={userSearch.isFetching}
+                searchKeyPrefix={adminUserKeys.searchAll}
+                getOptionValue={(user) => user.id}
+                onOptionSubmit={(user) => {
+                  setUserQuery(user.name);
+                  setSelectedUserId(user.id);
+                }}
+                hidden={debouncedUserQuery.trim().length === 0}
+                icon={(user) => (
+                  <Avatar
+                    radius="xl"
+                    size={20}
+                    color="stone-gray"
+                    variant="filled"
+                  >
+                    {getInitials(user.name)}
+                  </Avatar>
+                )}
+                renderOption={(user) => (
+                  <>
+                    <Text size="sm" fw={600} lineClamp={1}>
+                      {user.name}
+                    </Text>
+                    <Text size="xs" c="dimmed" lineClamp={1}>
+                      {user.email}
+                    </Text>
+                  </>
+                )}
+                emptyMessage="No users found"
+              />
+            </div>
+            <Button onClick={handleAddUser} disabled={!selectedUserId}>
               Add
             </Button>
           </Group>

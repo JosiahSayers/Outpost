@@ -100,10 +100,20 @@ afterEach(() => {
   global.fetch = originalFetch;
 });
 
+let userSearchResults: ClientAdminUser[];
+
 beforeEach(() => {
   detail = makeDetail();
-  fetchMock = mock((_url: string, options?: RequestInit) => {
+  userSearchResults = [];
+  fetchMock = mock((url: string, options?: RequestInit) => {
     const method = options?.method ?? "GET";
+    if (method === "GET" && url.startsWith("/admin/users")) {
+      return jsonResponse({
+        users: userSearchResults,
+        total: userSearchResults.length,
+        pageSize: 5,
+      });
+    }
     if (method === "GET") {
       return jsonResponse({ feature: detail });
     }
@@ -142,7 +152,7 @@ describe("the panel", () => {
         undefined,
       ),
     );
-    expect(screen.getByText("Enabled for allowed users")).toBeInTheDocument();
+    expect(screen.getByText("Enabled for everyone")).toBeInTheDocument();
     expect(screen.getByText("Add user")).toBeInTheDocument();
   });
 
@@ -188,15 +198,32 @@ describe("the main toggle", () => {
 });
 
 describe("adding a user", () => {
-  it("calls the enable-for-user endpoint and clears the input", async () => {
+  it("calls the enable-for-user endpoint and clears the search once a result is picked", async () => {
+    userSearchResults = [
+      makeUser({
+        id: "usr_123",
+        name: "Alex Rivers",
+        email: "alex@example.com",
+      }),
+    ];
     renderAccordion();
     fireEvent.click(screen.getByText("Trip File Upload"));
     await waitFor(() =>
-      expect(screen.getByPlaceholderText("User ID")).toBeInTheDocument(),
+      expect(
+        screen.getByPlaceholderText("Search by name or email…"),
+      ).toBeInTheDocument(),
     );
 
-    const input = screen.getByPlaceholderText("User ID") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "usr_123" } });
+    const input = screen.getByPlaceholderText(
+      "Search by name or email…",
+    ) as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "alex" } });
+
+    await waitFor(() => screen.getByText("alex@example.com"));
+    fireEvent.click(screen.getByText("alex@example.com"));
+    expect(input.value).toBe("Alex Rivers");
+
     fireEvent.click(screen.getByText("Add"));
 
     expect(input.value).toBe("");
@@ -206,6 +233,103 @@ describe("adding a user", () => {
         expect.objectContaining({ method: "POST" }),
       ),
     );
+  });
+
+  it("excludes users already on the enabled list from search results", async () => {
+    const alreadyEnabled = makeUser({
+      id: "usr_123",
+      name: "Alex Rivers",
+      email: "alex@example.com",
+    });
+    const notYetEnabled = makeUser({
+      id: "usr_456",
+      name: "Jordan Lee",
+      email: "jordan@example.com",
+    });
+    userSearchResults = [alreadyEnabled, notYetEnabled];
+    detail = makeDetail({ enabledUsers: [alreadyEnabled] });
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText("Search by name or email…"),
+      ).toBeInTheDocument(),
+    );
+
+    const input = screen.getByPlaceholderText(
+      "Search by name or email…",
+    ) as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "e" } });
+
+    await waitFor(() => screen.getByText("jordan@example.com"));
+
+    // Query the option nodes directly rather than through
+    // getByRole/toBeInTheDocument: "alex@example.com" also renders (visibly)
+    // in the enabled-users list, so a text or accessible-name query would
+    // match both places, and the dropdown's `hidden` CSS state is flaky to
+    // assert on directly in happy-dom (see happy-dom quirks memory). A raw
+    // DOM query scoped to `role="option"` sidesteps both issues and checks
+    // exactly what changed here: which users the search results contain.
+    const optionEmails = Array.from(
+      document.querySelectorAll('[role="option"]'),
+    ).map((el) => el.textContent);
+    expect(optionEmails).toHaveLength(1);
+    expect(optionEmails[0]).toContain("jordan@example.com");
+
+    await waitFor(() => {});
+  });
+
+  it("does not show the previous result when refocused after adding a user", async () => {
+    userSearchResults = [
+      makeUser({
+        id: "usr_123",
+        name: "Alex Rivers",
+        email: "alex@example.com",
+      }),
+    ];
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText("Search by name or email…"),
+      ).toBeInTheDocument(),
+    );
+
+    const input = screen.getByPlaceholderText(
+      "Search by name or email…",
+    ) as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "alex" } });
+    await waitFor(() => screen.getByText("alex@example.com"));
+    fireEvent.click(screen.getByText("alex@example.com"));
+    fireEvent.click(screen.getByText("Add"));
+    await waitFor(() => expect(input.value).toBe(""));
+
+    fireEvent.blur(input);
+    fireEvent.focus(input);
+    await waitFor(() => {});
+
+    // `queryByText` finds the stale option even though the dropdown is
+    // `display: none` (Mantine keeps portal content mounted while hidden),
+    // and asserting `.not.toBeInTheDocument()` on that non-null element hangs
+    // indefinitely in this happy-dom/jest-dom combination instead of failing
+    // fast. `queryByRole` respects the hidden state and correctly excludes
+    // it from the accessibility tree, so it's both the correct check (is the
+    // stale option showing to the user) and the one that doesn't hang.
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  });
+
+  it("disables the Add button until a search result is picked", async () => {
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText("Search by name or email…"),
+      ).toBeInTheDocument(),
+    );
+
+    expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
   });
 });
 
