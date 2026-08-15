@@ -81,8 +81,8 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
   }
 
   return (
-    <Group align="flex-start" gap="xl" wrap="wrap">
-      <Stack gap="lg" style={{ flex: "0 0 220px" }}>
+    <Group align="flex-start" justify="flex-start" gap="100px" wrap="wrap">
+      <Stack gap="lg" style={{ flex: "1 1 220px", maxWidth: 360 }}>
         <div>
           <FieldLabel>Status</FieldLabel>
           <Switch
@@ -98,7 +98,7 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
           />
         </div>
 
-        <div>
+        <Box>
           <FieldLabel>Add user</FieldLabel>
           <Group gap="xs" wrap="nowrap">
             <TextInput
@@ -117,10 +117,10 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
               Add
             </Button>
           </Group>
-        </div>
+        </Box>
       </Stack>
 
-      <Box style={{ flex: "1 1 280px", minWidth: 0 }}>
+      <Box style={{ flex: "1 1 280px", minWidth: 0, maxWidth: 560 }}>
         <FieldLabel>
           Enabled users &middot; {detail.enabledUsers.length}
         </FieldLabel>
