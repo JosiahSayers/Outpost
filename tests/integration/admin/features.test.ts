@@ -226,8 +226,7 @@ describe("GET /:feature/user/:userId", () => {
     expect(response.body).toEqual({ enabled: false });
   });
 
-  it("returns true once the feature is enabled globally and for the user", async () => {
-    await Features.enable(FEATURE);
+  it("returns true once the feature is enabled for the user, regardless of the global flag", async () => {
     await Features.enableForUser(FEATURE, USER_ID);
 
     const response = await request(app)

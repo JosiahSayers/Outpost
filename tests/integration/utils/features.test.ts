@@ -31,9 +31,9 @@ describe("enabledForUser / enableForUser / disableForUser", () => {
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
   });
 
-  it("is still disabled for a user when only the per-user flag is set, not the global flag", async () => {
+  it("is enabled for a user once the per-user flag is set, independent of the global flag", async () => {
     await Features.enableForUser(FEATURE, USER_ID);
-    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
+    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(true);
   });
 
   it("is still disabled for a user when only the global flag is enabled, not the per-user flag", async () => {
@@ -41,14 +41,13 @@ describe("enabledForUser / enableForUser / disableForUser", () => {
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
   });
 
-  it("is enabled for a user once both the global flag and the per-user flag are enabled", async () => {
+  it("is enabled for a user when the per-user flag is enabled, regardless of the global flag", async () => {
     await Features.enable(FEATURE);
     await Features.enableForUser(FEATURE, USER_ID);
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(true);
   });
 
   it("does not enable the feature for other users", async () => {
-    await Features.enable(FEATURE);
     await Features.enableForUser(FEATURE, USER_ID);
     expect(await Features.enabledForUser(FEATURE, "some-other-user")).toBe(
       false,
@@ -56,14 +55,12 @@ describe("enabledForUser / enableForUser / disableForUser", () => {
   });
 
   it("returns false for a user after being disabled again", async () => {
-    await Features.enable(FEATURE);
     await Features.enableForUser(FEATURE, USER_ID);
     await Features.disableForUser(FEATURE, USER_ID);
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
   });
 
   it("does not affect other users when disabling for one user", async () => {
-    await Features.enable(FEATURE);
     await Features.enableForUser(FEATURE, USER_ID);
     await Features.enableForUser(FEATURE, "some-other-user");
 
