@@ -1,3 +1,4 @@
+import { ensureUserExists } from "$/middleware/user-exists";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { Features } from "$/utils/features";
@@ -48,11 +49,10 @@ adminFeaturesRouter.post(
   },
 );
 
-// todo: Middleware to ensure user exists
-
 adminFeaturesRouter.get(
   "/:feature/user/:userId",
   validate({ params: userFeatureParams }),
+  ensureUserExists("userId"),
   async (req, res) => {
     const enabled = await Features.enabledForUser(
       req.params.feature,
@@ -65,6 +65,7 @@ adminFeaturesRouter.get(
 adminFeaturesRouter.post(
   "/:feature/user/:userId/enable",
   validate({ params: userFeatureParams }),
+  ensureUserExists("userId"),
   async (req, res) => {
     await Features.enableForUser(req.params.feature, req.params.userId);
     return res.sendStatus(200);
@@ -74,6 +75,7 @@ adminFeaturesRouter.post(
 adminFeaturesRouter.post(
   "/:feature/user/:userId/disable",
   validate({ params: userFeatureParams }),
+  ensureUserExists("userId"),
   async (req, res) => {
     await Features.disableForUser(req.params.feature, req.params.userId);
     return res.sendStatus(200);
