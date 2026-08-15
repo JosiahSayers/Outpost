@@ -1,0 +1,166 @@
+import {
+  useAdminFeatureDetail,
+  useDisableFeatureForUser,
+  useEnableFeatureForUser,
+  useToggleFeature,
+} from "$/frontend/utils/api/admin-features";
+import { notifyError } from "$/frontend/utils/notify-error";
+import type { Feature } from "$/utils/features";
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Center,
+  Group,
+  Loader,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+} from "@mantine/core";
+import { XIcon } from "@phosphor-icons/react";
+import { useState } from "react";
+
+interface Props {
+  feature: Feature;
+  isOpen: boolean;
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Text
+      size="xs"
+      fw={700}
+      tt="uppercase"
+      c="dimmed"
+      mb={6}
+      style={{ letterSpacing: "0.04em" }}
+    >
+      {children}
+    </Text>
+  );
+}
+
+export default function FeaturePanel({ feature, isOpen }: Props) {
+  const [userId, setUserId] = useState("");
+  const { data, isPending, isError } = useAdminFeatureDetail(feature, isOpen);
+  const toggleFeature = useToggleFeature(feature);
+  const enableForUser = useEnableFeatureForUser(feature);
+  const disableForUser = useDisableFeatureForUser(feature);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  if (isPending) {
+    return (
+      <Center py="md">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Text size="sm" c="dimmed">
+        Couldn&rsquo;t load details for this flag.
+      </Text>
+    );
+  }
+
+  const detail = data.feature;
+
+  function handleAddUser() {
+    const id = userId.trim();
+    if (!id) return;
+    setUserId("");
+    enableForUser.mutate(id, { onError: notifyError("Couldn't add user") });
+  }
+
+  return (
+    <Group align="flex-start" gap="xl" wrap="wrap">
+      <Stack gap="lg" style={{ flex: "0 0 220px" }}>
+        <div>
+          <FieldLabel>Status</FieldLabel>
+          <Switch
+            checked={detail.enabled}
+            onChange={(e) =>
+              toggleFeature.mutate(e.currentTarget.checked, {
+                onError: notifyError("Couldn't update flag"),
+              })
+            }
+            disabled={toggleFeature.isPending}
+            label="Enabled for allowed users"
+            description="Turns the flag on for users in the list below — not for everyone."
+          />
+        </div>
+
+        <div>
+          <FieldLabel>Add user</FieldLabel>
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              placeholder="User ID"
+              value={userId}
+              onChange={(e) => setUserId(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddUser();
+                }
+              }}
+              style={{ flex: 1 }}
+            />
+            <Button onClick={handleAddUser} disabled={!userId.trim()}>
+              Add
+            </Button>
+          </Group>
+        </div>
+      </Stack>
+
+      <Box style={{ flex: "1 1 280px", minWidth: 0 }}>
+        <FieldLabel>
+          Enabled users &middot; {detail.enabledUserIds.length}
+        </FieldLabel>
+        {detail.enabledUserIds.length === 0 ? (
+          <Text size="sm" c="dimmed" fs="italic">
+            No users enabled yet.
+          </Text>
+        ) : (
+          <Stack gap={6}>
+            {detail.enabledUserIds.map((id) => (
+              <Group
+                key={id}
+                justify="space-between"
+                wrap="nowrap"
+                gap="xs"
+                px="sm"
+                py={6}
+                style={{
+                  background: "var(--mantine-color-default-hover)",
+                  borderRadius: "var(--mantine-radius-sm)",
+                }}
+              >
+                <Text size="sm" ff="monospace" truncate>
+                  {id}
+                </Text>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  aria-label={`Remove ${id}`}
+                  onClick={() =>
+                    disableForUser.mutate(id, {
+                      onError: notifyError("Couldn't remove user"),
+                    })
+                  }
+                >
+                  <XIcon size={14} />
+                </ActionIcon>
+              </Group>
+            ))}
+          </Stack>
+        )}
+      </Box>
+    </Group>
+  );
+}

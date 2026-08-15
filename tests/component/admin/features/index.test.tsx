@@ -1,10 +1,25 @@
 import AdminFeatures from "$/frontend/admin/features";
-import { adminFeatureKeys } from "$/frontend/utils/api/admin-features";
+import {
+  adminFeatureKeys,
+  type AdminFeatureDetail,
+} from "$/frontend/utils/api/admin-features";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, mock } from "bun:test";
+
+function makeDetail(
+  overrides: Partial<AdminFeatureDetail> = {},
+): AdminFeatureDetail {
+  return {
+    meta: { name: "", description: "" },
+    enabled: false,
+    enabledUserIds: [],
+    disabledUserIds: [],
+    ...overrides,
+  };
+}
 
 // Not typed against `Features.featureList()`'s return type -- that type's
 // `feature` field is a literal union of the real FEATURES array (currently
@@ -65,18 +80,29 @@ describe("with features", () => {
     queryClient.setQueryData(adminFeatureKeys.list(), {
       features: [TRIP_FILE_UPLOAD, GPX_ROUTE_IMPORT],
     });
+    queryClient.setQueryData(adminFeatureKeys.detail("trip-file-upload"), {
+      feature: makeDetail(),
+    });
+    // @ts-expect-error -- gpx-route-import isn't a real Feature (see the
+    // TRIP_FILE_UPLOAD/GPX_ROUTE_IMPORT comment above), so its detail key
+    // can't be typed against the real Feature union either.
+    queryClient.setQueryData(adminFeatureKeys.detail("gpx-route-import"), {
+      feature: makeDetail(),
+    });
     renderPage(queryClient);
     await waitFor(() => screen.getByText("Trip File Upload"));
 
     fireEvent.click(screen.getByText("Trip File Upload"));
     fireEvent.click(screen.getByText("GPX Route Import"));
 
+    // toBeVisible() here (rather than toBeInTheDocument()) hangs for ~60s in
+    // happy-dom instead of failing/passing promptly -- its computed-style
+    // visibility check apparently can't resolve cleanly for this tree, so
+    // stick to a structural presence check.
     await waitFor(() => {
-      const panels = screen.getAllByText(
-        "Status controls for this flag will go here.",
-      );
-      expect(panels[0]).toBeVisible();
-      expect(panels[1]).toBeVisible();
+      const panels = screen.getAllByText("Enabled for allowed users");
+      expect(panels[0]).toBeInTheDocument();
+      expect(panels[1]).toBeInTheDocument();
     });
   });
 });

@@ -10,10 +10,12 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useState } from "react";
 
 export default function AdminFeatures() {
   const { data, isPending, isError } = useAdminFeatures();
   const { isLoading, showSpinner } = useDelayedLoading(isPending);
+  const [openFeatures, setOpenFeatures] = useState<string[]>([]);
 
   const features = data?.features ?? [];
 
@@ -54,9 +56,18 @@ export default function AdminFeatures() {
 
       {!isLoading && !isError && features.length > 0 && (
         <Paper withBorder>
-          <Accordion multiple chevronPosition="right">
+          <Accordion
+            multiple
+            chevronPosition="right"
+            value={openFeatures}
+            onChange={setOpenFeatures}
+          >
             {features.map((feature) => (
-              <FeatureAccordion key={feature.feature} feature={feature} />
+              <FeatureAccordion
+                key={feature.feature}
+                feature={feature}
+                isOpen={openFeatures.includes(feature.feature)}
+              />
             ))}
           </Accordion>
         </Paper>

@@ -1,9 +1,12 @@
 import FeatureAccordion from "$/frontend/admin/features/feature-accordion";
+import type { AdminFeatureDetail } from "$/frontend/utils/api/admin-features";
 import type { Features } from "$/utils/features";
 import { Accordion, MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { useState } from "react";
 
 type Feature = ReturnType<typeof Features.featureList>[number];
 
@@ -16,15 +19,80 @@ function makeFeature(overrides: Partial<Feature> = {}): Feature {
   };
 }
 
-function renderAccordion(feature: Feature = makeFeature()) {
-  render(
-    <MantineProvider>
-      <Accordion multiple chevronPosition="right">
-        <FeatureAccordion feature={feature} />
-      </Accordion>
-    </MantineProvider>,
+function makeDetail(
+  overrides: Partial<AdminFeatureDetail> = {},
+): AdminFeatureDetail {
+  return {
+    meta: {
+      name: "Trip File Upload",
+      description: "Surfaces the ability for users to upload files to a trip.",
+    },
+    enabled: false,
+    enabledUserIds: [],
+    disabledUserIds: [],
+    ...overrides,
+  };
+}
+
+function Harness({ feature }: { feature: Feature }) {
+  const [open, setOpen] = useState<string[]>([]);
+  return (
+    <Accordion multiple chevronPosition="right" value={open} onChange={setOpen}>
+      <FeatureAccordion
+        feature={feature}
+        isOpen={open.includes(feature.feature)}
+      />
+    </Accordion>
   );
 }
+
+function renderAccordion(feature: Feature = makeFeature()) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  render(
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <Harness feature={feature} />
+      </MantineProvider>
+    </QueryClientProvider>,
+  );
+}
+
+function jsonResponse(body: unknown) {
+  return Promise.resolve(
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+}
+
+function okResponse() {
+  return Promise.resolve(new Response(null, { status: 200 }));
+}
+
+const originalFetch = global.fetch;
+let fetchMock: ReturnType<
+  typeof mock<(url: string, options?: RequestInit) => Promise<Response>>
+>;
+let detail: AdminFeatureDetail;
+
+afterEach(() => {
+  global.fetch = originalFetch;
+});
+
+beforeEach(() => {
+  detail = makeDetail();
+  fetchMock = mock((_url: string, options?: RequestInit) => {
+    const method = options?.method ?? "GET";
+    if (method === "GET") {
+      return jsonResponse({ feature: detail });
+    }
+    return okResponse();
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
+});
 
 it("renders the feature's name, slug, and description", () => {
   renderAccordion();
@@ -38,43 +106,118 @@ it("renders the feature's name, slug, and description", () => {
   ).toBeInTheDocument();
 });
 
-describe("the placeholder panel", () => {
-  it("is hidden until the item is opened", () => {
+describe("the panel", () => {
+  it("does not fetch details until the item is opened", () => {
     renderAccordion();
 
-    expect(
-      screen.getByText("Status controls for this flag will go here."),
-    ).not.toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("becomes visible once the item is opened", async () => {
+  it("fetches and renders details once opened", async () => {
     renderAccordion();
 
     fireEvent.click(screen.getByText("Trip File Upload"));
 
     await waitFor(() =>
-      expect(
-        screen.getByText("Status controls for this flag will go here."),
-      ).toBeVisible(),
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/admin/features/trip-file-upload",
+        undefined,
+      ),
     );
+    expect(screen.getByText("Enabled for allowed users")).toBeInTheDocument();
+    expect(screen.getByText("Add user")).toBeInTheDocument();
   });
 
-  it("hides again once the item is collapsed", async () => {
+  it("removes the panel content again once collapsed", async () => {
     renderAccordion();
     const control = screen.getByText("Trip File Upload");
 
     fireEvent.click(control);
     await waitFor(() =>
-      expect(
-        screen.getByText("Status controls for this flag will go here."),
-      ).toBeVisible(),
+      expect(screen.getByText("Add user")).toBeInTheDocument(),
     );
 
     fireEvent.click(control);
     await waitFor(() =>
-      expect(
-        screen.getByText("Status controls for this flag will go here."),
-      ).not.toBeVisible(),
+      expect(screen.queryByText("Add user")).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe("the main toggle", () => {
+  it("shows the flag's current enabled state", async () => {
+    detail = makeDetail({ enabled: true });
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+
+    await waitFor(() => expect(screen.getByRole("switch")).toBeChecked());
+  });
+
+  it("calls the enable endpoint when switched on", async () => {
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+    await waitFor(() => expect(screen.getByRole("switch")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("switch"));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/admin/features/trip-file-upload/enable",
+        expect.objectContaining({ method: "POST" }),
+      ),
+    );
+  });
+});
+
+describe("adding a user", () => {
+  it("calls the enable-for-user endpoint and clears the input", async () => {
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("User ID")).toBeInTheDocument(),
+    );
+
+    const input = screen.getByPlaceholderText("User ID") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "usr_123" } });
+    fireEvent.click(screen.getByText("Add"));
+
+    expect(input.value).toBe("");
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/admin/features/trip-file-upload/user/usr_123/enable",
+        expect.objectContaining({ method: "POST" }),
+      ),
+    );
+  });
+});
+
+describe("the enabled users list", () => {
+  it("shows an empty state when no users are enabled", async () => {
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+
+    await waitFor(() =>
+      expect(screen.getByText("No users enabled yet.")).toBeInTheDocument(),
+    );
+  });
+
+  it("lists enabled user ids and removes one on click", async () => {
+    detail = makeDetail({ enabledUserIds: ["usr_123", "usr_456"] });
+    renderAccordion();
+    fireEvent.click(screen.getByText("Trip File Upload"));
+
+    await waitFor(() =>
+      expect(screen.getByText("usr_123")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("usr_456")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove usr_123" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/admin/features/trip-file-upload/user/usr_123/disable",
+        expect.objectContaining({ method: "POST" }),
+      ),
     );
   });
 });

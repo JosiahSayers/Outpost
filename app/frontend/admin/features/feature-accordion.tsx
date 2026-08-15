@@ -1,11 +1,13 @@
+import FeaturePanel from "$/frontend/admin/features/feature-panel";
 import type { Features } from "$/utils/features";
 import { Accordion, Box, Group, Text } from "@mantine/core";
 
 interface Props {
   feature: ReturnType<typeof Features.featureList>[number];
+  isOpen: boolean;
 }
 
-export default function FeatureAccordion({ feature }: Props) {
+export default function FeatureAccordion({ feature, isOpen }: Props) {
   return (
     <Accordion.Item value={feature.feature}>
       <Accordion.Control>
@@ -24,9 +26,7 @@ export default function FeatureAccordion({ feature }: Props) {
         </Group>
       </Accordion.Control>
       <Accordion.Panel>
-        <Text size="sm" c="dimmed" fs="italic">
-          Status controls for this flag will go here.
-        </Text>
+        <FeaturePanel feature={feature.feature} isOpen={isOpen} />
       </Accordion.Panel>
     </Accordion.Item>
   );

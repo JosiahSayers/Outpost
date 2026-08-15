@@ -37,6 +37,8 @@ adminFeaturesRouter.post(
   },
 );
 
+// todo: Middleware to ensure user exists
+
 adminFeaturesRouter.get(
   "/:feature/user/:userId",
   validate({ params: userFeatureParams }),

@@ -31,6 +31,8 @@ async function disableForUser(feature: Feature, userId: string) {
   await redisClient.hset(featureKey(feature), { [userId]: "false" });
 }
 
+// TODO: enabled should be fully enable, it should not dictate if a user has it enabled
+// There can be an added concept of a killswitch that disabled the feature in all scenarios
 async function enabled(feature: Feature) {
   const featureEnabled = await redisClient.hget(featureKey(feature), "enabled");
   return featureEnabled === "true";
