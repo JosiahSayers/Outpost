@@ -15,7 +15,7 @@ function makeDetail(
   return {
     meta: { name: "", description: "" },
     enabled: false,
-    enabledUserIds: [],
+    enabledUsers: [],
     disabledUserIds: [],
     ...overrides,
   };

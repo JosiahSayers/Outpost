@@ -1,13 +1,16 @@
+import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
 import {
   useAdminFeatureDetail,
   useDisableFeatureForUser,
   useEnableFeatureForUser,
   useToggleFeature,
 } from "$/frontend/utils/api/admin-features";
+import { getInitials } from "$/frontend/utils/get-initials";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { Feature } from "$/utils/features";
 import {
   ActionIcon,
+  Avatar,
   Box,
   Button,
   Center,
@@ -119,17 +122,17 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
 
       <Box style={{ flex: "1 1 280px", minWidth: 0 }}>
         <FieldLabel>
-          Enabled users &middot; {detail.enabledUserIds.length}
+          Enabled users &middot; {detail.enabledUsers.length}
         </FieldLabel>
-        {detail.enabledUserIds.length === 0 ? (
+        {detail.enabledUsers.length === 0 ? (
           <Text size="sm" c="dimmed" fs="italic">
             No users enabled yet.
           </Text>
         ) : (
           <Stack gap={6}>
-            {detail.enabledUserIds.map((id) => (
+            {detail.enabledUsers.map((user) => (
               <Group
-                key={id}
+                key={user.id}
                 justify="space-between"
                 wrap="nowrap"
                 gap="xs"
@@ -140,22 +143,40 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
                   borderRadius: "var(--mantine-radius-sm)",
                 }}
               >
-                <Text size="sm" ff="monospace" truncate>
-                  {id}
-                </Text>
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  aria-label={`Remove ${id}`}
-                  onClick={() =>
-                    disableForUser.mutate(id, {
-                      onError: notifyError("Couldn't remove user"),
-                    })
-                  }
-                >
-                  <XIcon size={14} />
-                </ActionIcon>
+                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                  <Avatar
+                    radius="xl"
+                    size={28}
+                    color="stone-gray"
+                    variant="filled"
+                  >
+                    {getInitials(user.name)}
+                  </Avatar>
+                  <div style={{ minWidth: 0 }}>
+                    <Text size="sm" fw={500} truncate>
+                      {user.name}
+                    </Text>
+                    <Text size="xs" c="dimmed" truncate>
+                      {user.email}
+                    </Text>
+                  </div>
+                </Group>
+                <Group gap={6} wrap="nowrap">
+                  <UserStatusBadge user={user} />
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    aria-label={`Remove ${user.email}`}
+                    onClick={() =>
+                      disableForUser.mutate(user.id, {
+                        onError: notifyError("Couldn't remove user"),
+                      })
+                    }
+                  >
+                    <XIcon size={14} />
+                  </ActionIcon>
+                </Group>
               </Group>
             ))}
           </Stack>

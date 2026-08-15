@@ -1,5 +1,6 @@
 import FeatureAccordion from "$/frontend/admin/features/feature-accordion";
 import type { AdminFeatureDetail } from "$/frontend/utils/api/admin-features";
+import type { ClientAdminUser } from "$/transformers/admin/user";
 import type { Features } from "$/utils/features";
 import { Accordion, MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,23 @@ function makeFeature(overrides: Partial<Feature> = {}): Feature {
   };
 }
 
+function makeUser(overrides: Partial<ClientAdminUser> = {}): ClientAdminUser {
+  return {
+    id: "usr_123",
+    banExpires: null,
+    banReason: null,
+    banned: false,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    email: "user@example.com",
+    emailVerified: true,
+    image: null,
+    name: "Alex Rivers",
+    role: "user",
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    ...overrides,
+  };
+}
+
 function makeDetail(
   overrides: Partial<AdminFeatureDetail> = {},
 ): AdminFeatureDetail {
@@ -28,7 +46,7 @@ function makeDetail(
       description: "Surfaces the ability for users to upload files to a trip.",
     },
     enabled: false,
-    enabledUserIds: [],
+    enabledUsers: [],
     disabledUserIds: [],
     ...overrides,
   };
@@ -201,17 +219,31 @@ describe("the enabled users list", () => {
     );
   });
 
-  it("lists enabled user ids and removes one on click", async () => {
-    detail = makeDetail({ enabledUserIds: ["usr_123", "usr_456"] });
+  it("lists enabled users and removes one on click", async () => {
+    const first = makeUser({
+      id: "usr_123",
+      name: "Alex Rivers",
+      email: "alex@example.com",
+    });
+    const second = makeUser({
+      id: "usr_456",
+      name: "Jordan Lee",
+      email: "jordan@example.com",
+    });
+    detail = makeDetail({ enabledUsers: [first, second] });
     renderAccordion();
     fireEvent.click(screen.getByText("Trip File Upload"));
 
     await waitFor(() =>
-      expect(screen.getByText("usr_123")).toBeInTheDocument(),
+      expect(screen.getByText("Alex Rivers")).toBeInTheDocument(),
     );
-    expect(screen.getByText("usr_456")).toBeInTheDocument();
+    expect(screen.getByText("alex@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Jordan Lee")).toBeInTheDocument();
+    expect(screen.getByText("jordan@example.com")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Remove usr_123" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove alex@example.com" }),
+    );
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(

@@ -93,10 +93,12 @@ describe("GET /:feature", () => {
       .expect(200);
 
     expect(response.body).toEqual({
-      meta: FEATURE_META[FEATURE],
-      enabled: false,
-      disabledUserIds: [],
-      enabledUsers: [],
+      feature: {
+        meta: FEATURE_META[FEATURE],
+        enabled: false,
+        disabledUserIds: [],
+        enabledUsers: [],
+      },
     });
   });
 
@@ -112,12 +114,12 @@ describe("GET /:feature", () => {
       .set("Cookie", adminAuthCookies)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body.feature).toMatchObject({
       meta: FEATURE_META[FEATURE],
       enabled: true,
       disabledUserIds: [],
     });
-    expect(response.body.enabledUsers).toEqual([
+    expect(response.body.feature.enabledUsers).toEqual([
       expect.objectContaining({ id: user.id }),
     ]);
   });
@@ -133,7 +135,7 @@ describe("GET /:feature", () => {
       .set("Cookie", adminAuthCookies)
       .expect(200);
 
-    expect(response.body.enabledUsers).toEqual([
+    expect(response.body.feature.enabledUsers).toEqual([
       {
         id: user.id,
         banExpires: user.banExpires,
@@ -161,7 +163,7 @@ describe("GET /:feature", () => {
       .set("Cookie", adminAuthCookies)
       .expect(200);
 
-    expect(response.body.enabledUsers).toEqual([]);
+    expect(response.body.feature.enabledUsers).toEqual([]);
   });
 });
 

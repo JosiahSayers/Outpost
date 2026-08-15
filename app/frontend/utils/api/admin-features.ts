@@ -1,3 +1,4 @@
+import type { ClientFeatureStatus } from "$/transformers/admin/features/status";
 import type { Feature, Features } from "$/utils/features";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "./client";
@@ -6,7 +7,7 @@ interface AdminFeatureListResult {
   features: ReturnType<typeof Features.featureList>;
 }
 
-export type AdminFeatureDetail = Awaited<ReturnType<typeof Features.status>>;
+export type AdminFeatureDetail = ClientFeatureStatus;
 
 interface AdminFeatureDetailResult {
   feature: AdminFeatureDetail;
@@ -92,11 +93,10 @@ export function useEnableFeatureForUser(feature: Feature) {
       await queryClient.cancelQueries({ queryKey });
       const previous =
         queryClient.getQueryData<AdminFeatureDetailResult>(queryKey);
+      // The full user record isn't known client-side until the refetch below,
+      // so only the disabled list (plain ids) can be updated optimistically.
       setDetailCache(queryClient, feature, (detail) => ({
         ...detail,
-        enabledUserIds: detail.enabledUserIds.includes(userId)
-          ? detail.enabledUserIds
-          : [...detail.enabledUserIds, userId],
         disabledUserIds: detail.disabledUserIds.filter((id) => id !== userId),
       }));
       return { previous };
@@ -127,7 +127,7 @@ export function useDisableFeatureForUser(feature: Feature) {
         queryClient.getQueryData<AdminFeatureDetailResult>(queryKey);
       setDetailCache(queryClient, feature, (detail) => ({
         ...detail,
-        enabledUserIds: detail.enabledUserIds.filter((id) => id !== userId),
+        enabledUsers: detail.enabledUsers.filter((user) => user.id !== userId),
         disabledUserIds: detail.disabledUserIds.includes(userId)
           ? detail.disabledUserIds
           : [...detail.disabledUserIds, userId],

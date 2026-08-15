@@ -24,7 +24,9 @@ adminFeaturesRouter.get(
         },
       },
     });
-    return res.json(transformers.admin.featureStatus(feature, enabledUsers));
+    return res.json({
+      feature: transformers.admin.featureStatus(feature, enabledUsers),
+    });
   },
 );
 
