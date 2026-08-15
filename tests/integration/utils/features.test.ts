@@ -36,8 +36,14 @@ describe("enabledForUser / enableForUser / disableForUser", () => {
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(true);
   });
 
-  it("is still disabled for a user when only the global flag is enabled, not the per-user flag", async () => {
+  it("is enabled for a user once the global flag is enabled, even without a per-user flag", async () => {
     await Features.enable(FEATURE);
+    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(true);
+  });
+
+  it("is disabled for a user when the global flag is enabled but their per-user flag is explicitly disabled", async () => {
+    await Features.enable(FEATURE);
+    await Features.disableForUser(FEATURE, USER_ID);
     expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
   });
 

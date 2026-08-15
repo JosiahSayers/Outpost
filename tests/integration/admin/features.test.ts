@@ -419,7 +419,6 @@ describe("POST /:feature/user/:userId/disable", () => {
     const user = await db.user.create({ data: make("User") });
     createdUserIds.push(user.id);
 
-    await Features.enable(FEATURE);
     await Features.enableForUser(FEATURE, user.id);
     await Features.enableForUser(FEATURE, "some-other-user");
 
@@ -432,5 +431,20 @@ describe("POST /:feature/user/:userId/disable", () => {
     expect(await Features.enabledForUser(FEATURE, "some-other-user")).toBe(
       true,
     );
+  });
+
+  it("overrides the global flag when the user is explicitly disabled", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+
+    await Features.enable(FEATURE);
+    await Features.enableForUser(FEATURE, user.id);
+
+    await request(app)
+      .post(`/admin/features/${FEATURE}/user/${user.id}/disable`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(await Features.enabledForUser(FEATURE, user.id)).toBe(false);
   });
 });

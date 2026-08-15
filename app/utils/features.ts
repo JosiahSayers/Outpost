@@ -24,7 +24,12 @@ function featureKey(feature: Feature) {
  * @returns
  */
 async function enabledForUser(feature: Feature, userId: string) {
+  const featureFullyEnabled = await enabled(feature);
   const userEnabled = await redisClient.hget(featureKey(feature), userId);
+  if (featureFullyEnabled) {
+    return userEnabled !== "false";
+  }
+
   return userEnabled === "true";
 }
 
