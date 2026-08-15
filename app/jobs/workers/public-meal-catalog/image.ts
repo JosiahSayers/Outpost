@@ -1,6 +1,6 @@
-import { fetchGuarded, type GuardedFetchOptions } from "$/utils/guarded-fetch";
-import { createR2Client, publicMealItemImageKey } from "$/utils/r2";
 import { db } from "$/utils/db";
+import { fetchGuarded, type GuardedFetchOptions } from "$/utils/guarded-fetch";
+import { createR2Client, storageKeys } from "$/utils/r2";
 import type { Logger } from "winston";
 import type { PublicMealItem } from "../../../../generated/prisma/browser";
 
@@ -65,7 +65,7 @@ export async function processProductImage(
   // in tests, and whenever a caller has already determined R2 isn't
   // configured) must be respected rather than treated as "unset" by `??`.
   const r2Client =
-    deps.r2Client === undefined ? createR2Client() : deps.r2Client;
+    deps.r2Client === undefined ? createR2Client("images") : deps.r2Client;
   if (!r2Client) {
     logger.info(
       "Skipping image processing: R2 is not configured (missing env vars)",
@@ -89,7 +89,10 @@ export async function processProductImage(
     const { width, height } = await image.metadata();
     const webpBytes = await image.webp({ quality: WEBP_QUALITY }).bytes();
 
-    const r2Key = publicMealItemImageKey(sourceVendor, sourceProductId);
+    const r2Key = storageKeys.publicMealItem.image(
+      sourceVendor,
+      sourceProductId,
+    );
     await r2Client.write(r2Key, webpBytes, { type: "image/webp" });
 
     if (existingImageId) {
