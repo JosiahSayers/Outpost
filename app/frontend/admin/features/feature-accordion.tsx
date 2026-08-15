@@ -11,7 +11,7 @@ export default function FeatureAccordion({ feature, isOpen }: Props) {
   return (
     <Accordion.Item value={feature.feature}>
       <Accordion.Control>
-        <Group wrap="wrap" align="flex-start" gap="md">
+        <Group wrap="wrap" align="center" gap="md">
           <Box miw={160} style={{ flexShrink: 0 }}>
             <Text fw={700} size="sm">
               {feature.name}
@@ -25,7 +25,7 @@ export default function FeatureAccordion({ feature, isOpen }: Props) {
           </Text>
         </Group>
       </Accordion.Control>
-      <Accordion.Panel>
+      <Accordion.Panel p={{ md: "md" }}>
         <FeaturePanel feature={feature.feature} isOpen={isOpen} />
       </Accordion.Panel>
     </Accordion.Item>

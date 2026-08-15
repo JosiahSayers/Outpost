@@ -25,7 +25,7 @@ import {
   Switch,
   Text,
 } from "@mantine/core";
-import { useDebouncedValue } from "@mantine/hooks";
+import { useDebouncedValue, useMediaQuery } from "@mantine/hooks";
 import { XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -53,6 +53,11 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
   const [userQuery, setUserQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
   const [debouncedUserQuery] = useDebouncedValue(userQuery, 300);
+  // Group's `gap` prop is a plain MantineSpacing value, not one of the
+  // generic responsive style props, so `gap={{ md: "100px" }}` doesn't work
+  // the way `pt={{ base, md }}` below does — drive it from JS instead,
+  // matching the theme's `md` breakpoint (64em, see theme.ts).
+  const isMdUp = useMediaQuery("(min-width: 64em)");
   const userSearch = useAdminUserSearch(debouncedUserQuery, 0, 5);
   const { data, isPending, isError } = useAdminFeatureDetail(feature, isOpen);
   const toggleFeature = useToggleFeature(feature);
@@ -94,7 +99,13 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
   }
 
   return (
-    <Group align="flex-start" justify="flex-start" gap="100px" wrap="wrap">
+    <Group
+      align="flex-start"
+      justify="flex-start"
+      gap={isMdUp ? "100px" : "lg"}
+      wrap="wrap"
+      pt={{ base: "md", md: 0 }}
+    >
       <Stack gap="lg" style={{ flex: "1 1 220px", maxWidth: 360 }}>
         <div>
           <FieldLabel>Status</FieldLabel>
