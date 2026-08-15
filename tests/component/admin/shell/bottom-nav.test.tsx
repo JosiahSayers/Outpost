@@ -78,9 +78,16 @@ describe("the More drawer", () => {
       "data-disabled",
       "true",
     );
-    expect(screen.getByRole("link", { name: /Feature Flags/ })).toHaveAttribute(
-      "data-disabled",
-      "true",
-    );
+  });
+
+  it("does not mark shipped overflow items as disabled", async () => {
+    renderBottomNav();
+
+    fireEvent.click(screen.getByText("More"));
+
+    await waitFor(() => screen.getByText("Feature Flags"));
+    expect(
+      screen.getByRole("link", { name: /Feature Flags/ }),
+    ).not.toHaveAttribute("data-disabled", "true");
   });
 });
