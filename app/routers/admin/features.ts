@@ -1,3 +1,5 @@
+import { transformers } from "$/transformers";
+import { db } from "$/utils/db";
 import { Features } from "$/utils/features";
 import { featureParam, userFeatureParams } from "$/validation/admin/features";
 import { Router } from "express";
@@ -15,7 +17,14 @@ adminFeaturesRouter.get(
   validate({ params: featureParam }),
   async (req, res) => {
     const feature = await Features.status(req.params.feature);
-    return res.json({ feature });
+    const enabledUsers = await db.user.findMany({
+      where: {
+        id: {
+          in: feature.enabledUserIds,
+        },
+      },
+    });
+    return res.json(transformers.admin.featureStatus(feature, enabledUsers));
   },
 );
 

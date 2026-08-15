@@ -1,5 +1,6 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
 import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
+import { transform as adminFeatureStatusTransform } from "$/transformers/admin/features/status";
 import {
   transformListItem as adminFeedbackListItemTransform,
   transform as adminFeedbackTransform,
@@ -57,6 +58,7 @@ export const transformers = {
   userAccountSettings: userAccountSettingsTransform,
   ipLocation: ipLocationTransform,
   admin: {
+    featureStatus: adminFeatureStatusTransform,
     feedback: adminFeedbackTransform,
     feedbackListItem: adminFeedbackListItemTransform,
     fullFeedback: adminFullFeedbackTransform,

@@ -1,23 +1,31 @@
 import { app } from "$/server";
 import { FEATURE_META, Features } from "$/utils/features";
+import { db } from "$/utils/db";
 import { redisClient } from "$/utils/redis";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import request from "supertest";
 import { getAuthCookies } from "../../helpers/auth";
+import { make } from "../../helpers/test-data/make";
 
 const FEATURE = "trip-file-upload";
 const USER_ID = "user-1";
 
 let authCookies: Array<string>;
 let adminAuthCookies: Array<string>;
+// The `user` table is excluded from the automatic per-test reset (see
+// tests/preload.ts) so login cookies stay valid across tests, so any users
+// created here must be cleaned up manually to avoid leaking into other tests.
+let createdUserIds: Array<string>;
 
 beforeEach(async () => {
   authCookies = await getAuthCookies();
   adminAuthCookies = await getAuthCookies("admin@test.com");
+  createdUserIds = [];
 });
 
 afterEach(async () => {
   await redisClient.del(`features:${FEATURE}`);
+  await db.user.deleteMany({ where: { id: { in: createdUserIds } } });
 });
 
 describe("GET /", () => {
@@ -85,30 +93,75 @@ describe("GET /:feature", () => {
       .expect(200);
 
     expect(response.body).toEqual({
-      feature: {
-        meta: FEATURE_META[FEATURE],
-        enabled: false,
-        enabledUserIds: [],
-        disabledUserIds: [],
-      },
+      meta: FEATURE_META[FEATURE],
+      enabled: false,
+      disabledUserIds: [],
+      enabledUsers: [],
     });
   });
 
   it("reflects enabled state and per-user overrides", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+
     await Features.enable(FEATURE);
-    await Features.enableForUser(FEATURE, USER_ID);
+    await Features.enableForUser(FEATURE, user.id);
 
     const response = await request(app)
       .get(`/admin/features/${FEATURE}`)
       .set("Cookie", adminAuthCookies)
       .expect(200);
 
-    expect(response.body.feature).toEqual({
+    expect(response.body).toMatchObject({
       meta: FEATURE_META[FEATURE],
       enabled: true,
-      enabledUserIds: [USER_ID],
       disabledUserIds: [],
     });
+    expect(response.body.enabledUsers).toEqual([
+      expect.objectContaining({ id: user.id }),
+    ]);
+  });
+
+  it("includes the transformed user record for each enabled user", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+
+    await Features.enableForUser(FEATURE, user.id);
+
+    const response = await request(app)
+      .get(`/admin/features/${FEATURE}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.enabledUsers).toEqual([
+      {
+        id: user.id,
+        banExpires: user.banExpires,
+        banReason: user.banReason,
+        banned: user.banned,
+        createdAt: user.createdAt.toISOString(),
+        email: user.email,
+        emailVerified: user.emailVerified,
+        image: user.image,
+        name: user.name,
+        role: user.role,
+        updatedAt: user.updatedAt.toISOString(),
+      },
+    ]);
+  });
+
+  it("does not include disabled or unrelated users", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+    await Features.enableForUser(FEATURE, user.id);
+    await Features.disableForUser(FEATURE, user.id);
+
+    const response = await request(app)
+      .get(`/admin/features/${FEATURE}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.enabledUsers).toEqual([]);
   });
 });
 
