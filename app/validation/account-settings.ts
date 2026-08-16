@@ -19,7 +19,7 @@ export const weightViewingUnit = z.strictObject({
 
 export const weightEntryUnit = z.strictObject({
   slug: z.literal("weight_entry_unit"),
-  value: z.enum(WeightUnit),
+  value: z.union([z.enum(WeightUnit), z.literal("pounds_and_ounces")]),
 });
 
 export const weightRollup = z.strictObject({

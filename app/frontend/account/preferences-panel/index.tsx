@@ -3,7 +3,10 @@ import FluidUnitField from "$/frontend/account/preferences-panel/fluid-unit-fiel
 import WeightRollupField from "$/frontend/account/preferences-panel/weight-rollup-field";
 import WeightUnitField from "$/frontend/account/preferences-panel/weight-unit-field";
 import { type FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
-import { type WeightUnit } from "$/frontend/shared-components/converter/weight-conversions";
+import {
+  type WeightEntryUnit,
+  type WeightUnit,
+} from "$/frontend/shared-components/converter/weight-conversions";
 import { useUpdateAccountSetting } from "$/frontend/utils/api/account-settings";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { notifyError } from "$/frontend/utils/notify-error";
@@ -31,7 +34,8 @@ export default function PreferencesPanel() {
   const savePreference = (
     input:
       | { slug: FluidSettingSlug; value: FluidUnit }
-      | { slug: WeightSettingSlug; value: WeightUnit }
+      | { slug: "weight_viewing_unit"; value: WeightUnit }
+      | { slug: "weight_entry_unit"; value: WeightEntryUnit }
       | { slug: WeightRollupSlug; value: "true" | "false" },
   ) => {
     updateSetting.mutate(input, {

@@ -69,6 +69,86 @@ describe("default unit detection", () => {
   });
 });
 
+describe("weight_entry_unit set to Pounds & Ounces", () => {
+  it("renders two lb/oz fields plus the unit select showing Pounds & Ounces", async () => {
+    renderConverterWithSetting(1134, {
+      slug: "weight_entry_unit",
+      name: "Preferred Weight Entry Unit",
+      description: "Unit used when entering weight measurements.",
+      defaultValue: null,
+      value: "pounds_and_ounces",
+    });
+    expect(screen.getByRole("combobox")).toHaveValue(
+      "Pounds & Ounces (lb + oz)",
+    );
+    expect(screen.getByRole("textbox", { name: "Weight (lb)" })).toHaveValue(
+      "2",
+    );
+    expect(screen.getByRole("textbox", { name: "Weight (oz)" })).toHaveValue(
+      "8",
+    );
+    await waitFor(() => {});
+  });
+
+  it("switches back to a single value field when a real unit is selected", async () => {
+    renderConverterWithSetting(1134, {
+      slug: "weight_entry_unit",
+      name: "Preferred Weight Entry Unit",
+      description: "Unit used when entering weight measurements.",
+      defaultValue: null,
+      value: "pounds_and_ounces",
+    });
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", { name: "Kilograms (kg)" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Weight" })).toHaveValue(
+        "1.13",
+      ),
+    );
+    expect(
+      screen.queryByRole("textbox", { name: "Weight (lb)" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("switches into split lb/oz fields when selected from a single-unit state", async () => {
+    renderConverter(1134);
+
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(
+      screen.getByRole("option", { name: "Pounds & Ounces (lb + oz)" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: "Weight (lb)" }),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("textbox", { name: "Weight (lb)" })).toHaveValue(
+      "2",
+    );
+    expect(screen.getByRole("textbox", { name: "Weight (oz)" })).toHaveValue(
+      "8",
+    );
+  });
+
+  it("calls onChange with the combined canonical grams", async () => {
+    renderConverterWithSetting(0, {
+      slug: "weight_entry_unit",
+      name: "Preferred Weight Entry Unit",
+      description: "Unit used when entering weight measurements.",
+      defaultValue: null,
+      value: "pounds_and_ounces",
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Weight (lb)" }), {
+      target: { value: "2" },
+    });
+    expect(onChange).toHaveBeenCalledWith(907);
+    await waitFor(() => {});
+  });
+});
+
 describe("default decimal display", () => {
   it("rounds to 2 decimals, collapsing float noise instead of showing trailing zeros", async () => {
     // 28.35g (a common gram rounding of 1 oz) converts back to ~1.0000168 oz.

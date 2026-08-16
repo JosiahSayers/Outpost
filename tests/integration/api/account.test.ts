@@ -247,6 +247,36 @@ describe("PATCH /settings", () => {
     expect(value?.value).toBe("pounds");
   });
 
+  it("accepts pounds_and_ounces for weight_entry_unit", async () => {
+    await request(app)
+      .patch("/api/account/settings")
+      .set("Cookie", authCookies)
+      .send({
+        settings: [{ slug: "weight_entry_unit", value: "pounds_and_ounces" }],
+      })
+      .expect(200);
+
+    const setting = await db.accountSetting.findUniqueOrThrow({
+      where: { slug: "weight_entry_unit" },
+    });
+    const value = await db.accountSettingValue.findUnique({
+      where: {
+        accountSettingId_userId: { accountSettingId: setting.id, userId },
+      },
+    });
+    expect(value?.value).toBe("pounds_and_ounces");
+  });
+
+  it("rejects pounds_and_ounces for weight_viewing_unit", async () => {
+    await request(app)
+      .patch("/api/account/settings")
+      .set("Cookie", authCookies)
+      .send({
+        settings: [{ slug: "weight_viewing_unit", value: "pounds_and_ounces" }],
+      })
+      .expect(400);
+  });
+
   it("updates multiple settings in a single request", async () => {
     await request(app)
       .patch("/api/account/settings")
