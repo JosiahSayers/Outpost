@@ -10,6 +10,7 @@ import {
   contentWidth,
   drawFieldRow,
   drawMiniHeading,
+  drawNote,
   drawSectionHeading,
   drawStackedField,
   ensureSpace,
@@ -73,6 +74,54 @@ function joinNamePhone(name: string | null, phone: string | null): string {
   return [name, phone].filter(Boolean).join(" · ") || "—";
 }
 
+function formatSingleDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+// Mirrors app/frontend/trip/safety-info/index.tsx, which appends the trip's
+// start/end date next to Depart/Return so the time isn't ambiguous on its
+// own — a mid-morning trip and an overnight one both just say "8:00 AM"
+// otherwise.
+function withDate(time: string, date: Date | null): string {
+  return date ? `${time}, ${formatSingleDate(date)}` : time;
+}
+
+// A couple hours late off-trail isn't an emergency — the next morning is a
+// clearer, calmer threshold than an arbitrary hour count, and doesn't need
+// the reader to do time-zone-free arithmetic under stress. Falls back to a
+// dateless phrasing when the trip has no end date to anchor it to.
+function nextMorningPhrase(tripEnd: Date | null): string {
+  if (!tripEnd) return "the next morning";
+  const nextDay = new Date(tripEnd);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  return `the morning of ${formatSingleDate(nextDay)}`;
+}
+
+// Emergency Contact isn't who you call if the party doesn't come back —
+// that's the ranger station's job. Falls back to whichever half of the
+// name/phone pair is on file, or a generic phrase when neither is.
+function rangerStationPhrase(safety: TripSafetyInfo | null): string {
+  const name = safety?.rangerStationName?.trim() || null;
+  const phone = safety?.rangerStationPhone?.trim() || null;
+  if (name && phone) return `${name} at ${phone}`;
+  if (name) return name;
+  if (phone) return phone;
+  return "the closest ranger station";
+}
+
+// The Return field above this already states the expected time, so this
+// only adds the part that isn't a fact about the trip: what to do about it.
+export function buildReturnByNote(
+  tripEnd: Date | null,
+  safety: TripSafetyInfo | null,
+): string {
+  return `If not returned by ${nextMorningPhrase(tripEnd)}, call ${rangerStationPhrase(safety)}.`;
+}
+
 // Drawn once at the top of the document regardless of which sections are
 // selected, so even a lone Packing List export still says whose trip it is.
 export function drawTripMasthead(
@@ -94,6 +143,15 @@ const COLUMN_GAP = 24;
 // so the two mini-sections read as visually distinct groups rather than
 // one heading crowding directly against the block above it.
 const PLAN_TOP_MARGIN = 10;
+const NOTE_TOP_MARGIN = 6;
+// Gap above Party, separating the tail rows from the split columns above —
+// otherwise Party crowds directly against whichever column (left or right)
+// ran longer.
+const PARTY_TOP_MARGIN = 12;
+// The "If not returned by…" note is 1-2 wrapped lines depending on the
+// ranger station name's length; ensureSpace just needs a safe upper bound,
+// the actual draw measures its real height via drawNote/heightOfString.
+const ESTIMATED_NOTE_HEIGHT = 34;
 
 function estimateSplitHeight(flags: {
   hasWhoToCall: boolean;
@@ -111,7 +169,14 @@ function estimateSplitHeight(flags: {
   }
   if (flags.hasPlan) {
     if (flags.hasWhoToCall) rightHeight += PLAN_TOP_MARGIN;
-    rightHeight += MINI_HEADING_HEIGHT + FIELD_ROW_HEIGHT * 2;
+    // The "if not returned" note always accompanies The Plan now — its
+    // fallbacks (dateless phrasing, generic ranger phrase) mean it never
+    // needs a specific field to be set, just the heading above it.
+    rightHeight +=
+      MINI_HEADING_HEIGHT +
+      NOTE_TOP_MARGIN +
+      ESTIMATED_NOTE_HEIGHT +
+      FIELD_ROW_HEIGHT * 2;
   }
 
   return Math.max(leftHeight, rightHeight);
@@ -225,13 +290,25 @@ function drawDetailsAndSafetyColumns(
   if (hasPlan) {
     if (hasWhoToCall) rightY += PLAN_TOP_MARGIN;
     rightY = drawMiniHeading(document, rightY, "The plan", rightX);
+    // Always shown alongside The Plan — buildReturnByNote already falls
+    // back to dateless/generic phrasing, so it doesn't need departTime or
+    // returnTime specifically to say something useful.
+    rightY = drawNote(
+      document,
+      rightY,
+      rightX,
+      columnWidth,
+      buildReturnByNote(trip.end, safety),
+      { icon: true },
+    );
+    rightY += NOTE_TOP_MARGIN;
     const planOptions = { x: rightX, width: columnWidth, labelWidth: 46 };
     if (departTime) {
       rightY = drawFieldRow(
         document,
         rightY,
         "Depart",
-        departTime,
+        withDate(departTime, trip.start),
         planOptions,
       );
     }
@@ -240,7 +317,7 @@ function drawDetailsAndSafetyColumns(
         document,
         rightY,
         "Return",
-        returnTime,
+        withDate(returnTime, trip.end),
         planOptions,
       );
     }
@@ -327,6 +404,11 @@ function drawPartyMembers(
     cursorX += blockWidth + PARTY_GAP_X;
   }
 
+  // pdfkit's fillColor is document-global and persists across draw calls —
+  // a member with a phone number leaves it gray (the phone's color), which
+  // would otherwise leak into whatever draws next (e.g. the first task's
+  // checkbox fill, if it happens to be checked).
+  document.fillColor("black");
   return cursorY + rowHeight;
 }
 
@@ -366,8 +448,14 @@ function drawSafetyTailRows(
   const fullWidth = contentWidth(document);
   const startX = document.page.margins.left;
 
-  ensureSpace(document, FIELD_ROW_HEIGHT * 3);
-  let y = drawPartyRow(document, document.y, partyMembers, startX, fullWidth);
+  ensureSpace(document, PARTY_TOP_MARGIN + FIELD_ROW_HEIGHT * 3);
+  let y = drawPartyRow(
+    document,
+    document.y + PARTY_TOP_MARGIN,
+    partyMembers,
+    startX,
+    fullWidth,
+  );
 
   const hasVehicle = Boolean(safety?.vehicleDescription);
   const hasPermit = Boolean(safety?.permitOrRouteNumber);

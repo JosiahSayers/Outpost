@@ -1,4 +1,5 @@
 import {
+  buildReturnByNote,
   drawTripDetailsSection,
   drawTripMasthead,
   formatDateRange,
@@ -37,6 +38,75 @@ describe("formatDateRange", () => {
     // this weren't pinned to UTC.
     expect(formatDateRange(new Date("2026-01-01T00:00:00.000Z"), null)).toBe(
       "Jan 1",
+    );
+  });
+});
+
+describe("buildReturnByNote", () => {
+  type Safety = Parameters<typeof buildReturnByNote>[1];
+
+  function safety(overrides: Partial<NonNullable<Safety>>): Safety {
+    return {
+      rangerStationName: null,
+      rangerStationPhone: null,
+      ...overrides,
+    } as Safety;
+  }
+
+  const tripEnd = new Date("2026-08-20T00:00:00.000Z");
+
+  it("names both the next morning and the full ranger station contact", () => {
+    expect(
+      buildReturnByNote(
+        tripEnd,
+        safety({
+          rangerStationName: "Longmire WIC",
+          rangerStationPhone: "(360) 569-6575",
+        }),
+      ),
+    ).toBe(
+      "If not returned by the morning of Aug 21, call Longmire WIC at (360) 569-6575.",
+    );
+  });
+
+  it("falls back to just the name when there's no ranger station phone", () => {
+    expect(
+      buildReturnByNote(tripEnd, safety({ rangerStationName: "Longmire WIC" })),
+    ).toBe("If not returned by the morning of Aug 21, call Longmire WIC.");
+  });
+
+  it("falls back to just the phone when there's no ranger station name", () => {
+    expect(
+      buildReturnByNote(
+        tripEnd,
+        safety({ rangerStationPhone: "(360) 569-6575" }),
+      ),
+    ).toBe("If not returned by the morning of Aug 21, call (360) 569-6575.");
+  });
+
+  it("falls back to a generic phrase when there's no ranger station info at all", () => {
+    expect(buildReturnByNote(tripEnd, safety({}))).toBe(
+      "If not returned by the morning of Aug 21, call the closest ranger station.",
+    );
+  });
+
+  it("falls back to a generic phrase when safety info is null", () => {
+    expect(buildReturnByNote(tripEnd, null)).toBe(
+      "If not returned by the morning of Aug 21, call the closest ranger station.",
+    );
+  });
+
+  it("falls back to a dateless phrase when the trip has no end date", () => {
+    expect(buildReturnByNote(null, safety({}))).toBe(
+      "If not returned by the next morning, call the closest ranger station.",
+    );
+  });
+
+  it("rolls over into the next month/year when the trip ends on the last day of one", () => {
+    expect(
+      buildReturnByNote(new Date("2026-12-31T00:00:00.000Z"), safety({})),
+    ).toBe(
+      "If not returned by the morning of Jan 1, call the closest ranger station.",
     );
   });
 });

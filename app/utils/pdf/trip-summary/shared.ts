@@ -12,6 +12,7 @@ import {
   FLUID_UNIT_ABBREVIATION,
   type FluidUnit,
 } from "$/frontend/shared-components/converter/fluid-conversions";
+import { capHeightTopOffset } from "../packing-list-generator";
 
 // Matches the logo's own footprint in packing-list-generator.ts (height 22,
 // aspect ratio 430/107) plus a little breathing room, so section titles
@@ -211,8 +212,94 @@ export function drawMiniHeading(
     .font("Source Sans 3 SemiBold")
     .fontSize(MINI_HEADING_SIZE)
     .fillColor([100, 100, 100])
-    .text(title.toUpperCase(), x, y, { characterSpacing: 0.3 });
+    .text(title.toUpperCase(), x, y, { characterSpacing: 0.3 })
+    // fillColor is document-global in pdfkit and persists past this call;
+    // every current caller happens to draw something black right after,
+    // but resetting here keeps that an implementation detail, not a
+    // constraint on what's allowed to come next.
+    .fillColor("black");
   return y + MINI_HEADING_HEIGHT;
+}
+
+const NOTE_FONT_SIZE = 9;
+const NOTE_INDENT = 8;
+const NOTE_ICON_INDENT = 17;
+const NOTE_ICON_SIZE = 8;
+// Matches trailDust-6 in app/frontend/theme.ts — "muted amber for warnings
+// / highlights", the same accent already used for the in-app safety card's
+// "Incomplete" badge. A deliberate break from the rest of this monochrome
+// PDF, so the callout is the one thing on the page that visually pops.
+const NOTE_ICON_COLOR = "#C07E22";
+
+// A small warning-triangle-and-exclamation mark, drawn with plain vector
+// primitives rather than an icon font (none is registered for this PDF).
+// Echoes the WarningIcon the in-app safety card uses for its "Incomplete"
+// state, so a callout in print reads as the same kind of thing.
+function drawCalloutMark(
+  document: PDFKit.PDFDocument,
+  x: number,
+  y: number,
+  size: number,
+): void {
+  const centerX = x + size / 2;
+  const top = y;
+  const bottom = y + size;
+
+  document
+    .polygon([centerX, top], [x, bottom], [x + size, bottom])
+    .lineWidth(0.9)
+    .strokeColor(NOTE_ICON_COLOR)
+    .stroke()
+    .strokeColor("black");
+
+  const stemWidth = Math.max(size * 0.11, 0.8);
+  document
+    .rect(centerX - stemWidth / 2, top + size * 0.36, stemWidth, size * 0.26)
+    .fillColor(NOTE_ICON_COLOR)
+    .fill();
+  document
+    .circle(centerX, top + size * 0.78, stemWidth * 0.65)
+    .fill()
+    .fillColor("black");
+}
+
+export interface NoteOptions {
+  icon?: boolean;
+}
+
+// Wrapped body text — e.g. the "If not returned by…" callout under The
+// Plan — indented to match drawStackedField's value indent, so it reads as
+// part of the same group rather than a new field. Uses pdfkit's own
+// heightOfString instead of a guessed line count, since the wrap point
+// depends on the actual sentence and column width, not a fixed row height.
+// `icon` draws a small warning mark in the indent gutter, for notes that
+// should visually flag themselves as a callout rather than another field.
+export function drawNote(
+  document: PDFKit.PDFDocument,
+  y: number,
+  x: number,
+  width: number,
+  text: string,
+  options: NoteOptions = {},
+): number {
+  const indent = options.icon ? NOTE_ICON_INDENT : NOTE_INDENT;
+  const indentedX = x + indent;
+  const indentedWidth = width - indent;
+  document.font("Source Sans 3").fontSize(NOTE_FONT_SIZE);
+  const height = document.heightOfString(text, { width: indentedWidth });
+  if (options.icon) {
+    // pdfkit's text y is the top of the font's full ascender box, which
+    // sits above where capital letters actually start. Shift the icon down
+    // to that real cap-height top instead — for a shape with a point (the
+    // triangle's apex), centering on the ascender box left it floating
+    // visibly above the "I" it's meant to sit beside.
+    const iconY = y + capHeightTopOffset(currentFontMetrics(document));
+    drawCalloutMark(document, x, iconY, NOTE_ICON_SIZE);
+  }
+  document
+    .fillColor("black")
+    .text(text, indentedX, y, { width: indentedWidth });
+  return y + height;
 }
 
 export const STACKED_FIELD_HEIGHT = 28;

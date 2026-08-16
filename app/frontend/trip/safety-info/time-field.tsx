@@ -37,6 +37,7 @@ export default function TimeField({
   };
 
   if (editing) {
+    // TODO: I kept running into issues of this not saving. I figured out that all sections (hours, minutes, AM/PM) are required to be manually filled out and don't fallback to their placeholder values. If you don't fill one of them out the entire edit is silently discarded
     return (
       <TimeInput
         size="sm"
