@@ -95,4 +95,33 @@ describe("with no value", () => {
     fireEvent.click(screen.getByText("Add a time"));
     expect(screen.getByLabelText("Departure time")).toBeInTheDocument();
   });
+
+  it("blurring an incomplete entry stays in edit mode with a hint instead of discarding it", () => {
+    const onSave = mock();
+    renderField("", onSave);
+    fireEvent.click(screen.getByText("Add a time"));
+    // A native time input reports "" when any of hour/minute/AM-PM is left
+    // unfilled, same as if nothing was entered at all.
+    fireEvent.blur(screen.getByLabelText("Departure time"));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Departure time")).toBeInTheDocument();
+    expect(
+      screen.getByText("Fill in hour, minute, and AM/PM to save"),
+    ).toBeInTheDocument();
+  });
+
+  it("finishing an entry after an incomplete blur still saves", () => {
+    const onSave = mock();
+    renderField("", onSave);
+    fireEvent.click(screen.getByText("Add a time"));
+    fireEvent.blur(screen.getByLabelText("Departure time"));
+
+    fireEvent.change(screen.getByLabelText("Departure time"), {
+      target: { value: "06:30" },
+    });
+    fireEvent.blur(screen.getByLabelText("Departure time"));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith("06:30");
+  });
 });
