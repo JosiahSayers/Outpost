@@ -17,6 +17,8 @@ interface Props {
   party: PlaceholderPartyMember[];
   onAdd: (name: string, phone: string) => void;
   onRemove: (id: string) => void;
+  onEditName: (id: string, name: string) => void;
+  onEditPhone: (id: string, phone: string) => void;
 }
 
 function initials(name: string): string {
@@ -28,7 +30,73 @@ function initials(name: string): string {
     .join("");
 }
 
-export default function PartySection({ party, onAdd, onRemove }: Props) {
+interface EditableFieldProps {
+  value: string;
+  placeholder: string;
+  ariaLabel: string;
+  onSave: (value: string) => void;
+  size?: "xs" | "sm";
+  alwaysDimmed?: boolean;
+}
+
+function EditableField({
+  value,
+  placeholder,
+  ariaLabel,
+  onSave,
+  size = "sm",
+  alwaysDimmed = false,
+}: EditableFieldProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed !== value) onSave(trimmed);
+    setEditing(false);
+  };
+  const cancel = () => setEditing(false);
+
+  if (editing) {
+    return (
+      <TextInput
+        size="xs"
+        value={draft}
+        onChange={(e) => setDraft(e.currentTarget.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") cancel();
+        }}
+        autoFocus
+        aria-label={ariaLabel}
+      />
+    );
+  }
+
+  return (
+    <Text
+      size={size}
+      c={alwaysDimmed || !value ? "dimmed" : undefined}
+      fs={value ? undefined : "italic"}
+      onClick={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      {value || placeholder}
+    </Text>
+  );
+}
+
+export default function PartySection({
+  party,
+  onAdd,
+  onRemove,
+  onEditName,
+  onEditPhone,
+}: Props) {
   const [open, { toggle }] = useDisclosure(false);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -83,12 +151,24 @@ export default function PartySection({ party, onAdd, onRemove }: Props) {
                 <Avatar size="xs" radius="xl" color="trail-green">
                   {initials(member.name)}
                 </Avatar>
-                <Text size="sm">{member.name}</Text>
-                {member.phone && (
-                  <Text size="xs" c="dimmed">
-                    {member.phone}
-                  </Text>
+                {member.userId ? (
+                  <Text size="sm">{member.name}</Text>
+                ) : (
+                  <EditableField
+                    value={member.name}
+                    placeholder="Name"
+                    ariaLabel={`Edit ${member.name}'s name`}
+                    onSave={(name) => name && onEditName(member.id, name)}
+                  />
                 )}
+                <EditableField
+                  value={member.phone}
+                  placeholder="Add phone"
+                  ariaLabel={`Edit ${member.name}'s phone number`}
+                  onSave={(phone) => onEditPhone(member.id, phone)}
+                  size="xs"
+                  alwaysDimmed
+                />
               </Group>
               <ActionIcon
                 variant="subtle"

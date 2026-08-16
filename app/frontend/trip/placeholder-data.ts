@@ -20,6 +20,9 @@ export interface PlaceholderPartyMember {
   id: string;
   name: string;
   phone: string;
+  /** Set when this member is linked to a registered account — name is
+   * sourced from that account and isn't editable from this section. */
+  userId?: string | null;
 }
 
 export const placeholderSafetyInfo: PlaceholderSafetyInfo = {
@@ -35,7 +38,7 @@ export const placeholderSafetyInfo: PlaceholderSafetyInfo = {
 };
 
 export const placeholderPartyMembers: PlaceholderPartyMember[] = [
-  { id: "p1", name: "Josiah Sayers", phone: "" },
+  { id: "p1", name: "Josiah Sayers", phone: "", userId: "self" },
   { id: "p2", name: "Theo Nakamura", phone: "(503) 555-0119" },
   { id: "p3", name: "Priya Anand", phone: "" },
 ];

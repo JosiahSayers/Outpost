@@ -26,6 +26,11 @@ export async function createTrips() {
             data: prepareDefaultTripTasks(trip as any),
           },
         },
+        partyMembers: {
+          create: {
+            userId: user.id,
+          },
+        },
       },
     });
 

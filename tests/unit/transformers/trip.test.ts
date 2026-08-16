@@ -129,6 +129,8 @@ describe("transformFull", () => {
     const file = make("File", { tripId: trip.id });
     const { input: packingListInput, expected: expectedPackingList } =
       makeTripPackingList(trip.id);
+    const safetyInfo = make("TripSafetyInfo", { tripId: trip.id });
+    const partyMember = make("TripPartyMember", { tripId: trip.id });
 
     expect(
       transformFull(
@@ -139,6 +141,8 @@ describe("transformFull", () => {
           links: [link],
           files: [file],
           packingList: packingListInput,
+          tripSafetyInfo: safetyInfo,
+          partyMembers: [partyMember],
         },
         { canUploadFiles: true },
       ),
@@ -197,6 +201,26 @@ describe("transformFull", () => {
       ],
       canUploadFiles: true,
       packingList: expectedPackingList,
+      tripSafetyInfo: {
+        id: safetyInfo.id,
+        emergencyContactName: safetyInfo.emergencyContactName,
+        emergencyContactPhone: safetyInfo.emergencyContactPhone,
+        rangerStationName: safetyInfo.rangerStationName,
+        rangerStationPhone: safetyInfo.rangerStationPhone,
+        expectedDepartureTime: safetyInfo.expectedDepartureTime,
+        epxectedReturnTime: safetyInfo.epxectedReturnTime,
+        vehicleDescription: safetyInfo.vehicleDescription,
+        permitOrRouteNumber: safetyInfo.permitOrRouteNumber,
+        medicalNotes: safetyInfo.medicalNotes,
+      },
+      partyMembers: [
+        {
+          id: partyMember.id,
+          name: partyMember.name,
+          phone: partyMember.phone,
+          userId: partyMember.userId,
+        },
+      ],
     });
   });
 
@@ -211,6 +235,8 @@ describe("transformFull", () => {
           links: [],
           files: [],
           packingList: null,
+          tripSafetyInfo: null,
+          partyMembers: [],
         },
         { canUploadFiles: false },
       ),
@@ -220,6 +246,8 @@ describe("transformFull", () => {
       files: [],
       canUploadFiles: false,
       packingList: null,
+      tripSafetyInfo: null,
+      partyMembers: [],
     });
   });
 });

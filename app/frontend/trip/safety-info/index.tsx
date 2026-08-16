@@ -77,6 +77,20 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
     setParty((prev) => prev.filter((member) => member.id !== id));
   }
 
+  function editPartyMemberName(id: string, name: string) {
+    setParty((prev) =>
+      prev.map((member) =>
+        member.id === id && !member.userId ? { ...member, name } : member,
+      ),
+    );
+  }
+
+  function editPartyMemberPhone(id: string, phone: string) {
+    setParty((prev) =>
+      prev.map((member) => (member.id === id ? { ...member, phone } : member)),
+    );
+  }
+
   return (
     <Paper
       withBorder
@@ -182,6 +196,8 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
               party={party}
               onAdd={addPartyMember}
               onRemove={removePartyMember}
+              onEditName={editPartyMemberName}
+              onEditPhone={editPartyMemberPhone}
             />
           </Stack>
         </SimpleGrid>

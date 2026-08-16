@@ -15,13 +15,21 @@ function renderSection(
   party: PlaceholderPartyMember[],
   onAdd: (name: string, phone: string) => void = mock(),
   onRemove: (id: string) => void = mock(),
+  onEditName: (id: string, name: string) => void = mock(),
+  onEditPhone: (id: string, phone: string) => void = mock(),
 ) {
   render(
     <MantineProvider>
-      <PartySection party={party} onAdd={onAdd} onRemove={onRemove} />
+      <PartySection
+        party={party}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        onEditName={onEditName}
+        onEditPhone={onEditPhone}
+      />
     </MantineProvider>,
   );
-  return { onAdd, onRemove };
+  return { onAdd, onRemove, onEditName, onEditPhone };
 }
 
 // The party list and "Add someone" button live inside a Collapse, which
@@ -69,6 +77,59 @@ describe("with party members", () => {
       }),
     );
     expect(onRemove).toHaveBeenCalledWith("p2");
+  });
+});
+
+describe("editing a member", () => {
+  it("clicking a member's name shows an editable input and commits on blur", async () => {
+    const { onEditName } = renderSection([
+      member({ id: "p2", name: "Theo Nakamura" }),
+    ]);
+    await openSection();
+    fireEvent.click(screen.getByText("Theo Nakamura"));
+    const input = screen.getByRole("textbox", {
+      name: "Edit Theo Nakamura's name",
+    });
+    fireEvent.change(input, { target: { value: "Theodore Nakamura" } });
+    fireEvent.blur(input);
+    expect(onEditName).toHaveBeenCalledWith("p2", "Theodore Nakamura");
+  });
+
+  it("clicking a member's phone shows an editable input and commits on Enter", async () => {
+    const { onEditPhone } = renderSection([
+      member({ id: "p2", name: "Theo Nakamura", phone: "" }),
+    ]);
+    await openSection();
+    fireEvent.click(screen.getByText("Add phone"));
+    const input = screen.getByRole("textbox", {
+      name: "Edit Theo Nakamura's phone number",
+    });
+    fireEvent.change(input, { target: { value: "(555) 010-2000" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onEditPhone).toHaveBeenCalledWith("p2", "(555) 010-2000");
+  });
+
+  it("does not allow editing the current user's own name", async () => {
+    renderSection([member({ id: "p1", name: "Josiah Sayers", userId: "self" })]);
+    await openSection();
+    fireEvent.click(screen.getByText("Josiah Sayers"));
+    expect(
+      screen.queryByRole("textbox", { name: "Edit Josiah Sayers's name" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("still allows editing the current user's own phone", async () => {
+    const { onEditPhone } = renderSection([
+      member({ id: "p1", name: "Josiah Sayers", userId: "self", phone: "" }),
+    ]);
+    await openSection();
+    fireEvent.click(screen.getByText("Add phone"));
+    const input = screen.getByRole("textbox", {
+      name: "Edit Josiah Sayers's phone number",
+    });
+    fireEvent.change(input, { target: { value: "(555) 010-3000" } });
+    fireEvent.blur(input);
+    expect(onEditPhone).toHaveBeenCalledWith("p1", "(555) 010-3000");
   });
 });
 

@@ -34,6 +34,8 @@ import {
 import { transform as tripLinkTransform } from "$/transformers/trip-link";
 import { transform as tripPackingListTransform } from "$/transformers/trip-packing-list";
 import { transform as tripPackingListItemTransform } from "$/transformers/trip-packing-list/item";
+import { transform as tripPartyMemberTransform } from "$/transformers/trip-party-member";
+import { transform as tripSafetyInfoTransform } from "$/transformers/trip-safety-info";
 import { transform as tripTaskTransform } from "$/transformers/trip-task";
 
 export const transformers = {
@@ -59,6 +61,8 @@ export const transformers = {
   userAccountSettings: userAccountSettingsTransform,
   ipLocation: ipLocationTransform,
   file: fileTransform,
+  tripPartyMember: tripPartyMemberTransform,
+  tripSafetyInfo: tripSafetyInfoTransform,
   admin: {
     featureStatus: adminFeatureStatusTransform,
     feedback: adminFeedbackTransform,

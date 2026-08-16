@@ -9,6 +9,14 @@ import {
   type TripPackingListInput,
 } from "$/transformers/trip-packing-list";
 import {
+  transform as tripPartyMemberTransform,
+  type ClientTripPartyMember,
+} from "$/transformers/trip-party-member";
+import {
+  transform as tripSafetyTransform,
+  type ClientTripSafetyInfo,
+} from "$/transformers/trip-safety-info";
+import {
   transform as tripTaskTransform,
   type ClientTripTask,
 } from "$/transformers/trip-task";
@@ -16,6 +24,8 @@ import type {
   File,
   Trip,
   TripLink,
+  TripPartyMember,
+  TripSafetyInfo,
   TripTask,
 } from "../../generated/prisma/browser";
 import {
@@ -55,6 +65,8 @@ export type ClientFullTrip = ClientTrip & {
   packingList: ClientTripPackingList | null;
   files: ClientFile[];
   canUploadFiles: boolean;
+  tripSafetyInfo: ClientTripSafetyInfo | null;
+  partyMembers: ClientTripPartyMember[];
 };
 
 export type FullTrip = Trip & {
@@ -63,6 +75,8 @@ export type FullTrip = Trip & {
   links: TripLink[];
   packingList: TripPackingListInput | null;
   files: File[];
+  tripSafetyInfo: TripSafetyInfo | null;
+  partyMembers: TripPartyMember[];
 };
 
 export function transformFull(
@@ -79,5 +93,9 @@ export function transformFull(
       : null,
     files: item.files.map(fileTransform),
     canUploadFiles,
+    tripSafetyInfo: item.tripSafetyInfo
+      ? tripSafetyTransform(item.tripSafetyInfo)
+      : null,
+    partyMembers: item.partyMembers.map(tripPartyMemberTransform),
   };
 }
