@@ -735,6 +735,8 @@ describe("GET /:id", () => {
         tasks: [],
         mealPlan: [],
         links: [],
+        files: [],
+        canUploadFiles: false,
         packingList: null,
       },
     });

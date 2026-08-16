@@ -1,7 +1,7 @@
-import { processProductImage } from "$/jobs/workers/public-meal-catalog/image";
-import { publicMealItemImageKey } from "$/utils/r2";
-import { db } from "$/utils/db";
 import { getLogger } from "$/jobs/utils/logger-setup";
+import { processProductImage } from "$/jobs/workers/public-meal-catalog/image";
+import { db } from "$/utils/db";
+import { storageKeys } from "$/utils/r2";
 import type { Job } from "bullmq";
 import { describe, expect, it, mock } from "bun:test";
 import type { lookup as dnsLookup } from "node:dns/promises";
@@ -85,13 +85,15 @@ describe("processProductImage", () => {
     const image = await db.image.findUniqueOrThrow({
       where: { id: result.imageId! },
     });
-    expect(image.r2Key).toBe(publicMealItemImageKey("peak_refuel", "123"));
+    expect(image.r2Key).toBe(
+      storageKeys.publicMealItem.image("peak_refuel", "123"),
+    );
     expect(image.contentType).toBe("image/webp");
     expect(image.width).toBe(1);
     expect(image.height).toBe(1);
     expect(r2Client.write).toHaveBeenCalledTimes(1);
     const [key, , options] = r2Client.write.mock.calls[0]!;
-    expect(key).toBe(publicMealItemImageKey("peak_refuel", "123"));
+    expect(key).toBe(storageKeys.publicMealItem.image("peak_refuel", "123"));
     expect(options).toEqual({ type: "image/webp" });
   });
 

@@ -112,14 +112,14 @@ export function useEnableFeatureForUser(feature: Feature) {
   });
 }
 
-export function useDisableFeatureForUser(feature: Feature) {
+export function useUnsetFeatureForUser(feature: Feature) {
   const queryClient = useQueryClient();
   const queryKey = adminFeatureKeys.detail(feature);
 
   return useMutation({
     mutationFn: (userId: string) =>
-      apiClient(`/admin/features/${feature}/user/${userId}/disable`, {
-        method: "POST",
+      apiClient(`/admin/features/${feature}/user/${userId}`, {
+        method: "DELETE",
       }),
     onMutate: async (userId) => {
       await queryClient.cancelQueries({ queryKey });
@@ -128,9 +128,6 @@ export function useDisableFeatureForUser(feature: Feature) {
       setDetailCache(queryClient, feature, (detail) => ({
         ...detail,
         enabledUsers: detail.enabledUsers.filter((user) => user.id !== userId),
-        disabledUserIds: detail.disabledUserIds.includes(userId)
-          ? detail.disabledUserIds
-          : [...detail.disabledUserIds, userId],
       }));
       return { previous };
     },

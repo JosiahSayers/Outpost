@@ -41,6 +41,10 @@ async function disableForUser(feature: Feature, userId: string) {
   await redisClient.hset(featureKey(feature), { [userId]: "false" });
 }
 
+async function unsetForUser(feature: Feature, userId: string) {
+  await redisClient.hdel(featureKey(feature), userId);
+}
+
 /**
  * If true the feature is enabled for all users not the the enabledForUser list
  * @param feature
@@ -99,6 +103,7 @@ export const Features = {
   enabledForUser,
   enableForUser,
   disableForUser,
+  unsetForUser,
   enabled,
   enable,
   disable,

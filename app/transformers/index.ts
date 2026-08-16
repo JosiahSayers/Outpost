@@ -13,6 +13,7 @@ import {
   transform as adminUserTransform,
   transformWithCounts as adminUserWithCountsTransform,
 } from "$/transformers/admin/user";
+import { transform as fileTransform } from "$/transformers/file";
 import { transform as gearCategoryTransform } from "$/transformers/gear-category";
 import { transform as gearInventoryItemTransform } from "$/transformers/gear-inventory-item";
 import { transform as ipLocationTransform } from "$/transformers/ip-location";
@@ -57,6 +58,7 @@ export const transformers = {
   accountSetting: accountSettingTransform,
   userAccountSettings: userAccountSettingsTransform,
   ipLocation: ipLocationTransform,
+  file: fileTransform,
   admin: {
     featureStatus: adminFeatureStatusTransform,
     feedback: adminFeedbackTransform,

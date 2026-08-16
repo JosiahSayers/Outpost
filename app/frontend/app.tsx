@@ -24,6 +24,7 @@ import TripPage from "$/frontend/pages/trip.page";
 import TwoFactorPage from "$/frontend/pages/two-factor.page";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import "@mantine/dropzone/styles.css";
 import "@mantine/notifications/styles.css";
 import { Route, Switch } from "wouter";
 

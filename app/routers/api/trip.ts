@@ -3,14 +3,16 @@ import { prepareDefaultTripTasks } from "$/frontend/utils/default-data/trip-task
 import { userCanEditTrip } from "$/middleware/authorization/trip";
 import { pdfRateLimiter } from "$/middleware/rate-limit";
 import { requireValidSession } from "$/middleware/require-valid-session";
+import { tripFileRouter } from "$/routers/api/trip/file";
 import { tripLinkRouter } from "$/routers/api/trip/link";
 import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
 import { tripPackingListRouter } from "$/routers/api/trip/packing-list";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
-import { generateTripSummaryPdf } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { db } from "$/utils/db";
+import { Features } from "$/utils/features";
+import { generateTripSummaryPdf } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { idParam } from "$/validation/shared";
 import {
   editTrip,
@@ -63,6 +65,7 @@ tripRouter.get(
           },
         },
         links: true,
+        files: true,
         packingList: {
           include: {
             packingList: {
@@ -88,7 +91,13 @@ tripRouter.get(
         },
       },
     });
-    return res.json({ trip: transformers.fullTrip(trip!) });
+    const canUploadFiles = await Features.enabledForUser(
+      "trip-file-upload",
+      req.session!.user.id,
+    );
+    return res.json({
+      trip: transformers.fullTrip(trip!, { canUploadFiles }),
+    });
   },
 );
 
@@ -108,6 +117,7 @@ tripRouter.get(
           },
         },
         links: true,
+        files: true,
         packingList: {
           include: {
             packingList: {
@@ -236,3 +246,4 @@ tripRouter.use("/:id/tasks", userCanEditTrip, tripTaskRouter);
 tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);
 tripRouter.use("/:id/links", userCanEditTrip, tripLinkRouter);
 tripRouter.use("/:id/packing-list", userCanEditTrip, tripPackingListRouter);
+tripRouter.use("/:id/files", userCanEditTrip, tripFileRouter);

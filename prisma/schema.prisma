@@ -404,6 +404,7 @@ model Trip {
   mealPlanDays MealPlanDay[]
   links        TripLink[]
   packingList  TripPackingList?
+  files        File[]
 
   // Covers status alone or status + start
   @@index([status, start])
@@ -559,11 +560,11 @@ model PublicMealItem {
   waterMl        Int?
   dryWeightGrams Int?
 
-  image          Image?  @relation(fields: [imageId], references: [id], onDelete: SetNull)
-  imageId        String?
+  image            Image?  @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  imageId          String?
   // Last-seen image URL from the source. Compared against the current scrape
   // so an unchanged image is never re-downloaded/re-uploaded on every run.
-  sourceImageUrl String?
+  sourceImageUrl   String?
   // Admin-set replacement photo URL (BTP-136). Persists across import runs
   // as long as sourceImageUrl doesn't change -- mergePublicMealItem clears
   // this the moment the vendor's own source image url moves, since at that
@@ -611,6 +612,21 @@ model Image {
   height      Int
 
   publicMealItems PublicMealItem[]
+}
+
+model File {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  r2Key       String @unique
+  contentType String
+  filename    String
+  bytes       Int
+
+  trip   Trip?   @relation(fields: [tripId], references: [id])
+  tripId String?
+
+  @@unique([tripId, filename])
 }
 
 model TripPackingList {

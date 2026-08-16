@@ -371,8 +371,8 @@ describe("the enabled users list", () => {
 
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        "/admin/features/trip-file-upload/user/usr_123/disable",
-        expect.objectContaining({ method: "POST" }),
+        "/admin/features/trip-file-upload/user/usr_123",
+        expect.objectContaining({ method: "DELETE" }),
       ),
     );
   });
