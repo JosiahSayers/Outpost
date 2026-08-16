@@ -58,6 +58,7 @@ model User {
   feedbackNotes                   FeedbackNote[]
   feedbackAuditLogs               FeedbackAuditLog[]
   ignoredPublicMealItems          IgnoredPublicMealItem[]
+  tripPartyMembers                TripPartyMember[]
 
   @@unique([email])
   @@map("user")
@@ -398,13 +399,15 @@ model Trip {
   start    DateTime?  @db.Date
   end      DateTime?  @db.Date
 
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String
-  tasks        TripTask[]
-  mealPlanDays MealPlanDay[]
-  links        TripLink[]
-  packingList  TripPackingList?
-  files        File[]
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  tasks          TripTask[]
+  mealPlanDays   MealPlanDay[]
+  links          TripLink[]
+  packingList    TripPackingList?
+  files          File[]
+  partyMembers   TripPartyMember[]
+  tripSafetyInfo TripSafetyInfo?
 
   // Covers status alone or status + start
   @@index([status, start])
@@ -657,6 +660,43 @@ model TripPackingListItemStatus {
   packingListItemId String
 
   @@unique([tripPackingListId, packingListItemId])
+}
+
+model TripPartyMember {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name  String?
+  phone String?
+  email String?
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String?
+
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String
+
+  @@index(tripId)
+}
+
+model TripSafetyInfo {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  rangerStationName     String?
+  rangerStationPhone    String?
+  expectedDepartureTime String?
+  epxectedReturnTime    String?
+  vehicleDescription    String?
+  permitOrRouteNumber   String?
+  medicalNotes          String?
+
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId String @unique
 }
 
 //
