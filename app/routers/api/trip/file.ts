@@ -1,4 +1,7 @@
 import { userHasFeature } from "$/middleware/authorization/user-has-feature";
+import { transformers } from "$/transformers";
+import { db } from "$/utils/db";
+import { logger } from "$/utils/logger";
 import { createR2Client, storageKeys } from "$/utils/r2";
 import { Router } from "express";
 import multer from "multer";
@@ -34,8 +37,33 @@ tripFileRouter.post(
       String(req.params.id),
       req.file.originalname,
     );
-    await r2Client.write(storageKey, req.file.buffer);
+    const existingFile = await db.file.findUnique({
+      where: { r2Key: storageKey },
+    });
+    if (existingFile) {
+      return res
+        .status(409)
+        .json({ error: "File with this name already exists on this trip" });
+    }
 
-    return res.sendStatus(201);
+    const newFile = await db.file.create({
+      data: {
+        tripId: String(req.params.id),
+        r2Key: storageKey,
+        contentType: req.file.mimetype,
+        filename: req.file.originalname,
+        bytes: req.file.size,
+      },
+    });
+
+    try {
+      await r2Client.write(storageKey, req.file.buffer);
+    } catch (e) {
+      logger.error("Failed to upload file to r2", e);
+      await db.file.delete({ where: { id: newFile.id } });
+      return res.sendStatus(500);
+    }
+
+    return res.status(201).json({ file: transformers.file(newFile) });
   },
 );

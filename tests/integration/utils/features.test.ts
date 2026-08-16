@@ -128,9 +128,7 @@ describe("unsetForUser", () => {
 
     await Features.unsetForUser(FEATURE, USER_ID);
 
-    const { enabledUserIds, disabledUserIds } = await Features.status(
-      FEATURE,
-    );
+    const { enabledUserIds, disabledUserIds } = await Features.status(FEATURE);
     expect(enabledUserIds).not.toContain(USER_ID);
     expect(disabledUserIds).not.toContain(USER_ID);
   });
