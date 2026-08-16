@@ -1,10 +1,13 @@
 import { userHasFeature } from "$/middleware/authorization/user-has-feature";
 import { fileUploadRateLimiter } from "$/middleware/rate-limit";
 import { transformers } from "$/transformers";
+import { buildContentDisposition } from "$/utils/content-disposition";
 import { db } from "$/utils/db";
 import { logger } from "$/utils/logger";
 import { createR2Client, storageKeys } from "$/utils/r2";
+import { tripFileParams } from "$/validation/trip/file";
 import { Router } from "express";
+import validate from "express-zod-safe";
 import multer from "multer";
 
 const TEN_MB = 1e7;
@@ -74,5 +77,36 @@ tripFileRouter.post(
     }
 
     return res.status(201).json({ file: transformers.file(newFile) });
+  },
+);
+
+tripFileRouter.get(
+  "/:fileId",
+  validate({ params: tripFileParams }),
+  async (req, res) => {
+    const file = await db.file.findUnique({
+      where: {
+        id: req.params.fileId,
+        tripId: req.params.id,
+      },
+    });
+
+    if (!file) {
+      return res.sendStatus(404);
+    }
+
+    const r2Client = createR2Client("user-uploads");
+    if (!r2Client) {
+      return res.sendStatus(500);
+    }
+
+    const downloadUrl = r2Client.presign(file.r2Key, {
+      method: "GET",
+      expiresIn: 3600,
+      contentDisposition: buildContentDisposition(file.filename, "attachment"),
+      type: file.contentType,
+    });
+
+    return res.redirect(downloadUrl);
   },
 );
