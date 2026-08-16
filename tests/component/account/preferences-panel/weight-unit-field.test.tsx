@@ -23,7 +23,10 @@ function setting(
 
 const onSave = mock(() => {});
 
-function renderField(settings: ClientUserAccountSetting[]) {
+function renderField(
+  settings: ClientUserAccountSetting[],
+  slug: "weight_viewing_unit" | "weight_entry_unit" = "weight_viewing_unit",
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -32,7 +35,11 @@ function renderField(settings: ClientUserAccountSetting[]) {
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
         <AccountSettingsProviderBase isAuthenticated>
-          <WeightUnitField slug="weight_viewing_unit" onSave={onSave} />
+          {slug === "weight_entry_unit" ? (
+            <WeightUnitField slug="weight_entry_unit" onSave={onSave} />
+          ) : (
+            <WeightUnitField slug="weight_viewing_unit" onSave={onSave} />
+          )}
         </AccountSettingsProviderBase>
       </MantineProvider>
     </QueryClientProvider>,
@@ -104,6 +111,48 @@ describe("with a setting", () => {
       });
       await waitFor(() => {});
     });
+  });
+});
+
+describe("for the weight_entry_unit slug", () => {
+  it("includes Pounds & Ounces as an option", async () => {
+    renderField(
+      [setting({ slug: "weight_entry_unit", value: "grams" })],
+      "weight_entry_unit",
+    );
+    fireEvent.click(screen.getByRole("combobox"));
+    expect(
+      screen.getByRole("option", { name: "Pounds & Ounces (lb + oz)" }),
+    ).toBeInTheDocument();
+    await waitFor(() => {});
+  });
+
+  it("calls onSave with the pounds_and_ounces value when selected", async () => {
+    renderField(
+      [setting({ slug: "weight_entry_unit", value: "grams" })],
+      "weight_entry_unit",
+    );
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(
+      screen.getByRole("option", { name: "Pounds & Ounces (lb + oz)" }),
+    );
+
+    expect(onSave).toHaveBeenCalledWith({
+      slug: "weight_entry_unit",
+      value: "pounds_and_ounces",
+    });
+    await waitFor(() => {});
+  });
+});
+
+describe("for the weight_viewing_unit slug", () => {
+  it("does not include Pounds & Ounces as an option", async () => {
+    renderField([setting()], "weight_viewing_unit");
+    fireEvent.click(screen.getByRole("combobox"));
+    expect(
+      screen.queryByRole("option", { name: "Pounds & Ounces (lb + oz)" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {});
   });
 });
 

@@ -77,3 +77,23 @@ export const WEIGHT_ROLLUP_UNIT: Partial<Record<WeightUnit, WeightUnit>> = {
 // A value rolls up to the next unit once it reaches 1.5x that unit (e.g.
 // 24 oz, being 1.5 lb, displays as "1.5 lb" rather than "24 oz").
 export const WEIGHT_ROLLUP_THRESHOLD = 1.5;
+
+// A synthetic weight_entry_unit value (not a real WeightUnit) that switches
+// weight entry to two separate lb/oz fields instead of one value + unit
+// select. Kept out of WeightUnit itself since it has no single multiplier
+// and doesn't apply to weight_viewing_unit.
+export const POUNDS_AND_OUNCES = "pounds_and_ounces" as const;
+export const POUNDS_AND_OUNCES_LABEL = "Pounds & Ounces (lb + oz)";
+export type WeightEntryUnit = WeightUnit | typeof POUNDS_AND_OUNCES;
+
+// The full set of weight_entry_unit options -- the four real WeightUnits
+// plus the synthetic split-field mode -- shared by the account settings
+// dropdown and WeightConverter's own inline unit select, so both stay in
+// sync.
+export const WEIGHT_ENTRY_UNIT_OPTIONS: { value: string; label: string }[] = [
+  ...WEIGHT_UNIT_ORDER.map((unit) => ({
+    value: unit as string,
+    label: WEIGHT_UNIT_LABEL[unit],
+  })),
+  { value: POUNDS_AND_OUNCES, label: POUNDS_AND_OUNCES_LABEL },
+];

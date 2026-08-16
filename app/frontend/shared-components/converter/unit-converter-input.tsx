@@ -16,8 +16,12 @@ interface Props<Unit extends string> extends Omit<
   onChange: (value: number | string) => void;
   conversions: ConversionConfig<Unit>;
   unit: Unit;
-  onUnitChange: (unit: Unit) => void;
+  onUnitChange?: (unit: Unit) => void;
   selectProps?: Partial<Omit<SelectProps, "data" | "value" | "onChange">>;
+  // Renders just the NumberInput, letting the parent render its own unit
+  // Select alongside it -- used by WeightConverter, whose Select must also
+  // list a synthetic "Pounds & Ounces" entry that isn't a real Unit here.
+  hideSelect?: boolean;
 }
 
 // Rounds to decimalScale ourselves before handing the value to Mantine's
@@ -38,6 +42,7 @@ export default function UnitConverterInput<Unit extends string>({
   unit,
   onUnitChange,
   selectProps,
+  hideSelect,
   mb,
   mt,
   ...numberInputProps
@@ -82,37 +87,43 @@ export default function UnitConverterInput<Unit extends string>({
       ? `${numberInputProps.label} unit`
       : undefined;
 
+  const numberInput = (
+    <NumberInput
+      value={displayValue}
+      onChange={(val) => {
+        setDisplayValue(val);
+        if (typeof val === "number") {
+          commit(Math.round(val * multiplier));
+          return;
+        }
+        if (val === "") {
+          commit("");
+          return;
+        }
+        // Mantine passes back an in-progress string rather than a parsed
+        // number while the user is mid-way through typing a decimal (e.g.
+        // a trailing "1."). Commit the numeric value it already
+        // represents so the canonical value doesn't go stale — e.g.
+        // backspacing "1.75" down to "1." must commit as 1, not stay at
+        // the last fully-parsed 1.7 — while the displayed text (set
+        // above) keeps showing exactly what was typed, dot and all.
+        const parsed = Number(val);
+        // Rounded here (not just at the form's submit boundary) because
+        // every field wired up to this component is an Int column
+        // (waterMl/dryWeightGrams/grams) -- leaving the fractional ml/gram
+        // in form state fails z.int() validation on every keystroke,
+        // before the field is ever submitted.
+        if (!Number.isNaN(parsed)) commit(Math.round(parsed * multiplier));
+      }}
+      {...numberInputProps}
+    />
+  );
+
+  if (hideSelect) return numberInput;
+
   return (
     <Group grow align="flex-end" mb={mb} mt={mt}>
-      <NumberInput
-        value={displayValue}
-        onChange={(val) => {
-          setDisplayValue(val);
-          if (typeof val === "number") {
-            commit(Math.round(val * multiplier));
-            return;
-          }
-          if (val === "") {
-            commit("");
-            return;
-          }
-          // Mantine passes back an in-progress string rather than a parsed
-          // number while the user is mid-way through typing a decimal (e.g.
-          // a trailing "1."). Commit the numeric value it already
-          // represents so the canonical value doesn't go stale — e.g.
-          // backspacing "1.75" down to "1." must commit as 1, not stay at
-          // the last fully-parsed 1.7 — while the displayed text (set
-          // above) keeps showing exactly what was typed, dot and all.
-          const parsed = Number(val);
-          // Rounded here (not just at the form's submit boundary) because
-          // every field wired up to this component is an Int column
-          // (waterMl/dryWeightGrams/grams) -- leaving the fractional ml/gram
-          // in form state fails z.int() validation on every keystroke,
-          // before the field is ever submitted.
-          if (!Number.isNaN(parsed)) commit(Math.round(parsed * multiplier));
-        }}
-        {...numberInputProps}
-      />
+      {numberInput}
       <Select
         aria-label={defaultSelectLabel}
         data={conversions.order.map((u) => ({
@@ -121,7 +132,7 @@ export default function UnitConverterInput<Unit extends string>({
         }))}
         value={unit}
         onChange={(val) => {
-          if (val) onUnitChange(val as Unit);
+          if (val) onUnitChange?.(val as Unit);
         }}
         allowDeselect={false}
         {...selectProps}
