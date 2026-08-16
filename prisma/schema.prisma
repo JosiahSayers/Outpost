@@ -690,7 +690,7 @@ model TripSafetyInfo {
   rangerStationName     String?
   rangerStationPhone    String?
   expectedDepartureTime String?
-  epxectedReturnTime    String?
+  expectedReturnTime    String?
   vehicleDescription    String?
   permitOrRouteNumber   String?
   medicalNotes          String?

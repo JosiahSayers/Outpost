@@ -208,7 +208,7 @@ describe("transformFull", () => {
         rangerStationName: safetyInfo.rangerStationName,
         rangerStationPhone: safetyInfo.rangerStationPhone,
         expectedDepartureTime: safetyInfo.expectedDepartureTime,
-        epxectedReturnTime: safetyInfo.epxectedReturnTime,
+        expectedReturnTime: safetyInfo.expectedReturnTime,
         vehicleDescription: safetyInfo.vehicleDescription,
         permitOrRouteNumber: safetyInfo.permitOrRouteNumber,
         medicalNotes: safetyInfo.medicalNotes,

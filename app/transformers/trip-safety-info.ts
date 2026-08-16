@@ -4,7 +4,7 @@ export type ClientTripSafetyInfo = Pick<
   TripSafetyInfo,
   | "emergencyContactName"
   | "emergencyContactPhone"
-  | "epxectedReturnTime"
+  | "expectedReturnTime"
   | "expectedDepartureTime"
   | "id"
   | "medicalNotes"
@@ -20,7 +20,7 @@ export function transform(item: TripSafetyInfo): ClientTripSafetyInfo {
     emergencyContactName: item.emergencyContactName,
     emergencyContactPhone: item.emergencyContactPhone,
     expectedDepartureTime: item.expectedDepartureTime,
-    epxectedReturnTime: item.epxectedReturnTime,
+    expectedReturnTime: item.expectedReturnTime,
     medicalNotes: item.medicalNotes,
     permitOrRouteNumber: item.permitOrRouteNumber,
     rangerStationName: item.rangerStationName,

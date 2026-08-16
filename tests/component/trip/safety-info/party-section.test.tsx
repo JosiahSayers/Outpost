@@ -110,7 +110,9 @@ describe("editing a member", () => {
   });
 
   it("does not allow editing the current user's own name", async () => {
-    renderSection([member({ id: "p1", name: "Josiah Sayers", userId: "self" })]);
+    renderSection([
+      member({ id: "p1", name: "Josiah Sayers", userId: "self" }),
+    ]);
     await openSection();
     fireEvent.click(screen.getByText("Josiah Sayers"));
     expect(

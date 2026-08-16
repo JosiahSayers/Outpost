@@ -22,7 +22,7 @@ CREATE TABLE "TripSafetyInfo" (
     "rangerStationName" TEXT,
     "rangerStationPhone" TEXT,
     "expectedDepartureTime" TEXT,
-    "epxectedReturnTime" TEXT,
+    "expectedReturnTime" TEXT,
     "vehicleDescription" TEXT,
     "permitOrRouteNumber" TEXT,
     "medicalNotes" TEXT,

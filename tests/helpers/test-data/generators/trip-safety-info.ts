@@ -14,7 +14,7 @@ export default function makeTripSafetyInfo(
     rangerStationName: faker.company.name(),
     rangerStationPhone: faker.phone.number(),
     expectedDepartureTime: "08:00",
-    epxectedReturnTime: "17:00",
+    expectedReturnTime: "17:00",
     vehicleDescription: faker.vehicle.vehicle(),
     permitOrRouteNumber: faker.string.alphanumeric(8),
     medicalNotes: faker.lorem.sentence(),
