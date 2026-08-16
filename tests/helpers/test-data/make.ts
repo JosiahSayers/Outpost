@@ -23,6 +23,8 @@ import makeTrip from "./generators/trip";
 import makeTripLink from "./generators/trip-link";
 import makeTripPackingList from "./generators/trip-packing-list";
 import makeTripPackingListItemStatus from "./generators/trip-packing-list-item-status";
+import makeTripPartyMember from "./generators/trip-party-member";
+import makeTripSafetyInfo from "./generators/trip-safety-info";
 import makeTripTask from "./generators/trip-task";
 import makeTwoFactor from "./generators/two-factor";
 import makeUser from "./generators/user";
@@ -46,6 +48,8 @@ type SupportedModels = PickStringLiteral<
   | "TripLink"
   | "TripPackingList"
   | "TripPackingListItemStatus"
+  | "TripPartyMember"
+  | "TripSafetyInfo"
   | "TripTask"
   | "TwoFactor"
   | "MealPlanDay"
@@ -75,6 +79,8 @@ const generators = {
   TripLink: makeTripLink,
   TripPackingList: makeTripPackingList,
   TripPackingListItemStatus: makeTripPackingListItemStatus,
+  TripPartyMember: makeTripPartyMember,
+  TripSafetyInfo: makeTripSafetyInfo,
   TripTask: makeTripTask,
   TwoFactor: makeTwoFactor,
   MealPlanDay: makeMealPlanDay,

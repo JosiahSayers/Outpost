@@ -162,6 +162,10 @@ function makeFullTripFixture(overrides: Partial<FullTrip> = {}): FullTrip {
     ],
     links: [],
     packingList: null,
+    tripSafetyInfo: null,
+    partyMembers: [
+      { id: "pm-1", name: "Josiah Sayers", phone: null, userId: "user-1" },
+    ],
     ...overrides,
   } as unknown as FullTrip;
 }

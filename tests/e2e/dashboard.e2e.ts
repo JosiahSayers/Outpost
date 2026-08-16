@@ -318,10 +318,10 @@ test.describe("Dashboard Page", () => {
         await page.getByRole("textbox", { name: "Trip name" }).fill(tripName);
         await page.getByRole("button", { name: "Create trip" }).click();
 
-        // Drawer closes on success.
+        // Redirects to the new trip's page on success.
         await expect(
-          page.getByRole("button", { name: "Create trip" }),
-        ).not.toBeVisible();
+          page.getByRole("heading", { level: 1, name: tripName }),
+        ).toBeVisible();
 
         const response = await page.request.get("/api/trips?take=100");
         const { trips } = await response.json();
@@ -334,6 +334,7 @@ test.describe("Dashboard Page", () => {
           trail: null,
           location: null,
         });
+        await expect(page).toHaveURL(new RegExp(`/trips/${created.id}$`));
       });
 
       test("creates a trip with all fields and shows it in the upcoming trips list", async ({
@@ -360,14 +361,9 @@ test.describe("Dashboard Page", () => {
           .fill("June 10, 2026");
         await page.getByRole("button", { name: "Create trip" }).click();
 
-        const card = page
-          .locator(".mantine-Card-root")
-          .filter({ hasText: tripName });
+        // Redirects to the new trip's page on success.
         await expect(
-          card.getByRole("heading", { level: 4, name: tripName }),
-        ).toBeVisible();
-        await expect(
-          card.getByText("Mount Rainier National Park, WA"),
+          page.getByRole("heading", { level: 1, name: tripName }),
         ).toBeVisible();
 
         const response = await page.request.get("/api/trips?take=100");
@@ -383,6 +379,18 @@ test.describe("Dashboard Page", () => {
           start: "2026-06-01",
           end: "2026-06-10",
         });
+        await expect(page).toHaveURL(new RegExp(`/trips/${created.id}$`));
+
+        await page.goto("/dashboard");
+        const card = page
+          .locator(".mantine-Card-root")
+          .filter({ hasText: tripName });
+        await expect(
+          card.getByRole("heading", { level: 4, name: tripName }),
+        ).toBeVisible();
+        await expect(
+          card.getByText("Mount Rainier National Park, WA"),
+        ).toBeVisible();
 
         await page.reload();
         await expect(
@@ -452,10 +460,10 @@ test.describe("Dashboard Page", () => {
             .click();
           await page.getByRole("button", { name: "Create trip" }).click();
 
-          // Drawer closes on success.
+          // Redirects to the new trip's page on success.
           await expect(
-            page.getByRole("button", { name: "Create trip" }),
-          ).not.toBeVisible();
+            page.getByRole("heading", { level: 1, name: tripName }),
+          ).toBeVisible();
 
           const response = await page.request.get("/api/trips?take=100");
           const { trips } = await response.json();
@@ -479,9 +487,10 @@ test.describe("Dashboard Page", () => {
             .fill("My secret backyard spot");
           await page.getByRole("button", { name: "Create trip" }).click();
 
+          // Redirects to the new trip's page on success.
           await expect(
-            page.getByRole("button", { name: "Create trip" }),
-          ).not.toBeVisible();
+            page.getByRole("heading", { level: 1, name: tripName }),
+          ).toBeVisible();
 
           const response = await page.request.get("/api/trips?take=100");
           const { trips } = await response.json();
@@ -573,6 +582,12 @@ test.describe("Dashboard Page", () => {
         await page.getByRole("option", { name: "Completed" }).click();
         await page.getByRole("button", { name: "Create trip" }).click();
 
+        // Redirects to the new trip's page on success.
+        await expect(
+          page.getByRole("heading", { level: 1, name: tripName }),
+        ).toBeVisible();
+        await page.goto("/dashboard");
+
         // Not shown as a bare empty state, and — because the preview is no
         // longer filtered by status — visible directly in the main grid.
         await expect(
@@ -627,6 +642,12 @@ test.describe("Dashboard Page", () => {
           .getByRole("textbox", { name: "End date" })
           .fill("June 10, 2026");
         await page.getByRole("button", { name: "Create trip" }).click();
+
+        // Redirects to the new trip's page on success.
+        await expect(
+          page.getByRole("heading", { level: 1, name: "Timezone Test Trip" }),
+        ).toBeVisible();
+        await page.goto("/dashboard");
 
         await expect(
           page.getByRole("heading", { level: 4, name: "Timezone Test Trip" }),

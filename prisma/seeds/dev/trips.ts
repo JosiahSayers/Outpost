@@ -26,7 +26,26 @@ export async function createTrips() {
             data: prepareDefaultTripTasks(trip as any),
           },
         },
+        partyMembers: {
+          create: {
+            userId: user.id,
+          },
+        },
       },
+    });
+
+    // A fully-filled-in safety section, plus a couple of party members
+    // beyond the default owner, so the "complete" state (and a Party count
+    // > 1) is there to look at locally without filling the form in by hand.
+    await db.tripSafetyInfo.create({
+      data: make("TripSafetyInfo", { tripId: trip.id }),
+    });
+
+    await db.tripPartyMember.createMany({
+      data: [
+        make("TripPartyMember", { tripId: trip.id }),
+        make("TripPartyMember", { tripId: trip.id }),
+      ],
     });
 
     await createDefaultMealPlan(trip, db);

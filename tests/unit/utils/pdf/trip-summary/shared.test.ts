@@ -70,11 +70,23 @@ describe("currentFontMetrics", () => {
 });
 
 describe("drawFieldRow", () => {
-  it("advances document.y by exactly FIELD_ROW_HEIGHT", () => {
+  it("returns y advanced by exactly FIELD_ROW_HEIGHT", () => {
+    const document = makeTestDocument();
+    const y = document.y;
+    const next = drawFieldRow(document, y, "Trail", "Wonderland Trail");
+    expect(next).toBe(y + FIELD_ROW_HEIGHT);
+  });
+
+  it("draws at the given y regardless of document.y — callers own their own cursor", () => {
     const document = makeTestDocument();
     const before = document.y;
-    drawFieldRow(document, "Trail", "Wonderland Trail");
-    expect(document.y).toBe(before + FIELD_ROW_HEIGHT);
+    const next = drawFieldRow(
+      document,
+      before + 100,
+      "Trail",
+      "Wonderland Trail",
+    );
+    expect(next).toBe(before + 100 + FIELD_ROW_HEIGHT);
   });
 });
 

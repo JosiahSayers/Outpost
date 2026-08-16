@@ -17,6 +17,7 @@ import {
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { MapPinIcon } from "@phosphor-icons/react";
+import { useLocation } from "wouter";
 import type { TripStatus } from "../../../generated/prisma/enums";
 
 const STATUS_VALUES = Object.keys(STATUS_LABEL) as [
@@ -35,6 +36,7 @@ interface Props {
 
 export default function NewTripDrawer({ opened, onClose }: Props) {
   const createTrip = useCreateTrip();
+  const [, navigate] = useLocation();
 
   const form = useForm({
     initialValues: {
@@ -69,7 +71,12 @@ export default function NewTripDrawer({ opened, onClose }: Props) {
         start: values.start ?? undefined,
         end: values.end ?? undefined,
       },
-      { onSuccess: handleClose },
+      {
+        onSuccess: ({ trip }) => {
+          handleClose();
+          navigate(`/trips/${trip.id}`);
+        },
+      },
     );
   });
 

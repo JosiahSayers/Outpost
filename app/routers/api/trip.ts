@@ -7,6 +7,8 @@ import { tripFileRouter } from "$/routers/api/trip/file";
 import { tripLinkRouter } from "$/routers/api/trip/link";
 import { mealPlanRouter } from "$/routers/api/trip/meal-plan";
 import { tripPackingListRouter } from "$/routers/api/trip/packing-list";
+import { tripPartyMembersRouter } from "$/routers/api/trip/party-memberts";
+import { tripSafetyInfoRouter } from "$/routers/api/trip/safety-info";
 import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
@@ -25,6 +27,51 @@ import validate from "express-zod-safe";
 
 export const tripRouter = Router();
 tripRouter.use(requireValidSession);
+
+async function fetchFullTrip(id: string) {
+  return db.trip.findUnique({
+    where: { id },
+    include: {
+      tasks: true,
+      mealPlanDays: {
+        include: {
+          items: { include: { mealPlanItem: true } },
+        },
+      },
+      links: true,
+      files: true,
+      tripSafetyInfo: true,
+      partyMembers: {
+        include: {
+          user: true,
+        },
+      },
+      packingList: {
+        include: {
+          packingList: {
+            include: {
+              packingListSections: {
+                include: {
+                  items: {
+                    include: {
+                      tripPackingListItemStatuses: true,
+                      assignedGear: {
+                        include: {
+                          category: true,
+                        },
+                      },
+                      category: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+}
 
 tripRouter.get("/", validate({ query: tripSearch }), async (req, res, next) => {
   const where = { userId: req.session!.user.id };
@@ -55,42 +102,7 @@ tripRouter.get(
   userCanEditTrip,
   validate({ params: idParam }),
   async (req, res) => {
-    const trip = await db.trip.findUnique({
-      where: { id: req.params.id },
-      include: {
-        tasks: true,
-        mealPlanDays: {
-          include: {
-            items: { include: { mealPlanItem: true } },
-          },
-        },
-        links: true,
-        files: true,
-        packingList: {
-          include: {
-            packingList: {
-              include: {
-                packingListSections: {
-                  include: {
-                    items: {
-                      include: {
-                        tripPackingListItemStatuses: true,
-                        assignedGear: {
-                          include: {
-                            category: true,
-                          },
-                        },
-                        category: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const trip = await fetchFullTrip(req.params.id);
     const canUploadFiles = await Features.enabledForUser(
       "trip-file-upload",
       req.session!.user.id,
@@ -107,42 +119,7 @@ tripRouter.get(
   userCanEditTrip,
   validate({ params: idParam, query: tripSummaryPdfQuery }),
   async (req, res) => {
-    const trip = await db.trip.findUnique({
-      where: { id: req.params.id },
-      include: {
-        tasks: true,
-        mealPlanDays: {
-          include: {
-            items: { include: { mealPlanItem: true } },
-          },
-        },
-        links: true,
-        files: true,
-        packingList: {
-          include: {
-            packingList: {
-              include: {
-                packingListSections: {
-                  include: {
-                    items: {
-                      include: {
-                        tripPackingListItemStatuses: true,
-                        assignedGear: {
-                          include: {
-                            category: true,
-                          },
-                        },
-                        category: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const trip = await fetchFullTrip(req.params.id);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -182,6 +159,11 @@ tripRouter.post("/", validate({ body: newTrip }), async (req, res, next) => {
         tasks: {
           createMany: {
             data: prepareDefaultTripTasks(req.body),
+          },
+        },
+        partyMembers: {
+          create: {
+            userId: req.session!.user.id,
           },
         },
       },
@@ -247,3 +229,5 @@ tripRouter.use("/:id/meal-plan", userCanEditTrip, mealPlanRouter);
 tripRouter.use("/:id/links", userCanEditTrip, tripLinkRouter);
 tripRouter.use("/:id/packing-list", userCanEditTrip, tripPackingListRouter);
 tripRouter.use("/:id/files", userCanEditTrip, tripFileRouter);
+tripRouter.use("/:id/party-members", userCanEditTrip, tripPartyMembersRouter);
+tripRouter.use("/:id/safety-info", userCanEditTrip, tripSafetyInfoRouter);

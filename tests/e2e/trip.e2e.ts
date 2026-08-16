@@ -22,6 +22,13 @@ function editingTextbox(page: Page) {
     .and(page.locator(':not([aria-label="Link URL"])'));
 }
 
+// The Links section's always-present "ADD" submit button shares its
+// accessible name with the party-members "Add" button, and Safety Info
+// renders above Links on the page, so the party button is always first.
+function partyAddButton(page: Page) {
+  return page.getByRole("button", { name: "Add", exact: true }).first();
+}
+
 test.describe("Trip Page", () => {
   let tripName: string;
   let tripId: string;
@@ -279,6 +286,408 @@ test.describe("Trip Page", () => {
       await page.waitForURL("/dashboard");
       const response = await page.request.get(`/api/trips/${tripId}`);
       expect(response.status()).toBe(404);
+    });
+  });
+
+  test.describe("safety info", () => {
+    test("shows the Incomplete badge and placeholders for a new trip", async ({
+      page,
+    }) => {
+      // A new trip auto-adds its owner as the first party member (see the
+      // POST /api/trips handler), so the party is never empty even before
+      // anyone edits the section.
+      await expect(page.getByText("Incomplete")).toBeVisible();
+      await expect(page.getByText("Add emergency contact name")).toBeVisible();
+      await expect(page.getByText("1 in your party")).toBeVisible();
+    });
+
+    test.describe("who to call", () => {
+      test("editing the emergency contact and ranger station persists across a reload", async ({
+        page,
+      }) => {
+        await page.getByText("Add emergency contact name").click();
+        await editingTextbox(page).fill("Dana Ostrander");
+        await editingTextbox(page).press("Enter");
+
+        await page.getByText("Add emergency contact phone").click();
+        await editingTextbox(page).fill("(206) 555-0148");
+        await editingTextbox(page).press("Enter");
+
+        await page.getByText("Add ranger station or park office").click();
+        await editingTextbox(page).fill("Marblemount WIC");
+        await editingTextbox(page).press("Enter");
+
+        await page.getByText("Add ranger station phone").click();
+        await editingTextbox(page).fill("(360) 854-7245");
+        await editingTextbox(page).press("Enter");
+
+        await expect(page.getByText("Dana Ostrander")).toBeVisible();
+        await expect(page.getByText("(206) 555-0148")).toBeVisible();
+        await expect(page.getByText("Marblemount WIC")).toBeVisible();
+        await expect(page.getByText("(360) 854-7245")).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText("Dana Ostrander")).toBeVisible();
+        await expect(page.getByText("(206) 555-0148")).toBeVisible();
+        await expect(page.getByText("Marblemount WIC")).toBeVisible();
+        await expect(page.getByText("(360) 854-7245")).toBeVisible();
+      });
+
+      test("shows an error and reverts the emergency contact phone when the save fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/safety-info`, (route) => {
+          if (route.request().method() === "PUT") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page.getByText("Add emergency contact phone").click();
+        await editingTextbox(page).fill("This save should fail");
+        await editingTextbox(page).press("Enter");
+
+        await expect(
+          page.getByText("Couldn't update emergency contact"),
+        ).toBeVisible();
+        await expect(
+          page.getByText("Add emergency contact phone"),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("the plan", () => {
+      test("setting departure and return times persists across a reload", async ({
+        page,
+      }) => {
+        await page.getByText("Departure time").click();
+        await page.getByLabel("Departure time").fill("06:30");
+        await page.getByLabel("Departure time").press("Enter");
+
+        await page.getByText("Return time").click();
+        await page.getByLabel("Return time").fill("16:00");
+        await page.getByLabel("Return time").press("Enter");
+
+        await expect(page.getByText("6:30 AM")).toBeVisible();
+        await expect(page.getByText("4:00 PM")).toBeVisible();
+
+        await page.reload();
+        await expect(page.getByText("6:30 AM")).toBeVisible();
+        await expect(page.getByText("4:00 PM")).toBeVisible();
+      });
+
+      test("shows an error and reverts the departure time when the save fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/safety-info`, (route) => {
+          if (route.request().method() === "PUT") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page.getByText("Departure time").click();
+        await page.getByLabel("Departure time").fill("06:30");
+        await page.getByLabel("Departure time").press("Enter");
+
+        await expect(
+          page.getByText("Couldn't update departure time"),
+        ).toBeVisible();
+        await expect(
+          page.getByText("Departure time", { exact: true }),
+        ).toBeVisible();
+      });
+    });
+
+    test.describe("vehicle, permit & medical notes", () => {
+      test("editing these fields persists across a reload", async ({
+        page,
+      }) => {
+        await page.getByText("Vehicle, permit & medical notes").click();
+
+        await page.getByText("Add vehicle description").click();
+        await editingTextbox(page).fill("Green Subaru Outback, WA BPX-2214");
+        await editingTextbox(page).press("Enter");
+
+        await page.getByText("Add permit or route number").click();
+        await editingTextbox(page).fill("NCNP-2026-0871");
+        await editingTextbox(page).press("Enter");
+
+        await page.getByText("Add medical notes").click();
+        await editingTextbox(page).fill("Carries an EpiPen");
+        await editingTextbox(page).press("Enter");
+
+        await expect(
+          page.getByText("Green Subaru Outback, WA BPX-2214"),
+        ).toBeVisible();
+        await expect(page.getByText("NCNP-2026-0871")).toBeVisible();
+        await expect(page.getByText("Carries an EpiPen")).toBeVisible();
+
+        await page.reload();
+        await page.getByText("Vehicle, permit & medical notes").click();
+        await expect(
+          page.getByText("Green Subaru Outback, WA BPX-2214"),
+        ).toBeVisible();
+        await expect(page.getByText("NCNP-2026-0871")).toBeVisible();
+        await expect(page.getByText("Carries an EpiPen")).toBeVisible();
+      });
+
+      test("shows an error and reverts the vehicle description when the save fails", async ({
+        page,
+      }) => {
+        await page.route(`**/api/trips/${tripId}/safety-info`, (route) => {
+          if (route.request().method() === "PUT") {
+            return route.fulfill({ status: 500 });
+          }
+          return route.continue();
+        });
+
+        await page.getByText("Vehicle, permit & medical notes").click();
+        await page.getByText("Add vehicle description").click();
+        await editingTextbox(page).fill("This save should fail");
+        await editingTextbox(page).press("Enter");
+
+        await expect(
+          page.getByText("Couldn't update vehicle description"),
+        ).toBeVisible();
+        await expect(page.getByText("Add vehicle description")).toBeVisible();
+      });
+    });
+
+    test.describe("completeness badge", () => {
+      test("flips to Complete once every required field is set", async ({
+        page,
+      }) => {
+        // The party requirement is already satisfied — the trip owner is
+        // auto-added as a party member when the trip is created.
+        await expect(page.getByText("Incomplete")).toBeVisible();
+
+        await page.getByText("Add emergency contact name").click();
+        await editingTextbox(page).fill("Dana Ostrander");
+        await editingTextbox(page).press("Enter");
+        await page.getByText("Add emergency contact phone").click();
+        await editingTextbox(page).fill("(206) 555-0148");
+        await editingTextbox(page).press("Enter");
+        await page.getByText("Add ranger station or park office").click();
+        await editingTextbox(page).fill("Marblemount WIC");
+        await editingTextbox(page).press("Enter");
+        await page.getByText("Add ranger station phone").click();
+        await editingTextbox(page).fill("(360) 854-7245");
+        await editingTextbox(page).press("Enter");
+        await page.getByText("Departure time").click();
+        await page.getByLabel("Departure time").fill("06:30");
+        await page.getByLabel("Departure time").press("Enter");
+        await page.getByText("Return time").click();
+        await page.getByLabel("Return time").fill("16:00");
+        await page.getByLabel("Return time").press("Enter");
+
+        await expect(page.getByText("Complete", { exact: true })).toBeVisible();
+      });
+    });
+
+    test.describe("party members", () => {
+      test.describe("adding someone", () => {
+        test("adds the party member and shows it after a reload", async ({
+          page,
+        }) => {
+          // The trip owner is already a party member of 1, so this brings
+          // the count to 2.
+          await page.getByText("1 in your party").click();
+          await page.getByRole("button", { name: "Add someone" }).click();
+          await page.getByPlaceholder("Name").fill("Theo Nakamura");
+          await page
+            .getByPlaceholder("Phone (optional)")
+            .fill("(503) 555-0119");
+          await partyAddButton(page).click();
+
+          await expect(page.getByText("Theo Nakamura")).toBeVisible();
+
+          await page.reload();
+          await page.getByText("2 in your party").click();
+          await expect(page.getByText("Theo Nakamura")).toBeVisible();
+        });
+
+        test("shows an error notification when the create fails", async ({
+          page,
+        }) => {
+          await page.route(`**/api/trips/${tripId}/party-members`, (route) => {
+            if (route.request().method() === "POST") {
+              return route.fulfill({ status: 500 });
+            }
+            return route.continue();
+          });
+
+          await page.getByText("1 in your party").click();
+          await page.getByRole("button", { name: "Add someone" }).click();
+          await page.getByPlaceholder("Name").fill("Theo Nakamura");
+          await partyAddButton(page).click();
+
+          await expect(
+            page.getByText("Couldn't add party member"),
+          ).toBeVisible();
+        });
+
+        test("rejects a duplicate name and phone", async ({ page }) => {
+          await db.tripPartyMember.create({
+            data: make("TripPartyMember", {
+              tripId,
+              name: "Theo Nakamura",
+              phone: "(503) 555-0119",
+            }),
+          });
+          await page.reload();
+
+          await page.getByText("2 in your party").click();
+          await page.getByRole("button", { name: "Add someone" }).click();
+          await page.getByPlaceholder("Name").fill("Theo Nakamura");
+          await page
+            .getByPlaceholder("Phone (optional)")
+            .fill("(503) 555-0119");
+          await partyAddButton(page).click();
+
+          await expect(
+            page.getByText("A trip member with these details already exists"),
+          ).toBeVisible();
+        });
+      });
+
+      test.describe("with an existing party member", () => {
+        test.beforeEach(async ({ page }) => {
+          // Plus the trip owner, who's auto-added on trip creation.
+          await db.tripPartyMember.create({
+            data: make("TripPartyMember", {
+              tripId,
+              name: "Theo Nakamura",
+              phone: "(503) 555-0119",
+            }),
+          });
+          await page.reload();
+          await page.getByText("2 in your party").click();
+          await expect(page.getByText("Theo Nakamura")).toBeVisible();
+        });
+
+        test("editing the name and phone persists across a reload", async ({
+          page,
+        }) => {
+          await page.getByText("Theo Nakamura").click();
+          const nameInput = page.getByRole("textbox", {
+            name: "Edit Theo Nakamura's name",
+          });
+          await nameInput.fill("Theodore Nakamura");
+          await nameInput.press("Enter");
+
+          await expect(page.getByText("Theodore Nakamura")).toBeVisible();
+
+          await page.getByText("(503) 555-0119").click();
+          const phoneInput = page.getByRole("textbox", {
+            name: "Edit Theodore Nakamura's phone number",
+          });
+          await phoneInput.fill("(503) 555-9999");
+          await phoneInput.press("Enter");
+
+          await expect(page.getByText("(503) 555-9999")).toBeVisible();
+
+          await page.reload();
+          await page.getByText("2 in your party").click();
+          await expect(page.getByText("Theodore Nakamura")).toBeVisible();
+          await expect(page.getByText("(503) 555-9999")).toBeVisible();
+        });
+
+        test("shows an error and reverts the name when the save fails", async ({
+          page,
+        }) => {
+          await page.route(
+            `**/api/trips/${tripId}/party-members/**`,
+            (route) => {
+              if (route.request().method() === "PATCH") {
+                return route.fulfill({ status: 500 });
+              }
+              return route.continue();
+            },
+          );
+
+          await page.getByText("Theo Nakamura").click();
+          const nameInput = page.getByRole("textbox", {
+            name: "Edit Theo Nakamura's name",
+          });
+          await nameInput.fill("This save should fail");
+          await nameInput.press("Enter");
+
+          await expect(
+            page.getByText("Couldn't update party member"),
+          ).toBeVisible();
+          await expect(page.getByText("Theo Nakamura")).toBeVisible();
+        });
+
+        test("removes the party member and persists across a reload", async ({
+          page,
+        }) => {
+          await page
+            .getByRole("button", {
+              name: "Remove Theo Nakamura from the party",
+            })
+            .click();
+
+          await expect(page.getByText("Theo Nakamura")).not.toBeVisible();
+          // Just the auto-added owner left.
+          await expect(page.getByText("1 in your party")).toBeVisible();
+
+          await page.reload();
+          await expect(page.getByText("1 in your party")).toBeVisible();
+        });
+
+        test("shows an error notification when the removal fails", async ({
+          page,
+        }) => {
+          await page.route(
+            `**/api/trips/${tripId}/party-members/**`,
+            (route) => {
+              if (route.request().method() === "DELETE") {
+                return route.fulfill({ status: 500 });
+              }
+              return route.continue();
+            },
+          );
+
+          await page
+            .getByRole("button", {
+              name: "Remove Theo Nakamura from the party",
+            })
+            .click();
+
+          await expect(
+            page.getByText("Couldn't remove party member"),
+          ).toBeVisible();
+          await expect(page.getByText("Theo Nakamura")).toBeVisible();
+        });
+      });
+
+      test.describe("the owner's own (linked) party member", () => {
+        test("does not allow editing the owner's name but allows editing their phone", async ({
+          page,
+          user,
+        }) => {
+          // The trip owner is auto-added as a party member linked to their
+          // account, so this exercises the linked-member UI without needing
+          // to seed anything extra.
+          await page.getByText("1 in your party").click();
+          await expect(page.getByText(user.name)).toBeVisible();
+
+          await page.getByText(user.name).click();
+          await expect(
+            page.getByRole("textbox", { name: `Edit ${user.name}'s name` }),
+          ).not.toBeVisible();
+
+          await page.getByText("Add phone").click();
+          const phoneInput = page.getByRole("textbox", {
+            name: `Edit ${user.name}'s phone number`,
+          });
+          await phoneInput.fill("(555) 010-3000");
+          await phoneInput.press("Enter");
+
+          await expect(page.getByText("(555) 010-3000")).toBeVisible();
+        });
+      });
     });
   });
 

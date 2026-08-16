@@ -40,7 +40,11 @@ function drawPhaseLabel(
     .text(label, document.page.margins.left, document.y, {
       characterSpacing: 0.3,
       width: contentWidth(document),
-    });
+    })
+    // fillColor is document-global and persists past this call — left gray,
+    // it leaks into the first task row's checkbox fill if that task is
+    // checked. The rule below already resets strokeColor the same way.
+    .fillColor("black");
 
   const ruleY = document.y + 2;
   document

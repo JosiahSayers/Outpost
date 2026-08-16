@@ -385,6 +385,28 @@ describe("POST /", () => {
     expect(response.body.trip.tasks).toBeUndefined();
   });
 
+  it("adds the creator as a party member", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+
+    const response = await request(app)
+      .post("/api/trips")
+      .send({ name: "Appalachian Trail" })
+      .set("Cookie", authCookies)
+      .expect(201);
+
+    const partyMembers = await db.tripPartyMember.findMany({
+      where: { tripId: response.body.trip.id },
+    });
+
+    expect(partyMembers).toHaveLength(1);
+    expect(partyMembers[0]?.userId).toBe(user!.id);
+    expect(partyMembers[0]?.name).toBeNull();
+    expect(partyMembers[0]?.phone).toBeNull();
+    expect(partyMembers[0]?.email).toBeNull();
+  });
+
   it("creates a single meal plan day when no dates are provided", async () => {
     const response = await request(app)
       .post("/api/trips")
@@ -738,6 +760,8 @@ describe("GET /:id", () => {
         files: [],
         canUploadFiles: false,
         packingList: null,
+        tripSafetyInfo: null,
+        partyMembers: [],
       },
     });
   });
@@ -1029,6 +1053,132 @@ describe("GET /:id", () => {
       .expect(200);
 
     expect(response.body.trip.packingList).toBeNull();
+  });
+
+  it("returns the trip's party members", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const user2 = await db.user.findUnique({
+      where: { email: "user2@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+    const linkedMember = await db.tripPartyMember.create({
+      data: make("TripPartyMember", {
+        tripId: trip.id,
+        userId: user2!.id,
+        name: null,
+        phone: null,
+      }),
+    });
+    const guestMember = await db.tripPartyMember.create({
+      data: make("TripPartyMember", {
+        tripId: trip.id,
+        userId: null,
+        name: "Jamie Guest",
+        phone: "555-0100",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    const partyMembers = response.body.trip.partyMembers.sort(
+      (a: any, b: any) => a.id.localeCompare(b.id),
+    );
+    expect(partyMembers).toEqual(
+      [
+        {
+          id: linkedMember.id,
+          name: user2!.name,
+          phone: null,
+          userId: user2!.id,
+        },
+        {
+          id: guestMember.id,
+          name: "Jamie Guest",
+          phone: "555-0100",
+          userId: null,
+        },
+      ].sort((a, b) => a.id.localeCompare(b.id)),
+    );
+  });
+
+  it("returns an empty partyMembers array when the trip has no party members", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.partyMembers).toEqual([]);
+  });
+
+  it("returns the trip's safety info", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+    const safetyInfo = await db.tripSafetyInfo.create({
+      data: make("TripSafetyInfo", {
+        tripId: trip.id,
+        emergencyContactName: "Jordan Doe",
+        emergencyContactPhone: "555-0101",
+        rangerStationName: "Paradise Ranger Station",
+        rangerStationPhone: "555-0102",
+        expectedDepartureTime: "08:00",
+        expectedReturnTime: "18:00",
+        vehicleDescription: "Blue Subaru Outback",
+        permitOrRouteNumber: "PCT-1234",
+        medicalNotes: "No known allergies",
+      }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.tripSafetyInfo).toEqual({
+      id: safetyInfo.id,
+      emergencyContactName: "Jordan Doe",
+      emergencyContactPhone: "555-0101",
+      rangerStationName: "Paradise Ranger Station",
+      rangerStationPhone: "555-0102",
+      expectedDepartureTime: "08:00",
+      expectedReturnTime: "18:00",
+      vehicleDescription: "Blue Subaru Outback",
+      permitOrRouteNumber: "PCT-1234",
+      medicalNotes: "No known allergies",
+    });
+  });
+
+  it("returns a null tripSafetyInfo when the trip has no safety info assigned", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    const trip = await db.trip.create({
+      data: make("Trip", { name: "Appalachian Trail", userId: user!.id }),
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${trip.id}`)
+      .set("Cookie", authCookies)
+      .expect(200);
+
+    expect(response.body.trip.tripSafetyInfo).toBeNull();
   });
 });
 
