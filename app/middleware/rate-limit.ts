@@ -53,3 +53,9 @@ export const pdfRateLimiter = createRateLimiter("pdf", {
   limit: 10,
   keyGenerator: (req) => req.session!.user.id,
 });
+
+export const fileUploadRateLimiter = createRateLimiter("file-upload", {
+  windowMs: 10_000,
+  limit: 1,
+  keyGenerator: (req) => req.session!.user.id,
+});

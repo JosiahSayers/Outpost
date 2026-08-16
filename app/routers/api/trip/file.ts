@@ -1,4 +1,5 @@
 import { userHasFeature } from "$/middleware/authorization/user-has-feature";
+import { fileUploadRateLimiter } from "$/middleware/rate-limit";
 import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { logger } from "$/utils/logger";
@@ -20,6 +21,7 @@ const uploadMiddleware = multer({
 
 tripFileRouter.post(
   "/",
+  fileUploadRateLimiter,
   userHasFeature("trip-file-upload"),
   uploadMiddleware,
   async (req, res) => {
