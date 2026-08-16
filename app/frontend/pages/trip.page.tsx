@@ -1,6 +1,7 @@
 import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
+import Files from "$/frontend/trip/files";
 import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
 import MealPlanSection from "$/frontend/trip/meal-plan";
@@ -74,6 +75,17 @@ export default function TripPage() {
       <Divider />
 
       <Links tripId={trip.id} links={trip.links} />
+
+      {(trip.canUploadFiles || trip.files.length > 0) && (
+        <>
+          <Divider />
+          <Files
+            tripId={trip.id}
+            files={trip.files}
+            canUpload={trip.canUploadFiles}
+          />
+        </>
+      )}
     </PageContainer>
   );
 }

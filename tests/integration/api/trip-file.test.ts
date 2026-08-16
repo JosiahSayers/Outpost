@@ -2,12 +2,11 @@ import type { TripFileR2Client } from "$/routers/api/trip/file";
 import { app } from "$/server";
 import { db } from "$/utils/db";
 import { Features } from "$/utils/features";
+import { MAX_FILE_UPLOAD_BYTES } from "$/utils/file-upload";
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import request from "supertest";
 import { getAuthCookies } from "../../helpers/auth";
 import { make } from "../../helpers/test-data/make";
-
-const TEN_MB = 1e7;
 
 let authCookies: Array<string>;
 let user2AuthCookies: Array<string>;
@@ -111,7 +110,7 @@ describe("POST /", () => {
   });
 
   it("rejects a file over the 10MB size limit", async () => {
-    const oversized = Buffer.alloc(TEN_MB + 1, "a");
+    const oversized = Buffer.alloc(MAX_FILE_UPLOAD_BYTES + 1, "a");
 
     const response = await request(app)
       .post(`/api/trips/${tripId}/files`)
@@ -130,7 +129,7 @@ describe("POST /", () => {
   });
 
   it("accepts a file just under the 10MB size limit", async () => {
-    const underLimit = Buffer.alloc(TEN_MB - 1, "a");
+    const underLimit = Buffer.alloc(MAX_FILE_UPLOAD_BYTES - 1, "a");
 
     await request(app)
       .post(`/api/trips/${tripId}/files`)

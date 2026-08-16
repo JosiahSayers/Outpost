@@ -1,5 +1,4 @@
 import AdminPagination from "$/frontend/admin/shared/pagination";
-import { formatShortDate } from "$/frontend/admin/feedback/format-date";
 import FeedbackStatusBadge from "$/frontend/admin/feedback/status-badge";
 import {
   ACTIONABLE_STATUSES,
@@ -7,6 +6,7 @@ import {
 } from "$/frontend/admin/feedback/status";
 import StatusFilter from "$/frontend/admin/feedback/status-filter";
 import { useAdminFeedbackList } from "$/frontend/utils/api/admin-feedback";
+import { formatShortDate } from "$/frontend/utils/format-short-date";
 import { getInitials } from "$/frontend/utils/get-initials";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {

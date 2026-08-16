@@ -3,6 +3,7 @@ import { fileUploadRateLimiter } from "$/middleware/rate-limit";
 import { transformers } from "$/transformers";
 import { buildContentDisposition } from "$/utils/content-disposition";
 import { db } from "$/utils/db";
+import { MAX_FILE_UPLOAD_BYTES } from "$/utils/file-upload";
 import { logger } from "$/utils/logger";
 import { createR2Client, storageKeys } from "$/utils/r2";
 import { tripFileParams } from "$/validation/trip/file";
@@ -10,8 +11,6 @@ import type { ErrorRequestHandler } from "express";
 import { Router } from "express";
 import validate from "express-zod-safe";
 import multer from "multer";
-
-const TEN_MB = 1e7;
 
 export type TripFileR2Client = ReturnType<typeof createR2Client>;
 
@@ -32,7 +31,7 @@ export const tripFileRouter = Router({ mergeParams: true });
 
 const uploadMiddleware = multer({
   limits: {
-    fileSize: TEN_MB,
+    fileSize: MAX_FILE_UPLOAD_BYTES,
     files: 1,
   },
   storage: multer.memoryStorage(),

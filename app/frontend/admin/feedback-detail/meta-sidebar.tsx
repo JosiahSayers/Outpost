@@ -1,5 +1,5 @@
-import { formatShortDate } from "$/frontend/admin/feedback/format-date";
 import AppLink from "$/frontend/app-link";
+import { formatShortDate } from "$/frontend/utils/format-short-date";
 import { getInitials } from "$/frontend/utils/get-initials";
 import type { ClientFullAdminFeedback } from "$/transformers/admin/feedback";
 import {

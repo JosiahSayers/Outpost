@@ -11,6 +11,7 @@ import { tripTaskRouter } from "$/routers/api/trip/task";
 import { transformers } from "$/transformers";
 import { paginate } from "$/transformers/pagination";
 import { db } from "$/utils/db";
+import { Features } from "$/utils/features";
 import { generateTripSummaryPdf } from "$/utils/pdf/trip-summary/generate-trip-summary-pdf";
 import { idParam } from "$/validation/shared";
 import {
@@ -64,6 +65,7 @@ tripRouter.get(
           },
         },
         links: true,
+        files: true,
         packingList: {
           include: {
             packingList: {
@@ -89,7 +91,13 @@ tripRouter.get(
         },
       },
     });
-    return res.json({ trip: transformers.fullTrip(trip!) });
+    const canUploadFiles = await Features.enabledForUser(
+      "trip-file-upload",
+      req.session!.user.id,
+    );
+    return res.json({
+      trip: transformers.fullTrip(trip!, { canUploadFiles }),
+    });
   },
 );
 
@@ -109,6 +117,7 @@ tripRouter.get(
           },
         },
         links: true,
+        files: true,
         packingList: {
           include: {
             packingList: {

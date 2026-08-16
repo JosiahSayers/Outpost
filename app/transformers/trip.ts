@@ -1,3 +1,7 @@
+import {
+  transform as fileTransform,
+  type ClientFile,
+} from "$/transformers/file";
 import { toDateOnly } from "$/transformers/helpers";
 import {
   transform as tripPackingListTransform,
@@ -8,7 +12,12 @@ import {
   transform as tripTaskTransform,
   type ClientTripTask,
 } from "$/transformers/trip-task";
-import type { Trip, TripLink, TripTask } from "../../generated/prisma/browser";
+import type {
+  File,
+  Trip,
+  TripLink,
+  TripTask,
+} from "../../generated/prisma/browser";
 import {
   transform as mealPlanDayTransform,
   type ClientMealPlanDay,
@@ -44,6 +53,8 @@ export type ClientFullTrip = ClientTrip & {
   mealPlan: ClientMealPlanDay[];
   links: ClientTripLink[];
   packingList: ClientTripPackingList | null;
+  files: ClientFile[];
+  canUploadFiles: boolean;
 };
 
 export type FullTrip = Trip & {
@@ -51,9 +62,13 @@ export type FullTrip = Trip & {
   mealPlanDays: FullMealPlanDayInput[];
   links: TripLink[];
   packingList: TripPackingListInput | null;
+  files: File[];
 };
 
-export function transformFull(item: FullTrip): ClientFullTrip {
+export function transformFull(
+  item: FullTrip,
+  { canUploadFiles }: { canUploadFiles: boolean },
+): ClientFullTrip {
   return {
     ...transform(item),
     tasks: item.tasks.map(tripTaskTransform),
@@ -62,5 +77,7 @@ export function transformFull(item: FullTrip): ClientFullTrip {
     packingList: item.packingList
       ? tripPackingListTransform(item.packingList)
       : null,
+    files: item.files.map(fileTransform),
+    canUploadFiles,
   };
 }

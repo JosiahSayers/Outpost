@@ -5,6 +5,7 @@ import makeAccountSettingValue from "./generators/account-setting-value";
 import makeFeedback from "./generators/feedback";
 import makeFeedbackAuditLog from "./generators/feedback-audit-log";
 import makeFeedbackNote from "./generators/feedback-note";
+import makeFile from "./generators/file";
 import makeGearCategory from "./generators/gear-category";
 import makeGearInventoryItem from "./generators/gear-inventory-item";
 import makeImage from "./generators/image";
@@ -33,6 +34,7 @@ type SupportedModels = PickStringLiteral<
   | "Feedback"
   | "FeedbackAuditLog"
   | "FeedbackNote"
+  | "File"
   | "GearInventoryItem"
   | "GearCategory"
   | "PackingList"
@@ -61,6 +63,7 @@ const generators = {
   Feedback: makeFeedback,
   FeedbackAuditLog: makeFeedbackAuditLog,
   FeedbackNote: makeFeedbackNote,
+  File: makeFile,
   GearCategory: makeGearCategory,
   GearInventoryItem: makeGearInventoryItem,
   PackingList: makePackingList,

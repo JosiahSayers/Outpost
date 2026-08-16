@@ -126,17 +126,22 @@ describe("transformFull", () => {
     const task2 = make("TripTask", { tripId: trip.id, phase: "after" });
     const day = makeMealPlanDay();
     const link = make("TripLink", { tripId: trip.id });
+    const file = make("File", { tripId: trip.id });
     const { input: packingListInput, expected: expectedPackingList } =
       makeTripPackingList(trip.id);
 
     expect(
-      transformFull({
-        ...trip,
-        tasks: [task1, task2],
-        mealPlanDays: [day],
-        links: [link],
-        packingList: packingListInput,
-      }),
+      transformFull(
+        {
+          ...trip,
+          tasks: [task1, task2],
+          mealPlanDays: [day],
+          links: [link],
+          files: [file],
+          packingList: packingListInput,
+        },
+        { canUploadFiles: true },
+      ),
     ).toEqual({
       ...transform(trip),
       tasks: [
@@ -181,6 +186,16 @@ describe("transformFull", () => {
           videoUrl: link.videoUrl,
         },
       ],
+      files: [
+        {
+          id: file.id,
+          bytes: file.bytes,
+          contentType: file.contentType,
+          createdAt: file.createdAt,
+          filename: file.filename,
+        },
+      ],
+      canUploadFiles: true,
       packingList: expectedPackingList,
     });
   });
@@ -188,16 +203,22 @@ describe("transformFull", () => {
   it("returns an empty tasks array when the trip has no tasks", () => {
     const trip = make("Trip");
     expect(
-      transformFull({
-        ...trip,
-        tasks: [],
-        mealPlanDays: [],
-        links: [],
-        packingList: null,
-      }),
+      transformFull(
+        {
+          ...trip,
+          tasks: [],
+          mealPlanDays: [],
+          links: [],
+          files: [],
+          packingList: null,
+        },
+        { canUploadFiles: false },
+      ),
     ).toMatchObject({
       tasks: [],
       links: [],
+      files: [],
+      canUploadFiles: false,
       packingList: null,
     });
   });
