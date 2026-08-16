@@ -2,9 +2,9 @@ import UserStatusBadge from "$/frontend/admin/user-search/user-status-badge";
 import SearchCombobox from "$/frontend/shared-components/search-combobox";
 import {
   useAdminFeatureDetail,
-  useDisableFeatureForUser,
   useEnableFeatureForUser,
   useToggleFeature,
+  useUnsetFeatureForUser,
 } from "$/frontend/utils/api/admin-features";
 import {
   adminUserKeys,
@@ -62,7 +62,7 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
   const { data, isPending, isError } = useAdminFeatureDetail(feature, isOpen);
   const toggleFeature = useToggleFeature(feature);
   const enableForUser = useEnableFeatureForUser(feature);
-  const disableForUser = useDisableFeatureForUser(feature);
+  const unsetForUser = useUnsetFeatureForUser(feature);
 
   if (!isOpen) {
     return null;
@@ -228,7 +228,7 @@ export default function FeaturePanel({ feature, isOpen }: Props) {
                     size="sm"
                     aria-label={`Remove ${user.email}`}
                     onClick={() =>
-                      disableForUser.mutate(user.id, {
+                      unsetForUser.mutate(user.id, {
                         onError: notifyError("Couldn't remove user"),
                       })
                     }

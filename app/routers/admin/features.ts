@@ -81,3 +81,13 @@ adminFeaturesRouter.post(
     return res.sendStatus(200);
   },
 );
+
+adminFeaturesRouter.delete(
+  "/:feature/user/:userId",
+  validate({ params: userFeatureParams }),
+  ensureUserExists("userId"),
+  async (req, res) => {
+    await Features.unsetForUser(req.params.feature, req.params.userId);
+    return res.sendStatus(200);
+  },
+);

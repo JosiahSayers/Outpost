@@ -448,3 +448,74 @@ describe("POST /:feature/user/:userId/disable", () => {
     expect(await Features.enabledForUser(FEATURE, user.id)).toBe(false);
   });
 });
+
+describe("DELETE /:feature/user/:userId", () => {
+  it("requires a valid session", async () => {
+    await request(app)
+      .delete(`/admin/features/${FEATURE}/user/${USER_ID}`)
+      .expect(401);
+  });
+
+  it("requires an admin role", async () => {
+    await request(app)
+      .delete(`/admin/features/${FEATURE}/user/${USER_ID}`)
+      .set("Cookie", authCookies)
+      .expect(403);
+  });
+
+  it("rejects an unknown feature", async () => {
+    const response = await request(app)
+      .delete(`/admin/features/not-a-real-feature/user/${USER_ID}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "params",
+        errors: [expect.objectContaining({ path: ["feature"] })],
+      }),
+    ]);
+  });
+
+  it("rejects a user that doesn't exist", async () => {
+    const response = await request(app)
+      .delete(`/admin/features/${FEATURE}/user/${USER_ID}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(404);
+
+    expect(response.body).toEqual({ error: "User not found" });
+  });
+
+  it("removes the user's override without affecting other users", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+
+    await Features.enableForUser(FEATURE, user.id);
+    await Features.enableForUser(FEATURE, "some-other-user");
+
+    await request(app)
+      .delete(`/admin/features/${FEATURE}/user/${user.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(await Features.enabledForUser(FEATURE, user.id)).toBe(false);
+    expect(await Features.enabledForUser(FEATURE, "some-other-user")).toBe(
+      true,
+    );
+  });
+
+  it("reverts the user to the global flag instead of leaving them explicitly disabled", async () => {
+    const user = await db.user.create({ data: make("User") });
+    createdUserIds.push(user.id);
+
+    await Features.enable(FEATURE);
+    await Features.disableForUser(FEATURE, user.id);
+
+    await request(app)
+      .delete(`/admin/features/${FEATURE}/user/${user.id}`)
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(await Features.enabledForUser(FEATURE, user.id)).toBe(true);
+  });
+});

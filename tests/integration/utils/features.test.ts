@@ -79,6 +79,63 @@ describe("enabledForUser / enableForUser / disableForUser", () => {
   });
 });
 
+describe("unsetForUser", () => {
+  it("reverts an enabled override back to the global flag", async () => {
+    await Features.enableForUser(FEATURE, USER_ID);
+
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
+  });
+
+  it("reverts a disabled override back to the global flag", async () => {
+    await Features.enable(FEATURE);
+    await Features.disableForUser(FEATURE, USER_ID);
+
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(true);
+  });
+
+  it("does not affect other users", async () => {
+    await Features.enableForUser(FEATURE, USER_ID);
+    await Features.enableForUser(FEATURE, "some-other-user");
+
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    expect(await Features.enabledForUser(FEATURE, "some-other-user")).toBe(
+      true,
+    );
+  });
+
+  it("does not affect the global flag", async () => {
+    await Features.enable(FEATURE);
+    await Features.enableForUser(FEATURE, USER_ID);
+
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    expect(await Features.enabled(FEATURE)).toBe(true);
+  });
+
+  it("is a no-op when the user has no override set", async () => {
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    expect(await Features.enabledForUser(FEATURE, USER_ID)).toBe(false);
+  });
+
+  it("removes the user from status()'s enabled and disabled lists", async () => {
+    await Features.enableForUser(FEATURE, USER_ID);
+
+    await Features.unsetForUser(FEATURE, USER_ID);
+
+    const { enabledUserIds, disabledUserIds } = await Features.status(
+      FEATURE,
+    );
+    expect(enabledUserIds).not.toContain(USER_ID);
+    expect(disabledUserIds).not.toContain(USER_ID);
+  });
+});
+
 describe("status", () => {
   it("reports the feature as disabled with no users when nothing has been set", async () => {
     expect(await Features.status(FEATURE)).toEqual({
