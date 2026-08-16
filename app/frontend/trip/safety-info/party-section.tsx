@@ -1,4 +1,10 @@
-import type { PlaceholderPartyMember } from "$/frontend/trip/placeholder-data";
+import {
+  useCreateTripPartyMember,
+  useDeleteTripPartyMember,
+  useUpdateTripPartyMember,
+} from "$/frontend/utils/api/trip-party-members";
+import { notifyError } from "$/frontend/utils/notify-error";
+import type { ClientTripPartyMember } from "$/transformers/trip-party-member";
 import {
   ActionIcon,
   Avatar,
@@ -14,15 +20,12 @@ import { CaretDownIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 interface Props {
-  party: PlaceholderPartyMember[];
-  onAdd: (name: string, phone: string) => void;
-  onRemove: (id: string) => void;
-  onEditName: (id: string, name: string) => void;
-  onEditPhone: (id: string, phone: string) => void;
+  tripId: string;
+  party: ClientTripPartyMember[];
 }
 
-function initials(name: string): string {
-  return name
+function initials(name: string | null): string {
+  return (name ?? "")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -90,22 +93,22 @@ function EditableField({
   );
 }
 
-export default function PartySection({
-  party,
-  onAdd,
-  onRemove,
-  onEditName,
-  onEditPhone,
-}: Props) {
+export default function PartySection({ tripId, party }: Props) {
   const [open, { toggle }] = useDisclosure(false);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const createPartyMember = useCreateTripPartyMember(tripId);
+  const updatePartyMember = useUpdateTripPartyMember(tripId);
+  const deletePartyMember = useDeleteTripPartyMember(tripId);
 
   function submitAdd() {
     const trimmedName = name.trim();
     if (!trimmedName) return;
-    onAdd(trimmedName, phone.trim());
+    createPartyMember.mutate(
+      { name: trimmedName, phone: phone.trim() },
+      { onError: notifyError("Couldn't add party member") },
+    );
     setName("");
     setPhone("");
     setAdding(false);
@@ -155,17 +158,30 @@ export default function PartySection({
                   <Text size="sm">{member.name}</Text>
                 ) : (
                   <EditableField
-                    value={member.name}
+                    value={member.name ?? ""}
                     placeholder="Name"
                     ariaLabel={`Edit ${member.name}'s name`}
-                    onSave={(name) => name && onEditName(member.id, name)}
+                    onSave={(name) =>
+                      name &&
+                      updatePartyMember.mutate(
+                        { memberId: member.id, name },
+                        {
+                          onError: notifyError("Couldn't update party member"),
+                        },
+                      )
+                    }
                   />
                 )}
                 <EditableField
-                  value={member.phone}
+                  value={member.phone ?? ""}
                   placeholder="Add phone"
                   ariaLabel={`Edit ${member.name}'s phone number`}
-                  onSave={(phone) => onEditPhone(member.id, phone)}
+                  onSave={(phone) =>
+                    updatePartyMember.mutate(
+                      { memberId: member.id, phone },
+                      { onError: notifyError("Couldn't update party member") },
+                    )
+                  }
                   size="xs"
                   alwaysDimmed
                 />
@@ -175,7 +191,7 @@ export default function PartySection({
                 color="red"
                 size="sm"
                 aria-label={`Remove ${member.name} from the party`}
-                onClick={() => onRemove(member.id)}
+                onClick={() => deletePartyMember.mutate(member.id)}
               >
                 <TrashIcon size={13} />
               </ActionIcon>

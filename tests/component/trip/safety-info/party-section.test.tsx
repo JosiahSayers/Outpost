@@ -1,35 +1,31 @@
 import PartySection from "$/frontend/trip/safety-info/party-section";
-import type { PlaceholderPartyMember } from "$/frontend/trip/placeholder-data";
+import type { ClientTripPartyMember } from "$/transformers/trip-party-member";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 function member(
-  overrides: Partial<PlaceholderPartyMember> = {},
-): PlaceholderPartyMember {
-  return { id: "p1", name: "Josiah Sayers", phone: "", ...overrides };
+  overrides: Partial<ClientTripPartyMember> = {},
+): ClientTripPartyMember {
+  return {
+    id: "p1",
+    name: "Josiah Sayers",
+    phone: "",
+    userId: null,
+    ...overrides,
+  };
 }
 
-function renderSection(
-  party: PlaceholderPartyMember[],
-  onAdd: (name: string, phone: string) => void = mock(),
-  onRemove: (id: string) => void = mock(),
-  onEditName: (id: string, name: string) => void = mock(),
-  onEditPhone: (id: string, phone: string) => void = mock(),
-) {
+function renderSection(party: ClientTripPartyMember[]) {
   render(
-    <MantineProvider>
-      <PartySection
-        party={party}
-        onAdd={onAdd}
-        onRemove={onRemove}
-        onEditName={onEditName}
-        onEditPhone={onEditPhone}
-      />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <PartySection tripId="trip-1" party={party} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
-  return { onAdd, onRemove, onEditName, onEditPhone };
 }
 
 // The party list and "Add someone" button live inside a Collapse, which
@@ -39,6 +35,22 @@ async function openSection() {
   fireEvent.click(screen.getByText(/in your party|No one added yet/));
   await waitFor(() => screen.getByRole("button", { name: "Add someone" }));
 }
+
+function lastFetchCall() {
+  const calls = (global.fetch as unknown as ReturnType<typeof mock>).mock.calls;
+  return calls[calls.length - 1]! as [string, RequestInit];
+}
+
+beforeEach(() => {
+  global.fetch = mock(() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ partyMember: member() }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ),
+  ) as unknown as typeof fetch;
+});
 
 describe("with no one added", () => {
   it("renders the empty state", () => {
@@ -68,23 +80,24 @@ describe("with party members", () => {
     expect(screen.getByText("(503) 555-0119")).toBeInTheDocument();
   });
 
-  it("clicking remove calls onRemove with the member's id", async () => {
-    const { onRemove } = renderSection(twoMembers());
+  it("clicking remove DELETEs the member", async () => {
+    renderSection(twoMembers());
     await openSection();
     fireEvent.click(
       screen.getByRole("button", {
         name: "Remove Theo Nakamura from the party",
       }),
     );
-    expect(onRemove).toHaveBeenCalledWith("p2");
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/party-members/p2");
+    expect(init.method).toBe("DELETE");
   });
 });
 
 describe("editing a member", () => {
-  it("clicking a member's name shows an editable input and commits on blur", async () => {
-    const { onEditName } = renderSection([
-      member({ id: "p2", name: "Theo Nakamura" }),
-    ]);
+  it("clicking a member's name shows an editable input and PATCHes on blur", async () => {
+    renderSection([member({ id: "p2", name: "Theo Nakamura" })]);
     await openSection();
     fireEvent.click(screen.getByText("Theo Nakamura"));
     const input = screen.getByRole("textbox", {
@@ -92,13 +105,18 @@ describe("editing a member", () => {
     });
     fireEvent.change(input, { target: { value: "Theodore Nakamura" } });
     fireEvent.blur(input);
-    expect(onEditName).toHaveBeenCalledWith("p2", "Theodore Nakamura");
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/party-members/p2");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: "Theodore Nakamura",
+    });
   });
 
-  it("clicking a member's phone shows an editable input and commits on Enter", async () => {
-    const { onEditPhone } = renderSection([
-      member({ id: "p2", name: "Theo Nakamura", phone: "" }),
-    ]);
+  it("clicking a member's phone shows an editable input and PATCHes on Enter", async () => {
+    renderSection([member({ id: "p2", name: "Theo Nakamura", phone: "" })]);
     await openSection();
     fireEvent.click(screen.getByText("Add phone"));
     const input = screen.getByRole("textbox", {
@@ -106,7 +124,14 @@ describe("editing a member", () => {
     });
     fireEvent.change(input, { target: { value: "(555) 010-2000" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(onEditPhone).toHaveBeenCalledWith("p2", "(555) 010-2000");
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/party-members/p2");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      phone: "(555) 010-2000",
+    });
   });
 
   it("does not allow editing the current user's own name", async () => {
@@ -121,7 +146,7 @@ describe("editing a member", () => {
   });
 
   it("still allows editing the current user's own phone", async () => {
-    const { onEditPhone } = renderSection([
+    renderSection([
       member({ id: "p1", name: "Josiah Sayers", userId: "self", phone: "" }),
     ]);
     await openSection();
@@ -131,7 +156,13 @@ describe("editing a member", () => {
     });
     fireEvent.change(input, { target: { value: "(555) 010-3000" } });
     fireEvent.blur(input);
-    expect(onEditPhone).toHaveBeenCalledWith("p1", "(555) 010-3000");
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/party-members/p1");
+    expect(JSON.parse(init.body as string)).toEqual({
+      phone: "(555) 010-3000",
+    });
   });
 });
 
@@ -145,7 +176,7 @@ describe("adding someone", () => {
   });
 
   it("submits the trimmed name and phone via the Add button", async () => {
-    const { onAdd } = renderSection([]);
+    renderSection([]);
     await openSection();
     fireEvent.click(screen.getByRole("button", { name: "Add someone" }));
     fireEvent.change(screen.getByPlaceholderText("Name"), {
@@ -155,30 +186,44 @@ describe("adding someone", () => {
       target: { value: "(555) 010-1000" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(onAdd).toHaveBeenCalledWith("Priya Anand", "(555) 010-1000");
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = lastFetchCall();
+    expect(url).toBe("/api/trips/trip-1/party-members");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: "Priya Anand",
+      phone: "(555) 010-1000",
+    });
   });
 
   it("submits with Enter from the name field", async () => {
-    const { onAdd } = renderSection([]);
+    renderSection([]);
     await openSection();
     fireEvent.click(screen.getByRole("button", { name: "Add someone" }));
     fireEvent.change(screen.getByPlaceholderText("Name"), {
       target: { value: "Priya Anand" },
     });
     fireEvent.keyDown(screen.getByPlaceholderText("Name"), { key: "Enter" });
-    expect(onAdd).toHaveBeenCalledWith("Priya Anand", "");
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [, init] = lastFetchCall();
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: "Priya Anand",
+      phone: "",
+    });
   });
 
   it("does not submit when the name is blank", async () => {
-    const { onAdd } = renderSection([]);
+    renderSection([]);
     await openSection();
     fireEvent.click(screen.getByRole("button", { name: "Add someone" }));
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(onAdd).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("pressing Escape cancels the add form without calling onAdd", async () => {
-    const { onAdd } = renderSection([]);
+  it("pressing Escape cancels the add form without submitting", async () => {
+    renderSection([]);
     await openSection();
     fireEvent.click(screen.getByRole("button", { name: "Add someone" }));
     fireEvent.change(screen.getByPlaceholderText("Name"), {
@@ -186,6 +231,6 @@ describe("adding someone", () => {
     });
     fireEvent.keyDown(screen.getByPlaceholderText("Name"), { key: "Escape" });
     expect(screen.queryByPlaceholderText("Name")).not.toBeInTheDocument();
-    expect(onAdd).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

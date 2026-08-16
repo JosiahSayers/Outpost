@@ -1,27 +1,72 @@
-import { placeholderSafetyInfo } from "$/frontend/trip/placeholder-data";
 import SafetyInfo from "$/frontend/trip/safety-info";
+import type { ClientTripPartyMember } from "$/transformers/trip-party-member";
+import type { ClientTripSafetyInfo } from "$/transformers/trip-safety-info";
 import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
-function renderSafetyInfo(
-  tripStart: string | null = "2026-08-22",
-  tripEnd: string | null = "2026-08-25",
-) {
-  render(
-    <MantineProvider>
-      <SafetyInfo tripStart={tripStart} tripEnd={tripEnd} />
-    </MantineProvider>,
-  );
+function safetyInfo(
+  overrides: Partial<ClientTripSafetyInfo> = {},
+): ClientTripSafetyInfo {
+  return {
+    id: "safety-1",
+    emergencyContactName: "Maren Ostrander",
+    emergencyContactPhone: "(206) 555-0148",
+    rangerStationName: "Marblemount Wilderness Information Center",
+    rangerStationPhone: "(360) 854-7245",
+    expectedDepartureTime: "06:30",
+    expectedReturnTime: "16:00",
+    vehicleDescription: "Green 2021 Subaru Outback, WA plate BPX-2214",
+    permitOrRouteNumber: "NCNP-2026-0871",
+    medicalNotes: "Theo carries an EpiPen (bee allergy).",
+    ...overrides,
+  };
 }
 
-// The party list lives inside a Collapse — wait for a role that only
-// resolves once it's genuinely open (see feedback_happy_dom_quirks memory,
-// #7) before interacting with anything inside it.
-async function openPartySection() {
-  fireEvent.click(screen.getByText(/in your party|No one added yet/));
-  await waitFor(() => screen.getByRole("button", { name: "Add someone" }));
+function partyMember(
+  overrides: Partial<ClientTripPartyMember> = {},
+): ClientTripPartyMember {
+  return {
+    id: "p1",
+    name: "Josiah Sayers",
+    phone: null,
+    userId: null,
+    ...overrides,
+  };
+}
+
+const defaultParty = [
+  partyMember({ id: "p1", name: "Josiah Sayers" }),
+  partyMember({ id: "p2", name: "Theo Nakamura", phone: "(503) 555-0119" }),
+  partyMember({ id: "p3", name: "Priya Anand" }),
+];
+
+function renderSafetyInfo({
+  info = safetyInfo(),
+  party = defaultParty,
+  tripStart = "2026-08-22",
+  tripEnd = "2026-08-25",
+}: {
+  info?: ClientTripSafetyInfo | null;
+  party?: ClientTripPartyMember[];
+  tripStart?: string | null;
+  tripEnd?: string | null;
+} = {}) {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <SafetyInfo
+          tripId="trip-1"
+          safetyInfo={info}
+          partyMembers={party}
+          tripStart={tripStart}
+          tripEnd={tripEnd}
+        />
+      </MantineProvider>
+    </QueryClientProvider>,
+  );
 }
 
 // The vehicle/permit/medical rows have no role in view mode, so there's
@@ -33,6 +78,17 @@ async function openDetails() {
   await waitFor(() => {});
 }
 
+beforeEach(() => {
+  global.fetch = mock(() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ safetyInfo: safetyInfo() }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ),
+  ) as unknown as typeof fetch;
+});
+
 describe("rendering", () => {
   it("renders the section heading", () => {
     renderSafetyInfo();
@@ -41,22 +97,38 @@ describe("rendering", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a Complete badge when the placeholder data is fully filled in", () => {
+  it("shows a Complete badge when every required field is filled in", () => {
     renderSafetyInfo();
     expect(screen.getByText("Complete")).toBeInTheDocument();
   });
 
+  it("shows an Incomplete badge when there's no safety info yet", () => {
+    renderSafetyInfo({ info: null, party: [] });
+    expect(screen.getByText("Incomplete")).toBeInTheDocument();
+  });
+
+  it("shows an Incomplete badge when the party is empty", () => {
+    renderSafetyInfo({ party: [] });
+    expect(screen.getByText("Incomplete")).toBeInTheDocument();
+  });
+
+  it("stays Complete when only optional fields (vehicle, permit, medical) are unset", () => {
+    renderSafetyInfo({
+      info: safetyInfo({
+        vehicleDescription: null,
+        permitOrRouteNumber: null,
+        medicalNotes: null,
+      }),
+    });
+    expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
   it("renders the emergency contact and ranger station", () => {
-    renderSafetyInfo();
-    expect(
-      screen.getByText(placeholderSafetyInfo.emergencyContactName),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(placeholderSafetyInfo.emergencyContactPhone),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(placeholderSafetyInfo.rangerStationName),
-    ).toBeInTheDocument();
+    const info = safetyInfo();
+    renderSafetyInfo({ info });
+    expect(screen.getByText(info.emergencyContactName!)).toBeInTheDocument();
+    expect(screen.getByText(info.emergencyContactPhone!)).toBeInTheDocument();
+    expect(screen.getByText(info.rangerStationName!)).toBeInTheDocument();
   });
 
   it("renders the departure and return times", () => {
@@ -72,7 +144,7 @@ describe("rendering", () => {
   });
 
   it("omits the date next to a time when the trip has no start/end set", () => {
-    renderSafetyInfo(null, null);
+    renderSafetyInfo({ tripStart: null, tripEnd: null });
     expect(screen.queryByText(/, Aug/)).not.toBeInTheDocument();
   });
 
@@ -82,45 +154,33 @@ describe("rendering", () => {
   });
 });
 
-describe("completeness", () => {
-  it("flips to Incomplete when a required field is cleared", () => {
-    renderSafetyInfo();
-    fireEvent.click(
-      screen.getByText(placeholderSafetyInfo.emergencyContactPhone),
-    );
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } });
+describe("editing safety info fields", () => {
+  it("PUTs the changed field when the emergency contact phone is edited", async () => {
+    const info = safetyInfo();
+    renderSafetyInfo({ info });
+    fireEvent.click(screen.getByText(info.emergencyContactPhone!));
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "(555) 010-9999" },
+    });
     fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
-    expect(screen.getByText("Incomplete")).toBeInTheDocument();
-  });
 
-  it("stays Complete when an optional field (medical notes) is cleared", async () => {
-    renderSafetyInfo();
-    await openDetails();
-    fireEvent.click(screen.getByText(placeholderSafetyInfo.medicalNotes));
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } });
-    fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
-    expect(screen.getByText("Complete")).toBeInTheDocument();
-  });
-
-  it("flips to Incomplete once every party member is removed", async () => {
-    renderSafetyInfo();
-    await openPartySection();
-    for (const name of ["Josiah Sayers", "Theo Nakamura", "Priya Anand"]) {
-      fireEvent.click(
-        screen.getByRole("button", { name: `Remove ${name} from the party` }),
-      );
-    }
-    expect(screen.getByText("Incomplete")).toBeInTheDocument();
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
+      .mock.calls[0]! as [string, RequestInit];
+    expect(url).toBe("/api/trips/trip-1/safety-info");
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(init.body as string)).toEqual({
+      emergencyContactPhone: "(555) 010-9999",
+    });
   });
 });
 
 describe("vehicle, permit & medical notes", () => {
   it("are editable once expanded", async () => {
-    renderSafetyInfo();
+    const info = safetyInfo();
+    renderSafetyInfo({ info });
     await openDetails();
-    fireEvent.click(screen.getByText(placeholderSafetyInfo.vehicleDescription));
-    expect(screen.getByRole("textbox")).toHaveValue(
-      placeholderSafetyInfo.vehicleDescription,
-    );
+    fireEvent.click(screen.getByText(info.vehicleDescription!));
+    expect(screen.getByRole("textbox")).toHaveValue(info.vehicleDescription);
   });
 });

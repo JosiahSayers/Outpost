@@ -1,13 +1,10 @@
 import TripTextField from "$/frontend/trip/header/trip-text-field";
-import {
-  isSafetyInfoComplete,
-  placeholderPartyMembers,
-  placeholderSafetyInfo,
-  type PlaceholderPartyMember,
-  type PlaceholderSafetyInfo,
-} from "$/frontend/trip/placeholder-data";
 import PartySection from "$/frontend/trip/safety-info/party-section";
 import TimeField from "$/frontend/trip/safety-info/time-field";
+import { useUpdateTripSafetyInfo } from "$/frontend/utils/api/trip-safety-info";
+import { notifyError } from "$/frontend/utils/notify-error";
+import type { ClientTripPartyMember } from "$/transformers/trip-party-member";
+import type { ClientTripSafetyInfo } from "$/transformers/trip-safety-info";
 import {
   Badge,
   Collapse,
@@ -30,7 +27,6 @@ import {
   TicketIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
 
 const CAPTION_STYLE = { letterSpacing: "0.05em" } as const;
 
@@ -46,50 +42,43 @@ function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
+// Mirrors the nudge rules agreed for BTP-134: emergency contact, ranger
+// station, both times, and a non-empty party are required; vehicle, permit,
+// and medical notes stay optional and never gate this.
+function isSafetyInfoComplete(
+  info: ClientTripSafetyInfo | null,
+  party: ClientTripPartyMember[],
+): boolean {
+  return Boolean(
+    info?.emergencyContactName?.trim() &&
+    info?.emergencyContactPhone?.trim() &&
+    info?.rangerStationName?.trim() &&
+    info?.rangerStationPhone?.trim() &&
+    info?.expectedDepartureTime &&
+    info?.expectedReturnTime &&
+    party.length > 0,
+  );
+}
+
 interface Props {
+  tripId: string;
+  safetyInfo: ClientTripSafetyInfo | null;
+  partyMembers: ClientTripPartyMember[];
   tripStart: string | null;
   tripEnd: string | null;
 }
 
-export default function SafetyInfo({ tripStart, tripEnd }: Props) {
-  const [info, setInfo] = useState<PlaceholderSafetyInfo>(
-    placeholderSafetyInfo,
-  );
-  const [party, setParty] = useState<PlaceholderPartyMember[]>(
-    placeholderPartyMembers,
-  );
+export default function SafetyInfo({
+  tripId,
+  safetyInfo,
+  partyMembers,
+  tripStart,
+  tripEnd,
+}: Props) {
   const [detailsOpen, { toggle: toggleDetails }] = useDisclosure(false);
+  const updateSafetyInfo = useUpdateTripSafetyInfo(tripId);
 
-  const complete = isSafetyInfoComplete(info, party);
-
-  function update<K extends keyof PlaceholderSafetyInfo>(
-    key: K,
-    value: PlaceholderSafetyInfo[K],
-  ) {
-    setInfo((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function addPartyMember(name: string, phone: string) {
-    setParty((prev) => [...prev, { id: crypto.randomUUID(), name, phone }]);
-  }
-
-  function removePartyMember(id: string) {
-    setParty((prev) => prev.filter((member) => member.id !== id));
-  }
-
-  function editPartyMemberName(id: string, name: string) {
-    setParty((prev) =>
-      prev.map((member) =>
-        member.id === id && !member.userId ? { ...member, name } : member,
-      ),
-    );
-  }
-
-  function editPartyMemberPhone(id: string, phone: string) {
-    setParty((prev) =>
-      prev.map((member) => (member.id === id ? { ...member, phone } : member)),
-    );
-  }
+  const complete = isSafetyInfoComplete(safetyInfo, partyMembers);
 
   return (
     <Paper
@@ -130,27 +119,47 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
             </Text>
             <TripTextField
               icon={<PhoneIcon size={15} />}
-              value={info.emergencyContactName}
+              value={safetyInfo?.emergencyContactName ?? null}
               placeholder="Add emergency contact name"
-              onSave={(value) => update("emergencyContactName", value)}
+              onSave={(emergencyContactName) =>
+                updateSafetyInfo.mutate(
+                  { emergencyContactName },
+                  { onError: notifyError("Couldn't update emergency contact") },
+                )
+              }
             />
             <TripTextField
               icon={<PhoneIcon size={15} style={{ visibility: "hidden" }} />}
-              value={info.emergencyContactPhone}
+              value={safetyInfo?.emergencyContactPhone ?? null}
               placeholder="Add emergency contact phone"
-              onSave={(value) => update("emergencyContactPhone", value)}
+              onSave={(emergencyContactPhone) =>
+                updateSafetyInfo.mutate(
+                  { emergencyContactPhone },
+                  { onError: notifyError("Couldn't update emergency contact") },
+                )
+              }
             />
             <TripTextField
               icon={<LifebuoyIcon size={15} />}
-              value={info.rangerStationName}
+              value={safetyInfo?.rangerStationName ?? null}
               placeholder="Add ranger station or park office"
-              onSave={(value) => update("rangerStationName", value)}
+              onSave={(rangerStationName) =>
+                updateSafetyInfo.mutate(
+                  { rangerStationName },
+                  { onError: notifyError("Couldn't update ranger station") },
+                )
+              }
             />
             <TripTextField
               icon={<LifebuoyIcon size={15} style={{ visibility: "hidden" }} />}
-              value={info.rangerStationPhone}
+              value={safetyInfo?.rangerStationPhone ?? null}
               placeholder="Add ranger station phone"
-              onSave={(value) => update("rangerStationPhone", value)}
+              onSave={(rangerStationPhone) =>
+                updateSafetyInfo.mutate(
+                  { rangerStationPhone },
+                  { onError: notifyError("Couldn't update ranger station") },
+                )
+              }
             />
           </Stack>
 
@@ -162,10 +171,17 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
               <Group gap={0} wrap="nowrap">
                 <TimeField
                   icon={<ClockIcon size={15} />}
-                  value={info.departureTime}
+                  value={safetyInfo?.expectedDepartureTime ?? ""}
                   placeholder="Departure time"
                   label="Departure time"
-                  onSave={(value) => update("departureTime", value)}
+                  onSave={(expectedDepartureTime) =>
+                    updateSafetyInfo.mutate(
+                      { expectedDepartureTime },
+                      {
+                        onError: notifyError("Couldn't update departure time"),
+                      },
+                    )
+                  }
                 />
                 {tripStart && (
                   <Text size="sm" c="dimmed">
@@ -179,10 +195,15 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
               <Group gap={0} wrap="nowrap">
                 <TimeField
                   icon={<ClockIcon size={15} />}
-                  value={info.returnTime}
+                  value={safetyInfo?.expectedReturnTime ?? ""}
                   placeholder="Return time"
                   label="Return time"
-                  onSave={(value) => update("returnTime", value)}
+                  onSave={(expectedReturnTime) =>
+                    updateSafetyInfo.mutate(
+                      { expectedReturnTime },
+                      { onError: notifyError("Couldn't update return time") },
+                    )
+                  }
                 />
                 {tripEnd && (
                   <Text size="sm" c="dimmed">
@@ -192,13 +213,7 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
               </Group>
             </Group>
 
-            <PartySection
-              party={party}
-              onAdd={addPartyMember}
-              onRemove={removePartyMember}
-              onEditName={editPartyMemberName}
-              onEditPhone={editPartyMemberPhone}
-            />
+            <PartySection tripId={tripId} party={partyMembers} />
           </Stack>
         </SimpleGrid>
 
@@ -219,21 +234,44 @@ export default function SafetyInfo({ tripStart, tripEnd }: Props) {
             <Stack gap={8} mt="sm" pl="md">
               <TripTextField
                 icon={<CarIcon size={15} />}
-                value={info.vehicleDescription}
+                value={safetyInfo?.vehicleDescription ?? null}
                 placeholder="Add vehicle description"
-                onSave={(value) => update("vehicleDescription", value)}
+                onSave={(vehicleDescription) =>
+                  updateSafetyInfo.mutate(
+                    { vehicleDescription },
+                    {
+                      onError: notifyError(
+                        "Couldn't update vehicle description",
+                      ),
+                    },
+                  )
+                }
               />
               <TripTextField
                 icon={<TicketIcon size={15} />}
-                value={info.permitNumber}
+                value={safetyInfo?.permitOrRouteNumber ?? null}
                 placeholder="Add permit or route number"
-                onSave={(value) => update("permitNumber", value)}
+                onSave={(permitOrRouteNumber) =>
+                  updateSafetyInfo.mutate(
+                    { permitOrRouteNumber },
+                    {
+                      onError: notifyError(
+                        "Couldn't update permit or route number",
+                      ),
+                    },
+                  )
+                }
               />
               <TripTextField
                 icon={<FirstAidIcon size={15} />}
-                value={info.medicalNotes}
+                value={safetyInfo?.medicalNotes ?? null}
                 placeholder="Add medical notes"
-                onSave={(value) => update("medicalNotes", value)}
+                onSave={(medicalNotes) =>
+                  updateSafetyInfo.mutate(
+                    { medicalNotes },
+                    { onError: notifyError("Couldn't update medical notes") },
+                  )
+                }
               />
             </Stack>
           </Collapse>

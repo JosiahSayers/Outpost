@@ -50,7 +50,13 @@ export default function TripPage() {
         <Header trip={trip} />
       </Stack>
 
-      <SafetyInfo tripStart={trip.start} tripEnd={trip.end} />
+      <SafetyInfo
+        tripId={trip.id}
+        safetyInfo={trip.tripSafetyInfo}
+        partyMembers={trip.partyMembers}
+        tripStart={trip.start}
+        tripEnd={trip.end}
+      />
 
       <Divider />
 
