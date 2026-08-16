@@ -148,32 +148,100 @@ export function drawSectionHeading(
 }
 
 const FIELD_LABEL_WIDTH = 90;
-const FIELD_LABEL_GAP = 14;
+export const FIELD_LABEL_GAP = 14;
 export const FIELD_ROW_HEIGHT = 16;
 
+export interface FieldRowOptions {
+  x?: number;
+  width?: number;
+  labelWidth?: number;
+  labelFontSize?: number;
+}
+
+const FIELD_LABEL_SIZE = 9;
+
+// Draws one label/value row at an explicit y, within `options.x`/`width`
+// (defaulting to the full content area at the left margin). Unlike a
+// document.y-driven helper, this lets a caller lay out independent
+// columns — e.g. trip details next to safety info — that each need their
+// own running y, since document.y is a single cursor shared by the whole
+// document. Returns the y immediately below the row so calls can chain.
 export function drawFieldRow(
   document: PDFKit.PDFDocument,
+  y: number,
   label: string,
   value: string,
-): void {
-  ensureSpace(document, FIELD_ROW_HEIGHT);
-  const rowY = document.y;
+  options: FieldRowOptions = {},
+): number {
+  const x = options.x ?? document.page.margins.left;
+  const labelWidth = options.labelWidth ?? FIELD_LABEL_WIDTH;
+  const width = options.width ?? contentWidth(document);
+
   document
     .font("Source Sans 3 SemiBold")
-    .fontSize(9)
+    .fontSize(options.labelFontSize ?? FIELD_LABEL_SIZE)
     .fillColor([100, 100, 100])
-    .text(label, document.page.margins.left, rowY, {
-      width: FIELD_LABEL_WIDTH,
-    });
+    .text(label, x, y, { width: labelWidth });
   document
     .font("Source Sans 3")
     .fontSize(10)
     .fillColor("black")
-    .text(
-      value,
-      document.page.margins.left + FIELD_LABEL_WIDTH + FIELD_LABEL_GAP,
-      rowY,
-      { width: contentWidth(document) - FIELD_LABEL_WIDTH - FIELD_LABEL_GAP },
-    );
-  document.y = rowY + FIELD_ROW_HEIGHT;
+    .text(value, x + labelWidth + FIELD_LABEL_GAP, y, {
+      width: width - labelWidth - FIELD_LABEL_GAP,
+    });
+  return y + FIELD_ROW_HEIGHT;
+}
+
+// Sized above FIELD_LABEL_SIZE (the "Emergency Contact"/"Depart" fields it
+// groups) so it reads as a heading over them, not another field of the
+// same rank. Exported so row labels that open their own group — "Party",
+// "Vehicle" — can match it instead of the plain field-label size.
+export const MINI_HEADING_SIZE = 10;
+export const MINI_HEADING_HEIGHT = 18;
+
+// A small sub-heading within a section (e.g. "Who to call"), not a full
+// drawSectionHeading — no rule, no page-break allowance of its own.
+export function drawMiniHeading(
+  document: PDFKit.PDFDocument,
+  y: number,
+  title: string,
+  x: number,
+): number {
+  document
+    .font("Source Sans 3 SemiBold")
+    .fontSize(MINI_HEADING_SIZE)
+    .fillColor([100, 100, 100])
+    .text(title.toUpperCase(), x, y, { characterSpacing: 0.3 });
+  return y + MINI_HEADING_HEIGHT;
+}
+
+export const STACKED_FIELD_HEIGHT = 28;
+const STACKED_FIELD_VALUE_GAP = 12;
+const STACKED_FIELD_VALUE_INDENT = 8;
+
+// Label-above-value variant of drawFieldRow, for labels too long to sit
+// beside a value in a half-width column (e.g. "Closest Ranger Station").
+// The value indents slightly under its label, echoing drawFieldRow's
+// label/value relationship even though they're stacked instead of inline.
+export function drawStackedField(
+  document: PDFKit.PDFDocument,
+  y: number,
+  label: string,
+  value: string,
+  x: number,
+  width: number,
+): number {
+  document
+    .font("Source Sans 3 SemiBold")
+    .fontSize(9)
+    .fillColor([100, 100, 100])
+    .text(label, x, y, { width });
+  document
+    .font("Source Sans 3")
+    .fontSize(10)
+    .fillColor("black")
+    .text(value, x + STACKED_FIELD_VALUE_INDENT, y + STACKED_FIELD_VALUE_GAP, {
+      width: width - STACKED_FIELD_VALUE_INDENT,
+    });
+  return y + STACKED_FIELD_HEIGHT;
 }

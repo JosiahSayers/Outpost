@@ -1,6 +1,7 @@
 import type { FluidUnit } from "$/frontend/shared-components/converter/fluid-conversions";
 import type { WeightUnit } from "$/frontend/shared-components/converter/weight-conversions";
 import type { FullTrip } from "$/transformers/trip";
+import { transform as tripPartyMemberTransform } from "$/transformers/trip-party-member";
 import PDFDocument from "pdfkit";
 import type { FoodSectionDay } from "./food-section";
 import {
@@ -128,7 +129,11 @@ export async function generateTripSummaryPdf(
   drawTripMasthead(document, trip);
 
   if (options.sections.has("details")) {
-    drawTripDetailsSection(document, trip);
+    drawTripDetailsSection(document, {
+      ...trip,
+      safetyInfo: trip.tripSafetyInfo,
+      partyMembers: trip.partyMembers.map(tripPartyMemberTransform),
+    });
   }
   if (options.sections.has("tasks")) {
     drawTasksSection(document, trip.tasks, { blank: options.taskBlank });
