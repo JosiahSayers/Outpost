@@ -12,6 +12,7 @@ import { mountainHouseScraper } from "$/jobs/workers/public-meal-catalog/vendors
 import { nomadNutritionScraper } from "$/jobs/workers/public-meal-catalog/vendors/nomad-nutrition";
 import { packitGourmetScraper } from "$/jobs/workers/public-meal-catalog/vendors/packit-gourmet";
 import { peakRefuelScraper } from "$/jobs/workers/public-meal-catalog/vendors/peak-refuel";
+import { ubuFoodsScraper } from "$/jobs/workers/public-meal-catalog/vendors/ubu-foods";
 import { wildZoraScraper } from "$/jobs/workers/public-meal-catalog/vendors/wild-zora";
 
 export const PUBLIC_MEAL_CATALOG_QUEUE = "public_meal_catalog__import";
@@ -96,6 +97,12 @@ export const publicMealCatalogImportGroup = defineJobGroup({
       processor: (job) => runVendorImport(job, greenbellyScraper),
       defaultJobOptions,
       schedule: { id: "import-greenbelly", pattern: "1 1 * * 4" },
+    },
+    {
+      name: ubuFoodsScraper.vendorId,
+      processor: (job) => runVendorImport(job, ubuFoodsScraper),
+      defaultJobOptions,
+      schedule: { id: "import-ubu-foods", pattern: "1 1 * * 5" },
     },
     // future vendors added here as their own entry
   ],
