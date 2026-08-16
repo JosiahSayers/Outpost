@@ -1,7 +1,7 @@
 info:
-  name: Upload File
+  name: Download File
   type: http
-  seq: 1
+  seq: 2
 
 http:
   method: POST

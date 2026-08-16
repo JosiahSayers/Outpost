@@ -31,4 +31,10 @@ declare namespace Express {
     session?: import("$/utils/auth").Session;
     mealPlanDayId?: string;
   }
+
+  interface Locals {
+    // Overrides the real R2 client for `tripFileRouter` -- see
+    // getR2Client in app/routers/api/trip/file.ts. Only ever set in tests.
+    r2Client?: import("$/routers/api/trip/file").TripFileR2Client | null;
+  }
 }
