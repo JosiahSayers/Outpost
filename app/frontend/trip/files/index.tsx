@@ -63,7 +63,7 @@ export default function Files({ tripId, files, canUpload }: Props) {
                 Drop a file here, or click to browse
               </Text>
               <Text size="xs" c="dimmed">
-                Up to 10 MB
+                Permits, maps, and other trip documents — up to 10 MB
               </Text>
             </div>
           </Group>
