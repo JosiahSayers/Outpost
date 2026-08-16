@@ -47,3 +47,7 @@ ALTER TABLE "TripPartyMember" ADD CONSTRAINT "TripPartyMember_tripId_fkey" FOREI
 ALTER TABLE "TripSafetyInfo" ADD CONSTRAINT "TripSafetyInfo_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "TripPartyMember" ADD CONSTRAINT "name_or_user_required" CHECK ("name" IS NOT NULL OR "userId" IS NOT NULL);
+
+-- DataMigration: add each trip's owner as a party member
+INSERT INTO "TripPartyMember" ("id", "createdAt", "updatedAt", "userId", "tripId")
+SELECT gen_random_uuid()::text, now(), now(), "userId", "id" FROM "Trip";
