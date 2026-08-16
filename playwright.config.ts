@@ -17,9 +17,11 @@ export default defineConfig({
   // A single app server + Postgres back the whole suite, and each test creates
   // and authenticates its own user (real password hashing on the server), so
   // 3 workers is the sweet spot: a big speedup over serial without enough
-  // concurrent load to starve the server. Locally, Playwright's default (half
-  // the CPU cores) is fine.
-  workers: process.env.CI ? 3 : undefined,
+  // concurrent load to starve the server. Applies locally too -- Playwright's
+  // local default (half the CPU cores) is high enough on many-core machines to
+  // starve the DB connection pool and cause spurious timeouts under full-suite
+  // load.
+  workers: 3,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   use: {
     baseURL: process.env.BASE_URL ?? "http://localhost:3000",
