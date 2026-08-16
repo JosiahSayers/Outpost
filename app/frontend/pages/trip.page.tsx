@@ -6,6 +6,7 @@ import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
 import MealPlanSection from "$/frontend/trip/meal-plan";
 import PackingListSection from "$/frontend/trip/packing-lists";
+import SafetyInfo from "$/frontend/trip/safety-info";
 import Tasks from "$/frontend/trip/tasks";
 import { useTrip } from "$/frontend/utils/api/trip";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
@@ -48,6 +49,10 @@ export default function TripPage() {
         <BackToDashboardLink />
         <Header trip={trip} />
       </Stack>
+
+      <SafetyInfo tripStart={trip.start} tripEnd={trip.end} />
+
+      <Divider />
 
       <Tasks
         tripId={trip.id}
