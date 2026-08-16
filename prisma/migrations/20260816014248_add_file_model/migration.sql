@@ -14,5 +14,8 @@ CREATE TABLE "File" (
 -- CreateIndex
 CREATE UNIQUE INDEX "File_r2Key_key" ON "File"("r2Key");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "File_tripId_filename_key" ON "File"("tripId", "filename");
+
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE SET NULL ON UPDATE CASCADE;

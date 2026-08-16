@@ -625,6 +625,8 @@ model File {
 
   trip   Trip?   @relation(fields: [tripId], references: [id])
   tripId String?
+
+  @@unique([tripId, filename])
 }
 
 model TripPackingList {

@@ -34,13 +34,13 @@ tripFileRouter.post(
       return res.sendStatus(500);
     }
 
-    const storageKey = storageKeys.user.trip.file(
-      req.session!.user.id,
-      String(req.params.id),
-      req.file.originalname,
-    );
     const existingFile = await db.file.findUnique({
-      where: { r2Key: storageKey },
+      where: {
+        tripId_filename: {
+          tripId: String(req.params.id),
+          filename: req.file.originalname,
+        },
+      },
     });
     if (existingFile) {
       return res
@@ -48,6 +48,11 @@ tripFileRouter.post(
         .json({ error: "File with this name already exists on this trip" });
     }
 
+    const storageKey = storageKeys.user.trip.file(
+      req.session!.user.id,
+      String(req.params.id),
+      crypto.randomUUID(),
+    );
     const newFile = await db.file.create({
       data: {
         tripId: String(req.params.id),
@@ -59,7 +64,9 @@ tripFileRouter.post(
     });
 
     try {
-      await r2Client.write(storageKey, req.file.buffer);
+      await r2Client.write(storageKey, req.file.buffer, {
+        type: req.file.mimetype,
+      });
     } catch (e) {
       logger.error("Failed to upload file to r2", e);
       await db.file.delete({ where: { id: newFile.id } });
