@@ -1,0 +1,117 @@
+{
+  "products": [
+    {
+      "id": 9871830057278,
+      "handle": "ubu-hikers-hummus-4-pack",
+      "title": "uBu Hiker's Hummus (4-pack)",
+      "vendor": "uBu",
+      "product_type": "All",
+      "tags": [
+        "camping",
+        "freeze dried",
+        "Hiker's Hummus",
+        "hiking",
+        "outdoors",
+        "plant protein",
+        "vegan",
+        "vegetarian"
+      ],
+      "body_html": "<p>uBu's Hiker's Hummus is made in small batches from great ingredients then freeze-dried.</p>",
+      "images": [
+        {
+          "id": 1,
+          "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/fourflavors.jpg",
+          "variant_ids": []
+        }
+      ],
+      "variants": [
+        {
+          "id": 46975085150526,
+          "option1": "Starter Pack (Everything Bagel; Cilantro Lime;2 - Roasted Garlic;)",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": {
+            "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/fourflavors.jpg"
+          }
+        },
+        {
+          "id": 46975085216062,
+          "option1": "Cilantro Lime (4-Pack)",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": {
+            "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/cil_front.jpg"
+          }
+        },
+        {
+          "id": 46975085248830,
+          "option1": "Roasted Garlic (4-Pack)",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": {
+            "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/garlic_front.jpg"
+          }
+        },
+        {
+          "id": 48786844713278,
+          "option1": "Everything Bagel (4-Pack)",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": {
+            "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/every_front.jpg"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9795215655230,
+      "handle": "kuksa-mug",
+      "title": "Kuksa Mug",
+      "vendor": "uBu Foods",
+      "product_type": "",
+      "tags": ["Hiker's Hummus"],
+      "body_html": "<p>The Kuksa Mug is the perfect accompaniment to our Hiker's Hummus.</p>",
+      "images": [
+        {
+          "id": 2,
+          "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/kuksa.jpg",
+          "variant_ids": []
+        }
+      ],
+      "variants": [
+        {
+          "id": 46881794556222,
+          "option1": "Default Title",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": null
+        }
+      ]
+    },
+    {
+      "id": 10671675408702,
+      "handle": "hikers-hummus-gift-set",
+      "title": "Hiker's Hummus Gift Set",
+      "vendor": "uBu",
+      "product_type": "",
+      "tags": ["Gift"],
+      "body_html": "<p>We think this would make a great gift for any hiker.</p>",
+      "images": [
+        {
+          "id": 3,
+          "src": "https://cdn.shopify.com/s/files/1/0738/4036/1790/files/ixus80-12.jpg",
+          "variant_ids": []
+        }
+      ],
+      "variants": [
+        {
+          "id": 47949396705598,
+          "option1": "Default Title",
+          "available": true,
+          "requires_shipping": true,
+          "featured_image": null
+        }
+      ]
+    }
+  ]
+}
