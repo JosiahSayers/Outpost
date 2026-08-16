@@ -730,10 +730,10 @@ describe("POST /", () => {
     ]);
   });
 
-  it("rejects a brand longer than 25 characters", async () => {
+  it("rejects a brand longer than 50 characters", async () => {
     const response = await request(app)
       .post("/admin/meals")
-      .send({ ...validBody, brand: "a".repeat(26) })
+      .send({ ...validBody, brand: "a".repeat(51) })
       .set("Cookie", adminAuthCookies)
       .expect(400);
 
@@ -741,6 +741,26 @@ describe("POST /", () => {
       expect.objectContaining({
         type: "body",
         errors: [expect.objectContaining({ code: "too_big", path: ["brand"] })],
+      }),
+    ]);
+  });
+
+  it("rejects a sourceProductId longer than 50 characters", async () => {
+    const response = await request(app)
+      .post("/admin/meals")
+      .send({ ...validBody, sourceProductId: "a".repeat(51) })
+      .set("Cookie", adminAuthCookies)
+      .expect(400);
+
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        type: "body",
+        errors: [
+          expect.objectContaining({
+            code: "too_big",
+            path: ["sourceProductId"],
+          }),
+        ],
       }),
     ]);
   });

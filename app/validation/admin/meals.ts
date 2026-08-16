@@ -16,13 +16,13 @@ export const incompleteParams = z.strictObject({
 
 export const createMeal = z.strictObject({
   name: z.string().min(5).max(100),
-  brand: z.string().max(25).optional(),
+  brand: z.string().max(50).optional(),
   calories: z.int().optional(),
   waterMl: z.int().optional(),
   dryWeightGrams: z.int().optional(),
   sourceImageUrl: z.httpUrl().max(1000).optional(),
   sourceVendor: z.string().min(1).max(50),
-  sourceProductId: z.string().min(1).max(15),
+  sourceProductId: z.string().min(1).max(50),
   sourceUrl: z.httpUrl().max(1000),
 });
 
