@@ -34,6 +34,7 @@ const dbIpCheckJob = defineJob({
   name: DB_IP_CHECK,
   processor: async (job) => checkDbIp(job),
   defaultJobOptions,
+  schedule: { id: "monthly-check", pattern: "0 4 2 * *" },
 });
 
 export const { queue: dbIpCheckQueue, worker: dbIpCheckWorker } = dbIpCheckJob;
