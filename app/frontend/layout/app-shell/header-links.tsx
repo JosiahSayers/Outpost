@@ -56,7 +56,7 @@ export default function HeaderLinks({
     });
   };
 
-  if (session.data) {
+  if (session.data?.user) {
     return (
       <AccountMenu
         name={session.data.user.name}

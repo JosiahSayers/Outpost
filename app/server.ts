@@ -8,6 +8,7 @@ import { apiRouter } from "$/routers/api";
 import { emailAssetsRouter } from "$/routers/email-assets";
 import { frontendRouter } from "$/routers/frontend";
 import { healthRouter } from "$/routers/health";
+import { sentryTunnelRouter } from "$/routers/sentry-tunnel";
 import { auth } from "$/utils/auth";
 import { CLOUDFLARE_PROXY_RANGES } from "$/utils/cloudflare-proxy-ranges";
 import * as Sentry from "@sentry/bun";
@@ -34,6 +35,10 @@ if (process.env.NODE_ENV === "production") {
 
 app.use(stashRequestMetadata, attachLogger, requestLogger);
 app.use(ipRateLimiter);
+// Mounted under /api so it rides the existing Caddy proxy rule for /api/*
+// (see docker-compose.staging.yml), and ahead of stashSession since it
+// doesn't need the caller's auth session resolved.
+app.use("/api/monitoring", sentryTunnelRouter);
 app.use(stashSession);
 
 app.all("/api/auth/{*any}", toNodeHandler(auth));
