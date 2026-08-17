@@ -2,6 +2,7 @@ import {
   defaultWorkerOptions,
   redisConnection,
 } from "$/jobs/workers/default-options";
+import * as Sentry from "@sentry/bun";
 import {
   Queue,
   Worker,
@@ -61,7 +62,17 @@ export function defineJob<DataType = unknown, ResultType = unknown>(
     ...(defaultJobOptions ? { defaultJobOptions } : {}),
   });
 
-  const worker = new Worker<DataType, ResultType>(name, processor, {
+  // Sentry Crons check-in for scheduled jobs -- surfaces both failures and
+  // missed/silent runs for this schedule, not just errors that happen to
+  // throw loudly.
+  const monitoredProcessor: Processor<DataType, ResultType> = schedule
+    ? (job, ...rest) =>
+        Sentry.withMonitor(schedule.id, () => processor(job, ...rest), {
+          schedule: { type: "crontab", value: schedule.pattern },
+        })
+    : processor;
+
+  const worker = new Worker<DataType, ResultType>(name, monitoredProcessor, {
     ...defaultWorkerOptions,
     ...workerOptions,
     autorun: false,

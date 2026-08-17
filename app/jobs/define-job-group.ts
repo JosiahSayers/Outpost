@@ -3,6 +3,7 @@ import {
   defaultWorkerOptions,
   redisConnection,
 } from "$/jobs/workers/default-options";
+import * as Sentry from "@sentry/bun";
 import {
   Queue,
   Worker,
@@ -41,18 +42,26 @@ export function createGroupDispatcher<DataType, ResultType>(
   queueName: string,
   jobs: JobGroupMember<DataType, ResultType>[],
 ): Processor<DataType, ResultType> {
-  const processorsByName = new Map(
-    jobs.map((job) => [job.name, job.processor]),
-  );
+  const membersByName = new Map(jobs.map((job) => [job.name, job]));
 
   return (job, ...rest) => {
-    const processor = processorsByName.get(job.name);
-    if (!processor) {
+    const member = membersByName.get(job.name);
+    if (!member) {
       throw new Error(
         `No processor registered for job "${job.name}" in queue "${queueName}"`,
       );
     }
-    return processor(job, ...rest);
+
+    const { processor, schedule } = member;
+    if (!schedule) {
+      return processor(job, ...rest);
+    }
+
+    // Sentry Crons check-in -- surfaces both failures and missed/silent runs
+    // for this schedule, not just errors that happen to throw loudly.
+    return Sentry.withMonitor(schedule.id, () => processor(job, ...rest), {
+      schedule: { type: "crontab", value: schedule.pattern },
+    });
   };
 }
 

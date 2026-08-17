@@ -157,6 +157,13 @@ configs:
           }
 
           handle {
+              # WebKit/Safari requires Access-Control-Allow-Origin on a
+              # <script crossorigin> response to report real file/line/column
+              # details for errors thrown inside it -- even for a same-origin
+              # request, unlike Chrome/Firefox which don't need this. Without
+              # it, Safari reports every error in this bundle as an opaque
+              # webkit-masked-url://hidden/ frame, source maps notwithstanding.
+              header Access-Control-Allow-Origin "*"
               root * /srv/frontend
               encode gzip
               try_files {path} /index.html

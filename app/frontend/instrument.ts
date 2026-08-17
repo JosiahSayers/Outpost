@@ -5,6 +5,12 @@ Sentry.init({
   dsn: process.env.BUN_PUBLIC_SENTRY_DSN,
   environment: process.env.BUN_PUBLIC_ENVIRONMENT,
   release: process.env.BUN_PUBLIC_SHA,
+  // Route envelopes through our own origin rather than posting directly to
+  // Sentry's ingest domain -- content blockers and Safari's cross-site
+  // tracking prevention (especially on iOS) commonly block that direct
+  // request, silently dropping error/replay reports. See
+  // app/routers/sentry-tunnel.ts.
+  tunnel: "/api/monitoring",
   // Avoid collecting IP address (and the geo Sentry derives from it) —
   // GDPR treats both as personal data, and this app doesn't need them.
   dataCollection: {
