@@ -29,6 +29,17 @@ jobs:
       - name: Start new images
         run: ssh outpost-staging 'docker compose up -d'
 
+      - name: Record Sentry deploy
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          SHA=$(ssh outpost-staging 'docker compose exec -T app printenv COMMIT_SHA')
+          curl -sf https://sentry.io/api/0/organizations/josiah-sayers/releases/"$SHA"/deploys/ \
+            -X POST \
+            -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"environment": "staging"}'
+
       - name: Prune dangling images
         if: always()
         run: ssh outpost-staging 'docker image prune -f'

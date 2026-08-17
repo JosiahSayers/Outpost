@@ -10,6 +10,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history, not the default shallow clone -- the Dockerfile's
+          # sourcemaps stage runs `sentry-cli releases set-commits --auto`,
+          # which walks git log between the previous release and this
+          # commit and has nothing to walk otherwise.
+          fetch-depth: 0
 
       - name: Read version
         id: version

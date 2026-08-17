@@ -50,9 +50,18 @@ ARG COMMIT_SHA
 # for this instruction via a BuildKit secret mount, not baked into a layer.
 ENV SENTRY_ORG=josiah-sayers
 ENV SENTRY_PROJECT=outpost
+# git is needed only here (for `releases set-commits --auto`, which shells
+# out to it), not in the final `release` image -- kept out of `base` so it
+# isn't carried into the running production container. Requires the checkout
+# this image is built from to have full history (fetch-depth: 0), or there's
+# nothing for --auto to walk.
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
+    bunx --bun @sentry/cli releases new "$COMMIT_SHA" && \
     bunx --bun @sentry/cli sourcemaps inject ./dist/frontend && \
     bunx --bun @sentry/cli sourcemaps upload --release=$COMMIT_SHA ./dist/frontend && \
+    bunx --bun @sentry/cli releases set-commits "$COMMIT_SHA" --auto --ignore-missing && \
+    bunx --bun @sentry/cli releases finalize "$COMMIT_SHA" && \
     find ./dist/frontend -name '*.map' -delete
 
 # copy production dependencies and source code into final image
