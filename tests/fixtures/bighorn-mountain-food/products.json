@@ -1,0 +1,234 @@
+{
+  "products": [
+    {
+      "id": 9362186993901,
+      "handle": "chicken-alla-vodka-pasta",
+      "title": "Chicken alla Vodka Pasta",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["Chicken", "Entree", "Meal"],
+      "body_html": "<p>The iconic Italian-American pasta, reimagined for the trail.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/VodkaPasta.png?v=1781797584"
+        }
+      ],
+      "variants": [
+        {
+          "title": "1 Pack",
+          "grams": 142,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "4 Pack",
+          "grams": 757,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "6 Pack",
+          "grams": 1039,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993902,
+      "handle": "chicken-alla-vodka-pasta-case-15-meals",
+      "title": "Chicken alla Vodka Pasta — (Single Unit)",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["boost:rewards:disable", "single-meal", "wholesale"],
+      "body_html": "<p>The iconic Italian-American pasta, reimagined for the trail.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/VodkaPasta.png?v=1781797584"
+        }
+      ],
+      "variants": [
+        {
+          "title": "Default Title",
+          "grams": 227,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993903,
+      "handle": "chicken-coop-expedition-pack",
+      "title": "Chicken Coop Expedition Pack",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["Chicken", "Entree", "Meal"],
+      "body_html": "<p>Eight pouches, sixteen servings of our four chef-crafted chicken entrees.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/ChickenCoop.png"
+        }
+      ],
+      "variants": [
+        {
+          "title": "Default Title",
+          "grams": 1402,
+          "available": false,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993904,
+      "handle": "thermal-insulated-coozie",
+      "title": "Thermal Insulated Coozie",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Coozie",
+      "tags": ["Accessory"],
+      "body_html": "<p>Keep your meals hot.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/Coozie.png"
+        }
+      ],
+      "variants": [
+        {
+          "title": "Yellow",
+          "grams": 43,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "Navy",
+          "grams": 43,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993905,
+      "handle": "sample-box-insert",
+      "title": "Sample Box Insert",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Marketing Collateral",
+      "tags": ["internal", "not-for-sale", "sample-box"],
+      "body_html": "<p>Retail Partner Program insert card.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/Icon.png"
+        }
+      ],
+      "variants": [
+        {
+          "title": "Retail Partner Program",
+          "grams": 12,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993906,
+      "handle": "the-best-butter-chicken-and-rice",
+      "title": "The Best Butter Chicken & Rice",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["Chicken", "Entree", "MCF", "Meal"],
+      "body_html": "<p>Rich, aromatic, and deeply satisfying.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/ButterChicken.png"
+        }
+      ],
+      "variants": [
+        {
+          "title": "1 Pack",
+          "grams": 162,
+          "available": false,
+          "requires_shipping": true
+        },
+        {
+          "title": "4 Pack",
+          "grams": 835,
+          "available": false,
+          "requires_shipping": true
+        },
+        {
+          "title": "6 Pack",
+          "grams": 1161,
+          "available": false,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993907,
+      "handle": "creamy-dijon-chicken-with-tarragon-rice",
+      "title": "Creamy Dijon Chicken with Tarragon & Rice",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["Chicken", "Entree", "Meal"],
+      "body_html": "<p>French farmhouse cooking, refined and craveable.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/Dijon.png"
+        }
+      ],
+      "variants": [
+        {
+          "title": "1 Packs",
+          "grams": 162,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "4 Pack",
+          "grams": 835,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "6 Pack",
+          "grams": 1161,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    },
+    {
+      "id": 9362186993908,
+      "handle": "spicy-mexican-birria-and-rice",
+      "title": "Mexican Style Birria & Rice",
+      "vendor": "BIGHORN Mountain Food",
+      "product_type": "Freeze dried meal",
+      "tags": ["Beef", "Entree", "MCF", "Meal"],
+      "body_html": "<p>Zesty, bold, and full of kick.</p>",
+      "images": [
+        {
+          "src": "https://cdn.shopify.com/s/files/1/0678/9074/1485/files/BirriaPackShot-640Calories_0659f689-84cd-4dbd-a50b-eb15e160ef88.png?v=1772484635"
+        }
+      ],
+      "variants": [
+        {
+          "title": "1 Pack",
+          "grams": 142,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "4 Pack",
+          "grams": 757,
+          "available": true,
+          "requires_shipping": true
+        },
+        {
+          "title": "6 Pack",
+          "grams": 1039,
+          "available": true,
+          "requires_shipping": true
+        }
+      ]
+    }
+  ]
+}
