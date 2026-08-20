@@ -1,5 +1,6 @@
 import AdminPagination from "$/frontend/admin/shared/pagination";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import NotificationRow from "$/frontend/layout/app-shell/notification-row";
 import PageContainer from "$/frontend/layout/page-container";
 import {
@@ -9,7 +10,6 @@ import {
   useNotificationList,
 } from "$/frontend/utils/api/notifications";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useDismissAnimation } from "$/frontend/utils/hooks/use-dismiss-animation";
 import {
   Alert,
@@ -37,12 +37,7 @@ export default function NotificationsPage() {
     skip: (page - 1) * PAGE_SIZE,
   };
   const queryKey = notificationKeys.list(params);
-  const {
-    data,
-    isLoading: rawIsLoading,
-    isError,
-  } = useNotificationList(params);
-  const { isLoading, showSpinner } = useDelayedLoading(rawIsLoading);
+  const { data, isLoading, isError } = useNotificationList(params);
   const dismiss = useDismissNotification(queryKey);
   const markRead = useMarkNotificationsRead();
   const { dismissingIds, beginDismiss } = useDismissAnimation((id) =>
@@ -75,40 +70,49 @@ export default function NotificationsPage() {
         ]}
       />
 
-      {isLoading && showSpinner && (
-        <Center py="xl">
-          <Loader />
-        </Center>
-      )}
+      <LoadingSwitch
+        loading={isLoading}
+        fallback={
+          <Center py="xl">
+            <Loader />
+          </Center>
+        }
+      >
+        {() => {
+          if (isError) {
+            return (
+              <Alert color="red" title="Couldn't load notifications">
+                Something went wrong. Please try refreshing the page.
+              </Alert>
+            );
+          }
 
-      {!isLoading && isError && (
-        <Alert color="red" title="Couldn't load notifications">
-          Something went wrong. Please try refreshing the page.
-        </Alert>
-      )}
+          if (data?.notifications.length === 0) {
+            return (
+              <Text c="dimmed" py="xl" ta="center">
+                {tab === "unread"
+                  ? "You're all caught up."
+                  : "Dismissed notifications will show up here."}
+              </Text>
+            );
+          }
 
-      {!isLoading && !isError && data?.notifications.length === 0 && (
-        <Text c="dimmed" py="xl" ta="center">
-          {tab === "unread"
-            ? "You're all caught up."
-            : "Dismissed notifications will show up here."}
-        </Text>
-      )}
-
-      {!isLoading && !isError && (
-        <Stack gap={4}>
-          {data?.notifications.map((notification) => (
-            <NotificationRow
-              key={notification.id}
-              notification={notification}
-              dismissing={dismissingIds.has(notification.id)}
-              dismissible={tab !== "history"}
-              onOpen={() => handleOpen(notification.id, notification.read)}
-              onDismiss={() => beginDismiss(notification.id)}
-            />
-          ))}
-        </Stack>
-      )}
+          return (
+            <Stack gap={4}>
+              {data?.notifications.map((notification) => (
+                <NotificationRow
+                  key={notification.id}
+                  notification={notification}
+                  dismissing={dismissingIds.has(notification.id)}
+                  dismissible={tab !== "history"}
+                  onOpen={() => handleOpen(notification.id, notification.read)}
+                  onDismiss={() => beginDismiss(notification.id)}
+                />
+              ))}
+            </Stack>
+          );
+        }}
+      </LoadingSwitch>
 
       {data && (
         <AdminPagination

@@ -1,30 +1,32 @@
 import AdminShell from "$/frontend/admin/shell";
 import FeedbackDetail from "$/frontend/admin/feedback-detail";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useAdminGuard } from "$/frontend/utils/guards/admin.guard";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { Center, Loader } from "@mantine/core";
 import { useParams } from "wouter";
 
 export default function AdminFeedbackDetailPage() {
   const session = useAdminGuard();
   const { id } = useParams<{ id: string }>();
-  const { isLoading, showSpinner } = useDelayedLoading(
-    session.isPending ||
-      !session.data?.user ||
-      session.data.user.role !== "admin",
-  );
-
-  if (isLoading) {
-    return showSpinner ? (
-      <Center mih="100vh">
-        <Loader />
-      </Center>
-    ) : null;
-  }
 
   return (
-    <AdminShell>
-      <FeedbackDetail feedbackId={id} />
-    </AdminShell>
+    <LoadingSwitch
+      loading={
+        session.isPending ||
+        !session.data?.user ||
+        session.data.user.role !== "admin"
+      }
+      fallback={
+        <Center mih="100vh">
+          <Loader />
+        </Center>
+      }
+    >
+      {() => (
+        <AdminShell>
+          <FeedbackDetail feedbackId={id} />
+        </AdminShell>
+      )}
+    </LoadingSwitch>
   );
 }

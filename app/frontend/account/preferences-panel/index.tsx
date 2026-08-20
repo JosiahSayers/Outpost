@@ -7,14 +7,12 @@ import {
   type WeightEntryUnit,
   type WeightUnit,
 } from "$/frontend/shared-components/converter/weight-conversions";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useUpdateAccountSetting } from "$/frontend/utils/api/account-settings";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { notifyError } from "$/frontend/utils/notify-error";
 import {
   Card,
-  Center,
   Group,
-  Loader,
   SimpleGrid,
   Stack,
   ThemeIcon,
@@ -28,63 +26,72 @@ export type WeightRollupSlug = "weight_rollup";
 
 export default function PreferencesPanel() {
   const { isPending } = useAccountSettingsContext();
-  const { isLoading, showSpinner } = useDelayedLoading(isPending);
   const updateSetting = useUpdateAccountSetting();
 
-  const savePreference = (
-    input:
-      | { slug: FluidSettingSlug; value: FluidUnit }
-      | { slug: "weight_viewing_unit"; value: WeightUnit }
-      | { slug: "weight_entry_unit"; value: WeightEntryUnit }
-      | { slug: WeightRollupSlug; value: "true" | "false" },
-  ) => {
-    updateSetting.mutate(input, {
-      onError: notifyError("Couldn't update preference"),
-    });
-  };
-
-  if (isLoading) {
-    return showSpinner ? (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    ) : null;
-  }
-
   return (
-    <Stack gap="md">
-      <Title order={3}>Units &amp; Preferences</Title>
+    <LoadingSwitch loading={isPending}>
+      {() => {
+        const savePreference = (
+          input:
+            | { slug: FluidSettingSlug; value: FluidUnit }
+            | { slug: "weight_viewing_unit"; value: WeightUnit }
+            | { slug: "weight_entry_unit"; value: WeightEntryUnit }
+            | { slug: WeightRollupSlug; value: "true" | "false" },
+        ) => {
+          updateSetting.mutate(input, {
+            onError: notifyError("Couldn't update preference"),
+          });
+        };
 
-      <Card p={{ base: "sm", sm: "lg" }}>
-        <Group gap="sm" mb="md">
-          <ThemeIcon variant="light" radius="sm" size={30}>
-            <DropIcon size={16} />
-          </ThemeIcon>
-          <Title order={4}>Liquid Measurements</Title>
-        </Group>
-        <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
-          <FluidUnitField slug="liquid_viewing_unit" onSave={savePreference} />
-          <FluidUnitField slug="liquid_entry_unit" onSave={savePreference} />
-        </SimpleGrid>
-      </Card>
+        return (
+          <Stack gap="md">
+            <Title order={3}>Units &amp; Preferences</Title>
 
-      <Card p={{ base: "sm", sm: "lg" }}>
-        <Group gap="sm" mb="md">
-          <ThemeIcon variant="light" radius="sm" size={30}>
-            <ScalesIcon size={16} />
-          </ThemeIcon>
-          <Title order={4}>Weight Measurements</Title>
-        </Group>
-        <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
-          <WeightUnitField slug="weight_viewing_unit" onSave={savePreference} />
-          <WeightUnitField slug="weight_entry_unit" onSave={savePreference} />
-        </SimpleGrid>
-        <WeightRollupField
-          slug="weight_rollup"
-          onSave={savePreference}
-          mt="md"
-        />
-      </Card>
-    </Stack>
+            <Card p={{ base: "sm", sm: "lg" }}>
+              <Group gap="sm" mb="md">
+                <ThemeIcon variant="light" radius="sm" size={30}>
+                  <DropIcon size={16} />
+                </ThemeIcon>
+                <Title order={4}>Liquid Measurements</Title>
+              </Group>
+              <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
+                <FluidUnitField
+                  slug="liquid_viewing_unit"
+                  onSave={savePreference}
+                />
+                <FluidUnitField
+                  slug="liquid_entry_unit"
+                  onSave={savePreference}
+                />
+              </SimpleGrid>
+            </Card>
+
+            <Card p={{ base: "sm", sm: "lg" }}>
+              <Group gap="sm" mb="md">
+                <ThemeIcon variant="light" radius="sm" size={30}>
+                  <ScalesIcon size={16} />
+                </ThemeIcon>
+                <Title order={4}>Weight Measurements</Title>
+              </Group>
+              <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
+                <WeightUnitField
+                  slug="weight_viewing_unit"
+                  onSave={savePreference}
+                />
+                <WeightUnitField
+                  slug="weight_entry_unit"
+                  onSave={savePreference}
+                />
+              </SimpleGrid>
+              <WeightRollupField
+                slug="weight_rollup"
+                onSave={savePreference}
+                mt="md"
+              />
+            </Card>
+          </Stack>
+        );
+      }}
+    </LoadingSwitch>
   );
 }

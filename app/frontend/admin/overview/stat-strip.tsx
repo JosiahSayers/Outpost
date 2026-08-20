@@ -1,3 +1,4 @@
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   useAdminDashboardStats,
@@ -56,7 +57,6 @@ function StatCard({
 export default function StatStrip() {
   const { data: statsList, isPending: isStatsListPending } =
     useAdminDashboardStats();
-  const { isLoading, showSpinner } = useDelayedLoading(isStatsListPending);
 
   const sortedStats = useMemo(() => {
     if (!statsList) return [];
@@ -67,23 +67,30 @@ export default function StatStrip() {
 
   const statQueries = useAdminStatValues(sortedStats);
 
-  if (isLoading) {
-    return showSpinner ? (
-      <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
-        {Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => (
-          <Skeleton key={index} visible>
-            <Card withBorder padding="sm" shadow="xs" h={76} />
-          </Skeleton>
-        ))}
-      </SimpleGrid>
-    ) : null;
-  }
-
   return (
-    <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
-      {statQueries.map(({ data, isPending }, index) => (
-        <StatCard key={sortedStats[index]} data={data} isPending={isPending} />
-      ))}
-    </SimpleGrid>
+    <LoadingSwitch
+      loading={isStatsListPending}
+      fallback={
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
+          {Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => (
+            <Skeleton key={index} visible>
+              <Card withBorder padding="sm" shadow="xs" h={76} />
+            </Skeleton>
+          ))}
+        </SimpleGrid>
+      }
+    >
+      {() => (
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
+          {statQueries.map(({ data, isPending }, index) => (
+            <StatCard
+              key={sortedStats[index]}
+              data={data}
+              isPending={isPending}
+            />
+          ))}
+        </SimpleGrid>
+      )}
+    </LoadingSwitch>
   );
 }

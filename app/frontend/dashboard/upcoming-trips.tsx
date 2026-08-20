@@ -1,7 +1,7 @@
 import NewTripDrawer from "$/frontend/dashboard/new-trip-drawer";
 import TripCard from "$/frontend/dashboard/trip-card";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useTripsPage } from "$/frontend/utils/api/trip";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Button,
   Card,
@@ -32,7 +32,6 @@ export default function UpcomingTrips() {
   // never disagree.
   const skip = showAll ? (page - 1) * PAGE_SIZE : 0;
   const { data, isFetching } = useTripsPage(skip, PAGE_SIZE);
-  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
   const trips = data?.trips ?? [];
   const total = data?.total ?? 0;
 
@@ -60,8 +59,9 @@ export default function UpcomingTrips() {
 
       <NewTripDrawer opened={drawerOpened} onClose={closeDrawer} />
 
-      {isLoading ? (
-        showSpinner ? (
+      <LoadingSwitch
+        loading={isFetching}
+        fallback={
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
             {Array.from({ length: showAll ? 6 : 3 }).map((_, i) => (
               <Card key={i}>
@@ -71,47 +71,55 @@ export default function UpcomingTrips() {
               </Card>
             ))}
           </SimpleGrid>
-        ) : null
-      ) : total === 0 ? (
-        <Text c="dimmed">
-          No upcoming trips. Start planning your next adventure!
-        </Text>
-      ) : (
-        <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-            {trips.slice(0, PREVIEW_SIZE).map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
-          </SimpleGrid>
+        }
+      >
+        {() =>
+          total === 0 ? (
+            <Text c="dimmed">
+              No upcoming trips. Start planning your next adventure!
+            </Text>
+          ) : (
+            <>
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {trips.slice(0, PREVIEW_SIZE).map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </SimpleGrid>
 
-          <Collapse expanded={showAll}>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" mt="md">
-              {trips.slice(PREVIEW_SIZE).map((trip) => (
-                <TripCard key={trip.id} trip={trip} />
-              ))}
-            </SimpleGrid>
+              <Collapse expanded={showAll}>
+                <SimpleGrid
+                  cols={{ base: 1, sm: 2, md: 3 }}
+                  spacing="md"
+                  mt="md"
+                >
+                  {trips.slice(PREVIEW_SIZE).map((trip) => (
+                    <TripCard key={trip.id} trip={trip} />
+                  ))}
+                </SimpleGrid>
 
-            {totalPages > 1 && (
-              <Group justify="center" mt="md">
-                <Pagination
-                  total={totalPages}
-                  value={page}
-                  onChange={setPage}
-                  disabled={isFetching}
-                />
-              </Group>
-            )}
-          </Collapse>
+                {totalPages > 1 && (
+                  <Group justify="center" mt="md">
+                    <Pagination
+                      total={totalPages}
+                      value={page}
+                      onChange={setPage}
+                      disabled={isFetching}
+                    />
+                  </Group>
+                )}
+              </Collapse>
 
-          {hasMoreToShow && (
-            <Group justify="flex-end" mt="sm">
-              <Button variant="subtle" onClick={handleToggle}>
-                {showAll ? "View less" : "View all trips"}
-              </Button>
-            </Group>
-          )}
-        </>
-      )}
+              {hasMoreToShow && (
+                <Group justify="flex-end" mt="sm">
+                  <Button variant="subtle" onClick={handleToggle}>
+                    {showAll ? "View less" : "View all trips"}
+                  </Button>
+                </Group>
+              )}
+            </>
+          )
+        }
+      </LoadingSwitch>
     </section>
   );
 }

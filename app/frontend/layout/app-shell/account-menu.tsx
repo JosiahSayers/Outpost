@@ -2,6 +2,7 @@ import AppLink from "$/frontend/app-link";
 import MarmotAvatar from "$/frontend/layout/app-shell/marmot-avatar";
 import { getInitials } from "$/frontend/utils/get-initials";
 import {
+  Anchor,
   Avatar,
   Box,
   Divider,
@@ -89,14 +90,18 @@ export default function AccountMenu({
           <Box onClick={onNavigate}>
             <Group gap="xs">
               <GearIcon size={16} />
-              <AppLink href="/account">Account Settings</AppLink>
+              <Anchor component={AppLink} href="/account" c="black">
+                Account Settings
+              </Anchor>
             </Group>
           </Box>
           {isAdmin && (
             <Box onClick={onNavigate}>
               <Group gap="xs">
                 <ShieldIcon size={16} />
-                <AppLink href="/console">Admin</AppLink>
+                <Anchor component={AppLink} href="/console" c="black">
+                  Admin
+                </Anchor>
               </Group>
             </Box>
           )}

@@ -1,12 +1,12 @@
 import AppLink from "$/frontend/app-link";
 import NotificationRow from "$/frontend/layout/app-shell/notification-row";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import {
   notificationKeys,
   useDismissNotification,
   useMarkNotificationsRead,
   useNotificationList,
 } from "$/frontend/utils/api/notifications";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useDismissAnimation } from "$/frontend/utils/hooks/use-dismiss-animation";
 import { useUnreadNotificationCount } from "$/frontend/utils/hooks/use-unread-notification-count";
 import { Anchor, Center, Group, Loader, Stack, Text } from "@mantine/core";
@@ -24,12 +24,7 @@ interface NotificationPanelContentProps {
 export default function NotificationPanelContent({
   onNavigate,
 }: NotificationPanelContentProps) {
-  const {
-    data,
-    isLoading: rawIsLoading,
-    isError,
-  } = useNotificationList(PANEL_QUERY);
-  const { isLoading, showSpinner } = useDelayedLoading(rawIsLoading);
+  const { data, isLoading, isError } = useNotificationList(PANEL_QUERY);
   const queryKey = notificationKeys.list(PANEL_QUERY);
   const dismiss = useDismissNotification(queryKey);
   const markRead = useMarkNotificationsRead();
@@ -58,35 +53,42 @@ export default function NotificationPanelContent({
         )}
       </Group>
 
-      {isLoading && showSpinner && (
-        <Center py="md">
-          <Loader size="sm" />
-        </Center>
-      )}
+      <LoadingSwitch
+        loading={isLoading}
+        fallback={
+          <Center py="md">
+            <Loader size="sm" />
+          </Center>
+        }
+      >
+        {() => {
+          if (isError) {
+            return (
+              <Text size="sm" c="dimmed" px="sm" py="md">
+                Couldn't load notifications.
+              </Text>
+            );
+          }
 
-      {!isLoading && isError && (
-        <Text size="sm" c="dimmed" px="sm" py="md">
-          Couldn't load notifications.
-        </Text>
-      )}
+          if (data?.notifications.length === 0) {
+            return (
+              <Text size="sm" c="dimmed" px="sm" py="md">
+                You're all caught up.
+              </Text>
+            );
+          }
 
-      {!isLoading && !isError && data?.notifications.length === 0 && (
-        <Text size="sm" c="dimmed" px="sm" py="md">
-          You're all caught up.
-        </Text>
-      )}
-
-      {!isLoading &&
-        !isError &&
-        data?.notifications.map((notification) => (
-          <NotificationRow
-            key={notification.id}
-            notification={notification}
-            dismissing={dismissingIds.has(notification.id)}
-            onOpen={() => handleOpen(notification.id, notification.read)}
-            onDismiss={() => beginDismiss(notification.id)}
-          />
-        ))}
+          return data?.notifications.map((notification) => (
+            <NotificationRow
+              key={notification.id}
+              notification={notification}
+              dismissing={dismissingIds.has(notification.id)}
+              onOpen={() => handleOpen(notification.id, notification.read)}
+              onDismiss={() => beginDismiss(notification.id)}
+            />
+          ));
+        }}
+      </LoadingSwitch>
 
       <Anchor
         component={AppLink}

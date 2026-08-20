@@ -5,12 +5,12 @@ import EditDrawer from "$/frontend/gear-inventory/edit-drawer";
 import Header from "$/frontend/gear-inventory/header";
 import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Center, Loader, Stack } from "@mantine/core";
+import { Alert, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
@@ -55,81 +55,75 @@ export default function GearInventoryPage() {
     );
   }, [data?.items]);
 
-  const { isLoading, showSpinner } = useDelayedLoading(
-    itemsLoading || settingsPending,
-  );
-
-  if (isLoading) {
-    return showSpinner ? (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    ) : null;
-  }
-
-  if (isError || !data) {
-    return (
-      <PageContainer>
-        <Alert color="red" title="Couldn't load your gear inventory">
-          Something went wrong. Please try refreshing the page.
-        </Alert>
-      </PageContainer>
-    );
-  }
-
-  const handleAdd = () => {
-    setEditItem(null);
-    openDrawer();
-  };
-
-  const handleEdit = (item: ClientGearInventoryItem) => {
-    setEditItem(item);
-    openDrawer();
-  };
-
-  const handleDelete = (item: ClientGearInventoryItem) => {
-    setDeleteItem(item);
-    openDelete();
-  };
-
-  const handleClose = (item: "drawer" | "modal") => {
-    if (item === "drawer") {
-      setEditItem(null);
-      closeDrawer();
-    } else if (item === "modal") {
-      setDeleteItem(null);
-      closeDelete();
-    }
-  };
-
   return (
-    <PageContainer gap="xl">
-      <BackToDashboardLink />
-      <Header items={data.items} onAdd={handleAdd} />
+    <LoadingSwitch loading={itemsLoading || settingsPending}>
+      {() => {
+        if (isError || !data) {
+          return (
+            <PageContainer>
+              <Alert color="red" title="Couldn't load your gear inventory">
+                Something went wrong. Please try refreshing the page.
+              </Alert>
+            </PageContainer>
+          );
+        }
 
-      <Stack gap="lg">
-        {Object.entries(groupedItems).map(([name, items]) => (
-          <CategorySection
-            name={name}
-            items={items}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            formatWeight={formatWeight}
-            key={name}
-          />
-        ))}
-      </Stack>
+        const handleAdd = () => {
+          setEditItem(null);
+          openDrawer();
+        };
 
-      <EditDrawer
-        opened={drawerOpen}
-        onClose={() => handleClose("drawer")}
-        item={editItem}
-      />
-      <DeleteModal
-        opened={deleteOpen}
-        onClose={() => handleClose("modal")}
-        item={deleteItem}
-      />
-    </PageContainer>
+        const handleEdit = (item: ClientGearInventoryItem) => {
+          setEditItem(item);
+          openDrawer();
+        };
+
+        const handleDelete = (item: ClientGearInventoryItem) => {
+          setDeleteItem(item);
+          openDelete();
+        };
+
+        const handleClose = (item: "drawer" | "modal") => {
+          if (item === "drawer") {
+            setEditItem(null);
+            closeDrawer();
+          } else if (item === "modal") {
+            setDeleteItem(null);
+            closeDelete();
+          }
+        };
+
+        return (
+          <PageContainer gap="xl">
+            <BackToDashboardLink />
+            <Header items={data.items} onAdd={handleAdd} />
+
+            <Stack gap="lg">
+              {Object.entries(groupedItems).map(([name, items]) => (
+                <CategorySection
+                  name={name}
+                  items={items}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  formatWeight={formatWeight}
+                  key={name}
+                />
+              ))}
+            </Stack>
+
+            <EditDrawer
+              opened={drawerOpen}
+              onClose={() => handleClose("drawer")}
+              item={editItem}
+            />
+            <DeleteModal
+              opened={deleteOpen}
+              onClose={() => handleClose("modal")}
+              item={deleteItem}
+            />
+          </PageContainer>
+        );
+      }}
+    </LoadingSwitch>
   );
 }
