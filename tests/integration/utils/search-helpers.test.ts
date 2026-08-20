@@ -326,6 +326,30 @@ describe("searchMealPlanItems", () => {
       expect(results).toEqual([]);
     });
 
+    it("includes an incomplete public item an admin has marked ready via readyOverride", async () => {
+      const overridden = await db.publicMealItem.create({
+        data: make("PublicMealItem", {
+          name: "Overridden Ready Bowl",
+          calories: null,
+          waterMl: null,
+          dryWeightGrams: null,
+          readyOverride: true,
+        }),
+      });
+
+      const results = await searchMealPlanItems(
+        "overridden ready bowl",
+        user.id,
+      );
+
+      expect(
+        results.some(
+          (result) =>
+            result.source === "public" && result.item.id === overridden.id,
+        ),
+      ).toBe(true);
+    });
+
     it("returns own and public matches together with no cross-table dedup", async () => {
       await db.mealPlanItem.create({
         data: make("MealPlanItem", {

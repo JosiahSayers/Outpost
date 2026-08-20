@@ -62,6 +62,7 @@ type FormValues = {
   sourceProductId: string;
   sourceUrl: string;
   sourceImageUrl: string;
+  readyOverride: boolean;
 };
 
 function buildPayload(values: FormValues): z.input<typeof createMeal> {
@@ -84,6 +85,7 @@ function buildPayload(values: FormValues): z.input<typeof createMeal> {
     sourceProductId: values.sourceProductId.trim(),
     sourceUrl: values.sourceUrl.trim(),
     sourceImageUrl: values.sourceImageUrl.trim() || undefined,
+    readyOverride: values.readyOverride,
   };
 }
 
@@ -117,6 +119,7 @@ export default function MealDetailPanel({
       // -- prefill with that rather than the vendor's tracked source url so
       // the field reflects what the admin will see re-processed on save.
       sourceImageUrl: meal?.overrideImageUrl ?? meal?.sourceImageUrl ?? "",
+      readyOverride: meal?.readyOverride ?? false,
     },
     validate: schemaResolver(mealFormSchema, { sync: true }),
   });
@@ -205,6 +208,12 @@ export default function MealDetailPanel({
             label="Dry weight"
             {...dryWeightGramsInputProps}
             value={dryWeightGramsInputProps.value}
+          />
+
+          <Switch
+            label="Mark ready despite missing fields"
+            description="Makes this item searchable/forkable by users even though brand, calories, water, or dry weight is still blank. Use only when the vendor genuinely doesn't publish the missing value."
+            {...form.getInputProps("readyOverride", { type: "checkbox" })}
           />
 
           <Group grow>

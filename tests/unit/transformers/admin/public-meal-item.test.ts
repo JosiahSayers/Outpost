@@ -10,6 +10,7 @@ describe("transform", () => {
       sourceUrl: "https://example.com/products/pr-1",
       sourceImageUrl: "https://example.com/images/pr-1.jpg",
       overrideImageUrl: "https://example.com/images/pr-1-override.jpg",
+      readyOverride: true,
     });
 
     expect(transform({ ...item, image: null })).toEqual({
@@ -24,6 +25,7 @@ describe("transform", () => {
       sourceUrl: "https://example.com/products/pr-1",
       sourceImageUrl: "https://example.com/images/pr-1.jpg",
       overrideImageUrl: "https://example.com/images/pr-1-override.jpg",
+      readyOverride: true,
       imageUrl: null,
     });
   });

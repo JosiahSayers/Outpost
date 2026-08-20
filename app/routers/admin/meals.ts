@@ -44,6 +44,9 @@ adminMealsRouter.get(
   validate({ query: incompleteParams }),
   async (req, res) => {
     const where = {
+      // A manually ready-overridden item is a resolved item, not open work
+      // -- it belongs in the "Manually marked ready" list, not this queue.
+      readyOverride: false,
       OR: [
         { brand: null },
         { calories: null },
@@ -72,6 +75,37 @@ adminMealsRouter.get(
       incompleteMeals,
       transformers.admin.publicMealItem,
       incompleteCount,
+      req.query.take,
+    );
+
+    return res.json(page);
+  },
+);
+
+adminMealsRouter.get(
+  "/ready-override",
+  validate({ query: incompleteParams }),
+  async (req, res) => {
+    const where = { readyOverride: true };
+    const [readyOverrideMeals, readyOverrideCount] = await db.$transaction([
+      db.publicMealItem.findMany({
+        where,
+        include: {
+          image: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: req.query.skip,
+        take: req.query.take,
+      }),
+      db.publicMealItem.count({ where }),
+    ]);
+
+    const page = paginate(
+      readyOverrideMeals,
+      transformers.admin.publicMealItem,
+      readyOverrideCount,
       req.query.take,
     );
 
@@ -128,6 +162,7 @@ adminMealsRouter.post("/", validate({ body: createMeal }), async (req, res) => {
         sourceVendor: req.body.sourceVendor,
         sourceProductId: req.body.sourceProductId,
         sourceUrl: req.body.sourceUrl,
+        readyOverride: req.body.readyOverride ?? false,
         imageId,
       },
       include: {
@@ -199,6 +234,7 @@ adminMealsRouter.patch(
           sourceVendor: req.body.sourceVendor,
           sourceProductId: req.body.sourceProductId,
           sourceUrl: req.body.sourceUrl,
+          readyOverride: req.body.readyOverride,
           imageId,
           ...(overrideImageUrl !== undefined ? { overrideImageUrl } : {}),
         },

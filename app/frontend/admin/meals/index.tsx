@@ -4,6 +4,7 @@ import MealResultList from "$/frontend/admin/meals/meal-result-list";
 import PrevNextPager from "$/frontend/admin/shared/prev-next-pager";
 import {
   useAdminMealsIncomplete,
+  useAdminMealsReadyOverride,
   useAdminMealsSearch,
 } from "$/frontend/utils/api/admin-meals";
 import type { ClientAdminPublicMealItem } from "$/transformers/admin/public-meal-item";
@@ -38,8 +39,14 @@ interface SearchState {
   selectedId: string | null;
   // When on, the list is driven by GET /admin/meals/incomplete instead of
   // the search endpoint, and searchInput/vendor/brand are ignored -- see
-  // MealFilters, which disables those fields while this is true.
+  // MealFilters, which disables those fields while this is true. Mutually
+  // exclusive with readyOverrideOnly below.
   incompleteOnly: boolean;
+  // When on, the list is driven by GET /admin/meals/ready-override instead
+  // of the search endpoint -- shows items an admin has manually overridden
+  // to "ready" despite a remaining gap. Mutually exclusive with
+  // incompleteOnly.
+  readyOverrideOnly: boolean;
 }
 
 function parseSearchState(search: string): SearchState {
@@ -52,6 +59,7 @@ function parseSearchState(search: string): SearchState {
     page: Number.isInteger(page) && page > 0 ? page : 1,
     selectedId: params.get("meal"),
     incompleteOnly: params.get("incomplete") === "1",
+    readyOverrideOnly: params.get("readyOverride") === "1",
   };
 }
 
@@ -63,6 +71,7 @@ function buildSearchUrl(state: SearchState): string {
   if (state.page > 1) params.set("page", String(state.page));
   if (state.selectedId) params.set("meal", state.selectedId);
   if (state.incompleteOnly) params.set("incomplete", "1");
+  if (state.readyOverrideOnly) params.set("readyOverride", "1");
   const query = params.toString();
   return query ? `/console/meals?${query}` : "/console/meals";
 }
@@ -85,8 +94,15 @@ export default function AdminMeals() {
   const [state, setState] = useState<SearchState>(() =>
     parseSearchState(initialSearch),
   );
-  const { searchInput, vendor, brand, page, selectedId, incompleteOnly } =
-    state;
+  const {
+    searchInput,
+    vendor,
+    brand,
+    page,
+    selectedId,
+    incompleteOnly,
+    readyOverrideOnly,
+  } = state;
 
   useEffect(() => {
     navigate(buildSearchUrl(state), { replace: true });
@@ -105,22 +121,33 @@ export default function AdminMeals() {
     brand,
     skip,
     PAGE_SIZE,
-    { enabled: !incompleteOnly },
+    { enabled: !incompleteOnly && !readyOverrideOnly },
   );
   const incompleteResult = useAdminMealsIncomplete(skip, PAGE_SIZE, {
     enabled: incompleteOnly,
   });
+  const readyOverrideResult = useAdminMealsReadyOverride(skip, PAGE_SIZE, {
+    enabled: readyOverrideOnly,
+  });
 
-  const { isPending, isFetching, isError } = incompleteOnly
+  // incompleteResult and readyOverrideResult share a result shape (paginated
+  // via total/pageSize), unlike searchResult (hasMore) -- pagedResult picks
+  // between the two paginated views so the branches below don't need to
+  // repeat the incompleteOnly/readyOverrideOnly check three times.
+  const pagedResult = incompleteOnly
     ? incompleteResult
-    : searchResult;
+    : readyOverrideOnly
+      ? readyOverrideResult
+      : null;
 
-  const results = incompleteOnly
-    ? (incompleteResult.data?.items ?? [])
+  const { isPending, isFetching, isError } = pagedResult ?? searchResult;
+
+  const results = pagedResult
+    ? (pagedResult.data?.items ?? [])
     : (searchResult.data?.items ?? []);
-  const hasMore = incompleteOnly
-    ? incompleteResult.data
-      ? skip + incompleteResult.data.items.length < incompleteResult.data.total
+  const hasMore = pagedResult
+    ? pagedResult.data
+      ? skip + pagedResult.data.items.length < pagedResult.data.total
       : false
     : (searchResult.data?.hasMore ?? false);
 
@@ -186,6 +213,16 @@ export default function AdminMeals() {
                 setState((current) => ({
                   ...current,
                   incompleteOnly: value,
+                  readyOverrideOnly: value ? false : current.readyOverrideOnly,
+                  page: 1,
+                }))
+              }
+              readyOverrideOnly={readyOverrideOnly}
+              onReadyOverrideOnlyChange={(value) =>
+                setState((current) => ({
+                  ...current,
+                  readyOverrideOnly: value,
+                  incompleteOnly: value ? false : current.incompleteOnly,
                   page: 1,
                 }))
               }

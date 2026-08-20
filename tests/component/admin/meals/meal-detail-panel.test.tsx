@@ -43,6 +43,7 @@ function makeMeal(
     sourceUrl: "https://example.com/products/chili-1",
     sourceImageUrl: null,
     overrideImageUrl: null,
+    readyOverride: false,
     imageUrl: null,
     ...overrides,
   };
@@ -83,6 +84,19 @@ function ignoreSwitch() {
   });
 }
 
+// Mantine Switch label→input accessible-name association doesn't resolve
+// reliably in happy-dom when the switch also has a `description` -- query by
+// bare role and verify the label text separately instead (see
+// feedback_happy_dom_quirks memory #9). The delete-confirm switch isn't
+// mounted until that modal opens, so this is the only switch on the base
+// render.
+function readyOverrideSwitch() {
+  expect(
+    screen.getByText("Mark ready despite missing fields"),
+  ).toBeInTheDocument();
+  return screen.getByRole("switch");
+}
+
 describe("opening the delete confirmation", () => {
   it("shows the ignore switch checked by default", () => {
     renderPanel();
@@ -117,6 +131,34 @@ describe("prefilling the photo field", () => {
     expect(screen.getByLabelText("Source image URL")).toHaveValue(
       "https://cdn.example.com/vendor.png",
     );
+  });
+});
+
+describe("toggling the ready override", () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("sends readyOverride: true after checking the switch and saving", async () => {
+    global.fetch = mock((url: string, options?: RequestInit) => {
+      expect(url).toBe("/admin/meals/meal-1");
+      expect(options?.method).toBe("PATCH");
+      expect(JSON.parse(options?.body as string)).toMatchObject({
+        readyOverride: true,
+      });
+      return Promise.resolve(
+        new Response(JSON.stringify(makeMeal({ readyOverride: true })), {
+          status: 200,
+        }),
+      );
+    }) as unknown as typeof fetch;
+
+    renderPanel();
+    fireEvent.click(readyOverrideSwitch());
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
   });
 });
 

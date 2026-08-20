@@ -49,15 +49,22 @@ export const adminMealKeys = {
   incompleteLists: () => [...adminMealKeys.all, "incomplete"] as const,
   incomplete: (skip: number, take: number) =>
     [...adminMealKeys.incompleteLists(), skip, take] as const,
+  readyOverrideLists: () => [...adminMealKeys.all, "ready-override"] as const,
+  readyOverride: (skip: number, take: number) =>
+    [...adminMealKeys.readyOverrideLists(), skip, take] as const,
 };
 
-// lists() and incompleteLists() are separate branches of the key tree (see
-// adminMealKeys above), so invalidating one doesn't touch the other --
-// mutations need both to keep the plain search list and the "incomplete
-// only" list in sync with each other.
+// lists(), incompleteLists(), and readyOverrideLists() are separate branches
+// of the key tree (see adminMealKeys above), so invalidating one doesn't
+// touch the others -- mutations need all three to keep the plain search
+// list, the "incomplete only" list, and the "manually marked ready" list in
+// sync with each other.
 function invalidateMealLists(queryClient: ReturnType<typeof useQueryClient>) {
   queryClient.invalidateQueries({ queryKey: adminMealKeys.lists() });
   queryClient.invalidateQueries({ queryKey: adminMealKeys.incompleteLists() });
+  queryClient.invalidateQueries({
+    queryKey: adminMealKeys.readyOverrideLists(),
+  });
 }
 
 export function useAdminMealsMetadata() {
@@ -114,6 +121,31 @@ export function useAdminMealsIncomplete(
       });
       return apiClient<AdminMealsIncompleteResult>(
         `/admin/meals/incomplete?${params}`,
+      );
+    },
+    placeholderData: keepPreviousData,
+    enabled: options?.enabled,
+  });
+}
+
+// Flags public meal items an admin has manually overridden to "ready" (see
+// readyOverride on PublicMealItem) despite a remaining gap -- see GET
+// /admin/meals/ready-override. Mirrors useAdminMealsIncomplete's shape and
+// enabled-toggle pairing with useAdminMealsSearch in AdminMeals.
+export function useAdminMealsReadyOverride(
+  skip: number,
+  take: number,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: adminMealKeys.readyOverride(skip, take),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        skip: String(skip),
+        take: String(take),
+      });
+      return apiClient<AdminMealsIncompleteResult>(
+        `/admin/meals/ready-override?${params}`,
       );
     },
     placeholderData: keepPreviousData,

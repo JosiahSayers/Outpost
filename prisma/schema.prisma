@@ -578,6 +578,12 @@ model PublicMealItem {
   sourceProductId String // vendor's own product id -- the upsert key together with sourceVendor
   sourceUrl       String // product page link, shown to an admin for cross-reference
 
+  // Admin override: lets an item search/fork despite missing fields when a
+  // vendor genuinely never publishes them. Cleared back to false by
+  // mergePublicMealItem if a later import changes brand/calories/waterMl/
+  // dryWeightGrams and the item is still incomplete afterward -- see merge.ts.
+  readyOverride Boolean @default(false)
+
   forkedMealPlanItems MealPlanItem[]
 
   // Full Text Search

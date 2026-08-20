@@ -59,6 +59,9 @@ async function getTotalUsers(): Promise<AdminStat> {
 async function getPublicMeals(): Promise<AdminStat> {
   const incompleteCount = await db.publicMealItem.count({
     where: {
+      // A manually ready-overridden item is resolved, not open work -- see
+      // the matching exclusion on GET /admin/meals/incomplete.
+      readyOverride: false,
       OR: [
         { dryWeightGrams: null },
         { waterMl: null },

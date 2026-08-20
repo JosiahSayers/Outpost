@@ -35,6 +35,7 @@ function existingRow(overrides: Partial<PublicMealItem> = {}): PublicMealItem {
     imageId: "old-image-id",
     sourceImageUrl: "https://cdn.example.com/old.png",
     overrideImageUrl: null,
+    readyOverride: false,
     sourceVendor: "peak_refuel",
     sourceProductId: "123",
     sourceUrl: "https://peakrefuel.com/products/example-old-url",
@@ -54,6 +55,7 @@ describe("mergePublicMealItem", () => {
       dryWeightGrams: 140,
       sourceImageUrl: "https://cdn.example.com/example.png",
       overrideImageUrl: null,
+      readyOverride: false,
       sourceUrl: "https://peakrefuel.com/products/example",
       sourceVendor: "peak_refuel",
       sourceProductId: "123",
@@ -160,5 +162,64 @@ describe("mergePublicMealItem", () => {
     const result = mergePublicMealItem(scraped(), null);
 
     expect(result.overrideImageUrl).toBeNull();
+  });
+
+  it("clears a ready override when a completeness field changes and the item is still incomplete", () => {
+    const result = mergePublicMealItem(
+      scraped({ waterMl: 300, dryWeightGrams: null }),
+      existingRow({
+        waterMl: 200,
+        dryWeightGrams: null,
+        readyOverride: true,
+      }),
+    );
+
+    expect(result.waterMl).toBe(300);
+    expect(result.dryWeightGrams).toBeNull();
+    expect(result.readyOverride).toBe(false);
+  });
+
+  it("keeps a ready override when nothing about the completeness fields changes", () => {
+    const result = mergePublicMealItem(
+      scraped({
+        brand: "Old Brand",
+        calories: 500,
+        waterMl: null,
+        dryWeightGrams: null,
+      }),
+      existingRow({
+        brand: "Old Brand",
+        calories: 500,
+        waterMl: null,
+        dryWeightGrams: null,
+        readyOverride: true,
+      }),
+    );
+
+    expect(result.readyOverride).toBe(true);
+  });
+
+  it("keeps a ready override when a completeness field changes but the item becomes fully complete", () => {
+    const result = mergePublicMealItem(
+      scraped({ waterMl: 300, dryWeightGrams: 150 }),
+      existingRow({
+        waterMl: 200,
+        dryWeightGrams: 150,
+        readyOverride: true,
+      }),
+    );
+
+    expect(result.waterMl).toBe(300);
+    expect(result.dryWeightGrams).toBe(150);
+    expect(result.readyOverride).toBe(true);
+  });
+
+  it("stays false when the item is incomplete and nothing changed", () => {
+    const result = mergePublicMealItem(
+      scraped({ waterMl: null }),
+      existingRow({ waterMl: null, readyOverride: false }),
+    );
+
+    expect(result.readyOverride).toBe(false);
   });
 });
