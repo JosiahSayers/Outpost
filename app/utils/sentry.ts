@@ -8,6 +8,7 @@ Sentry.init({
   release: process.env.COMMIT_SHA, // change to version once that starts being used
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
   enableLogs: true,
+  enabled: process.env.NODE_ENV === "production",
   beforeSend(event) {
     // /api/auth (Better Auth) accepts passwords in the request body, which would
     // otherwise be captured verbatim on error. Scrub just those requests rather
