@@ -63,4 +63,38 @@ describe("stashSession", () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
   });
+
+  it("logs a warning when a session cookie was sent but no session resolved", async () => {
+    spyOn(auth.api, "getSession").mockResolvedValueOnce(null as any);
+    const warn = mock();
+    const mockReq = {
+      headers: {
+        cookie: "__Secure-better-auth.session_token=abc123",
+        "user-agent": "test-agent",
+      },
+      originalUrl: "/dashboard",
+      logger: { warn },
+    } as any;
+    const mockRes = {} as any;
+    const next = mock();
+
+    await stashSession(mockReq, mockRes, next);
+
+    expect(warn).toHaveBeenCalledWith(
+      "Session cookie present but no session resolved",
+      { path: "/dashboard", userAgent: "test-agent" },
+    );
+  });
+
+  it("does not log when no session cookie was sent", async () => {
+    spyOn(auth.api, "getSession").mockResolvedValueOnce(null as any);
+    const warn = mock();
+    const mockReq = { headers: {}, logger: { warn } } as any;
+    const mockRes = {} as any;
+    const next = mock();
+
+    await stashSession(mockReq, mockRes, next);
+
+    expect(warn).not.toHaveBeenCalled();
+  });
 });

@@ -1,7 +1,16 @@
 import "@testing-library/jest-dom";
 import { render, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { Router } from "wouter";
+import * as Sentry from "@sentry/react";
 
 let sessionData: { user: object } | null = null;
 let isPending = false;
@@ -146,6 +155,38 @@ describe("when the session check fails with a 401", () => {
     expect(navigate).toHaveBeenCalledWith(
       "/sign-in?redirect=%2Fdashboard",
       undefined,
+    );
+  });
+});
+
+describe("when redirecting an unauthenticated user to sign-in", () => {
+  const navigate = mock(() => {});
+  let warn: ReturnType<typeof spyOn>;
+
+  beforeEach(() => {
+    sessionData = null;
+    isPending = false;
+    sessionError = { status: 401 };
+    navigate.mockClear();
+    warn = spyOn(Sentry.logger, "warn");
+    render(
+      <Router hook={() => ["/dashboard", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+  });
+
+  it("logs diagnostic context to Sentry", () => {
+    expect(warn).toHaveBeenCalledWith(
+      "Redirecting unauthenticated user to sign-in",
+      expect.objectContaining({
+        path: "/dashboard",
+        sessionErrorStatus: 401,
+      }),
     );
   });
 });
