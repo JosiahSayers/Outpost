@@ -11,6 +11,8 @@ interface MealFiltersProps {
   onBrandChange: (value: string[]) => void;
   incompleteOnly: boolean;
   onIncompleteOnlyChange: (value: boolean) => void;
+  readyOverrideOnly: boolean;
+  onReadyOverrideOnlyChange: (value: boolean) => void;
 }
 
 export default function MealFilters({
@@ -22,6 +24,8 @@ export default function MealFilters({
   onBrandChange,
   incompleteOnly,
   onIncompleteOnlyChange,
+  readyOverrideOnly,
+  onReadyOverrideOnlyChange,
 }: MealFiltersProps) {
   const metadata = useAdminMealsMetadata();
   // brand is nullable on PublicMealItem, so distinct values can include null
@@ -37,7 +41,7 @@ export default function MealFilters({
         leftSection={<MagnifyingGlassIcon size={16} />}
         value={search}
         onChange={(event) => onSearchChange(event.currentTarget.value)}
-        disabled={incompleteOnly}
+        disabled={incompleteOnly || readyOverrideOnly}
       />
       <MultiSelect
         aria-label="Vendor"
@@ -47,7 +51,7 @@ export default function MealFilters({
         onChange={onVendorChange}
         searchable
         clearable
-        disabled={incompleteOnly || metadata.isPending}
+        disabled={incompleteOnly || readyOverrideOnly || metadata.isPending}
         nothingFoundMessage="No vendors"
       />
       <MultiSelect
@@ -58,7 +62,7 @@ export default function MealFilters({
         onChange={onBrandChange}
         searchable
         clearable
-        disabled={incompleteOnly || metadata.isPending}
+        disabled={incompleteOnly || readyOverrideOnly || metadata.isPending}
         nothingFoundMessage="No brands"
       />
       <Divider my={2} />
@@ -68,6 +72,14 @@ export default function MealFilters({
         checked={incompleteOnly}
         onChange={(event) =>
           onIncompleteOnlyChange(event.currentTarget.checked)
+        }
+      />
+      <Switch
+        label="Manually marked ready"
+        description="Items an admin has overridden to appear despite missing fields"
+        checked={readyOverrideOnly}
+        onChange={(event) =>
+          onReadyOverrideOnlyChange(event.currentTarget.checked)
         }
       />
     </Stack>

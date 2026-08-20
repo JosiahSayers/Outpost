@@ -24,6 +24,11 @@ export const createMeal = z.strictObject({
   sourceVendor: z.string().min(1).max(50),
   sourceProductId: z.string().min(1).max(50),
   sourceUrl: z.httpUrl().max(1000),
+  // No .default() here -- editMeal derives from this via .partial(), and a
+  // default would coerce an omitted field to false on PATCH instead of
+  // leaving it undefined ("don't touch"), same as every other field. POST
+  // applies the false default explicitly in the router instead.
+  readyOverride: z.boolean().optional(),
 });
 
 export const editMeal = createMeal.partial();

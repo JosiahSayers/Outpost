@@ -17,6 +17,7 @@ export default function makePublicMealItem(
     imageId: null,
     sourceImageUrl: null,
     overrideImageUrl: null,
+    readyOverride: false,
     sourceVendor: "peak_refuel",
     sourceProductId: faker.string.numeric(10),
     sourceUrl: faker.internet.url(),

@@ -228,6 +228,26 @@ describe("GET /incomplete", () => {
     );
   });
 
+  it("excludes an item an admin has manually marked ready, even though it's still missing fields", async () => {
+    const overridden = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        ...completeOverrides,
+        brand: null,
+        sourceProductId: "incomplete-but-overridden",
+        readyOverride: true,
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/incomplete")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: overridden.id })]),
+    );
+  });
+
   it("returns the admin item shape", async () => {
     const missingBrand = await db.publicMealItem.create({
       data: make("PublicMealItem", {
@@ -365,6 +385,86 @@ describe("GET /incomplete", () => {
         errors: [expect.objectContaining({ code: "unrecognized_keys" })],
       }),
     ]);
+  });
+});
+
+describe("GET /ready-override", () => {
+  it("requires a valid session", async () => {
+    await request(app).get("/admin/meals/ready-override").expect(401);
+  });
+
+  it("requires an admin role", async () => {
+    await request(app)
+      .get("/admin/meals/ready-override")
+      .set("Cookie", authCookies)
+      .expect(403);
+  });
+
+  it("returns only items an admin has marked ready", async () => {
+    const overridden = await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceProductId: "ready-override-1",
+        calories: null,
+        readyOverride: true,
+      }),
+    });
+    await db.publicMealItem.create({
+      data: make("PublicMealItem", {
+        sourceProductId: "not-overridden",
+        calories: null,
+        readyOverride: false,
+      }),
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/ready-override")
+      .set("Cookie", adminAuthCookies)
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    const ids: string[] = response.body.items.map(
+      (item: { id: string }) => item.id,
+    );
+    expect(ids).toEqual([overridden.id]);
+  });
+
+  it("returns an empty list when nothing is overridden", async () => {
+    const response = await request(app)
+      .get("/admin/meals/ready-override")
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toEqual([]);
+    expect(response.body.total).toBe(0);
+  });
+
+  it("paginates using take and skip, and reports the total and pageSize", async () => {
+    await db.publicMealItem.createMany({
+      data: [
+        make("PublicMealItem", {
+          sourceProductId: "ready-page-1",
+          readyOverride: true,
+        }),
+        make("PublicMealItem", {
+          sourceProductId: "ready-page-2",
+          readyOverride: true,
+        }),
+        make("PublicMealItem", {
+          sourceProductId: "ready-page-3",
+          readyOverride: true,
+        }),
+      ],
+    });
+
+    const response = await request(app)
+      .get("/admin/meals/ready-override")
+      .query({ take: 2, skip: 0 })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.items).toHaveLength(2);
+    expect(response.body.total).toBe(3);
+    expect(response.body.pageSize).toBe(2);
   });
 });
 
@@ -601,6 +701,7 @@ describe("POST /", () => {
       sourceUrl: validBody.sourceUrl,
       sourceImageUrl: null,
       overrideImageUrl: null,
+      readyOverride: false,
       imageUrl: null,
     });
 
@@ -628,6 +729,16 @@ describe("POST /", () => {
       .expect(200);
 
     expect(response.body.imageUrl).toBeNull();
+  });
+
+  it("creates a meal with readyOverride set when explicitly requested", async () => {
+    const response = await request(app)
+      .post("/admin/meals")
+      .send({ ...validBody, readyOverride: true })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    expect(response.body.readyOverride).toBe(true);
   });
 
   it("rejects a missing name", async () => {
@@ -860,6 +971,57 @@ describe("PATCH /:id", () => {
       waterMl: 250,
       calories: 777,
     });
+  });
+
+  it("sets readyOverride on an incomplete item", async () => {
+    const existing = await db.publicMealItem.create({
+      data: make("PublicMealItem", { calories: null, readyOverride: false }),
+    });
+
+    await request(app)
+      .patch(`/admin/meals/${existing.id}`)
+      .send({ readyOverride: true })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const updated = await db.publicMealItem.findUnique({
+      where: { id: existing.id },
+    });
+    expect(updated).toMatchObject({ readyOverride: true });
+  });
+
+  it("unsets readyOverride", async () => {
+    const existing = await db.publicMealItem.create({
+      data: make("PublicMealItem", { readyOverride: true }),
+    });
+
+    await request(app)
+      .patch(`/admin/meals/${existing.id}`)
+      .send({ readyOverride: false })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const updated = await db.publicMealItem.findUnique({
+      where: { id: existing.id },
+    });
+    expect(updated).toMatchObject({ readyOverride: false });
+  });
+
+  it("leaves readyOverride unchanged when the body omits it", async () => {
+    const existing = await db.publicMealItem.create({
+      data: make("PublicMealItem", { readyOverride: true }),
+    });
+
+    await request(app)
+      .patch(`/admin/meals/${existing.id}`)
+      .send({ calories: 777 })
+      .set("Cookie", adminAuthCookies)
+      .expect(200);
+
+    const updated = await db.publicMealItem.findUnique({
+      where: { id: existing.id },
+    });
+    expect(updated).toMatchObject({ readyOverride: true, calories: 777 });
   });
 
   it("rejects a name shorter than 5 characters", async () => {

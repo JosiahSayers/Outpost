@@ -38,16 +38,44 @@ export function mergePublicMealItem(
   const sourceImageUrlChanged =
     scraped.imageUrl != null && scraped.imageUrl !== existing?.sourceImageUrl;
 
+  const brand = scraped.brand ?? existing?.brand ?? null;
+  const calories = scraped.calories ?? existing?.calories ?? null;
+  const waterMl = scraped.waterMl ?? existing?.waterMl ?? null;
+  const dryWeightGrams =
+    scraped.dryWeightGrams ?? existing?.dryWeightGrams ?? null;
+
+  // A later import can fill in (or revise) one of the completeness fields
+  // without fully resolving the gap -- e.g. waterMl finally gets parsed but
+  // dryWeightGrams still doesn't. That's new information an admin hasn't
+  // seen, so a standing readyOverride needs to be re-reviewed rather than
+  // silently continuing to apply to a row that's changed underneath it. If
+  // the row is fully complete now, the flag is moot either way -- the
+  // completeness check in searchMealPlanItems passes on its own merits.
+  const completenessFieldChanged =
+    brand !== (existing?.brand ?? null) ||
+    calories !== (existing?.calories ?? null) ||
+    waterMl !== (existing?.waterMl ?? null) ||
+    dryWeightGrams !== (existing?.dryWeightGrams ?? null);
+  const stillIncomplete =
+    brand == null ||
+    calories == null ||
+    waterMl == null ||
+    dryWeightGrams == null;
+
   return {
     name: scraped.name,
-    brand: scraped.brand ?? existing?.brand ?? null,
-    calories: scraped.calories ?? existing?.calories ?? null,
-    waterMl: scraped.waterMl ?? existing?.waterMl ?? null,
-    dryWeightGrams: scraped.dryWeightGrams ?? existing?.dryWeightGrams ?? null,
+    brand,
+    calories,
+    waterMl,
+    dryWeightGrams,
     sourceImageUrl: scraped.imageUrl ?? existing?.sourceImageUrl ?? null,
     overrideImageUrl: sourceImageUrlChanged
       ? null
       : (existing?.overrideImageUrl ?? null),
+    readyOverride:
+      completenessFieldChanged && stillIncomplete
+        ? false
+        : (existing?.readyOverride ?? false),
     sourceUrl: scraped.sourceUrl,
     sourceVendor: scraped.sourceVendor,
     sourceProductId: scraped.sourceProductId,

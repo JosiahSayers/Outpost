@@ -269,6 +269,33 @@ describe("getStat", () => {
       });
     });
 
+    it("excludes a meal an admin has manually marked ready, even though it's still missing fields", async () => {
+      await db.publicMealItem.deleteMany({
+        where: {
+          OR: [
+            { dryWeightGrams: null },
+            { waterMl: null },
+            { calories: null },
+            { sourceImageUrl: null },
+          ],
+        },
+      });
+      await db.publicMealItem.create({
+        data: make("PublicMealItem", { calories: null, readyOverride: true }),
+      });
+
+      const stat = await getStat("incomplete_meals");
+
+      expect(stat).toEqual({
+        stat: "incomplete_meals",
+        label: "Incomplete Meals",
+        value: "0",
+        delta: "0 meals need your attention",
+        trend: "up",
+        sort: 5,
+      });
+    });
+
     it("reports an upward trend and a reassuring delta when no meals are incomplete", async () => {
       await db.publicMealItem.deleteMany({
         where: {

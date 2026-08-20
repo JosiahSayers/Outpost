@@ -89,7 +89,9 @@ export interface SearchMealPlanItemsOptions {
 // their own (only their forks get placed) so they rank by text relevance
 // then recency alongside everything else. Only "complete" public items
 // (every nullable field but the image is filled in) are searchable at all,
-// so fork-on-add never has to cope with a gap -- see BTP-111.
+// so fork-on-add never has to cope with a gap -- see BTP-111. An admin can
+// bypass this via readyOverride when a vendor genuinely never publishes one
+// of the fields -- see the PublicMealItem model and mergePublicMealItem.
 // An own item that's itself a fork (publicMealSourceId set) is excluded
 // from the "own" branch -- otherwise adding a public item once would make
 // it show up twice (as itself and as the fork) on every later search.
@@ -143,10 +145,15 @@ SELECT id, source FROM (
          "PublicMealItem"."createdAt" AS created_at
     FROM "PublicMealItem"
     WHERE "PublicMealItem".data_fts @@ to_tsquery('english', ${formattedQuery})
-      AND "PublicMealItem".brand IS NOT NULL
-      AND "PublicMealItem".calories IS NOT NULL
-      AND "PublicMealItem"."waterMl" IS NOT NULL
-      AND "PublicMealItem"."dryWeightGrams" IS NOT NULL
+      AND (
+        "PublicMealItem"."readyOverride"
+        OR (
+          "PublicMealItem".brand IS NOT NULL
+          AND "PublicMealItem".calories IS NOT NULL
+          AND "PublicMealItem"."waterMl" IS NOT NULL
+          AND "PublicMealItem"."dryWeightGrams" IS NOT NULL
+        )
+      )
 ) combined
 ORDER BY meal_boost DESC, rank DESC, created_at DESC
 LIMIT ${limit};
