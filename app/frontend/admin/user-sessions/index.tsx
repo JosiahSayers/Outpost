@@ -8,8 +8,8 @@ import {
   useAdminUserSessions,
   type SessionStatusFilter,
 } from "$/frontend/utils/api/admin-sessions";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { ApiError } from "$/frontend/utils/api/client";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Anchor,
   Badge,
@@ -48,7 +48,6 @@ export default function UserSessions({ userId }: UserSessionsProps) {
     isError,
     error,
   } = useAdminUserSessions(userId, status, (page - 1) * PAGE_SIZE, PAGE_SIZE);
-  const { isLoading, showSpinner } = useDelayedLoading(sessionsPending);
   const notFound = error instanceof ApiError && error.status === 404;
 
   const sessions = data?.sessions ?? [];
@@ -114,133 +113,145 @@ export default function UserSessions({ userId }: UserSessionsProps) {
             w={{ base: "100%", sm: "auto" }}
           />
 
-          {isLoading &&
-            (showSpinner ? (
+          <LoadingSwitch
+            loading={sessionsPending}
+            fallback={
               <Center py="xl">
                 <Loader size="sm" />
               </Center>
-            ) : null)}
+            }
+          >
+            {() => {
+              if (isError) {
+                return (
+                  <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
+                    <Text ta="center" c="dimmed">
+                      Couldn&rsquo;t load sessions for this account.
+                    </Text>
+                  </Paper>
+                );
+              }
 
-          {!isLoading && isError && (
-            <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
-              <Text ta="center" c="dimmed">
-                Couldn&rsquo;t load sessions for this account.
-              </Text>
-            </Paper>
-          )}
+              if (sessions.length === 0) {
+                return (
+                  <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
+                    <Text ta="center" fw={700}>
+                      No {status === "all" ? "" : status} sessions
+                    </Text>
+                    <Text ta="center" c="dimmed" size="sm" mt={4}>
+                      This account has no {status === "all" ? "" : status}{" "}
+                      sessions to show.
+                    </Text>
+                  </Paper>
+                );
+              }
 
-          {!isLoading && !isError && sessions.length === 0 && (
-            <Paper withBorder p="xl" style={{ borderStyle: "dashed" }}>
-              <Text ta="center" fw={700}>
-                No {status === "all" ? "" : status} sessions
-              </Text>
-              <Text ta="center" c="dimmed" size="sm" mt={4}>
-                This account has no {status === "all" ? "" : status} sessions to
-                show.
-              </Text>
-            </Paper>
-          )}
-
-          {!isLoading && !isError && sessions.length > 0 && (
-            <Paper withBorder>
-              <Table.ScrollContainer minWidth={720}>
-                <Table highlightOnHover verticalSpacing="sm">
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Device</Table.Th>
-                      <Table.Th>Location</Table.Th>
-                      <Table.Th>IP Address</Table.Th>
-                      <Table.Th>Status</Table.Th>
-                      <Table.Th>Impersonation</Table.Th>
-                      <Table.Th>Last active</Table.Th>
-                      <Table.Th />
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {sessions.map((session) => (
-                      <Table.Tr
-                        key={session.id}
-                        bg={session.impersonatedBy ? "bark-brown.0" : undefined}
-                      >
-                        <Table.Td>
-                          <DeviceCell userAgent={session.userAgent} />
-                        </Table.Td>
-                        <Table.Td>
-                          <LocationCell location={session.location} />
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm" ff="monospace">
-                            {session.ipAddress ?? "—"}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <SessionStatusBadge expiresAt={session.expiresAt} />
-                        </Table.Td>
-                        <Table.Td>
-                          {session.impersonatedBy ? (
-                            <Tooltip
-                              label={`Admin id: ${session.impersonatedBy}`}
+              return (
+                <>
+                  <Paper withBorder>
+                    <Table.ScrollContainer minWidth={720}>
+                      <Table highlightOnHover verticalSpacing="sm">
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Device</Table.Th>
+                            <Table.Th>Location</Table.Th>
+                            <Table.Th>IP Address</Table.Th>
+                            <Table.Th>Status</Table.Th>
+                            <Table.Th>Impersonation</Table.Th>
+                            <Table.Th>Last active</Table.Th>
+                            <Table.Th />
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {sessions.map((session) => (
+                            <Table.Tr
+                              key={session.id}
+                              bg={
+                                session.impersonatedBy
+                                  ? "bark-brown.0"
+                                  : undefined
+                              }
                             >
-                              <Badge
-                                color="bark-brown"
-                                leftSection={<EyeIcon size={12} />}
-                              >
-                                Impersonated
-                              </Badge>
-                            </Tooltip>
-                          ) : (
-                            <Text size="xs" c="dimmed">
-                              &mdash;
-                            </Text>
-                          )}
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm">
-                            {formatSessionDate(session.updatedAt)}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            Started {formatSessionDate(session.createdAt)}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          {isActive(session.expiresAt) ? (
-                            <SessionRowMenu
-                              userId={userId}
-                              sessionId={session.id}
-                            />
-                          ) : null}
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Table.ScrollContainer>
-            </Paper>
-          )}
+                              <Table.Td>
+                                <DeviceCell userAgent={session.userAgent} />
+                              </Table.Td>
+                              <Table.Td>
+                                <LocationCell location={session.location} />
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm" ff="monospace">
+                                  {session.ipAddress ?? "—"}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <SessionStatusBadge
+                                  expiresAt={session.expiresAt}
+                                />
+                              </Table.Td>
+                              <Table.Td>
+                                {session.impersonatedBy ? (
+                                  <Tooltip
+                                    label={`Admin id: ${session.impersonatedBy}`}
+                                  >
+                                    <Badge
+                                      color="bark-brown"
+                                      leftSection={<EyeIcon size={12} />}
+                                    >
+                                      Impersonated
+                                    </Badge>
+                                  </Tooltip>
+                                ) : (
+                                  <Text size="xs" c="dimmed">
+                                    &mdash;
+                                  </Text>
+                                )}
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm">
+                                  {formatSessionDate(session.updatedAt)}
+                                </Text>
+                                <Text size="xs" c="dimmed">
+                                  Started {formatSessionDate(session.createdAt)}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                {isActive(session.expiresAt) ? (
+                                  <SessionRowMenu
+                                    userId={userId}
+                                    sessionId={session.id}
+                                  />
+                                ) : null}
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    </Table.ScrollContainer>
+                  </Paper>
 
-          {!isLoading && !isError && sessions.length > 0 && (
-            <AdminPagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={total}
-              onPageChange={setPage}
-              disabled={isFetching}
-            />
-          )}
+                  <AdminPagination
+                    page={page}
+                    pageSize={PAGE_SIZE}
+                    total={total}
+                    onPageChange={setPage}
+                    disabled={isFetching}
+                  />
 
-          {!isLoading && !isError && sessions.length > 0 && (
-            <Text size="10px" c="dimmed" ta="right">
-              <Anchor
-                href="https://db-ip.com"
-                target="_blank"
-                rel="noreferrer"
-                size="10px"
-                c="dimmed"
-              >
-                IP geolocation by DB-IP
-              </Anchor>
-            </Text>
-          )}
+                  <Text size="10px" c="dimmed" ta="right">
+                    <Anchor
+                      href="https://db-ip.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      size="10px"
+                      c="dimmed"
+                    >
+                      IP geolocation by DB-IP
+                    </Anchor>
+                  </Text>
+                </>
+              );
+            }}
+          </LoadingSwitch>
         </>
       )}
     </Stack>

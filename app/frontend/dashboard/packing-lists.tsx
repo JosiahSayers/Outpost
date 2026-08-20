@@ -1,7 +1,7 @@
 import PackingListCard from "$/frontend/dashboard/packing-lists/packing-list-card";
 import NewPackingListDrawer from "$/frontend/dashboard/packing-lists/new-packing-list-drawer";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { usePackingLists } from "$/frontend/utils/api/packing-list";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Button,
   Card,
@@ -17,7 +17,6 @@ import { PlusIcon } from "@phosphor-icons/react";
 
 export default function PackingLists() {
   const { data: lists, isFetching } = usePackingLists();
-  const { isLoading, showSpinner } = useDelayedLoading(isFetching);
   const [showAll, { toggle: toggleShowAll }] = useDisclosure(false);
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -38,8 +37,9 @@ export default function PackingLists() {
         </Button>
       </Group>
 
-      {isLoading ? (
-        showSpinner ? (
+      <LoadingSwitch
+        loading={isFetching}
+        fallback={
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
             <Card>
               <Skeleton height={16} width="60%" mb="xs" />
@@ -47,42 +47,46 @@ export default function PackingLists() {
               <Skeleton height={28} width={90} />
             </Card>
           </SimpleGrid>
-        ) : null
-      ) : !lists || lists.length === 0 ? (
-        <Text c="dimmed">
-          No Packing lists yet. Create one to get started planning.
-        </Text>
-      ) : (
-        <>
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-            {lists.slice(0, 3).map((list) => (
-              <PackingListCard key={list.id} list={list} />
-            ))}
-          </SimpleGrid>
-
-          {lists.length > 3 && (
+        }
+      >
+        {() =>
+          !lists || lists.length === 0 ? (
+            <Text c="dimmed">
+              No Packing lists yet. Create one to get started planning.
+            </Text>
+          ) : (
             <>
-              <Collapse expanded={showAll}>
-                <SimpleGrid
-                  cols={{ base: 1, sm: 2, md: 3 }}
-                  spacing="md"
-                  mt="md"
-                >
-                  {lists.slice(3).map((list) => (
-                    <PackingListCard key={list.id} list={list} />
-                  ))}
-                </SimpleGrid>
-              </Collapse>
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {lists.slice(0, 3).map((list) => (
+                  <PackingListCard key={list.id} list={list} />
+                ))}
+              </SimpleGrid>
 
-              <Group justify="flex-end" mt="sm">
-                <Button variant="subtle" onClick={toggleShowAll}>
-                  {showAll ? "View less" : "View all lists"}
-                </Button>
-              </Group>
+              {lists.length > 3 && (
+                <>
+                  <Collapse expanded={showAll}>
+                    <SimpleGrid
+                      cols={{ base: 1, sm: 2, md: 3 }}
+                      spacing="md"
+                      mt="md"
+                    >
+                      {lists.slice(3).map((list) => (
+                        <PackingListCard key={list.id} list={list} />
+                      ))}
+                    </SimpleGrid>
+                  </Collapse>
+
+                  <Group justify="flex-end" mt="sm">
+                    <Button variant="subtle" onClick={toggleShowAll}>
+                      {showAll ? "View less" : "View all lists"}
+                    </Button>
+                  </Group>
+                </>
+              )}
             </>
-          )}
-        </>
-      )}
+          )
+        }
+      </LoadingSwitch>
     </section>
   );
 }

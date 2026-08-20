@@ -1,6 +1,7 @@
 import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import Files from "$/frontend/trip/files";
 import Header from "$/frontend/trip/header";
 import Links from "$/frontend/trip/links";
@@ -10,8 +11,7 @@ import SafetyInfo from "$/frontend/trip/safety-info";
 import Tasks from "$/frontend/trip/tasks";
 import { useTrip } from "$/frontend/utils/api/trip";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
-import { Alert, Center, Divider, Loader, Stack } from "@mantine/core";
+import { Alert, Divider, Stack } from "@mantine/core";
 import { useParams } from "wouter";
 
 export default function TripPage() {
@@ -19,84 +19,79 @@ export default function TripPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading: tripLoading, isError } = useTrip(id);
   const { isPending: settingsPending } = useAccountSettingsContext();
-  const { isLoading, showSpinner } = useDelayedLoading(
-    tripLoading || settingsPending,
-  );
-
-  if (isLoading) {
-    return showSpinner ? (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    ) : null;
-  }
-
-  if (isError || !data) {
-    return (
-      <PageContainer>
-        <Alert color="red" title="Couldn't load this trip">
-          The trip may not exist or you may not have access to it.
-        </Alert>
-      </PageContainer>
-    );
-  }
-
-  const trip = data.trip;
 
   return (
-    <PageContainer gap="xl">
-      <Stack gap="md">
-        <BackToDashboardLink />
-        <Header trip={trip} />
-      </Stack>
+    <LoadingSwitch loading={tripLoading || settingsPending}>
+      {() => {
+        if (isError || !data) {
+          return (
+            <PageContainer>
+              <Alert color="red" title="Couldn't load this trip">
+                The trip may not exist or you may not have access to it.
+              </Alert>
+            </PageContainer>
+          );
+        }
 
-      <SafetyInfo
-        tripId={trip.id}
-        safetyInfo={trip.tripSafetyInfo}
-        partyMembers={trip.partyMembers}
-        tripStart={trip.start}
-        tripEnd={trip.end}
-      />
+        const trip = data.trip;
 
-      <Divider />
+        return (
+          <PageContainer gap="xl">
+            <Stack gap="md">
+              <BackToDashboardLink />
+              <Header trip={trip} />
+            </Stack>
 
-      <Tasks
-        tripId={trip.id}
-        tasks={trip.tasks}
-        tripStart={trip.start}
-        tripEnd={trip.end}
-      />
+            <SafetyInfo
+              tripId={trip.id}
+              safetyInfo={trip.tripSafetyInfo}
+              partyMembers={trip.partyMembers}
+              tripStart={trip.start}
+              tripEnd={trip.end}
+            />
 
-      <Divider />
+            <Divider />
 
-      <MealPlanSection
-        tripId={trip.id}
-        mealPlan={trip.mealPlan}
-        tripStart={trip.start}
-      />
+            <Tasks
+              tripId={trip.id}
+              tasks={trip.tasks}
+              tripStart={trip.start}
+              tripEnd={trip.end}
+            />
 
-      <Divider />
+            <Divider />
 
-      <PackingListSection
-        tripId={trip.id}
-        packingList={trip.packingList}
-        mealPlan={trip.mealPlan}
-      />
+            <MealPlanSection
+              tripId={trip.id}
+              mealPlan={trip.mealPlan}
+              tripStart={trip.start}
+            />
 
-      <Divider />
+            <Divider />
 
-      <Links tripId={trip.id} links={trip.links} />
+            <PackingListSection
+              tripId={trip.id}
+              packingList={trip.packingList}
+              mealPlan={trip.mealPlan}
+            />
 
-      {(trip.canUploadFiles || trip.files.length > 0) && (
-        <>
-          <Divider />
-          <Files
-            tripId={trip.id}
-            files={trip.files}
-            canUpload={trip.canUploadFiles}
-          />
-        </>
-      )}
-    </PageContainer>
+            <Divider />
+
+            <Links tripId={trip.id} links={trip.links} />
+
+            {(trip.canUploadFiles || trip.files.length > 0) && (
+              <>
+                <Divider />
+                <Files
+                  tripId={trip.id}
+                  files={trip.files}
+                  canUpload={trip.canUploadFiles}
+                />
+              </>
+            )}
+          </PageContainer>
+        );
+      }}
+    </LoadingSwitch>
   );
 }

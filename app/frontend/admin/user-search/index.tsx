@@ -5,8 +5,8 @@ import NoResultsState from "$/frontend/admin/user-search/search-states/no-result
 import PreSearchState from "$/frontend/admin/user-search/search-states/pre-search";
 import UserDetailPanel from "$/frontend/admin/user-search/user-detail-panel";
 import Error from "$/frontend/shared-components/error";
+import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useAdminUserSearch } from "$/frontend/utils/api/admin-users";
-import { useDelayedLoading } from "$/frontend/utils/hooks/use-delayed-loading";
 import {
   Anchor,
   Box,
@@ -82,7 +82,6 @@ export default function UserSearch() {
     results.find((user) => user.id === selectedUserId) ?? null;
   const hasSearched = debouncedSearch.length > 0;
   const isSearching = hasSearched && (isPending || isFetching);
-  const { isLoading, showSpinner } = useDelayedLoading(isSearching);
 
   const showList = isWideLayout || !selectedUser;
 
@@ -113,76 +112,89 @@ export default function UserSearch() {
 
       {!hasSearched && <PreSearchState />}
 
-      {hasSearched && isError && (
-        <Error message={error instanceof Error ? error.message : undefined} />
-      )}
+      {hasSearched && (
+        <LoadingSwitch loading={isSearching} fallback={<LoadingState />}>
+          {() => {
+            if (isError) {
+              return (
+                <Error
+                  message={error instanceof Error ? error.message : undefined}
+                />
+              );
+            }
 
-      {hasSearched &&
-        !isError &&
-        isLoading &&
-        (showSpinner ? <LoadingState /> : null)}
+            if (results.length === 0) {
+              return <NoResultsState searchTerm={debouncedSearch} />;
+            }
 
-      {hasSearched && !isError && !isLoading && results.length === 0 && (
-        <NoResultsState searchTerm={debouncedSearch} />
-      )}
+            return (
+              <Flex
+                gap="md"
+                align="flex-start"
+                direction={{ base: "column", sm: "row" }}
+              >
+                {showList && (
+                  <Box
+                    w={{ base: "100%", sm: selectedUser ? 340 : "100%" }}
+                    style={{ flexShrink: 0 }}
+                  >
+                    <SearchResults
+                      results={results}
+                      selectedUserId={selectedUserId}
+                      onSelect={(userId) =>
+                        setState({ searchInput, selectedUserId: userId, page })
+                      }
+                      isWideLayout={!!isWideLayout && !selectedUser}
+                    />
+                    <AdminPagination
+                      page={page}
+                      pageSize={PAGE_SIZE}
+                      total={total}
+                      onPageChange={(newPage) =>
+                        setState({
+                          searchInput,
+                          selectedUserId,
+                          page: newPage,
+                        })
+                      }
+                      disabled={isFetching}
+                    />
+                  </Box>
+                )}
 
-      {hasSearched && !isError && !isLoading && results.length > 0 && (
-        <Flex
-          gap="md"
-          align="flex-start"
-          direction={{ base: "column", sm: "row" }}
-        >
-          {showList && (
-            <Box
-              w={{ base: "100%", sm: selectedUser ? 340 : "100%" }}
-              style={{ flexShrink: 0 }}
-            >
-              <SearchResults
-                results={results}
-                selectedUserId={selectedUserId}
-                onSelect={(userId) =>
-                  setState({ searchInput, selectedUserId: userId, page })
-                }
-                isWideLayout={!!isWideLayout && !selectedUser}
-              />
-              <AdminPagination
-                page={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                onPageChange={(newPage) =>
-                  setState({ searchInput, selectedUserId, page: newPage })
-                }
-                disabled={isFetching}
-              />
-            </Box>
-          )}
+                {selectedUser && (
+                  <Box style={{ flex: 1, minWidth: 0 }} w="100%">
+                    {!isWideLayout && (
+                      <Anchor
+                        component="button"
+                        type="button"
+                        onClick={() =>
+                          setState({
+                            searchInput,
+                            selectedUserId: null,
+                            page,
+                          })
+                        }
+                        underline="never"
+                        c="dimmed"
+                        fw={600}
+                        fz="sm"
+                        mb="sm"
+                        display="inline-flex"
+                        style={{ alignItems: "center", gap: 6 }}
+                      >
+                        <ArrowLeftIcon size={14} />
+                        Back to results
+                      </Anchor>
+                    )}
 
-          {selectedUser && (
-            <Box style={{ flex: 1, minWidth: 0 }} w="100%">
-              {!isWideLayout && (
-                <Anchor
-                  component="button"
-                  type="button"
-                  onClick={() =>
-                    setState({ searchInput, selectedUserId: null, page })
-                  }
-                  underline="never"
-                  c="dimmed"
-                  fw={600}
-                  fz="sm"
-                  mb="sm"
-                  display="inline-flex"
-                  style={{ alignItems: "center", gap: 6 }}
-                >
-                  <ArrowLeftIcon size={14} />
-                  Back to results
-                </Anchor>
-              )}
-
-              <UserDetailPanel user={selectedUser} />
-            </Box>
-          )}
-        </Flex>
+                    <UserDetailPanel user={selectedUser} />
+                  </Box>
+                )}
+              </Flex>
+            );
+          }}
+        </LoadingSwitch>
       )}
     </Stack>
   );
