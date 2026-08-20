@@ -1,4 +1,5 @@
 import { authClient } from "$/frontend/utils/auth-client";
+import * as Sentry from "@sentry/react";
 import { useEffect } from "react";
 
 const RETRY_DELAY_MS = 2000;
@@ -13,6 +14,7 @@ const RETRY_DELAY_MS = 2000;
 export function useResolvedSession() {
   const session = authClient.useSession();
   const isTransientError = !!session.error && session.error.status !== 401;
+  const user = session.data?.user;
 
   useEffect(() => {
     if (!isTransientError) {
@@ -22,6 +24,14 @@ export function useResolvedSession() {
     const timeoutId = setTimeout(() => session.refetch(), RETRY_DELAY_MS);
     return () => clearTimeout(timeoutId);
   }, [isTransientError, session.refetch]);
+
+  // Mirrors stashSession on the backend, which tags every request with the
+  // resolved user -- without this, frontend errors/replays/logs carry no
+  // user identity, so there's no way to filter Sentry down to "everything
+  // for this one user" the way the backend already allows.
+  useEffect(() => {
+    Sentry.setUser(user ? { id: user.id, email: user.email } : null);
+  }, [user?.id, user?.email]);
 
   if (isTransientError && !session.data?.user) {
     return { ...session, isPending: true };
