@@ -21,6 +21,12 @@ export function useAuthenticatedGuard() {
       Sentry.logger.warn("Redirecting unauthenticated user to sign-in", {
         path: location,
         sessionErrorStatus: session.error?.status ?? null,
+        // Distinguishes a cold query that never had data from one serving
+        // stale cache while a background refetch is still settling -- the
+        // latter is a much more likely spot for a "looks logged out for a
+        // moment" race than a genuine sign-out.
+        sessionDataIsNull: session.data === null,
+        isRefetching: session.isRefetching,
         displayMode: window.matchMedia("(display-mode: standalone)").matches
           ? "standalone"
           : "browser",

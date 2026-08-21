@@ -54,14 +54,48 @@ sentryTunnelRouter.post(
     }
 
     const projectId = dsn.pathname.replace("/", "");
-    const upstream = await fetch(
-      `https://${dsn.hostname}/api/${projectId}/envelope/`,
-      {
-        method: "POST",
-        body: new Uint8Array(envelope),
-        headers: { "Content-Type": "application/x-sentry-envelope" },
-      },
-    );
+    // Item types/count only, for diagnosing forwarding failures -- a lossy
+    // UTF-8 decode is fine here since we're just pattern-matching ASCII JSON
+    // keys in item headers, not reconstructing the (possibly binary) body
+    // we already forward untouched below.
+    const itemTypes = [
+      ...envelope.toString("utf-8").matchAll(/"type":"(\w+)"/g),
+    ].map((match) => match[1]);
+
+    let upstream: Response;
+    try {
+      upstream = await fetch(
+        `https://${dsn.hostname}/api/${projectId}/envelope/`,
+        {
+          method: "POST",
+          body: new Uint8Array(envelope),
+          headers: { "Content-Type": "application/x-sentry-envelope" },
+        },
+      );
+    } catch (error) {
+      req.logger.error("Sentry tunnel forward threw", {
+        error,
+        itemTypes,
+        bodyBytes: envelope.length,
+      });
+      res.sendStatus(502);
+      return;
+    }
+
+    // Sentry can accept an envelope with a 200 and still drop individual
+    // items -- e.g. a rate-limited category -- reporting that only via this
+    // header, never via the status code. Surface it either way so a
+    // "the tunnel returned 200 but the item never showed up" report is
+    // diagnosable from logs instead of guesswork.
+    const rateLimitHeader = upstream.headers.get("X-Sentry-Rate-Limits");
+    if (!upstream.ok || rateLimitHeader) {
+      req.logger.warn("Sentry tunnel forward did not cleanly succeed", {
+        status: upstream.status,
+        rateLimitHeader,
+        itemTypes,
+        bodyBytes: envelope.length,
+      });
+    }
 
     res.sendStatus(upstream.status);
   },

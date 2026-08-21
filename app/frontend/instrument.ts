@@ -36,6 +36,31 @@ Sentry.init({
         "$1[Filtered]",
       );
     }
+
+    // A `webkit-masked-url://hidden/` frame means Safari refused to expose
+    // the throwing script's real source -- WebKit does this for any script
+    // without CORS headers, first-party or third-party, so it doesn't by
+    // itself tell us where the code came from (see OUTPOST-E). We can't see
+    // past that wall, but we can at least capture the page state at the
+    // moment it happened, since that's otherwise lost once the event report
+    // is all we have left to go on.
+    const hasMaskedFrame = event.exception?.values?.some((value) =>
+      value.stacktrace?.frames?.some((frame) =>
+        frame.filename?.startsWith("webkit-masked-url:"),
+      ),
+    );
+    if (hasMaskedFrame && typeof document !== "undefined") {
+      event.contexts = {
+        ...event.contexts,
+        masked_script_diagnostics: {
+          visibilityState: document.visibilityState,
+          pathname: window.location.pathname,
+          referrer: document.referrer || null,
+          capturedAt: new Date().toISOString(),
+        },
+      };
+    }
+
     return event;
   },
 });

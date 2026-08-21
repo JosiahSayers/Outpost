@@ -15,7 +15,7 @@ import * as Sentry from "@sentry/react";
 let sessionData: { user: object } | null = null;
 let isPending = false;
 let sessionError: { status: number } | null = null;
-const refetch = mock(() => {});
+const refetch = mock(() => Promise.resolve());
 
 mock.module("$/frontend/utils/auth-client", () => ({
   authClient: {
@@ -111,6 +111,7 @@ describe("when there is a valid session", () => {
 
 describe("when the session check fails with a transient (non-401) error and there is no cached data", () => {
   const navigate = mock(() => {});
+  let warn: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
     sessionData = null;
@@ -118,11 +119,16 @@ describe("when the session check fails with a transient (non-401) error and ther
     sessionError = { status: 502 };
     refetch.mockClear();
     navigate.mockClear();
+    warn = spyOn(Sentry.logger, "warn");
     render(
       <Router hook={() => ["/dashboard", navigate]}>
         <TestComponent />
       </Router>,
     );
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
   });
 
   it("does not navigate, treating it like a still-loading session", () => {
@@ -133,6 +139,50 @@ describe("when the session check fails with a transient (non-401) error and ther
     await waitFor(() => expect(refetch).toHaveBeenCalled(), {
       timeout: 3000,
     });
+  });
+
+  it("logs the transient error before retrying", () => {
+    expect(warn).toHaveBeenCalledWith(
+      "Retrying session fetch after transient error",
+      expect.objectContaining({ status: 502 }),
+    );
+  });
+});
+
+describe("when the retried session fetch itself rejects", () => {
+  const navigate = mock(() => {});
+  let error: ReturnType<typeof spyOn>;
+  const refetchError = new Error("network down");
+
+  beforeEach(() => {
+    sessionData = null;
+    isPending = false;
+    sessionError = { status: 502 };
+    refetch.mockClear();
+    refetch.mockImplementationOnce(() => Promise.reject(refetchError));
+    navigate.mockClear();
+    error = spyOn(Sentry.logger, "error");
+    render(
+      <Router hook={() => ["/dashboard", navigate]}>
+        <TestComponent />
+      </Router>,
+    );
+  });
+
+  afterEach(() => {
+    error.mockRestore();
+    refetch.mockImplementation(() => Promise.resolve());
+  });
+
+  it("catches the rejection and logs it, instead of leaving it unhandled", async () => {
+    await waitFor(
+      () =>
+        expect(error).toHaveBeenCalledWith(
+          "Session refetch after transient error failed",
+          expect.objectContaining({ error: refetchError }),
+        ),
+      { timeout: 3000 },
+    );
   });
 });
 

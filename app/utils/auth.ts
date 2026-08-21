@@ -37,11 +37,16 @@ export const baseAuthConfig = {
     autoSignInAfterVerification: true,
   },
   session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60,
-      strategy: "compact",
-    },
+    // Temporarily disabled while investigating OUTPOST-E -- this forces
+    // every session check to hit the DB directly instead of trusting the
+    // cached cookie, to test whether the cookieCache's compact-strategy
+    // normalization is implicated in the redirect-loop bug. See BTP-150
+    // for findings; re-enable once resolved.
+    // cookieCache: {
+    //   enabled: true,
+    //   maxAge: 5 * 60,
+    //   strategy: "compact",
+    // },
   },
   // Enabled by default in production only (Better Auth's own default), with
   // stricter rules for the endpoints most worth throttling beyond sign-in
