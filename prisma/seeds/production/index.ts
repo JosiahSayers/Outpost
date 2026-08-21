@@ -3,6 +3,7 @@ import { initialAccountSettings } from "./account-settings/initial-account-setti
 import { weightRollupSetting } from "./account-settings/weight-rollup-setting";
 import { weightRollupSettingDescriptionFix } from "./account-settings/weight-rollup-setting-description-fix";
 import { publicGearCategories } from "./gear-categories";
+import { gearCategoryKeywords } from "./gear-category-keywords";
 import { reiPackingList } from "./packing-lists/rei-packing-list";
 import { reiWinterBackcountryCampingChecklist } from "./packing-lists/rei-winter-backcountry-camping-checklist";
 
@@ -13,6 +14,7 @@ const productionSeeds = [
   initialAccountSettings,
   weightRollupSetting,
   weightRollupSettingDescriptionFix,
+  gearCategoryKeywords,
 ];
 
 export default async function applyProductionSeeds() {

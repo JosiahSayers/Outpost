@@ -262,6 +262,22 @@ SELECT "PublicMealItem".id
   };
 }
 
+// Shared by searchCategories/suggestCategories: given ids already ranked by
+// a SQL query, hydrates them via Prisma and reorders the result to match --
+// findMany doesn't preserve `id: { in: [...] }` order on its own (same
+// "rank ids in SQL, then hydrate" idiom as searchPlaces/searchMealPlanItems).
+async function hydrateCategoriesInOrder(rankedIds: string[]) {
+  const categories = await db.gearCategory.findMany({
+    where: { id: { in: rankedIds } },
+  });
+  const categoriesById = new Map(
+    categories.map((category) => [category.id, category]),
+  );
+  return rankedIds
+    .map((id) => categoriesById.get(id))
+    .filter((category) => category !== undefined);
+}
+
 export async function searchCategories(
   searchQuery: string,
   forUserId: string | null = null,
@@ -279,11 +295,108 @@ SELECT "GearCategory".id
   LIMIT ${limit};
 `;
 
-  return db.gearCategory.findMany({
-    where: {
-      id: {
-        in: results.map((result) => result.id),
-      },
-    },
-  });
+  return hydrateCategoriesInOrder(results.map((result) => result.id));
+}
+
+// Words that legitimately describe multiple, unrelated categories in this
+// catalog purely because they're used as an organizational suffix rather
+// than a description of the item itself -- "gear" shows up in "Dog Gear",
+// "Gear Lofts", and "Gear Maintenance & Repair", none of which have
+// anything to do with each other, or with whatever item name happens to
+// contain the word. It's also an extremely common cottage-brand suffix in
+// this exact industry (Gossamer Gear, Granite Gear, ULA Gear), so without
+// this it reliably collides: "Granite Gear Crown2" would loosely match
+// those three unrelated categories purely via the brand name. Filtering it
+// out of the item-name side costs nothing -- no curated keyword relies on
+// bare "gear" either.
+//
+// "pack"/"packs" is the same pattern: shared by "Fanny Packs", "Pack
+// Covers", "Pack Liners", and "Pack Organization" -- none related to each
+// other -- and "pack" is both a common informal synonym for "backpack" and
+// a common cottage-brand word (Atom Packs, Pa'lante Packs). Confirmed by a
+// real regression: "Atom Packs Prospector" correctly matched the "atom
+// packs" keyword for Backpacks (match_count 1), but tied with those four
+// other categories at match_count 1 too and lost the tiebreak, so
+// Backpacks never made the top-3. Each of those four categories has its
+// own other distinguishing word (Fanny, Covers, Liners, Organization) that
+// still carries the real signal once "pack" is filtered out.
+const NAME_MATCH_STOPWORDS = new Set(["gear", "gears", "pack", "packs"]);
+
+// Tokenizes an item name into exact (non-prefix), OR'd terms -- used only to
+// test against a category's bare `name`, not its keywords (see
+// suggestCategories). No `:*` prefix: suggestions are only ever shown once
+// the user has moved on from the item-name field, so there's no in-progress
+// partial word to match -- and skipping prefix matching avoids spurious
+// hits like a bare "1" in an item name prefix-matching a private category
+// literally named "1P Tent" (its stored lexeme is "1p", which "1:*" would
+// wrongly prefix-match but plain "1" does not).
+function toExactOrTsQuery(itemName: string): string {
+  return itemName
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}-]/gu, "").replace(/^-+|-+$/g, ""))
+    .filter(Boolean)
+    .filter((word) => !NAME_MATCH_STOPWORDS.has(word.toLowerCase()))
+    .join(" | ");
+}
+
+// Suggests categories for a gear item name. Two different match rules
+// combine here, deliberately:
+//
+// - A category's own `name` is checked with a loose, word-level OR match
+//   (toExactOrTsQuery above) -- any single word shared between the item
+//   name and the category name counts. This is what lets a private
+//   category be picked up for free via its own name with zero keyword data
+//   (e.g. a user's "1P Tent" matches an item name containing "tent").
+// - Curated `keywords` are checked with phraseto_tsquery, which requires
+//   each keyword's words to appear adjacent, in that order, in the item
+//   name -- not just anywhere independently. This is required precision,
+//   not a style choice: a keyword built from a generic word + a distinctive
+//   one (REI's "Half Dome", MSR's "Wind Pro") would leak the generic half
+//   ("half", "wind") as its own standalone trigger under a loose match and
+//   cause false-positive suggestions on unrelated items (a "Half Zip
+//   Fleece" wrongly suggesting Tents). Phrase-adjacency fixes that: "Half
+//   Dome" only matches an item name that actually contains "half"
+//   immediately followed by "dome".
+//
+// This doesn't use data_fts/its GIN index for either check -- data_fts
+// still exists for searchCategories, but folding keywords into it isn't
+// useful here since a bag-of-words match on data_fts can't express the
+// phrase-adjacency requirement keywords need. GearCategory is small enough
+// (under a couple hundred rows) that a sequential scan checking each row is
+// cheap, and a per-row dynamic phraseto_tsquery couldn't use a static index
+// anyway.
+export async function suggestCategories(
+  itemName: string,
+  forUserId: string | null = null,
+  limit = 3,
+) {
+  const nameQuery = toExactOrTsQuery(itemName);
+  if (!nameQuery) return [];
+
+  const results = await db.$queryRaw<
+    Array<{ id: string; match_count: number }>
+  >`
+SELECT "GearCategory".id,
+  (
+    (CASE WHEN to_tsvector('english', "GearCategory".name) @@ to_tsquery('english', ${nameQuery}) THEN 1 ELSE 0 END)
+    + (
+      SELECT count(*)::int FROM unnest("GearCategory".keywords) AS keyword
+      WHERE to_tsvector('english', ${itemName}) @@ phraseto_tsquery('english', keyword)
+    )
+  ) AS match_count
+FROM "GearCategory"
+WHERE (public=TRUE OR "userId"=${forUserId})
+  AND (
+    to_tsvector('english', "GearCategory".name) @@ to_tsquery('english', ${nameQuery})
+    OR EXISTS (
+      SELECT 1 FROM unnest("GearCategory".keywords) AS keyword
+      WHERE to_tsvector('english', ${itemName}) @@ phraseto_tsquery('english', keyword)
+    )
+  )
+ORDER BY match_count DESC
+LIMIT ${limit};
+`;
+
+  return hydrateCategoriesInOrder(results.map((result) => result.id));
 }

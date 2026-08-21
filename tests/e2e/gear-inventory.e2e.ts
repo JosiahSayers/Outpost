@@ -164,6 +164,21 @@ test.describe("Gear Inventory Page", () => {
       await expect(page.getByText(itemName)).toBeVisible();
     });
 
+    test("suggests a category based on a keyword in the item name before the user types into Category", async ({
+      page,
+    }) => {
+      const itemName = `Big Agnes Tent ${Date.now()}`;
+      await page.getByRole("button", { name: "Add Item" }).click();
+      await page.getByLabel("Item name").fill(itemName);
+      await page.getByLabel("Category").click();
+      await expect(page.getByText("Suggested categories")).toBeVisible();
+      await page.getByRole("option", { name: "Tents" }).click();
+      await expect(page.getByLabel("Category")).toHaveValue("Tents");
+      await page.getByRole("button", { name: "Add item", exact: true }).click();
+      await expect(page.getByLabel("Item name")).not.toBeVisible();
+      await expect(page.getByText(itemName)).toBeVisible();
+    });
+
     test("allows a user to create a new gear inventory item with a new category", async ({
       page,
     }) => {
