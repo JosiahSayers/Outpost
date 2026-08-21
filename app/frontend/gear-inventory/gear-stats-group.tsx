@@ -39,7 +39,7 @@ export default function GearStatsGroup({
   const { totalItems, totalGrams, categoryCount } = buildGearSummary(items);
   const formatWeight = useWeightDisplay();
   return (
-    <Group gap="xl" wrap="wrap">
+    <Group gap="md" wrap="nowrap">
       <Stat
         icon={<BackpackIcon size={ICON_SIZE} color={ICON_COLOR} />}
         label="Items"
