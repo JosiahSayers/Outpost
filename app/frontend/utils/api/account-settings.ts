@@ -1,12 +1,19 @@
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
-import type { accountSettings } from "$/validation/account-settings";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { z } from "zod";
 import { apiClient } from "./client";
 
 export const accountSettingsKeys = {
   all: ["account-settings"] as const,
 };
+
+// Callers narrow this to their own literal-slug union before calling
+// mutate() -- the server independently re-validates every slug/value pair
+// against $/validation/account-settings, so widening this to plain strings
+// only loosens client-side autocomplete, not what's actually persisted.
+export interface AccountSettingInput {
+  slug: string;
+  value: string;
+}
 
 export function useAccountSettings(options?: { enabled?: boolean }) {
   return useQuery({
@@ -28,7 +35,7 @@ export function useUpdateAccountSetting() {
   const queryClient = useQueryClient();
   const queryKey = accountSettingsKeys.all;
   return useMutation({
-    mutationFn: (setting: z.input<typeof accountSettings>) =>
+    mutationFn: (setting: AccountSettingInput) =>
       apiClient("/api/account/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

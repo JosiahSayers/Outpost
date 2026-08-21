@@ -83,17 +83,18 @@ test.describe("Account Settings page", () => {
       ).toBeVisible();
     });
 
-    test("Notifications and Privacy are disabled with a Soon badge", async ({
-      page,
-    }) => {
-      const notifications = page.getByRole("link", { name: "Notifications" });
+    test("Privacy is disabled with a Soon badge", async ({ page }) => {
       const privacy = page.getByRole("link", { name: "Privacy" });
-      await expect(notifications).toBeVisible();
-      await expect(notifications.getByText("Soon")).toBeVisible();
-      await expect(notifications).toHaveAttribute("data-disabled", "true");
       await expect(privacy).toBeVisible();
       await expect(privacy.getByText("Soon")).toBeVisible();
       await expect(privacy).toHaveAttribute("data-disabled", "true");
+    });
+
+    test("Notifications is enabled with no Soon badge", async ({ page }) => {
+      const notifications = page.getByRole("link", { name: "Notifications" });
+      await expect(notifications).toBeVisible();
+      await expect(notifications.getByText("Soon")).not.toBeVisible();
+      await expect(notifications).not.toHaveAttribute("data-disabled", "true");
     });
   });
 

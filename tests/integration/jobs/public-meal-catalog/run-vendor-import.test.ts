@@ -191,6 +191,7 @@ describe("runVendorImport", () => {
     expect(jobs[0]!.data.icon).toBe("WarningIcon");
     expect(jobs[0]!.data.title).toContain("fake_vendor");
     expect(jobs[0]!.data.description).toContain("calories");
+    expect(jobs[0]!.data.notificationSettingName).toBeNull();
   });
 
   it("does not notify when the run is below the minimum size, even at 100% null", async () => {

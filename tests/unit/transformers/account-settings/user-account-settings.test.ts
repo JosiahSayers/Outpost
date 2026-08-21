@@ -6,15 +6,15 @@ describe("transform", () => {
   it("uses the setting's defaultValue when the user has no override", () => {
     const setting = make("AccountSetting", { defaultValue: "default" });
 
-    expect(transform([setting], [])).toEqual([
-      {
-        slug: setting.slug,
-        name: setting.name,
-        description: setting.description,
-        defaultValue: setting.defaultValue,
-        value: "default",
-      },
-    ]);
+    const result = transform({ ...setting, accountSettingValues: [] });
+
+    expect(result).toEqual({
+      slug: setting.slug,
+      name: setting.name,
+      description: setting.description,
+      defaultValue: setting.defaultValue,
+      value: "default",
+    });
   });
 
   it("uses the user's value when an override exists for the setting", () => {
@@ -24,55 +24,38 @@ describe("transform", () => {
       value: "overridden",
     });
 
-    const result = transform([setting], [userSetting]);
+    const result = transform({
+      ...setting,
+      accountSettingValues: [userSetting],
+    });
 
-    expect(result).toHaveLength(1);
-    expect(result[0]?.value).toBe("overridden");
+    expect(result.value).toBe("overridden");
   });
 
-  it("only matches a user setting to its corresponding accountSettingId", () => {
+  it("uses only the first accountSettingValue when several are present", () => {
     const setting = make("AccountSetting", { defaultValue: "default" });
-    const unrelatedUserSetting = make("AccountSettingValue", {
-      accountSettingId: "some-other-setting-id",
-      value: "overridden",
-    });
-
-    const result = transform([setting], [unrelatedUserSetting]);
-
-    expect(result).toHaveLength(1);
-    expect(result[0]?.value).toBe("default");
-  });
-
-  it("maps multiple settings independently, preserving order", () => {
-    const settingWithOverride = make("AccountSetting", {
-      defaultValue: "default-1",
-    });
-    const settingWithoutOverride = make("AccountSetting", {
-      defaultValue: "default-2",
-    });
     const userSetting = make("AccountSettingValue", {
-      accountSettingId: settingWithOverride.id,
+      accountSettingId: setting.id,
       value: "overridden",
     });
+    const otherUserSetting = make("AccountSettingValue", {
+      accountSettingId: setting.id,
+      value: "other",
+    });
 
-    const result = transform(
-      [settingWithOverride, settingWithoutOverride],
-      [userSetting],
-    );
+    const result = transform({
+      ...setting,
+      accountSettingValues: [userSetting, otherUserSetting],
+    });
 
-    expect(result).toEqual([
-      expect.objectContaining({
-        slug: settingWithOverride.slug,
-        value: "overridden",
-      }),
-      expect.objectContaining({
-        slug: settingWithoutOverride.slug,
-        value: "default-2",
-      }),
-    ]);
+    expect(result.value).toBe("overridden");
   });
 
-  it("returns an empty array when there are no settings", () => {
-    expect(transform([], [])).toEqual([]);
+  it("falls back to null when there is no override and defaultValue is null", () => {
+    const setting = make("AccountSetting", { defaultValue: null });
+
+    const result = transform({ ...setting, accountSettingValues: [] });
+
+    expect(result.value).toBeNull();
   });
 });

@@ -9,15 +9,13 @@ export type ClientUserAccountSetting = ClientAccountSetting & {
   value: string | null;
 };
 
-export function transform(
-  allSettings: AccountSetting[],
-  userSettings: AccountSettingValue[],
-): ClientUserAccountSetting[] {
-  return allSettings.map((setting) => ({
-    ...accountSettingTransform(setting),
-    value:
-      userSettings.find(
-        (userSetting) => userSetting.accountSettingId === setting.id,
-      )?.value ?? setting.defaultValue,
-  }));
+type UserSettingInput = AccountSetting & {
+  accountSettingValues: AccountSettingValue[];
+};
+
+export function transform(item: UserSettingInput): ClientUserAccountSetting {
+  return {
+    ...accountSettingTransform(item),
+    value: item.accountSettingValues[0]?.value ?? item.defaultValue,
+  };
 }

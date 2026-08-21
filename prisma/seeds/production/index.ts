@@ -1,5 +1,6 @@
 import { db } from "$/utils/db";
 import { initialAccountSettings } from "./account-settings/initial-account-settings";
+import { notificationAccountSettings } from "./account-settings/notifications";
 import { weightRollupSetting } from "./account-settings/weight-rollup-setting";
 import { weightRollupSettingDescriptionFix } from "./account-settings/weight-rollup-setting-description-fix";
 import { publicGearCategories } from "./gear-categories";
@@ -15,6 +16,7 @@ const productionSeeds = [
   weightRollupSetting,
   weightRollupSettingDescriptionFix,
   gearCategoryKeywords,
+  notificationAccountSettings,
 ];
 
 export default async function applyProductionSeeds() {

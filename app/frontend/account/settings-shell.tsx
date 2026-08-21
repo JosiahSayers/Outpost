@@ -1,3 +1,4 @@
+import NotificationsPanel from "$/frontend/account/notifications-panel";
 import PreferencesPanel from "$/frontend/account/preferences-panel";
 import ProfilePanel from "$/frontend/account/profile-panel";
 import SecurityPanel from "$/frontend/account/security-panel";
@@ -13,9 +14,14 @@ import {
 import type { ReactNode } from "react";
 import AppLink from "$/frontend/app-link";
 
-type SettingsTab = "profile" | "preferences" | "security";
+type SettingsTab = "profile" | "preferences" | "security" | "notifications";
 
-const SETTINGS_TABS: SettingsTab[] = ["profile", "preferences", "security"];
+const SETTINGS_TABS: SettingsTab[] = [
+  "profile",
+  "preferences",
+  "security",
+  "notifications",
+];
 
 function isSettingsTab(value: string | undefined): value is SettingsTab {
   return SETTINGS_TABS.includes(value as SettingsTab);
@@ -42,6 +48,7 @@ export default function SettingsShell({
     ),
     preferences: <PreferencesPanel />,
     security: <SecurityPanel />,
+    notifications: <NotificationsPanel />,
   } as const;
 
   return (
@@ -73,12 +80,7 @@ export default function SettingsShell({
             component={AppLink}
             label="Notifications"
             leftSection={<BellIcon size={16} />}
-            rightSection={
-              <Badge color="stone-gray" variant="light" size="xs">
-                Soon
-              </Badge>
-            }
-            disabled
+            active={activeTab === "notifications"}
             to="/account/notifications"
           />
           <NavLink

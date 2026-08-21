@@ -1,5 +1,5 @@
 import { transform as accountSettingTransform } from "$/transformers/account-settings/account-setting";
-import { transform as userAccountSettingsTransform } from "$/transformers/account-settings/user-account-settings";
+import { transform as userAccountSettingTransform } from "$/transformers/account-settings/user-account-settings";
 import { transform as adminFeatureStatusTransform } from "$/transformers/admin/features/status";
 import {
   transformListItem as adminFeedbackListItemTransform,
@@ -58,7 +58,7 @@ export const transformers = {
   tripPackingList: tripPackingListTransform,
   tripPackingListItem: tripPackingListItemTransform,
   accountSetting: accountSettingTransform,
-  userAccountSettings: userAccountSettingsTransform,
+  userAccountSetting: userAccountSettingTransform,
   ipLocation: ipLocationTransform,
   file: fileTransform,
   tripPartyMember: tripPartyMemberTransform,

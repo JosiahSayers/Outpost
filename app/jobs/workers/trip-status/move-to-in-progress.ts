@@ -1,5 +1,6 @@
 import { defineJob } from "$/jobs/define-job";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
+import { sendTripStatusUpdateEmailQueue } from "$/jobs/workers/email/trip-status-update";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
 
@@ -38,7 +39,9 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
     const tripsToMove = await db.trip.findMany({
       select: {
         id: true,
+        name: true,
         userId: true,
+        user: { select: { email: true, name: true } },
       },
       where: {
         status: "planning",
@@ -58,18 +61,45 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
 
     changedTripIds.push(...tripIdsToMove);
 
-    await createNotificationQueue.addBulk(
-      tripsToMove.map(({ id, userId }) => ({
-        name: "trip-moved-to-in-progress-notification",
-        data: {
-          userId,
-          title: randomInProgressNotificationTitle(),
-          description: "We've automatically marked your trip as in progress.",
-          icon: "PersonSimpleHikeIcon",
-          referenceUrl: `/trips/${id}`,
-        },
-      })),
-    );
+    // Picked once per trip and reused for both the in-app notification and
+    // the email below, so a user with both channels enabled sees/reads the
+    // same title rather than two independently randomized ones.
+    const notifications = tripsToMove.map((trip) => ({
+      trip,
+      title: randomInProgressNotificationTitle(),
+      description: "We've automatically marked your trip as in progress.",
+      referenceUrl: `/trips/${trip.id}`,
+    }));
+
+    await Promise.all([
+      createNotificationQueue.addBulk(
+        notifications.map(({ trip, title, description, referenceUrl }) => ({
+          name: "trip-moved-to-in-progress-notification",
+          data: {
+            userId: trip.userId,
+            title,
+            description,
+            icon: "PersonSimpleHikeIcon",
+            referenceUrl,
+            notificationSettingName: "trip_status_update",
+          },
+        })),
+      ),
+      sendTripStatusUpdateEmailQueue.addBulk(
+        notifications.map(({ trip, title, description, referenceUrl }) => ({
+          name: "trip-moved-to-in-progress-email",
+          data: {
+            userId: trip.userId,
+            userEmail: trip.user.email,
+            userName: trip.user.name,
+            title,
+            description,
+            tripName: trip.name,
+            referenceUrl,
+          },
+        })),
+      ),
+    ]);
 
     if (tripsToMove.length === BATCH_SIZE) {
       await processBatch();

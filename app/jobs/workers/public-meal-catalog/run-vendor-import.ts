@@ -158,6 +158,7 @@ export async function runVendorImport<Product>(
           description: `${failedFields.join(", ")} came back empty for all ${processed} items in the latest import. The site's structure may have changed.`,
           icon: "WarningIcon",
           referenceUrl: "/admin/queues",
+          notificationSettingName: null,
         },
       })),
     );

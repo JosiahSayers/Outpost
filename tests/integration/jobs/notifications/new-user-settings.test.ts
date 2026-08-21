@@ -204,6 +204,7 @@ describe("createNewUserSettingsNotifications", () => {
       );
       expect(job!.data.referenceUrl).toBe("/account/preferences");
       expect(job!.data.icon).toBe("RulerIcon");
+      expect(job!.data.notificationSettingName).toBeNull();
     });
   });
 

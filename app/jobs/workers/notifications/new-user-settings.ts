@@ -72,6 +72,7 @@ export async function createNewUserSettingsNotifications(
               "Click this notification to choose how Outpost displays weights and measures.",
             referenceUrl: "/account/preferences",
             icon: "RulerIcon",
+            notificationSettingName: null,
           },
         })),
       );

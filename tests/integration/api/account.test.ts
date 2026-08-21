@@ -120,7 +120,7 @@ describe("PATCH /settings", () => {
               "code": "invalid_union",
               "discriminator": "slug",
               "errors": [],
-              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup'",
+              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup' | 'notification_trip_status_update_in_app' | 'notification_trip_status_update_email'",
               "note": "No matching discriminator",
               "options": [
                 "liquid_viewing_unit",
@@ -128,6 +128,8 @@ describe("PATCH /settings", () => {
                 "weight_viewing_unit",
                 "weight_entry_unit",
                 "weight_rollup",
+                "notification_trip_status_update_in_app",
+                "notification_trip_status_update_email",
               ],
               "path": [
                 "settings",
@@ -247,6 +249,28 @@ describe("PATCH /settings", () => {
     expect(value?.value).toBe("pounds");
   });
 
+  it("updates a notification setting", async () => {
+    await request(app)
+      .patch("/api/account/settings")
+      .set("Cookie", authCookies)
+      .send({
+        settings: [
+          { slug: "notification_trip_status_update_email", value: "true" },
+        ],
+      })
+      .expect(200);
+
+    const setting = await db.accountSetting.findUniqueOrThrow({
+      where: { slug: "notification_trip_status_update_email" },
+    });
+    const value = await db.accountSettingValue.findUnique({
+      where: {
+        accountSettingId_userId: { accountSettingId: setting.id, userId },
+      },
+    });
+    expect(value?.value).toBe("true");
+  });
+
   it("accepts pounds_and_ounces for weight_entry_unit", async () => {
     await request(app)
       .patch("/api/account/settings")
@@ -314,12 +338,15 @@ describe("PATCH /settings", () => {
       weight_entry_unit: "ounces",
       weight_rollup: "false",
     };
+    const settingsUnderTest = allSettings.filter(
+      (setting) => setting.slug in valuesBySlug,
+    );
 
     await request(app)
       .patch("/api/account/settings")
       .set("Cookie", authCookies)
       .send({
-        settings: allSettings.map((setting) => ({
+        settings: settingsUnderTest.map((setting) => ({
           slug: setting.slug,
           value: valuesBySlug[setting.slug],
         })),
@@ -329,8 +356,8 @@ describe("PATCH /settings", () => {
     const userValues = await db.accountSettingValue.findMany({
       where: { userId },
     });
-    expect(userValues).toHaveLength(allSettings.length);
-    for (const setting of allSettings) {
+    expect(userValues).toHaveLength(settingsUnderTest.length);
+    for (const setting of settingsUnderTest) {
       const value = userValues.find(
         (userValue) => userValue.accountSettingId === setting.id,
       );

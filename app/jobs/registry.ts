@@ -4,6 +4,7 @@ import dbIpCheckJob from "$/jobs/workers/db-ip/check-db-ip";
 import dbIpDownloadJob from "$/jobs/workers/db-ip/download-db-ip";
 import sendPasswordChangedEmailJob from "$/jobs/workers/email/password-changed";
 import sendResetPasswordEmailJob from "$/jobs/workers/email/reset-password";
+import sendTripStatusUpdateEmailJob from "$/jobs/workers/email/trip-status-update";
 import sendVerifyEmailJob from "$/jobs/workers/email/verify-email";
 import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
@@ -27,6 +28,7 @@ export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   sendResetPasswordEmailJob,
   sendPasswordChangedEmailJob,
   sendVerifyEmailJob,
+  sendTripStatusUpdateEmailJob,
   ingestPadUsJob,
   ingestPadUsChunkJob,
   finalizePadUsIngestJob,
