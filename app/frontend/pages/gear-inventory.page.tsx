@@ -11,7 +11,7 @@ import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Text } from "@mantine/core";
+import { Alert, Button, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
@@ -29,6 +29,9 @@ export default function GearInventoryPage() {
   );
   const [deleteItem, setDeleteItem] = useState<ClientGearInventoryItem | null>(
     null,
+  );
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
   );
   const groupedItems = useMemo(() => {
     if (!data) {
@@ -94,41 +97,72 @@ export default function GearInventoryPage() {
           }
         };
 
+        const handleToggleCategory = (name: string) => {
+          setCollapsedCategories((prev) => {
+            const next = new Set(prev);
+            if (next.has(name)) {
+              next.delete(name);
+            } else {
+              next.add(name);
+            }
+            return next;
+          });
+        };
+
+        const handleToggleAll = () => {
+          setCollapsedCategories((prev) =>
+            prev.size > 0 ? new Set() : new Set(Object.keys(groupedItems)),
+          );
+        };
+
         return (
           <PageContainer gap="xl">
             <BackToDashboardLink />
             <Header items={data.items} onAdd={handleAdd} />
 
-            <div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
-                  padding: "7px var(--mantine-spacing-xs)",
-                }}
-              >
-                <Text size="sm" fw={700}>
-                  Name
-                </Text>
-                <Text size="sm" fw={700} ta="center">
-                  Qty
-                </Text>
-                <Text size="sm" fw={700} ta="right">
-                  Weight
-                </Text>
-                <div />
+            {Object.keys(groupedItems).length > 0 && (
+              <div role="table">
+                <Group justify="flex-end">
+                  <Button variant="subtle" size="xs" onClick={handleToggleAll}>
+                    {collapsedCategories.size > 0
+                      ? "Expand All"
+                      : "Collapse All"}
+                  </Button>
+                </Group>
+
+                <div
+                  role="row"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
+                    padding: "7px var(--mantine-spacing-xs)",
+                  }}
+                >
+                  <Text size="sm" fw={700}>
+                    Name
+                  </Text>
+                  <Text size="sm" fw={700} ta="center">
+                    Qty
+                  </Text>
+                  <Text size="sm" fw={700} ta="right">
+                    Weight
+                  </Text>
+                  <div />
+                </div>
+                {Object.entries(groupedItems).map(([name, items]) => (
+                  <CategorySection
+                    name={name}
+                    items={items}
+                    expanded={!collapsedCategories.has(name)}
+                    onToggle={() => handleToggleCategory(name)}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    formatWeight={formatWeight}
+                    key={name}
+                  />
+                ))}
               </div>
-              {Object.entries(groupedItems).map(([name, items]) => (
-                <CategorySection
-                  name={name}
-                  items={items}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  formatWeight={formatWeight}
-                  key={name}
-                />
-              ))}
-            </div>
+            )}
 
             <EditDrawer
               opened={drawerOpen}

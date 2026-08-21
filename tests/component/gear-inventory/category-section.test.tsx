@@ -4,6 +4,7 @@ import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, mock } from "bun:test";
+import { useState } from "react";
 import { make } from "../../helpers/test-data/make";
 
 const onEdit = mock(() => {});
@@ -19,19 +20,30 @@ const item2 = transformers.gearInventoryItem({
   category: make("GearCategory", { id: "1", name: "Shelter" }),
 });
 
+// CategorySection is controlled (expanded/onToggle) so the page can drive a
+// "collapse/expand all" button; this harness stands in for that parent state.
+function Harness() {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <CategorySection
+      name="Shelter"
+      items={[item1, item2]}
+      expanded={expanded}
+      onToggle={() => setExpanded((prev) => !prev)}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      formatWeight={formatWeight}
+    />
+  );
+}
+
 beforeEach(() => {
   onEdit.mockReset();
   onDelete.mockReset();
   formatWeight.mockReset();
   render(
     <MantineProvider>
-      <CategorySection
-        name="Shelter"
-        items={[item1, item2]}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        formatWeight={formatWeight}
-      />
+      <Harness />
     </MantineProvider>,
   );
 });

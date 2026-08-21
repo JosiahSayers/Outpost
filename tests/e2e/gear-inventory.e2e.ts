@@ -29,6 +29,31 @@ test.describe("Gear Inventory Page", () => {
     await expect(page.getByText("Platypus QuickDraw")).toBeVisible();
   });
 
+  test("a category can be collapsed and expanded individually", async ({
+    page,
+  }) => {
+    await page.getByText("Tents").click();
+    await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+    await expect(page.getByText("Gergory Zulu 45")).toBeVisible();
+
+    await page.getByText("Tents").click();
+    await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+  });
+
+  test("collapse all and expand all toggle every category at once", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Collapse All" }).click();
+    await expect(page.getByText("Durston X-Mid 1")).not.toBeVisible();
+    await expect(page.getByText("Gergory Zulu 45")).not.toBeVisible();
+    await expect(page.getByText("Platypus QuickDraw")).not.toBeVisible();
+
+    await page.getByRole("button", { name: "Expand All" }).click();
+    await expect(page.getByText("Durston X-Mid 1")).toBeVisible();
+    await expect(page.getByText("Gergory Zulu 45")).toBeVisible();
+    await expect(page.getByText("Platypus QuickDraw")).toBeVisible();
+  });
+
   test("renders no category sections when the user has no gear items", async ({
     page,
     makeUser,

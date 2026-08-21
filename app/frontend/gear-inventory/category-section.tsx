@@ -1,12 +1,13 @@
 import { GEAR_INVENTORY_GRID_COLUMNS } from "$/frontend/gear-inventory/table-grid";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { ActionIcon, Collapse, Divider, Group, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { CaretDownIcon, PencilSimple, Trash } from "@phosphor-icons/react";
 
 interface Props {
   name: string;
   items: Array<ClientGearInventoryItem>;
+  expanded: boolean;
+  onToggle: () => void;
   onEdit: (item: ClientGearInventoryItem) => void;
   onDelete: (item: ClientGearInventoryItem) => void;
   formatWeight: (grams: number | null) => string;
@@ -15,12 +16,12 @@ interface Props {
 export default function CategorySection({
   name,
   items,
+  expanded,
+  onToggle,
   onEdit,
   onDelete,
   formatWeight,
 }: Props) {
-  const [expanded, { toggle }] = useDisclosure(true);
-
   return (
     <div>
       <Group
@@ -28,7 +29,7 @@ export default function CategorySection({
         align="center"
         pt="lg"
         pb="xs"
-        onClick={toggle}
+        onClick={onToggle}
         style={{ cursor: "pointer" }}
       >
         <Text
@@ -59,6 +60,7 @@ export default function CategorySection({
         {items.map((item) => (
           <div
             key={item.id}
+            role="row"
             style={{
               display: "grid",
               gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
