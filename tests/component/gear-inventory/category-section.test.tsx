@@ -1,6 +1,6 @@
 import CategorySection from "$/frontend/gear-inventory/category-section";
 import { transformers } from "$/transformers";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, Table } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, mock } from "bun:test";
@@ -25,13 +25,15 @@ beforeEach(() => {
   formatWeight.mockReset();
   render(
     <MantineProvider>
-      <CategorySection
-        name="Shelter"
-        items={[item1, item2]}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        formatWeight={formatWeight}
-      />
+      <Table>
+        <CategorySection
+          name="Shelter"
+          items={[item1, item2]}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          formatWeight={formatWeight}
+        />
+      </Table>
     </MantineProvider>,
   );
 });

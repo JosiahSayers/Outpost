@@ -10,7 +10,7 @@ import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Stack } from "@mantine/core";
+import { Alert, Table } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
@@ -98,7 +98,19 @@ export default function GearInventoryPage() {
             <BackToDashboardLink />
             <Header items={data.items} onAdd={handleAdd} />
 
-            <Stack gap="lg">
+            <Table highlightOnHover withRowBorders={false}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th style={{ width: "4ch", textAlign: "center" }}>
+                    Qty
+                  </Table.Th>
+                  <Table.Th style={{ width: "10ch", textAlign: "right" }}>
+                    Weight
+                  </Table.Th>
+                  <Table.Th style={{ width: 72 }} />
+                </Table.Tr>
+              </Table.Thead>
               {Object.entries(groupedItems).map(([name, items]) => (
                 <CategorySection
                   name={name}
@@ -109,7 +121,7 @@ export default function GearInventoryPage() {
                   key={name}
                 />
               ))}
-            </Stack>
+            </Table>
 
             <EditDrawer
               opened={drawerOpen}
