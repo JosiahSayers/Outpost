@@ -128,4 +128,99 @@ describe("GET /suggestions", () => {
       ]),
     );
   });
+
+  it("matches a keyword built from a generic word + a distinctive one only when they appear adjacent", async () => {
+    const response = await supertest(app)
+      .get(
+        "/api/gear-categories/suggestions?itemName=REI Co-op Half Dome 2 Plus",
+      )
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+    expect(response.body).toEqual({
+      categories: expect.arrayContaining([
+        expect.objectContaining({ name: "Tents" }),
+      ]),
+    });
+  });
+
+  it("does not suggest a category from the generic half of a keyword phrase appearing alone", async () => {
+    const response = await supertest(app)
+      .get(
+        "/api/gear-categories/suggestions?itemName=Patagonia Half Zip Fleece",
+      )
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+    expect(response.body.categories).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Tents" })]),
+    );
+  });
+
+  it("suggests Water Purifiers, not Water Filters, for a purifier-specific product", async () => {
+    const response = await supertest(app)
+      .get("/api/gear-categories/suggestions?itemName=MSR Guardian Purifier")
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+    expect(response.body.categories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Water Purifiers" }),
+      ]),
+    );
+    expect(response.body.categories).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Water Filters" }),
+      ]),
+    );
+  });
+
+  it("matches a brand name with and without its apostrophe", async () => {
+    // Postgres's tokenizer splits "Arc'teryx" into separate "arc"/"teryx"
+    // lexemes but keeps "Arcteryx" as one -- both spellings are common
+    // enough to need their own keyword entry (see gear-category-keywords.ts).
+    const withApostrophe = await supertest(app)
+      .get("/api/gear-categories/suggestions?itemName=Arc'teryx Beta AR")
+      .set("Cookie", await getAuthCookies())
+      .expect(200);
+    const withoutApostrophe = await supertest(app)
+      .get("/api/gear-categories/suggestions?itemName=Arcteryx Beta AR")
+      .set("Cookie", await getAuthCookies())
+      .expect(200);
+
+    for (const response of [withApostrophe, withoutApostrophe]) {
+      expect(response.body.categories).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Rain Gear" }),
+        ]),
+      );
+    }
+  });
+
+  it("does not let the shared word 'pack' crowd out a correctly-matched keyword", async () => {
+    // Regression guard: "Atom Packs Prospector" correctly matches the "atom
+    // packs" keyword for Backpacks, but "Fanny Packs", "Pack Covers", "Pack
+    // Liners", and "Pack Organization" all loosely match on the shared word
+    // "pack" in their own names too -- without filtering "pack" as a name-
+    // match stopword, those four ties crowd Backpacks out of the top 3.
+    const response = await supertest(app)
+      .get("/api/gear-categories/suggestions?itemName=Atom Packs Prospector")
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+    expect(response.body.categories).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Backpacks" })]),
+    );
+  });
+
+  it("suggests Chairs for a product that doesn't literally say 'chair'", async () => {
+    const response = await supertest(app)
+      .get("/api/gear-categories/suggestions?itemName=Helinox Zero")
+      .set("Cookie", await getAuthCookies())
+      .expect("Content-Type", /json/)
+      .expect(200);
+    expect(response.body.categories).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Chairs" })]),
+    );
+  });
 });
