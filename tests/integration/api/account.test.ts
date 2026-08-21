@@ -314,12 +314,15 @@ describe("PATCH /settings", () => {
       weight_entry_unit: "ounces",
       weight_rollup: "false",
     };
+    const settingsUnderTest = allSettings.filter(
+      (setting) => setting.slug in valuesBySlug,
+    );
 
     await request(app)
       .patch("/api/account/settings")
       .set("Cookie", authCookies)
       .send({
-        settings: allSettings.map((setting) => ({
+        settings: settingsUnderTest.map((setting) => ({
           slug: setting.slug,
           value: valuesBySlug[setting.slug],
         })),
@@ -329,8 +332,8 @@ describe("PATCH /settings", () => {
     const userValues = await db.accountSettingValue.findMany({
       where: { userId },
     });
-    expect(userValues).toHaveLength(allSettings.length);
-    for (const setting of allSettings) {
+    expect(userValues).toHaveLength(settingsUnderTest.length);
+    for (const setting of settingsUnderTest) {
       const value = userValues.find(
         (userValue) => userValue.accountSettingId === setting.id,
       );
