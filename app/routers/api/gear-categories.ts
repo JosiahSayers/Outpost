@@ -1,7 +1,10 @@
 import { requireValidSession } from "$/middleware/require-valid-session";
 import { transformers } from "$/transformers";
-import { searchCategories } from "$/utils/search-helpers";
-import { gearCategorySearch } from "$/validation/gear-category";
+import { searchCategories, suggestCategories } from "$/utils/search-helpers";
+import {
+  gearCategorySearch,
+  gearCategorySuggest,
+} from "$/validation/gear-category";
 import { Router } from "express";
 import validate from "express-zod-safe";
 
@@ -18,6 +21,20 @@ gearCategoriesRouter.get(
     );
     return res.json({
       categories: matchingCategories.map(transformers.gearCategory),
+    });
+  },
+);
+
+gearCategoriesRouter.get(
+  "/suggestions",
+  validate({ query: gearCategorySuggest }),
+  async (req, res) => {
+    const suggestedCategories = await suggestCategories(
+      req.query.itemName,
+      req.session!.user.id,
+    );
+    return res.json({
+      categories: suggestedCategories.map(transformers.gearCategory),
     });
   },
 );

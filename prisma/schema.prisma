@@ -297,8 +297,9 @@ model GearCategory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name   String
-  public Boolean @default(false)
+  name     String
+  keywords String[] @default([])
+  public   Boolean  @default(false)
 
   user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String?

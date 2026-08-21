@@ -1,5 +1,8 @@
 import WeightConverter from "$/frontend/shared-components/converter/weight-converter";
-import { useGearCategorySearch } from "$/frontend/utils/api/gear-categories";
+import {
+  useGearCategorySearch,
+  useGearCategorySuggestions,
+} from "$/frontend/utils/api/gear-categories";
 import {
   useCreateGearInventoryItem,
   useUpdateGearInventoryItem,
@@ -65,7 +68,17 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
 
   const [debouncedCategory] = useDebouncedValue(form.values.categoryName, 200);
   const categorySearch = useGearCategorySearch(debouncedCategory);
-  const categoryOptions = categorySearch.data?.categories ?? [];
+
+  const categoryIsEmpty = form.values.categoryName.length === 0;
+  const [debouncedName] = useDebouncedValue(form.values.name, 200);
+  const categorySuggestions = useGearCategorySuggestions(
+    categoryIsEmpty ? debouncedName : "",
+  );
+
+  const categoryOptions = categoryIsEmpty
+    ? (categorySuggestions.data?.categories ?? [])
+    : (categorySearch.data?.categories ?? []);
+  const showingSuggestions = categoryIsEmpty && categoryOptions.length > 0;
 
   useEffect(() => {
     form.setValues({
@@ -162,11 +175,21 @@ export default function EditDrawer({ opened, onClose, item }: Props) {
             </Combobox.Target>
             <Combobox.Dropdown hidden={categoryOptions.length === 0}>
               <Combobox.Options>
-                {categoryOptions.map((cat) => (
-                  <Combobox.Option key={cat.id} value={String(cat.id)}>
-                    {cat.name}
-                  </Combobox.Option>
-                ))}
+                {showingSuggestions ? (
+                  <Combobox.Group label="Suggested categories">
+                    {categoryOptions.map((cat) => (
+                      <Combobox.Option key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </Combobox.Option>
+                    ))}
+                  </Combobox.Group>
+                ) : (
+                  categoryOptions.map((cat) => (
+                    <Combobox.Option key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </Combobox.Option>
+                  ))
+                )}
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>

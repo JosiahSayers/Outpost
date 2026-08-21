@@ -262,12 +262,16 @@ SELECT "PublicMealItem".id
   };
 }
 
-export async function searchCategories(
-  searchQuery: string,
-  forUserId: string | null = null,
-  limit = 6,
+// Shared by searchCategories/suggestCategories: runs an already-built
+// tsquery against data_fts, ranks, then hydrates while preserving rank
+// order (same "rank ids in SQL, then hydrate" idiom as searchPlaces/
+// searchMealPlanItems). What differs between the two callers is only how
+// the tsquery gets built -- see toPrefixTsQuery vs toPrefixOrTsQuery below.
+async function queryCategoriesByTsQuery(
+  formattedQuery: string,
+  forUserId: string | null,
+  limit: number,
 ) {
-  const formattedQuery = toPrefixTsQuery(searchQuery);
   if (!formattedQuery) return [];
 
   const results = await db.$queryRaw<Array<{ id: string }>>`
@@ -279,11 +283,70 @@ SELECT "GearCategory".id
   LIMIT ${limit};
 `;
 
-  return db.gearCategory.findMany({
-    where: {
-      id: {
-        in: results.map((result) => result.id),
-      },
-    },
+  const rankedIds = results.map((result) => result.id);
+  const categories = await db.gearCategory.findMany({
+    where: { id: { in: rankedIds } },
   });
+  const categoriesById = new Map(
+    categories.map((category) => [category.id, category]),
+  );
+  return rankedIds
+    .map((id) => categoriesById.get(id))
+    .filter((category) => category !== undefined);
+}
+
+export async function searchCategories(
+  searchQuery: string,
+  forUserId: string | null = null,
+  limit = 6,
+) {
+  return queryCategoriesByTsQuery(
+    toPrefixTsQuery(searchQuery),
+    forUserId,
+    limit,
+  );
+}
+
+// Same tokenization as toPrefixTsQuery, but OR's terms instead of AND'ing
+// them: item names are full product names with lots of irrelevant
+// brand/model words, so requiring every token to match (like search-as-you-
+// type does) would almost never hit. ts_rank still scores more/better
+// matches higher, so results stay ranked best-first.
+//
+// This can't just be toPrefixTsQuery with a different join operator shared
+// by both callers: AND vs OR is a real behavioral difference, not a style
+// choice. searchCategories backs the category text box, where a person is
+// typing to narrow down to one category -- AND means each extra word
+// narrows the result set, the expected "type to narrow" behavior of a
+// search box. suggestCategories matches against a whole product name, which
+// is mostly brand/model noise -- AND-ing that would almost never match
+// anything real, so it needs "any relevant word counts" instead.
+function toPrefixOrTsQuery(searchQuery: string): string {
+  return searchQuery
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ""))
+    .filter(Boolean)
+    .map((word) => `${word}:*`)
+    .join(" | ");
+}
+
+// Suggests categories for a gear item name by matching it against category
+// name + keywords (see the `keywords` column on GearCategory, folded into
+// data_fts by the gear_category_fts_trigger). Keeping match data on the
+// category row -- rather than a hardcoded keyword table in code -- means a
+// private category is picked up for free via its own name (e.g. a user's
+// "1P Tent" already matches "tent" with no keyword data needed at all);
+// keywords only need seeding on public categories to add synonyms/brand
+// terms not literally in their name.
+export async function suggestCategories(
+  itemName: string,
+  forUserId: string | null = null,
+  limit = 3,
+) {
+  return queryCategoriesByTsQuery(
+    toPrefixOrTsQuery(itemName),
+    forUserId,
+    limit,
+  );
 }

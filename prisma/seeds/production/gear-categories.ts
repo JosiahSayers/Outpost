@@ -102,8 +102,27 @@ async function run() {
     "Wipes",
     "Writing Utensils",
   ];
+
+  // Proof-of-concept keyword coverage for BTP-143's item-name-based category
+  // suggestions. Extending coverage later is a data change here, not code --
+  // see suggestCategories in app/utils/search-helpers.ts.
+  const categoryKeywords: Record<string, string[]> = {
+    Tents: ["tent"],
+    Backpacks: ["backpack", "rucksack"],
+    "Sleeping Bags": ["sleeping bag"],
+    "Sleeping Pads": ["sleeping pad"],
+    "Water Filters": ["water filter", "filter"],
+    Stoves: ["stove", "burner"],
+    Headlamps: ["headlamp"],
+    "Trekking Poles": ["trekking pole"],
+  };
+
   await db.gearCategory.createMany({
-    data: categories.map((name) => ({ name, public: true })),
+    data: categories.map((name) => ({
+      name,
+      public: true,
+      keywords: categoryKeywords[name] ?? [],
+    })),
   });
 }
 

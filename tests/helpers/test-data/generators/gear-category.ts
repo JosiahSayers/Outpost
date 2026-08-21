@@ -8,6 +8,7 @@ export default function makeGearCategory(
   return {
     id: faker.string.uuid(),
     name: faker.commerce.product(),
+    keywords: [],
     createdAt: faker.date.past(),
     updatedAt: faker.date.past(),
     public: false,
