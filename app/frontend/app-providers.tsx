@@ -1,6 +1,7 @@
 import { AccountSettingsProvider } from "$/frontend/account/account-settings-context";
 import { trailTheme, trailThemeCssVariablesResolver } from "$/frontend/theme";
 import { queryClient } from "$/frontend/utils/api/query-client";
+import { useStorageBeacon } from "$/frontend/utils/hooks/use-storage-beacon";
 import { useVersionDriftNotification } from "$/frontend/utils/hooks/use-version-drift-notification";
 import { SignOutProvider } from "$/frontend/utils/sign-out-context";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
@@ -13,6 +14,14 @@ import type { PropsWithChildren } from "react";
 // live directly in AppProviders itself.
 function VersionDriftWatcher() {
   useVersionDriftNotification();
+  return null;
+}
+
+// Temporary diagnostic for BTP-150 — see storage-beacon.ts. Global for the
+// same reason as VersionDriftWatcher, plus one of its own: the page load
+// being investigated lands on `/`, which runs no route guard.
+function StorageBeaconWatcher() {
+  useStorageBeacon();
   return null;
 }
 
@@ -29,6 +38,7 @@ export default function AppProviders({ children }: PropsWithChildren) {
         >
           <Notifications />
           <VersionDriftWatcher />
+          <StorageBeaconWatcher />
           <AccountSettingsProvider>
             <SignOutProvider>{children}</SignOutProvider>
           </AccountSettingsProvider>
