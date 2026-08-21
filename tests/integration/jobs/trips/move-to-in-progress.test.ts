@@ -1,3 +1,5 @@
+import { sendTripStatusUpdateEmailQueue } from "$/jobs/workers/email/trip-status-update";
+import type { SendTripStatusUpdateEmailJobData } from "$/jobs/workers/email/trip-status-update";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import type { CreateNotificationJobData } from "$/jobs/workers/notifications/create-notification";
 import {
@@ -10,12 +12,16 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { make } from "../../../helpers/test-data/make";
 
 let userId: string;
+let userEmail: string;
+let userName: string | null;
 
 beforeEach(async () => {
   const user = await db.user.findUniqueOrThrow({
     where: { email: "user@test.com" },
   });
   userId = user.id;
+  userEmail = user.email;
+  userName = user.name;
 });
 
 // Redis is flushed after every test (see integration-preload.ts), so the
@@ -33,6 +39,13 @@ async function notificationJobsAddedDuring(fn: () => Promise<unknown>) {
   return (await createNotificationQueue.getJobs(
     NOTIFICATION_JOB_STATES,
   )) as Job<CreateNotificationJobData>[];
+}
+
+async function emailJobsAddedDuring(fn: () => Promise<unknown>) {
+  await fn();
+  return (await sendTripStatusUpdateEmailQueue.getJobs(
+    NOTIFICATION_JOB_STATES,
+  )) as Job<SendTripStatusUpdateEmailJobData>[];
 }
 
 describe("moveTripsToInProgress", () => {
@@ -255,6 +268,68 @@ describe("moveTripsToInProgress", () => {
     const jobs = await notificationJobsAddedDuring(() =>
       moveTripsToInProgress(now),
     );
+
+    expect(jobs).toHaveLength(0);
+  });
+
+  it("enqueues an in-progress-trip email for a moved trip", async () => {
+    const now = new Date("2026-06-15T12:00:00.000Z");
+    const trip = await db.trip.create({
+      data: make("Trip", {
+        userId,
+        name: "Pacific Crest Traverse",
+        status: "planning",
+        start: new Date("2026-06-15"),
+      }),
+    });
+
+    const jobs = await emailJobsAddedDuring(() => moveTripsToInProgress(now));
+
+    expect(jobs).toHaveLength(1);
+    const [job] = jobs;
+    expect(job!.name).toBe("trip-moved-to-in-progress-email");
+    expect(job!.data.userId).toBe(userId);
+    expect(job!.data.userEmail).toBe(userEmail);
+    expect(job!.data.userName).toBe(userName);
+    expect(job!.data.tripName).toBe("Pacific Crest Traverse");
+    expect(job!.data.description).toBe(
+      "We've automatically marked your trip as in progress.",
+    );
+    expect(job!.data.referenceUrl).toBe(`/trips/${trip.id}`);
+    expect(IN_PROGRESS_NOTIFICATION_TITLES).toContain(job!.data.title);
+  });
+
+  it("uses the same title for the in-app notification and the email for a given trip", async () => {
+    const now = new Date("2026-06-15T12:00:00.000Z");
+    await db.trip.create({
+      data: make("Trip", {
+        userId,
+        status: "planning",
+        start: new Date("2026-06-15"),
+      }),
+    });
+
+    await moveTripsToInProgress(now);
+
+    const [notificationJobs, emailJobs] = await Promise.all([
+      createNotificationQueue.getJobs(NOTIFICATION_JOB_STATES),
+      sendTripStatusUpdateEmailQueue.getJobs(NOTIFICATION_JOB_STATES),
+    ]);
+
+    expect(notificationJobs[0]?.data.title).toBe(emailJobs[0]?.data.title);
+  });
+
+  it("does not enqueue an email for a trip that isn't moved", async () => {
+    const now = new Date("2026-06-15T12:00:00.000Z");
+    await db.trip.create({
+      data: make("Trip", {
+        userId,
+        status: "planning",
+        start: new Date("2026-06-16"),
+      }),
+    });
+
+    const jobs = await emailJobsAddedDuring(() => moveTripsToInProgress(now));
 
     expect(jobs).toHaveLength(0);
   });
