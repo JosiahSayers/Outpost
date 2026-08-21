@@ -9,6 +9,7 @@ export type ClientUserAccountSetting = ClientAccountSetting & {
   value: string | null;
 };
 
+// TODO: Transformers should only take a single item, not an array
 export function transform(
   allSettings: AccountSetting[],
   userSettings: AccountSettingValue[],
@@ -20,4 +21,24 @@ export function transform(
         (userSetting) => userSetting.accountSettingId === setting.id,
       )?.value ?? setting.defaultValue,
   }));
+}
+
+type BooleanSettingInput = AccountSetting & {
+  accountSettingValues: AccountSettingValue[];
+};
+
+export type ClientBooleanAccountSetting = ClientAccountSetting & {
+  value: boolean;
+};
+
+export function booleanSettingTransform(item: BooleanSettingInput) {
+  const userValue = item.accountSettingValues[0]?.value;
+  const defaultValue = item.defaultValue;
+  const value =
+    userValue !== undefined ? userValue === "true" : defaultValue === "true";
+
+  return {
+    ...accountSettingTransform(item),
+    value,
+  };
 }
