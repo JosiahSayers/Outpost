@@ -8,6 +8,10 @@ const ALLOWED_HOST = "o1160609.ingest.us.sentry.io";
 
 function buildTestApp() {
   const testApp = express();
+  testApp.use((req, _res, next) => {
+    (req as unknown as { logger: typeof console }).logger = console;
+    next();
+  });
   testApp.use("/", sentryTunnelRouter);
   return testApp;
 }
