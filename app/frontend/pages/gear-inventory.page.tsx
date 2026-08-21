@@ -11,8 +11,9 @@ import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Button, Group, Text } from "@mantine/core";
+import { Alert, Button, Group, Text, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
 export default function GearInventoryPage() {
@@ -33,6 +34,8 @@ export default function GearInventoryPage() {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(),
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const isSearching = searchQuery.trim().length > 0;
   const groupedItems = useMemo(() => {
     if (!data) {
       return {};
@@ -122,8 +125,23 @@ export default function GearInventoryPage() {
 
             {Object.keys(groupedItems).length > 0 && (
               <div role="table">
-                <Group justify="flex-end">
-                  <Button variant="subtle" size="xs" onClick={handleToggleAll}>
+                <Group justify="space-between" wrap="nowrap" pb="md">
+                  <TextInput
+                    placeholder="Search items…"
+                    leftSection={<MagnifyingGlassIcon size={16} />}
+                    value={searchQuery}
+                    onChange={(event) =>
+                      setSearchQuery(event.currentTarget.value)
+                    }
+                    style={{ flex: "1 1 auto", minWidth: 0, maxWidth: 240 }}
+                  />
+                  <Button
+                    variant="subtle"
+                    size="xs"
+                    onClick={handleToggleAll}
+                    disabled={isSearching}
+                    style={{ flexShrink: 0 }}
+                  >
                     {collapsedCategories.size > 0
                       ? "Expand All"
                       : "Collapse All"}
@@ -149,18 +167,30 @@ export default function GearInventoryPage() {
                   </Text>
                   <div />
                 </div>
-                {Object.entries(groupedItems).map(([name, items]) => (
-                  <CategorySection
-                    name={name}
-                    items={items}
-                    expanded={!collapsedCategories.has(name)}
-                    onToggle={() => handleToggleCategory(name)}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    formatWeight={formatWeight}
-                    key={name}
-                  />
-                ))}
+                {Object.entries(groupedItems).map(([name, items]) => {
+                  const hasMatch = items.some((item) =>
+                    item.name
+                      .toLowerCase()
+                      .includes(searchQuery.trim().toLowerCase()),
+                  );
+                  const expanded = isSearching
+                    ? hasMatch
+                    : !collapsedCategories.has(name);
+
+                  return (
+                    <CategorySection
+                      name={name}
+                      items={items}
+                      expanded={expanded}
+                      onToggle={() => handleToggleCategory(name)}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      formatWeight={formatWeight}
+                      searchQuery={searchQuery}
+                      key={name}
+                    />
+                  );
+                })}
               </div>
             )}
 

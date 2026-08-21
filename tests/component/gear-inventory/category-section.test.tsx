@@ -22,7 +22,7 @@ const item2 = transformers.gearInventoryItem({
 
 // CategorySection is controlled (expanded/onToggle) so the page can drive a
 // "collapse/expand all" button; this harness stands in for that parent state.
-function Harness() {
+function Harness({ searchQuery = "" }: { searchQuery?: string }) {
   const [expanded, setExpanded] = useState(true);
   return (
     <CategorySection
@@ -33,6 +33,7 @@ function Harness() {
       onEdit={onEdit}
       onDelete={onDelete}
       formatWeight={formatWeight}
+      searchQuery={searchQuery}
     />
   );
 }
@@ -96,4 +97,14 @@ it("shows the items again when the category header is clicked twice", async () =
   await waitFor(() =>
     screen.getByRole("button", { name: "Edit Sleeping Bag" }),
   );
+});
+
+it("highlights the text matching the search query", () => {
+  const { container } = render(
+    <MantineProvider>
+      <Harness searchQuery="tent" />
+    </MantineProvider>,
+  );
+
+  expect(container.querySelector("mark")).toHaveTextContent("Tent");
 });

@@ -1,6 +1,13 @@
 import { GEAR_INVENTORY_GRID_COLUMNS } from "$/frontend/gear-inventory/table-grid";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { ActionIcon, Collapse, Divider, Group, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Collapse,
+  Divider,
+  Group,
+  Highlight,
+  Text,
+} from "@mantine/core";
 import { CaretDownIcon, PencilSimple, Trash } from "@phosphor-icons/react";
 
 interface Props {
@@ -11,6 +18,7 @@ interface Props {
   onEdit: (item: ClientGearInventoryItem) => void;
   onDelete: (item: ClientGearInventoryItem) => void;
   formatWeight: (grams: number | null) => string;
+  searchQuery: string;
 }
 
 export default function CategorySection({
@@ -21,6 +29,7 @@ export default function CategorySection({
   onEdit,
   onDelete,
   formatWeight,
+  searchQuery,
 }: Props) {
   return (
     <div>
@@ -68,9 +77,9 @@ export default function CategorySection({
               padding: "7px var(--mantine-spacing-xs)",
             }}
           >
-            <Text size="sm" fw={500}>
+            <Highlight size="sm" fw={500} highlight={searchQuery}>
               {item.name}
-            </Text>
+            </Highlight>
             <Text size="sm" c="dimmed" ta="center">
               {item.quantity}
             </Text>
