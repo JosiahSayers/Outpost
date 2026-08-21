@@ -2,10 +2,7 @@ import type { DefinedJob } from "$/jobs/define-job";
 import type { DefinedJobGroup } from "$/jobs/define-job-group";
 import dbIpCheckJob from "$/jobs/workers/db-ip/check-db-ip";
 import dbIpDownloadJob from "$/jobs/workers/db-ip/download-db-ip";
-import sendPasswordChangedEmailJob from "$/jobs/workers/email/password-changed";
-import sendResetPasswordEmailJob from "$/jobs/workers/email/reset-password";
-import sendTripStatusUpdateEmailJob from "$/jobs/workers/email/trip-status-update";
-import sendVerifyEmailJob from "$/jobs/workers/email/verify-email";
+import sendEmailJob from "$/jobs/workers/email/send-email";
 import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
@@ -25,10 +22,7 @@ export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   createNotificationJob,
   moveToInProgressJob,
   moveToFinishedJob,
-  sendResetPasswordEmailJob,
-  sendPasswordChangedEmailJob,
-  sendVerifyEmailJob,
-  sendTripStatusUpdateEmailJob,
+  sendEmailJob,
   ingestPadUsJob,
   ingestPadUsChunkJob,
   finalizePadUsIngestJob,
