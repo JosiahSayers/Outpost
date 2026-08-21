@@ -16,7 +16,11 @@ export default function Header({ items, onAdd }: Props) {
           <Title order={1}>Gear Inventory</Title>
           <Text c="dimmed">Track and manage everything in your kit.</Text>
         </div>
-        <Button leftSection={<PlusIcon size={16} />} onClick={onAdd}>
+        <Button
+          leftSection={<PlusIcon size={16} />}
+          onClick={onAdd}
+          visibleFrom="sm"
+        >
           Add Item
         </Button>
       </Group>

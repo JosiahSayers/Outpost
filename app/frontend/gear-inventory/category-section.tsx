@@ -1,25 +1,46 @@
+import { GEAR_INVENTORY_GRID_COLUMNS } from "$/frontend/gear-inventory/table-grid";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { ActionIcon, Divider, Group, Table, Text } from "@mantine/core";
-import { PencilSimple, Trash } from "@phosphor-icons/react";
+import {
+  ActionIcon,
+  Collapse,
+  Divider,
+  Group,
+  Highlight,
+  Text,
+} from "@mantine/core";
+import { CaretDownIcon, PencilSimple, Trash } from "@phosphor-icons/react";
 
 interface Props {
   name: string;
   items: Array<ClientGearInventoryItem>;
+  expanded: boolean;
+  onToggle: () => void;
   onEdit: (item: ClientGearInventoryItem) => void;
   onDelete: (item: ClientGearInventoryItem) => void;
   formatWeight: (grams: number | null) => string;
+  searchQuery: string;
 }
 
 export default function CategorySection({
   name,
   items,
+  expanded,
+  onToggle,
   onEdit,
   onDelete,
   formatWeight,
+  searchQuery,
 }: Props) {
   return (
     <div>
-      <Group gap="xs" mb="xs" align="center">
+      <Group
+        gap="xs"
+        align="center"
+        pt="lg"
+        pb="xs"
+        onClick={onToggle}
+        style={{ cursor: "pointer" }}
+      >
         <Text
           size="xs"
           tt="uppercase"
@@ -33,62 +54,61 @@ export default function CategorySection({
           ({items.length})
         </Text>
         <Divider style={{ flex: 1 }} />
+        <CaretDownIcon
+          size={14}
+          color="var(--mantine-color-dimmed)"
+          style={{
+            transform: expanded ? "rotate(180deg)" : undefined,
+            transition: "transform 150ms ease",
+            flexShrink: 0,
+          }}
+        />
       </Group>
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th style={{ width: 60, textAlign: "center" }}>Qty</Table.Th>
-            <Table.Th style={{ width: 110, textAlign: "right" }}>
-              Weight
-            </Table.Th>
-            <Table.Th style={{ width: 72 }} />
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {items.map((item) => (
-            <Table.Tr key={item.id}>
-              <Table.Td>
-                <Text size="sm" fw={500}>
-                  {item.name}
-                </Text>
-              </Table.Td>
-              <Table.Td style={{ textAlign: "center" }}>
-                <Text size="sm" c="dimmed">
-                  {item.quantity}
-                </Text>
-              </Table.Td>
-              <Table.Td style={{ textAlign: "right" }}>
-                <Text size="sm" c="dimmed">
-                  {formatWeight(item.grams)}
-                </Text>
-              </Table.Td>
-              <Table.Td>
-                <Group gap={4} justify="flex-end">
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    aria-label={`Edit ${item.name}`}
-                    onClick={() => onEdit(item)}
-                  >
-                    <PencilSimple size={14} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    size="sm"
-                    aria-label={`Delete ${item.name}`}
-                    onClick={() => onDelete(item)}
-                  >
-                    <Trash size={14} />
-                  </ActionIcon>
-                </Group>
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+
+      <Collapse expanded={expanded}>
+        {items.map((item) => (
+          <div
+            key={item.id}
+            role="row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
+              alignItems: "center",
+              padding: "7px var(--mantine-spacing-xs)",
+            }}
+          >
+            <Highlight size="sm" fw={500} highlight={searchQuery}>
+              {item.name}
+            </Highlight>
+            <Text size="sm" c="dimmed" ta="center">
+              {item.quantity}
+            </Text>
+            <Text size="sm" c="dimmed" ta="right">
+              {formatWeight(item.grams)}
+            </Text>
+            <Group gap={4} justify="flex-end">
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                aria-label={`Edit ${item.name}`}
+                onClick={() => onEdit(item)}
+              >
+                <PencilSimple size={14} />
+              </ActionIcon>
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="sm"
+                aria-label={`Delete ${item.name}`}
+                onClick={() => onDelete(item)}
+              >
+                <Trash size={14} />
+              </ActionIcon>
+            </Group>
+          </div>
+        ))}
+      </Collapse>
     </div>
   );
 }

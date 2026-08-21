@@ -2,8 +2,9 @@ import CategorySection from "$/frontend/gear-inventory/category-section";
 import { transformers } from "$/transformers";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, mock } from "bun:test";
+import { useState } from "react";
 import { make } from "../../helpers/test-data/make";
 
 const onEdit = mock(() => {});
@@ -19,19 +20,31 @@ const item2 = transformers.gearInventoryItem({
   category: make("GearCategory", { id: "1", name: "Shelter" }),
 });
 
+// CategorySection is controlled (expanded/onToggle) so the page can drive a
+// "collapse/expand all" button; this harness stands in for that parent state.
+function Harness({ searchQuery = "" }: { searchQuery?: string }) {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <CategorySection
+      name="Shelter"
+      items={[item1, item2]}
+      expanded={expanded}
+      onToggle={() => setExpanded((prev) => !prev)}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      formatWeight={formatWeight}
+      searchQuery={searchQuery}
+    />
+  );
+}
+
 beforeEach(() => {
   onEdit.mockReset();
   onDelete.mockReset();
   formatWeight.mockReset();
   render(
     <MantineProvider>
-      <CategorySection
-        name="Shelter"
-        items={[item1, item2]}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        formatWeight={formatWeight}
-      />
+      <Harness />
     </MantineProvider>,
   );
 });
@@ -61,4 +74,37 @@ it("calls onEdit with the correct item when the edit button is clicked", () => {
 it("calls onDelete with the correct item when the delete button is clicked", () => {
   fireEvent.click(screen.getByRole("button", { name: "Delete Tent" }));
   expect(onDelete).toHaveBeenCalledWith(item1);
+});
+
+it("hides the items when the category header is clicked", async () => {
+  fireEvent.click(screen.getByText("Shelter"));
+
+  await waitFor(() => {
+    expect(
+      screen.queryByRole("button", { name: "Edit Tent" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Edit Sleeping Bag" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+it("shows the items again when the category header is clicked twice", async () => {
+  fireEvent.click(screen.getByText("Shelter"));
+  fireEvent.click(screen.getByText("Shelter"));
+
+  await waitFor(() => screen.getByRole("button", { name: "Edit Tent" }));
+  await waitFor(() =>
+    screen.getByRole("button", { name: "Edit Sleeping Bag" }),
+  );
+});
+
+it("highlights the text matching the search query", () => {
+  const { container } = render(
+    <MantineProvider>
+      <Harness searchQuery="tent" />
+    </MantineProvider>,
+  );
+
+  expect(container.querySelector("mark")).toHaveTextContent("Tent");
 });
