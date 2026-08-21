@@ -9,36 +9,13 @@ export type ClientUserAccountSetting = ClientAccountSetting & {
   value: string | null;
 };
 
-// TODO: Transformers should only take a single item, not an array
-export function transform(
-  allSettings: AccountSetting[],
-  userSettings: AccountSettingValue[],
-): ClientUserAccountSetting[] {
-  return allSettings.map((setting) => ({
-    ...accountSettingTransform(setting),
-    value:
-      userSettings.find(
-        (userSetting) => userSetting.accountSettingId === setting.id,
-      )?.value ?? setting.defaultValue,
-  }));
-}
-
-type BooleanSettingInput = AccountSetting & {
+type UserSettingInput = AccountSetting & {
   accountSettingValues: AccountSettingValue[];
 };
 
-export type ClientBooleanAccountSetting = ClientAccountSetting & {
-  value: boolean;
-};
-
-export function booleanSettingTransform(item: BooleanSettingInput) {
-  const userValue = item.accountSettingValues[0]?.value;
-  const defaultValue = item.defaultValue;
-  const value =
-    userValue !== undefined ? userValue === "true" : defaultValue === "true";
-
+export function transform(item: UserSettingInput): ClientUserAccountSetting {
   return {
     ...accountSettingTransform(item),
-    value,
+    value: item.accountSettingValues[0]?.value ?? item.defaultValue,
   };
 }

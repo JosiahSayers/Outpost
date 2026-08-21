@@ -101,10 +101,24 @@ describe("SettingsShell", () => {
     await waitFor(() => {});
   });
 
-  it("renders Notifications and Privacy as disabled with a Soon badge", () => {
+  it("switches to the Notifications panel when clicked", async () => {
     renderShell();
 
-    expect(screen.getByText("Notifications").closest("a")).toHaveAttribute(
+    fireEvent.click(screen.getByText("Notifications"));
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Notifications" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: "Profile" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {});
+  });
+
+  it("renders Privacy as disabled with a Soon badge", () => {
+    renderShell();
+
+    expect(screen.getByText("Notifications").closest("a")).not.toHaveAttribute(
       "data-disabled",
       "true",
     );
@@ -112,6 +126,6 @@ describe("SettingsShell", () => {
       "data-disabled",
       "true",
     );
-    expect(screen.getAllByText("Soon")).toHaveLength(2);
+    expect(screen.getAllByText("Soon")).toHaveLength(1);
   });
 });

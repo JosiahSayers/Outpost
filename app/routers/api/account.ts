@@ -10,15 +10,18 @@ export const accountRouter = Router();
 accountRouter.use(requireValidSession);
 
 accountRouter.get("/settings", async (req, res) => {
-  const allSettings = await db.accountSetting.findMany();
-  const userSettings = await db.accountSettingValue.findMany({
-    where: {
-      userId: req.session!.user.id,
+  const allSettings = await db.accountSetting.findMany({
+    include: {
+      accountSettingValues: {
+        where: {
+          userId: req.session!.user.id,
+        },
+      },
     },
   });
 
   return res.json({
-    settings: transformers.userAccountSettings(allSettings, userSettings),
+    settings: allSettings.map(transformers.userAccountSetting),
   });
 });
 

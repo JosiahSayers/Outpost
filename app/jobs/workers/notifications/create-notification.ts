@@ -1,6 +1,7 @@
 import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
+import { transformers } from "$/transformers";
 import type { NotificationIconName } from "$/transformers/notification";
 import { db } from "$/utils/db";
 import { Notifications } from "$/utils/notifications";
@@ -29,12 +30,26 @@ export async function createNotification(job: Job<CreateNotificationJobData>) {
     const { notificationSettingName, ...notificationData } = job.data;
     // Some notifications (ex. admin only notifications) don't have an account setting to check
     if (notificationSettingName !== null) {
-      const setting = await Notifications.getSetting(
-        notificationData.userId,
-        notificationSettingName,
-        "in_app",
-      );
-      if (!setting.value) {
+      const accountSetting = await db.accountSetting.findUnique({
+        where: {
+          slug: Notifications.getSlug(notificationSettingName, "in_app"),
+        },
+        include: {
+          accountSettingValues: {
+            where: { userId: notificationData.userId },
+          },
+        },
+      });
+
+      if (!accountSetting) {
+        logger.error("tried to check unknown notification setting", {
+          notificationSettingName,
+        });
+        throw new Error("Notification does not exist");
+      }
+
+      const setting = transformers.userAccountSetting(accountSetting);
+      if (setting.value !== "true") {
         return "No notification sent. User has this notification disabled.";
       }
     }
