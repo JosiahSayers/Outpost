@@ -203,6 +203,7 @@ describe("moveTripsToInProgress", () => {
     );
     expect(job!.data.icon).toBe("PersonSimpleHikeIcon");
     expect(job!.data.referenceUrl).toBe(`/trips/${trip.id}`);
+    expect(job!.data.notificationSettingName).toBe("trip_status_update");
     expect(IN_PROGRESS_NOTIFICATION_TITLES).toContain(job!.data.title);
   });
 

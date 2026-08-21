@@ -67,6 +67,7 @@ export async function moveTripsToInProgress(now: Date = new Date()) {
           description: "We've automatically marked your trip as in progress.",
           icon: "PersonSimpleHikeIcon",
           referenceUrl: `/trips/${id}`,
+          notificationSettingName: "trip_status_update",
         },
       })),
     );

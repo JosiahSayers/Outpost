@@ -68,6 +68,7 @@ export async function moveTripsToFinished(now: Date = new Date()) {
           description: "We've automatically marked your trip as completed.",
           icon: "FlagCheckeredIcon",
           referenceUrl: `/trips/${id}`,
+          notificationSettingName: "trip_status_update",
         },
       })),
     );

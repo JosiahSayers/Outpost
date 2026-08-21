@@ -203,6 +203,7 @@ describe("moveTripsToFinished", () => {
     );
     expect(job!.data.icon).toBe("FlagCheckeredIcon");
     expect(job!.data.referenceUrl).toBe(`/trips/${trip.id}`);
+    expect(job!.data.notificationSettingName).toBe("trip_status_update");
     expect(FINISHED_NOTIFICATION_TITLES).toContain(job!.data.title);
   });
 
