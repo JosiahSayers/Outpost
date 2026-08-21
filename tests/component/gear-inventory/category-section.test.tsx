@@ -1,8 +1,8 @@
 import CategorySection from "$/frontend/gear-inventory/category-section";
 import { transformers } from "$/transformers";
-import { MantineProvider, Table } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, mock } from "bun:test";
 import { make } from "../../helpers/test-data/make";
 
@@ -25,15 +25,13 @@ beforeEach(() => {
   formatWeight.mockReset();
   render(
     <MantineProvider>
-      <Table>
-        <CategorySection
-          name="Shelter"
-          items={[item1, item2]}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          formatWeight={formatWeight}
-        />
-      </Table>
+      <CategorySection
+        name="Shelter"
+        items={[item1, item2]}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        formatWeight={formatWeight}
+      />
     </MantineProvider>,
   );
 });
@@ -63,4 +61,27 @@ it("calls onEdit with the correct item when the edit button is clicked", () => {
 it("calls onDelete with the correct item when the delete button is clicked", () => {
   fireEvent.click(screen.getByRole("button", { name: "Delete Tent" }));
   expect(onDelete).toHaveBeenCalledWith(item1);
+});
+
+it("hides the items when the category header is clicked", async () => {
+  fireEvent.click(screen.getByText("Shelter"));
+
+  await waitFor(() => {
+    expect(
+      screen.queryByRole("button", { name: "Edit Tent" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Edit Sleeping Bag" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+it("shows the items again when the category header is clicked twice", async () => {
+  fireEvent.click(screen.getByText("Shelter"));
+  fireEvent.click(screen.getByText("Shelter"));
+
+  await waitFor(() => screen.getByRole("button", { name: "Edit Tent" }));
+  await waitFor(() =>
+    screen.getByRole("button", { name: "Edit Sleeping Bag" }),
+  );
 });

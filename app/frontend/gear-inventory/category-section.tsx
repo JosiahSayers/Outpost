@@ -1,6 +1,8 @@
+import { GEAR_INVENTORY_GRID_COLUMNS } from "$/frontend/gear-inventory/table-grid";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { ActionIcon, Divider, Group, Table, Text } from "@mantine/core";
-import { PencilSimple, Trash } from "@phosphor-icons/react";
+import { ActionIcon, Collapse, Divider, Group, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { CaretDownIcon, PencilSimple, Trash } from "@phosphor-icons/react";
 
 interface Props {
   name: string;
@@ -17,45 +19,62 @@ export default function CategorySection({
   onDelete,
   formatWeight,
 }: Props) {
+  const [expanded, { toggle }] = useDisclosure(true);
+
   return (
-    <Table.Tbody>
-      <Table.Tr>
-        <Table.Td colSpan={4} pt="lg" pb="xs">
-          <Group gap="xs" align="center">
-            <Text
-              size="xs"
-              tt="uppercase"
-              fw={700}
-              c="dimmed"
-              style={{ letterSpacing: "0.08em" }}
-            >
-              {name}
-            </Text>
-            <Text size="xs" c="dimmed">
-              ({items.length})
-            </Text>
-            <Divider style={{ flex: 1 }} />
-          </Group>
-        </Table.Td>
-      </Table.Tr>
-      {items.map((item) => (
-        <Table.Tr key={item.id}>
-          <Table.Td>
+    <div>
+      <Group
+        gap="xs"
+        align="center"
+        pt="lg"
+        pb="xs"
+        onClick={toggle}
+        style={{ cursor: "pointer" }}
+      >
+        <Text
+          size="xs"
+          tt="uppercase"
+          fw={700}
+          c="dimmed"
+          style={{ letterSpacing: "0.08em" }}
+        >
+          {name}
+        </Text>
+        <Text size="xs" c="dimmed">
+          ({items.length})
+        </Text>
+        <Divider style={{ flex: 1 }} />
+        <CaretDownIcon
+          size={14}
+          color="var(--mantine-color-dimmed)"
+          style={{
+            transform: expanded ? "rotate(180deg)" : undefined,
+            transition: "transform 150ms ease",
+            flexShrink: 0,
+          }}
+        />
+      </Group>
+
+      <Collapse expanded={expanded}>
+        {items.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              display: "grid",
+              gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
+              alignItems: "center",
+              padding: "7px var(--mantine-spacing-xs)",
+            }}
+          >
             <Text size="sm" fw={500}>
               {item.name}
             </Text>
-          </Table.Td>
-          <Table.Td style={{ textAlign: "center" }}>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" ta="center">
               {item.quantity}
             </Text>
-          </Table.Td>
-          <Table.Td style={{ textAlign: "right" }}>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" ta="right">
               {formatWeight(item.grams)}
             </Text>
-          </Table.Td>
-          <Table.Td>
             <Group gap={4} justify="flex-end">
               <ActionIcon
                 variant="subtle"
@@ -76,9 +95,9 @@ export default function CategorySection({
                 <Trash size={14} />
               </ActionIcon>
             </Group>
-          </Table.Td>
-        </Table.Tr>
-      ))}
-    </Table.Tbody>
+          </div>
+        ))}
+      </Collapse>
+    </div>
   );
 }

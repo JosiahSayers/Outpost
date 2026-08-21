@@ -3,6 +3,7 @@ import CategorySection from "$/frontend/gear-inventory/category-section";
 import DeleteModal from "$/frontend/gear-inventory/delete-modal";
 import EditDrawer from "$/frontend/gear-inventory/edit-drawer";
 import Header from "$/frontend/gear-inventory/header";
+import { GEAR_INVENTORY_GRID_COLUMNS } from "$/frontend/gear-inventory/table-grid";
 import PageContainer from "$/frontend/layout/page-container";
 import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import LoadingSwitch from "$/frontend/shared-components/loading-switch";
@@ -10,7 +11,7 @@ import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Table } from "@mantine/core";
+import { Alert, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 
@@ -98,19 +99,25 @@ export default function GearInventoryPage() {
             <BackToDashboardLink />
             <Header items={data.items} onAdd={handleAdd} />
 
-            <Table highlightOnHover withRowBorders={false}>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th style={{ width: "4ch", textAlign: "center" }}>
-                    Qty
-                  </Table.Th>
-                  <Table.Th style={{ width: "10ch", textAlign: "right" }}>
-                    Weight
-                  </Table.Th>
-                  <Table.Th style={{ width: 72 }} />
-                </Table.Tr>
-              </Table.Thead>
+            <div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: GEAR_INVENTORY_GRID_COLUMNS,
+                  padding: "7px var(--mantine-spacing-xs)",
+                }}
+              >
+                <Text size="sm" fw={700}>
+                  Name
+                </Text>
+                <Text size="sm" fw={700} ta="center">
+                  Qty
+                </Text>
+                <Text size="sm" fw={700} ta="right">
+                  Weight
+                </Text>
+                <div />
+              </div>
               {Object.entries(groupedItems).map(([name, items]) => (
                 <CategorySection
                   name={name}
@@ -121,7 +128,7 @@ export default function GearInventoryPage() {
                   key={name}
                 />
               ))}
-            </Table>
+            </div>
 
             <EditDrawer
               opened={drawerOpen}
