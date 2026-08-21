@@ -21,7 +21,24 @@ export function useResolvedSession() {
       return;
     }
 
-    const timeoutId = setTimeout(() => session.refetch(), RETRY_DELAY_MS);
+    // Surfaced as an unhandled promise rejection (OUTPOST-E) with nothing
+    // but a minified frame to go on -- refetch() was never awaited or
+    // caught here, so whatever it threw vanished into the console instead
+    // of Sentry. Logging the real error also stops the rejection from
+    // being unhandled in the first place.
+    Sentry.logger.warn("Retrying session fetch after transient error", {
+      status: session.error?.status ?? null,
+      statusText: session.error?.statusText ?? null,
+      message: session.error?.message ?? null,
+    });
+
+    const timeoutId = setTimeout(() => {
+      session.refetch().catch((error: unknown) => {
+        Sentry.logger.error("Session refetch after transient error failed", {
+          error,
+        });
+      });
+    }, RETRY_DELAY_MS);
     return () => clearTimeout(timeoutId);
   }, [isTransientError, session.refetch]);
 

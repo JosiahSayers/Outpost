@@ -12,7 +12,7 @@ import {
 import * as Sentry from "@sentry/react";
 
 let sessionData: { user: { id: string; email: string } } | null = null;
-const refetch = mock(() => {});
+const refetch = mock(() => Promise.resolve());
 
 mock.module("$/frontend/utils/auth-client", () => ({
   authClient: {

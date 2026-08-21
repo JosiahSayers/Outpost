@@ -8,7 +8,7 @@ let sessionData: {
 } | null = null;
 let isPending = false;
 let sessionError: { status: number } | null = null;
-const refetch = mock(() => {});
+const refetch = mock(() => Promise.resolve());
 
 mock.module("$/frontend/utils/auth-client", () => ({
   authClient: {
