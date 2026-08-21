@@ -13,7 +13,7 @@ import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-wei
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
 import { Alert, Button, Group, Text, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
 export default function GearInventoryPage() {
@@ -120,7 +120,16 @@ export default function GearInventoryPage() {
 
         return (
           <PageContainer gap="xl">
-            <BackToDashboardLink />
+            <Group justify="space-between" align="center">
+              <BackToDashboardLink />
+              <Button
+                leftSection={<PlusIcon size={16} />}
+                onClick={handleAdd}
+                hiddenFrom="sm"
+              >
+                Add Item
+              </Button>
+            </Group>
             <Header items={data.items} onAdd={handleAdd} />
 
             {Object.keys(groupedItems).length > 0 && (
