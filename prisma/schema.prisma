@@ -314,6 +314,12 @@ model PushSubscription {
   // -- nothing reads this to make decisions (yet).
   userAgent String?
 
+  // IANA zone string (e.g. "America/Los_Angeles") captured from the client
+  // at subscribe time via Intl.DateTimeFormat().resolvedOptions().timeZone.
+  // Best-effort, same as userAgent -- used to hold overnight push delivery
+  // until morning in the recipient's local time (see send-push-notification.ts).
+  timezone String?
+
   // Bumped whenever this device confirms receipt of a push (see the
   // push-subscriptions ack route). The nightly stale-prune job uses this as
   // a cheap "is this device provably alive" boundary before it bothers

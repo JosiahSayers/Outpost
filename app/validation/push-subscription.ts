@@ -6,6 +6,7 @@ export const createPushSubscription = z.strictObject({
     p256dh: z.string(),
     auth: z.string(),
   }),
+  timezone: z.string().optional(),
 });
 
 export const deletePushSubscription = z.strictObject({

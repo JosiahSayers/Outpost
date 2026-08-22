@@ -1,4 +1,7 @@
+import { AccountSettingsProviderBase } from "$/frontend/account/account-settings-context";
 import PushSubscriptionToggle from "$/frontend/account/notifications-panel/push-subscription-toggle";
+import { accountSettingsKeys } from "$/frontend/utils/api/account-settings";
+import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
@@ -6,6 +9,17 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const originalVapidKey = process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY;
+const defaultUserAgent = navigator.userAgent;
+
+const IPHONE_UA =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+
+function stubUserAgent(ua: string) {
+  Object.defineProperty(navigator, "userAgent", {
+    value: ua,
+    configurable: true,
+  });
+}
 
 function renderToggle() {
   const queryClient = new QueryClient({
@@ -15,6 +29,41 @@ function renderToggle() {
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
         <PushSubscriptionToggle />
+      </MantineProvider>
+    </QueryClientProvider>,
+  );
+}
+
+function setting(
+  overrides: Partial<ClientUserAccountSetting> = {},
+): ClientUserAccountSetting {
+  return {
+    slug: "notification_trip_status_update_in_app",
+    name: "Trip Status Updates - In-App",
+    description: "Test notification",
+    defaultValue: "true",
+    value: "true",
+    ...overrides,
+  };
+}
+
+// Same wrapping convention as notifications-panel/index.test.tsx: pre-seed
+// the settings query so useAccountSettingsContext resolves synchronously,
+// no separate GET mock needed.
+function renderToggleWithSettings(settings: ClientUserAccountSetting[]) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, staleTime: Infinity },
+      mutations: { retry: false },
+    },
+  });
+  queryClient.setQueryData(accountSettingsKeys.all, settings);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider>
+        <AccountSettingsProviderBase isAuthenticated>
+          <PushSubscriptionToggle />
+        </AccountSettingsProviderBase>
       </MantineProvider>
     </QueryClientProvider>,
   );
@@ -53,6 +102,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY = originalVapidKey;
+  stubUserAgent(defaultUserAgent);
   // @ts-expect-error -- undoing the per-test stub
   delete window.PushManager;
   // @ts-expect-error -- undoing the per-test stub
@@ -183,6 +233,167 @@ describe("when the browser supports push", () => {
     });
     await waitFor(() => expect(unsubscribeMock).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.getByRole("switch")).not.toBeChecked());
+  });
+});
+
+describe("on iOS Safari before it's been added to the Home Screen", () => {
+  it("shows an install message instead of the switch, even though the browser otherwise supports push", () => {
+    stubUserAgent(IPHONE_UA);
+    stubPushSupport({ getSubscription: mock(() => Promise.resolve(null)) });
+
+    renderToggle();
+
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/install to your home screen to turn this on/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("enabling default push settings", () => {
+  // The cascade mutation invalidates the settings query on settle, so a
+  // realistic GET response is needed here too -- otherwise the background
+  // refetch resolves to undefined and React Query logs a spurious warning.
+  function mockFetch({
+    checkStatus,
+    settings,
+  }: {
+    checkStatus?: number;
+    settings: ClientUserAccountSetting[];
+  }) {
+    return mock((url: string, init?: RequestInit) => {
+      if (url === "/api/push-subscriptions/check") {
+        return Promise.resolve(new Response("{}", { status: checkStatus }));
+      }
+      if (url === "/api/account/settings" && !init) {
+        return Promise.resolve(
+          new Response(JSON.stringify({ settings }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      }
+      return Promise.resolve(new Response("{}", { status: 201 }));
+    }) as unknown as typeof fetch;
+  }
+
+  function findPatchCall(fetchMock: ReturnType<typeof mock>) {
+    return fetchMock.mock.calls.find((call: any[]) => {
+      const [, init] = call as [string, RequestInit];
+      return init?.method === "PATCH";
+    }) as [string, RequestInit] | undefined;
+  }
+
+  it("turns on push for notifications already enabled via in-app or email, but not ones fully off", async () => {
+    const subscribeMock = mock(() =>
+      Promise.resolve({
+        endpoint: "https://push.example.com/new",
+        toJSON: () => ({
+          endpoint: "https://push.example.com/new",
+          keys: { p256dh: "p", auth: "a" },
+        }),
+      }),
+    );
+    stubPushSupport({
+      getSubscription: mock(() => Promise.resolve(null)),
+      subscribe: subscribeMock,
+    });
+    (global as any).Notification = {
+      requestPermission: mock(() => Promise.resolve("granted")),
+    };
+    const settings = [
+      setting({
+        slug: "notification_trip_status_update_in_app",
+        value: "true",
+      }),
+      setting({
+        slug: "notification_trip_status_update_email",
+        value: "false",
+      }),
+      setting({
+        slug: "notification_trip_status_update_web_push",
+        value: "false",
+      }),
+      setting({
+        slug: "notification_meal_plan_unpurchased_items_in_app",
+        value: "false",
+      }),
+      setting({
+        slug: "notification_meal_plan_unpurchased_items_email",
+        value: "false",
+      }),
+      setting({
+        slug: "notification_meal_plan_unpurchased_items_web_push",
+        value: "false",
+      }),
+    ];
+    global.fetch = mockFetch({ settings });
+
+    renderToggleWithSettings(settings);
+
+    await waitFor(() => expect(screen.getByRole("switch")).not.toBeChecked());
+    fireEvent.click(screen.getByRole("switch"));
+    await waitFor(() => expect(screen.getByRole("switch")).toBeChecked());
+
+    await waitFor(() =>
+      expect(
+        findPatchCall(global.fetch as unknown as ReturnType<typeof mock>),
+      ).toBeDefined(),
+    );
+    const [url, init] = findPatchCall(
+      global.fetch as unknown as ReturnType<typeof mock>,
+    )!;
+    expect(url).toBe("/api/account/settings");
+    expect(JSON.parse(init.body as string)).toEqual({
+      settings: [
+        { slug: "notification_trip_status_update_web_push", value: "true" },
+      ],
+    });
+  });
+
+  it("does not run the cascade during the mount-time auto-heal resubscribe", async () => {
+    const unsubscribeMock = mock(() => Promise.resolve(true));
+    const subscribeMock = mock(() =>
+      Promise.resolve({
+        endpoint: "https://push.example.com/fresh",
+        toJSON: () => ({
+          endpoint: "https://push.example.com/fresh",
+          keys: { p256dh: "p", auth: "a" },
+        }),
+      }),
+    );
+    stubPushSupport({
+      getSubscription: mock(() =>
+        Promise.resolve({
+          endpoint: "https://push.example.com/stale",
+          unsubscribe: unsubscribeMock,
+        }),
+      ),
+      subscribe: subscribeMock,
+    });
+    (global as any).Notification = {
+      requestPermission: mock(() => Promise.resolve("granted")),
+    };
+    const settings = [
+      setting({
+        slug: "notification_trip_status_update_in_app",
+        value: "true",
+      }),
+      setting({
+        slug: "notification_trip_status_update_web_push",
+        value: "false",
+      }),
+    ];
+    global.fetch = mockFetch({ checkStatus: 404, settings });
+
+    renderToggleWithSettings(settings);
+
+    await waitFor(() => expect(subscribeMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole("switch")).toBeChecked());
+
+    expect(
+      findPatchCall(global.fetch as unknown as ReturnType<typeof mock>),
+    ).toBeUndefined();
   });
 });
 

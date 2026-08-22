@@ -67,6 +67,54 @@ describe("POST /", () => {
     expect(subscriptions[0]?.p256dh).toBe("new-p256dh");
   });
 
+  it("persists the timezone on create and update", async () => {
+    await request(app)
+      .post("/api/push-subscriptions")
+      .send({
+        endpoint: "https://push.example.com/timezone-test",
+        keys: { p256dh: "p256dh-key", auth: "auth-key" },
+        timezone: "America/Los_Angeles",
+      })
+      .set("Cookie", await getAuthCookies())
+      .expect(201);
+
+    let subscription = await db.pushSubscription.findUnique({
+      where: { endpoint: "https://push.example.com/timezone-test" },
+    });
+    expect(subscription?.timezone).toBe("America/Los_Angeles");
+
+    await request(app)
+      .post("/api/push-subscriptions")
+      .send({
+        endpoint: "https://push.example.com/timezone-test",
+        keys: { p256dh: "p256dh-key", auth: "auth-key" },
+        timezone: "America/Chicago",
+      })
+      .set("Cookie", await getAuthCookies())
+      .expect(201);
+
+    subscription = await db.pushSubscription.findUnique({
+      where: { endpoint: "https://push.example.com/timezone-test" },
+    });
+    expect(subscription?.timezone).toBe("America/Chicago");
+  });
+
+  it("leaves timezone null when the client doesn't send one", async () => {
+    await request(app)
+      .post("/api/push-subscriptions")
+      .send({
+        endpoint: "https://push.example.com/no-timezone-test",
+        keys: { p256dh: "p256dh-key", auth: "auth-key" },
+      })
+      .set("Cookie", await getAuthCookies())
+      .expect(201);
+
+    const subscription = await db.pushSubscription.findUnique({
+      where: { endpoint: "https://push.example.com/no-timezone-test" },
+    });
+    expect(subscription?.timezone).toBeNull();
+  });
+
   it("rejects an invalid endpoint", async () => {
     await request(app)
       .post("/api/push-subscriptions")

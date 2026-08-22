@@ -1,15 +1,25 @@
+import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
+import { computeDefaultPushSettingUpdates } from "$/frontend/account/notifications-panel/enable-default-push-settings";
+import { IOS_INSTALL_COPY } from "$/frontend/shared-components/install-ios-banner";
+import { useUpdateAccountSetting } from "$/frontend/utils/api/account-settings";
 import {
   checkPushSubscription,
   useSubscribeToPush,
   useUnsubscribeFromPush,
 } from "$/frontend/utils/api/push-subscriptions";
 import { notifyError } from "$/frontend/utils/notify-error";
+import { isIos, isStandalone } from "$/frontend/utils/platform";
 import { Card, Group, Switch, Text, ThemeIcon, Title } from "@mantine/core";
 import { DeviceMobileIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 type SubscriptionState =
-  "loading" | "unsupported" | "subscribed" | "unsubscribed" | "denied";
+  | "loading"
+  | "unsupported"
+  | "ios-needs-install"
+  | "subscribed"
+  | "unsubscribed"
+  | "denied";
 
 // Standard VAPID-key conversion boilerplate -- pushManager.subscribe()
 // wants the application server key as a Uint8Array, not the base64url
@@ -41,22 +51,37 @@ async function subscribeAndUpsert(
       process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY,
     ),
   });
-  await subscribe.mutateAsync(subscription.toJSON(), { onError });
+  await subscribe.mutateAsync(
+    {
+      ...subscription.toJSON(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
+    { onError },
+  );
   return subscription;
 }
 
 // A separate axis from the per-notification "Push" toggles below -- this is
 // the browser-level subscription (one per device), while those are an
-// account-wide content preference. They're intentionally not coupled: a
-// per-notification push toggle has no effect on a device that's never
-// subscribed, same as how the email/in-app toggles don't check anything
-// about mailbox or browser state either.
+// account-wide content preference. A per-notification push toggle still has
+// no effect on a device that's never subscribed, same as how the email/
+// in-app toggles don't check anything about mailbox or browser state either.
+// The one place they touch: turning this switch on seeds sensible defaults
+// via computeDefaultPushSettingUpdates (below), so enabling push doesn't
+// leave every per-notification card looking unchanged and off.
 export default function PushSubscriptionToggle() {
   const [state, setState] = useState<SubscriptionState>("loading");
   const subscribe = useSubscribeToPush();
   const unsubscribe = useUnsubscribeFromPush();
+  const { settings } = useAccountSettingsContext();
+  const updateSettings = useUpdateAccountSetting();
 
   useEffect(() => {
+    if (isIos() && !isStandalone()) {
+      setState("ios-needs-install");
+      return;
+    }
+
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setState("unsupported");
       return;
@@ -124,9 +149,40 @@ export default function PushSubscriptionToggle() {
       notifyError("Couldn't enable push notifications"),
     );
     setState(subscription ? "subscribed" : "denied");
+
+    // Only on this explicit, user-initiated enable -- not the mount-time
+    // auto-heal resubscribe above, which shouldn't silently re-enable
+    // per-notification settings the user may have turned off since.
+    if (subscription && settings) {
+      const updates = computeDefaultPushSettingUpdates(settings);
+      if (updates.length > 0) {
+        updateSettings.mutate(updates, {
+          onError: notifyError("Couldn't update notification settings"),
+        });
+      }
+    }
   };
 
   if (state === "unsupported") return null;
+
+  if (state === "ios-needs-install") {
+    return (
+      <Card p={{ base: "sm", sm: "lg" }}>
+        <Group gap="sm" wrap="nowrap">
+          <ThemeIcon variant="light" radius="sm" size={30}>
+            <DeviceMobileIcon size={16} />
+          </ThemeIcon>
+          <div>
+            <Title order={4}>Push Notifications</Title>
+            <Text c="dimmed" size="sm">
+              {IOS_INSTALL_COPY.title} — install to your Home Screen to turn
+              this on: {IOS_INSTALL_COPY.steps.join(", then ")}.
+            </Text>
+          </div>
+        </Group>
+      </Card>
+    );
+  }
 
   return (
     <Card p={{ base: "sm", sm: "lg" }}>
@@ -140,7 +196,7 @@ export default function PushSubscriptionToggle() {
             <Text c="dimmed" size="sm">
               {state === "denied"
                 ? "Blocked in your browser settings -- enable notifications for this site to turn this back on."
-                : "Enable push notifications on this device. You'll still need to enable each notification type below."}
+                : "Enable push notifications on this device. Types you already get in-app or by email will switch on automatically -- turn on any others below."}
             </Text>
           </div>
         </Group>

@@ -7,9 +7,45 @@ import { transformers } from "$/transformers";
 import { db } from "$/utils/db";
 import { Notifications } from "$/utils/notifications";
 import type { Job } from "bullmq";
+import { DateTime } from "luxon";
 
 export const NOTIFICATIONS__SEND_PUSH_NOTIFICATION =
   "notifications__send_push_notification";
+
+// Falls back to the same single-timezone assumption the rest of the
+// codebase already leans on (see f566aae) for subscriptions predating the
+// timezone capture added alongside this delay logic.
+const DEFAULT_TIMEZONE = "America/New_York";
+const OVERNIGHT_START_HOUR = 21;
+const MORNING_DELIVERY_HOUR = 7;
+
+// Held pushes deliver at MORNING_DELIVERY_HOUR local time on whichever day
+// is soonest -- the same day if it's already past midnight but still inside
+// the overnight window, otherwise the next day.
+export function calculatePushDelayMs(
+  timezone: string | null,
+  now: DateTime = DateTime.now(),
+): number {
+  const local = now.setZone(timezone ?? DEFAULT_TIMEZONE);
+  const isOvernight =
+    local.hour >= OVERNIGHT_START_HOUR || local.hour < MORNING_DELIVERY_HOUR;
+
+  if (!isOvernight) {
+    return 0;
+  }
+
+  let morning = local.set({
+    hour: MORNING_DELIVERY_HOUR,
+    minute: 0,
+    second: 0,
+    millisecond: 0,
+  });
+  if (morning <= local) {
+    morning = morning.plus({ days: 1 });
+  }
+
+  return Math.max(0, morning.diff(local).toMillis());
+}
 
 // Gates on the _web_push account setting for this notification type, then
 // fans out to one job per subscribed device -- see send-push-to-device.ts
@@ -63,7 +99,10 @@ export async function sendPushNotification(
           body: description ?? null,
           referenceUrl: referenceUrl ?? null,
         },
-        opts: { jobId: `${job.id}-${subscription.id}` },
+        opts: {
+          jobId: `${job.id}-${subscription.id}`,
+          delay: calculatePushDelayMs(subscription.timezone),
+        },
       })),
     );
 

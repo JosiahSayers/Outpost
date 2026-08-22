@@ -31,30 +31,38 @@ export function useAccountSettings(options?: { enabled?: boolean }) {
   });
 }
 
+// Accepts either one setting or several so callers changing a whole batch
+// at once (e.g. enabling push defaults across every notification) don't
+// need to fire this once per slug -- the PATCH route already accepts an
+// array either way.
 export function useUpdateAccountSetting() {
   const queryClient = useQueryClient();
   const queryKey = accountSettingsKeys.all;
   return useMutation({
-    mutationFn: (setting: AccountSettingInput) =>
-      apiClient("/api/account/settings", {
+    mutationFn: (input: AccountSettingInput | AccountSettingInput[]) => {
+      const settings = Array.isArray(input) ? input : [input];
+      return apiClient("/api/account/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings: [setting] }),
-      }),
-    // Optimistically apply the new value so the select updates instantly;
+        body: JSON.stringify({ settings }),
+      });
+    },
+    // Optimistically apply the new value(s) so the UI updates instantly;
     // roll back if the request fails, then refetch to reconcile.
-    onMutate: async (setting) => {
+    onMutate: async (input) => {
+      const settings = Array.isArray(input) ? input : [input];
       await queryClient.cancelQueries({ queryKey });
       const previous =
         queryClient.getQueryData<ClientUserAccountSetting[]>(queryKey);
       queryClient.setQueryData<ClientUserAccountSetting[]>(queryKey, (old) =>
-        old?.map((s) =>
-          s.slug === setting.slug ? { ...s, value: setting.value } : s,
-        ),
+        old?.map((s) => {
+          const update = settings.find((setting) => setting.slug === s.slug);
+          return update ? { ...s, value: update.value } : s;
+        }),
       );
       return { previous };
     },
-    onError: (_error, _setting, context) => {
+    onError: (_error, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }

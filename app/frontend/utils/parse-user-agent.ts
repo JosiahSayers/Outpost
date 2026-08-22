@@ -14,7 +14,7 @@ function detectBrowser(ua: string): string | null {
   return null;
 }
 
-function detectOS(ua: string): string | null {
+export function detectOS(ua: string): string | null {
   if (/iPhone|iPad|iPod/.test(ua)) return "iOS";
   if (/Android/.test(ua)) return "Android";
   if (/Windows NT/.test(ua)) return "Windows";

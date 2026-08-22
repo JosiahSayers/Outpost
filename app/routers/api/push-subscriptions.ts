@@ -16,7 +16,7 @@ pushSubscriptionsRouter.post(
   "/",
   validate({ body: createPushSubscription }),
   async (req, res) => {
-    const { endpoint, keys } = req.body;
+    const { endpoint, keys, timezone } = req.body;
     const userAgent = req.headers["user-agent"] ?? null;
 
     await db.pushSubscription.upsert({
@@ -27,12 +27,14 @@ pushSubscriptionsRouter.post(
         auth: keys.auth,
         userId: req.session!.user.id,
         userAgent,
+        timezone,
       },
       update: {
         p256dh: keys.p256dh,
         auth: keys.auth,
         userId: req.session!.user.id,
         userAgent,
+        timezone,
       },
     });
 

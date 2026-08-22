@@ -3,7 +3,7 @@ import { ApiError, apiClient } from "./client";
 
 export function useSubscribeToPush() {
   return useMutation({
-    mutationFn: (subscription: PushSubscriptionJSON) =>
+    mutationFn: (subscription: PushSubscriptionJSON & { timezone?: string }) =>
       apiClient("/api/push-subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
