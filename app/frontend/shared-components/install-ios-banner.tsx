@@ -1,5 +1,6 @@
+import { authClient } from "$/frontend/utils/auth-client";
 import { isIos, isStandalone } from "$/frontend/utils/platform";
-import { Alert, Group, List, Text, ThemeIcon } from "@mantine/core";
+import { Alert, Group, List, Stack, Text, ThemeIcon } from "@mantine/core";
 import { CompassIcon, ExportIcon, PlusSquareIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -54,12 +55,26 @@ function StepMarker({ n, icon }: { n: number; icon: ReactNode }) {
   );
 }
 
+// Thin wrapper around InstallIosBannerBase so the actual banner logic can be
+// tested without touching authClient's session hook -- same split as
+// AccountSettingsProvider/AccountSettingsProviderBase.
 export default function InstallIosBanner() {
+  const session = authClient.useSession();
+  return <InstallIosBannerBase isAuthenticated={!!session.data?.user} />;
+}
+
+export function InstallIosBannerBase({
+  isAuthenticated,
+}: {
+  isAuthenticated: boolean;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(isIos() && !isStandalone() && !readDismissed());
-  }, []);
+    setVisible(
+      isAuthenticated && isIos() && !isStandalone() && !readDismissed(),
+    );
+  }, [isAuthenticated]);
 
   if (!visible) return null;
 
@@ -86,19 +101,26 @@ export default function InstallIosBanner() {
       }
       mb="md"
     >
-      <Text size="sm" mb={6}>
-        {IOS_INSTALL_COPY.body}
-      </Text>
-      <List size="sm" spacing={4} c="dimmed">
-        <List.Item icon={<StepMarker n={1} icon={<ExportIcon size={10} />} />}>
-          {IOS_INSTALL_COPY.steps[0]}
-        </List.Item>
-        <List.Item
-          icon={<StepMarker n={2} icon={<PlusSquareIcon size={10} />} />}
+      <Stack gap="sm">
+        <Text size="sm">{IOS_INSTALL_COPY.body}</Text>
+        <List
+          size="sm"
+          spacing={4}
+          c="dimmed"
+          styles={{ root: { paddingInlineStart: 0 } }}
         >
-          {IOS_INSTALL_COPY.steps[1]}
-        </List.Item>
-      </List>
+          <List.Item
+            icon={<StepMarker n={1} icon={<ExportIcon size={12} />} />}
+          >
+            {IOS_INSTALL_COPY.steps[0]}
+          </List.Item>
+          <List.Item
+            icon={<StepMarker n={2} icon={<PlusSquareIcon size={12} />} />}
+          >
+            {IOS_INSTALL_COPY.steps[1]}
+          </List.Item>
+        </List>
+      </Stack>
     </Alert>
   );
 }
