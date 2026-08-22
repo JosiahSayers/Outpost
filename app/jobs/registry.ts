@@ -7,6 +7,7 @@ import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import unpurchasedMealPlanItemsReminderJob from "$/jobs/workers/meal-plan/unpurchased-items-reminder";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
+import pruneStalePushSubscriptionsJob from "$/jobs/workers/notifications/prune-stale-push-subscriptions";
 import sendInAppNotificationJob from "$/jobs/workers/notifications/send-in-app-notification";
 import sendPushNotificationJob from "$/jobs/workers/notifications/send-push-notification";
 import sendPushToDeviceJob from "$/jobs/workers/notifications/send-push-to-device";
@@ -37,6 +38,7 @@ export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   newUserSettingsNotificationsJob,
   inferMetadataJob,
   unpurchasedMealPlanItemsReminderJob,
+  pruneStalePushSubscriptionsJob,
   publicMealCatalogImportGroup,
   dbIpCheckJob,
   dbIpDownloadJob,
