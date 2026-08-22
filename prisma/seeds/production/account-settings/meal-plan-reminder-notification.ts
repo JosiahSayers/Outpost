@@ -9,14 +9,14 @@ async function run() {
         slug: Notifications.getSlug("meal_plan_unpurchased_items", "in_app"),
         name: "Unpurchased Meal Plan Items - In-App",
         description:
-          "Get a heads-up a few days before a trip if your meal plan still has items marked as not purchased.",
+          "Get a heads-up a few days before a trip if your meal plan still has items that need purchased.",
         defaultValue: "true",
       },
       {
         slug: Notifications.getSlug("meal_plan_unpurchased_items", "email"),
         name: "Unpurchased Meal Plan Items - Email",
         description:
-          "Get a heads-up a few days before a trip if your meal plan still has items marked as not purchased.",
+          "Get a heads-up a few days before a trip if your meal plan still has items that need purchased.",
         defaultValue: "false",
       },
     ],
