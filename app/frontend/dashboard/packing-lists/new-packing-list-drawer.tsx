@@ -5,6 +5,7 @@ import {
   usePackingListSearch,
 } from "$/frontend/utils/api/packing-list";
 import { packingListName } from "$/validation/packing-list";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 import { Button, Drawer, Group, Stack, Text, TextInput } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -105,9 +106,9 @@ export default function NewPackingListDrawer({ opened, onClose }: Props) {
                   {list.name}
                 </Text>
                 <Text size="xs" c="dimmed" lineClamp={1}>
-                  {list.totalSections} section
-                  {list.totalSections !== 1 ? "s" : ""} · {list.totalItems} item
-                  {list.totalItems !== 1 ? "s" : ""}
+                  {list.totalSections}{" "}
+                  {pluralize("section", list.totalSections)} · {list.totalItems}{" "}
+                  {pluralize("item", list.totalItems)}
                 </Text>
                 {list.description && (
                   <Text size="xs" c="dimmed" lineClamp={1}>

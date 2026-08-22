@@ -6,6 +6,7 @@ import {
 } from "$/frontend/utils/api/packing-list";
 import { useAssignTripPackingList } from "$/frontend/utils/api/trip-packing-list";
 import type { ClientTripPackingList } from "$/transformers/trip-packing-list";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 import { Button, Drawer, Group, Stack, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { ListBulletsIcon } from "@phosphor-icons/react";
@@ -97,9 +98,9 @@ export default function AssignPackingListDrawer({
                   {list.name}
                 </Text>
                 <Text size="xs" c="dimmed" lineClamp={1}>
-                  {list.totalSections} section
-                  {list.totalSections !== 1 ? "s" : ""} · {list.totalItems} item
-                  {list.totalItems !== 1 ? "s" : ""}
+                  {list.totalSections}{" "}
+                  {pluralize("section", list.totalSections)} · {list.totalItems}{" "}
+                  {pluralize("item", list.totalItems)}
                 </Text>
               </>
             )}

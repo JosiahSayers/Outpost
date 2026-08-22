@@ -1,5 +1,5 @@
-import { sendTripStatusUpdateEmailQueue } from "$/jobs/workers/email/trip-status-update";
-import type { SendTripStatusUpdateEmailJobData } from "$/jobs/workers/email/trip-status-update";
+import { sendEmailQueue } from "$/jobs/workers/email/send-email";
+import type { SendEmailJobData } from "$/jobs/workers/email/send-email";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import type { CreateNotificationJobData } from "$/jobs/workers/notifications/create-notification";
 import {
@@ -43,9 +43,9 @@ async function notificationJobsAddedDuring(fn: () => Promise<unknown>) {
 
 async function emailJobsAddedDuring(fn: () => Promise<unknown>) {
   await fn();
-  return (await sendTripStatusUpdateEmailQueue.getJobs(
+  return (await sendEmailQueue.getJobs(
     NOTIFICATION_JOB_STATES,
-  )) as Job<SendTripStatusUpdateEmailJobData>[];
+  )) as Job<SendEmailJobData>[];
 }
 
 describe("moveTripsToInProgress", () => {
@@ -289,14 +289,20 @@ describe("moveTripsToInProgress", () => {
     const [job] = jobs;
     expect(job!.name).toBe("trip-moved-to-in-progress-email");
     expect(job!.data.userId).toBe(userId);
-    expect(job!.data.userEmail).toBe(userEmail);
-    expect(job!.data.userName).toBe(userName);
-    expect(job!.data.tripName).toBe("Pacific Crest Traverse");
-    expect(job!.data.description).toBe(
+    expect(job!.data.to).toBe(userEmail);
+    expect(job!.data.notificationSettingName).toBe("trip_status_update");
+    expect(job!.data.content.template).toBe("trip-status-update");
+    const props =
+      job!.data.content.template === "trip-status-update"
+        ? job!.data.content.props
+        : undefined;
+    expect(props?.userName).toBe(userName);
+    expect(props?.tripName).toBe("Pacific Crest Traverse");
+    expect(props?.description).toBe(
       "We've automatically marked your trip as in progress.",
     );
-    expect(job!.data.referenceUrl).toBe(`/trips/${trip.id}`);
-    expect(IN_PROGRESS_NOTIFICATION_TITLES).toContain(job!.data.title);
+    expect(props?.tripUrl).toContain(`/trips/${trip.id}`);
+    expect(IN_PROGRESS_NOTIFICATION_TITLES).toContain(props?.title);
   });
 
   it("uses the same title for the in-app notification and the email for a given trip", async () => {
@@ -311,12 +317,17 @@ describe("moveTripsToInProgress", () => {
 
     await moveTripsToInProgress(now);
 
-    const [notificationJobs, emailJobs] = await Promise.all([
+    const [notificationJobs, emailJobs] = (await Promise.all([
       createNotificationQueue.getJobs(NOTIFICATION_JOB_STATES),
-      sendTripStatusUpdateEmailQueue.getJobs(NOTIFICATION_JOB_STATES),
-    ]);
+      sendEmailQueue.getJobs(NOTIFICATION_JOB_STATES),
+    ])) as [Job<CreateNotificationJobData>[], Job<SendEmailJobData>[]];
 
-    expect(notificationJobs[0]?.data.title).toBe(emailJobs[0]?.data.title);
+    const emailContent = emailJobs[0]?.data.content;
+    const emailTitle =
+      emailContent?.template === "trip-status-update"
+        ? emailContent.props.title
+        : undefined;
+    expect(notificationJobs[0]?.data.title).toBe(emailTitle);
   });
 
   it("does not enqueue an email for a trip that isn't moved", async () => {

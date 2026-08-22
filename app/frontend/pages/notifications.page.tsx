@@ -57,8 +57,10 @@ export default function NotificationsPage() {
 
   return (
     <PageContainer gap="lg">
-      <BackToDashboardLink />
-      <Title order={2}>Notifications</Title>
+      <Stack gap="md">
+        <BackToDashboardLink />
+        <Title order={2}>Notifications</Title>
+      </Stack>
 
       <SegmentedControl
         value={tab}

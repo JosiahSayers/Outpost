@@ -9,6 +9,7 @@ export const NOTIFICATION_ICON_NAMES = [
   "FlagCheckeredIcon",
   "PersonSimpleHikeIcon",
   "RulerIcon",
+  "ShoppingCartIcon",
   "WarningIcon",
 ] as const;
 

@@ -1,6 +1,7 @@
+import { emailAppUrl } from "$/emails/theme";
 import { defineJob } from "$/jobs/define-job";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
-import { sendTripStatusUpdateEmailQueue } from "$/jobs/workers/email/trip-status-update";
+import { sendEmailQueue } from "$/jobs/workers/email/send-email";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
 
@@ -86,17 +87,23 @@ export async function moveTripsToFinished(now: Date = new Date()) {
           },
         })),
       ),
-      sendTripStatusUpdateEmailQueue.addBulk(
+      sendEmailQueue.addBulk(
         notifications.map(({ trip, title, description, referenceUrl }) => ({
           name: "trip-moved-to-finished-email",
           data: {
             userId: trip.userId,
-            userEmail: trip.user.email,
-            userName: trip.user.name,
-            title,
-            description,
-            tripName: trip.name,
-            referenceUrl,
+            to: trip.user.email,
+            notificationSettingName: "trip_status_update",
+            content: {
+              template: "trip-status-update",
+              props: {
+                userName: trip.user.name,
+                title,
+                description,
+                tripName: trip.name,
+                tripUrl: `${emailAppUrl}${referenceUrl}`,
+              },
+            },
           },
         })),
       ),

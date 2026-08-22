@@ -19,7 +19,7 @@ export default function ToggleRow({
       <Group justify="space-between" wrap="nowrap" gap="sm">
         <Group gap="xs" wrap="nowrap" c="dimmed">
           <RowIcon size={15} />
-          <Text size="sm" c="dark">
+          <Text size="sm" c="var(--mantine-color-text)">
             {label}
           </Text>
         </Group>

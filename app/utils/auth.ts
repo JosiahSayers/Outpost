@@ -1,6 +1,4 @@
-import { sendPasswordChangedEmailQueue } from "$/jobs/workers/email/password-changed";
-import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
-import { sendVerifyEmailQueue } from "$/jobs/workers/email/verify-email";
+import { sendEmailQueue } from "$/jobs/workers/email/send-email";
 import { CLOUDFLARE_PROXY_RANGES } from "$/utils/cloudflare-proxy-ranges";
 import { db } from "$/utils/db";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -17,7 +15,15 @@ export const baseAuthConfig = {
     enabled: true,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }, request) => {
-      sendResetPasswordEmailQueue.add(user.email, { user, url });
+      sendEmailQueue.add(user.email, {
+        userId: user.id,
+        to: user.email,
+        notificationSettingName: null,
+        content: {
+          template: "reset-password",
+          props: { userName: user.name, resetUrl: url },
+        },
+      });
     },
   },
   // Verification isn't required to sign in yet -- admins alone are gated on
@@ -27,7 +33,15 @@ export const baseAuthConfig = {
   // themselves from the Profile tab's "resend" action.
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
-      sendVerifyEmailQueue.add(user.email, { user, url });
+      sendEmailQueue.add(user.email, {
+        userId: user.id,
+        to: user.email,
+        notificationSettingName: null,
+        content: {
+          template: "verify-email",
+          props: { userName: user.name, verifyUrl: url },
+        },
+      });
     },
     sendOnSignUp: false,
     // Without this, /verify-email updates the DB row but never refreshes
@@ -81,7 +95,15 @@ export const baseAuthConfig = {
       if (ctx.path === "/change-password") {
         const user = ctx.context.session?.user;
         if (user) {
-          sendPasswordChangedEmailQueue.add(user.email, { user });
+          sendEmailQueue.add(user.email, {
+            userId: user.id,
+            to: user.email,
+            notificationSettingName: null,
+            content: {
+              template: "password-changed",
+              props: { userName: user.name },
+            },
+          });
         }
       }
     }),

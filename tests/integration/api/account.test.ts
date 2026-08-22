@@ -120,7 +120,7 @@ describe("PATCH /settings", () => {
               "code": "invalid_union",
               "discriminator": "slug",
               "errors": [],
-              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup' | 'notification_trip_status_update_in_app' | 'notification_trip_status_update_email'",
+              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup' | 'notification_trip_status_update_in_app' | 'notification_trip_status_update_email' | 'notification_meal_plan_unpurchased_items_in_app' | 'notification_meal_plan_unpurchased_items_email'",
               "note": "No matching discriminator",
               "options": [
                 "liquid_viewing_unit",
@@ -130,6 +130,8 @@ describe("PATCH /settings", () => {
                 "weight_rollup",
                 "notification_trip_status_update_in_app",
                 "notification_trip_status_update_email",
+                "notification_meal_plan_unpurchased_items_in_app",
+                "notification_meal_plan_unpurchased_items_email",
               ],
               "path": [
                 "settings",
@@ -269,6 +271,31 @@ describe("PATCH /settings", () => {
       },
     });
     expect(value?.value).toBe("true");
+  });
+
+  it("updates the meal-plan-unpurchased-items notification setting", async () => {
+    await request(app)
+      .patch("/api/account/settings")
+      .set("Cookie", authCookies)
+      .send({
+        settings: [
+          {
+            slug: "notification_meal_plan_unpurchased_items_email",
+            value: "false",
+          },
+        ],
+      })
+      .expect(200);
+
+    const setting = await db.accountSetting.findUniqueOrThrow({
+      where: { slug: "notification_meal_plan_unpurchased_items_email" },
+    });
+    const value = await db.accountSettingValue.findUnique({
+      where: {
+        accountSettingId_userId: { accountSettingId: setting.id, userId },
+      },
+    });
+    expect(value?.value).toBe("false");
   });
 
   it("accepts pounds_and_ounces for weight_entry_unit", async () => {

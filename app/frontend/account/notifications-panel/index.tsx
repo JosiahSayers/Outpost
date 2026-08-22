@@ -4,7 +4,12 @@ import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { NOTIFICATION_SLUG_PREFIX, Notifications } from "$/utils/notifications";
 import { Stack, Text, Title } from "@mantine/core";
-import { BellIcon, FlagCheckeredIcon, type Icon } from "@phosphor-icons/react";
+import {
+  BellIcon,
+  FlagCheckeredIcon,
+  ShoppingCartIcon,
+  type Icon,
+} from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 // A notification renders with a generic bell icon unless it has an entry
@@ -12,6 +17,7 @@ import { useMemo } from "react";
 // shows up automatically, and a nicer icon is a purely cosmetic follow-up.
 const ICONS_BY_NOTIFICATION: Partial<Record<string, Icon>> = {
   trip_status_update: FlagCheckeredIcon,
+  meal_plan_unpurchased_items: ShoppingCartIcon,
 };
 
 interface NotificationGroup {

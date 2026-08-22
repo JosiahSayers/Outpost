@@ -11,7 +11,7 @@ import { useGearInventory } from "$/frontend/utils/api/gear-inventory";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
 import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-weight-display";
 import type { ClientGearInventoryItem } from "$/transformers/gear-inventory-item";
-import { Alert, Button, Group, Text, TextInput } from "@mantine/core";
+import { Alert, Button, Group, Stack, Text, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
@@ -120,17 +120,19 @@ export default function GearInventoryPage() {
 
         return (
           <PageContainer gap="xl">
-            <Group justify="space-between" align="center">
-              <BackToDashboardLink />
-              <Button
-                leftSection={<PlusIcon size={16} />}
-                onClick={handleAdd}
-                hiddenFrom="sm"
-              >
-                Add Item
-              </Button>
-            </Group>
-            <Header items={data.items} onAdd={handleAdd} />
+            <Stack gap="md">
+              <Group justify="space-between" align="center">
+                <BackToDashboardLink />
+                <Button
+                  leftSection={<PlusIcon size={16} />}
+                  onClick={handleAdd}
+                  hiddenFrom="sm"
+                >
+                  Add Item
+                </Button>
+              </Group>
+              <Header items={data.items} onAdd={handleAdd} />
+            </Stack>
 
             {Object.keys(groupedItems).length > 0 && (
               <div role="table">

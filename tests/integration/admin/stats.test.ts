@@ -1,5 +1,5 @@
 import { redisConnection } from "$/jobs/workers/default-options";
-import { sendResetPasswordEmailQueue } from "$/jobs/workers/email/reset-password";
+import { sendEmailQueue } from "$/jobs/workers/email/send-email";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { getStat } from "$/utils/admin/stats";
 import { db } from "$/utils/db";
@@ -223,7 +223,7 @@ describe("getStat", () => {
 
     it("sums failed jobs across every queue in the registry", async () => {
       await failJobs(createNotificationQueue, 1);
-      await failJobs(sendResetPasswordEmailQueue, 2);
+      await failJobs(sendEmailQueue, 2);
 
       const stat = await getStat("failed_jobs");
 

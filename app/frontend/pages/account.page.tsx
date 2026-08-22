@@ -1,8 +1,9 @@
 import SettingsShell from "$/frontend/account/settings-shell";
 import PageContainer from "$/frontend/layout/page-container";
+import BackToDashboardLink from "$/frontend/shared-components/back-to-dashboard-link";
 import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import { useAuthenticatedGuard } from "$/frontend/utils/guards/authenticated.guard";
-import { Center, Loader, Text, Title } from "@mantine/core";
+import { Center, Loader, Stack, Text, Title } from "@mantine/core";
 import { useParams } from "wouter";
 
 export default function AccountPage() {
@@ -20,10 +21,13 @@ export default function AccountPage() {
     >
       {() => (
         <PageContainer gap="xl">
-          <div>
-            <Title order={1}>Account Settings</Title>
-            <Text c="dimmed">Manage the details tied to your account.</Text>
-          </div>
+          <Stack gap="md">
+            <BackToDashboardLink />
+            <div>
+              <Title order={1}>Account Settings</Title>
+              <Text c="dimmed">Manage the details tied to your account.</Text>
+            </div>
+          </Stack>
 
           <SettingsShell
             name={session.data?.user.name ?? ""}
