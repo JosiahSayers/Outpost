@@ -1,6 +1,7 @@
 import { isIos, isStandalone } from "$/frontend/utils/platform";
 import { Alert, Group, List, Text, ThemeIcon } from "@mantine/core";
 import { CompassIcon, ExportIcon, PlusSquareIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 const DISMISSED_KEY = "outpost.ios-install-prompt-dismissed";
@@ -31,6 +32,26 @@ function writeDismissed(): void {
     // Nothing to do -- the banner will just show again next load, which is
     // the safe failure mode.
   }
+}
+
+// List.Item's icon slot otherwise takes whatever size/shape its icon happens
+// to be -- a share glyph and a plus-square glyph aren't the same footprint,
+// which throws off row alignment between steps. Fixing both the number
+// badge and the icon to identical-size containers keeps every step's
+// leading marker the same width regardless of which icon it holds.
+function StepMarker({ n, icon }: { n: number; icon: ReactNode }) {
+  return (
+    <Group gap={4} wrap="nowrap">
+      <ThemeIcon variant="filled" color="trail-green" radius="xl" size={16}>
+        <Text fz={10} fw={700} span>
+          {n}
+        </Text>
+      </ThemeIcon>
+      <ThemeIcon variant="light" color="trail-green" radius="sm" size={16}>
+        {icon}
+      </ThemeIcon>
+    </Group>
+  );
 }
 
 export default function InstallIosBanner() {
@@ -69,10 +90,12 @@ export default function InstallIosBanner() {
         {IOS_INSTALL_COPY.body}
       </Text>
       <List size="sm" spacing={4} c="dimmed">
-        <List.Item icon={<ExportIcon size={13} />}>
+        <List.Item icon={<StepMarker n={1} icon={<ExportIcon size={10} />} />}>
           {IOS_INSTALL_COPY.steps[0]}
         </List.Item>
-        <List.Item icon={<PlusSquareIcon size={13} />}>
+        <List.Item
+          icon={<StepMarker n={2} icon={<PlusSquareIcon size={10} />} />}
+        >
           {IOS_INSTALL_COPY.steps[1]}
         </List.Item>
       </List>
