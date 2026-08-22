@@ -156,6 +156,20 @@ configs:
               file_server
           }
 
+          # Deliberately unhashed (see pwa-assets.ts) so the browser's SW
+          # update check can byte-compare the same fixed URL across deploys
+          # -- but that only works if nothing caches a stale copy in
+          # between. Cloudflare proxies this origin and, with no
+          # Cache-Control header, applies its own default edge caching for
+          # .js by extension, which can serve a stale worker for hours
+          # after a deploy. no-cache forces revalidation on every request,
+          # at both the CDN edge and the browser's HTTP cache.
+          handle /service-worker.js {
+              header Cache-Control "no-cache"
+              root * /srv/frontend
+              file_server
+          }
+
           handle {
               # WebKit/Safari requires Access-Control-Allow-Origin on a
               # <script crossorigin> response to report real file/line/column
