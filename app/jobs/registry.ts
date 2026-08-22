@@ -4,6 +4,7 @@ import dbIpCheckJob from "$/jobs/workers/db-ip/check-db-ip";
 import dbIpDownloadJob from "$/jobs/workers/db-ip/download-db-ip";
 import sendEmailJob from "$/jobs/workers/email/send-email";
 import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
+import unpurchasedMealPlanItemsReminderJob from "$/jobs/workers/meal-plan/unpurchased-items-reminder";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
 import deriveCanonicalEntitiesJob from "$/jobs/workers/protected-areas/derive-canonical-entities";
@@ -29,6 +30,7 @@ export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   deriveCanonicalEntitiesJob,
   newUserSettingsNotificationsJob,
   inferMetadataJob,
+  unpurchasedMealPlanItemsReminderJob,
   publicMealCatalogImportGroup,
   dbIpCheckJob,
   dbIpDownloadJob,

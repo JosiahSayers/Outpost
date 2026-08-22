@@ -1,4 +1,5 @@
 import { FROM_ADDRESSES, resend } from "$/emails/resend-client";
+import MealPlanReminderEmail from "$/emails/meal-plan-reminder";
 import PasswordChangedEmail from "$/emails/password-changed";
 import ResetPasswordEmail from "$/emails/reset-password";
 import TripStatusUpdateEmail from "$/emails/trip-status-update";
@@ -41,6 +42,18 @@ export type EmailContent =
         tripName: string;
         tripUrl: string;
       };
+    }
+  | {
+      template: "meal-plan-reminder";
+      props: {
+        userName: string | null;
+        tripName: string;
+        tripStartDate: string;
+        tripUrl: string;
+        unpurchasedCount: number;
+        previewItemNames: string[];
+        remainingCount: number;
+      };
     };
 
 export interface SendEmailJobData {
@@ -59,6 +72,7 @@ const DEFAULT_SUBJECTS: Record<EmailContent["template"], string> = {
   "reset-password": "Outpost Password Reset",
   "verify-email": "Verify your Outpost email",
   "trip-status-update": "Outpost Trip Update",
+  "meal-plan-reminder": "Outpost Meal Plan Reminder",
 };
 
 function renderEmail(content: EmailContent) {
@@ -71,6 +85,8 @@ function renderEmail(content: EmailContent) {
       return jsx(VerifyEmail, content.props);
     case "trip-status-update":
       return jsx(TripStatusUpdateEmail, content.props);
+    case "meal-plan-reminder":
+      return jsx(MealPlanReminderEmail, content.props);
   }
 }
 

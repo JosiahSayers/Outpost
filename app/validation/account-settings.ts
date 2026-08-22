@@ -38,6 +38,20 @@ export const tripStatusUpdateEmail = z.strictObject({
   value: z.enum(["true", "false"]),
 });
 
+export const mealPlanUnpurchasedItemsInApp = z.strictObject({
+  slug: z.literal(
+    Notifications.getSlug("meal_plan_unpurchased_items", "in_app"),
+  ),
+  value: z.enum(["true", "false"]),
+});
+
+export const mealPlanUnpurchasedItemsEmail = z.strictObject({
+  slug: z.literal(
+    Notifications.getSlug("meal_plan_unpurchased_items", "email"),
+  ),
+  value: z.enum(["true", "false"]),
+});
+
 export const accountSettings = z.discriminatedUnion("slug", [
   liquidViewingUnit,
   liquidEntryUnit,
@@ -46,6 +60,8 @@ export const accountSettings = z.discriminatedUnion("slug", [
   weightRollup,
   tripStatusUpdateInApp,
   tripStatusUpdateEmail,
+  mealPlanUnpurchasedItemsInApp,
+  mealPlanUnpurchasedItemsEmail,
 ]);
 
 export const editAccountSettings = z.strictObject({
