@@ -59,6 +59,7 @@ model User {
   feedbackAuditLogs               FeedbackAuditLog[]
   ignoredPublicMealItems          IgnoredPublicMealItem[]
   tripPartyMembers                TripPartyMember[]
+  pushSubscriptions               PushSubscription[]
 
   @@unique([email])
   @@map("user")
@@ -287,6 +288,25 @@ model CommunicationAuditLog {
 
 enum CommunicationType {
   email
+  push
+}
+
+// One row per subscribed browser/device (a user may have several — phone,
+// laptop). `endpoint` is unique per push-service subscription and doubles
+// as the natural idempotency key when the same device re-subscribes.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId])
 }
 
 //
