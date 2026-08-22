@@ -163,15 +163,116 @@ describe("when the browser supports push", () => {
 
     fireEvent.click(screen.getByRole("switch"));
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
-      .mock.calls[0]! as [string, RequestInit];
+    // The mount effect's /check call also hits fetch, so find the DELETE
+    // call rather than assuming it's the first one.
+    await waitFor(() =>
+      expect(
+        (global.fetch as unknown as ReturnType<typeof mock>).mock.calls.some(
+          ([, init]) => (init as RequestInit)?.method === "DELETE",
+        ),
+      ).toBe(true),
+    );
+    const [url, init] = (
+      global.fetch as unknown as ReturnType<typeof mock>
+    ).mock.calls.find(
+      ([, init]) => (init as RequestInit)?.method === "DELETE",
+    )! as [string, RequestInit];
     expect(url).toBe("/api/push-subscriptions");
-    expect(init.method).toBe("DELETE");
     expect(JSON.parse(init.body as string)).toEqual({
       endpoint: "https://push.example.com/existing",
     });
     await waitFor(() => expect(unsubscribeMock).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.getByRole("switch")).not.toBeChecked());
+  });
+});
+
+describe("mount-time auto-heal (server pruned a still-present client subscription)", () => {
+  function mockFetchWithCheckResult(checkStatus: number) {
+    return mock((url: string) => {
+      if (url === "/api/push-subscriptions/check") {
+        return Promise.resolve(new Response("{}", { status: checkStatus }));
+      }
+      return Promise.resolve(new Response("{}", { status: 201 }));
+    });
+  }
+
+  it("silently resubscribes when /check 404s and the resubscribe succeeds", async () => {
+    const unsubscribeMock = mock(() => Promise.resolve(true));
+    const subscribeMock = mock(() =>
+      Promise.resolve({
+        endpoint: "https://push.example.com/fresh",
+        toJSON: () => ({
+          endpoint: "https://push.example.com/fresh",
+          keys: { p256dh: "p", auth: "a" },
+        }),
+      }),
+    );
+    stubPushSupport({
+      getSubscription: mock(() =>
+        Promise.resolve({
+          endpoint: "https://push.example.com/stale",
+          unsubscribe: unsubscribeMock,
+        }),
+      ),
+      subscribe: subscribeMock,
+    });
+    (global as any).Notification = {
+      requestPermission: mock(() => Promise.resolve("granted")),
+    };
+    global.fetch = mockFetchWithCheckResult(404) as unknown as typeof fetch;
+
+    renderToggle();
+
+    await waitFor(() => expect(unsubscribeMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(subscribeMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole("switch")).toBeChecked());
+    const postCall = (
+      global.fetch as unknown as ReturnType<typeof mock>
+    ).mock.calls.find((call: any[]) => {
+      const [url, init] = call as [string, RequestInit];
+      return url === "/api/push-subscriptions" && init.method === "POST";
+    });
+    expect(postCall).toBeDefined();
+  });
+
+  it("does nothing when /check confirms the subscription still exists", async () => {
+    const subscribeMock = mock(() => Promise.resolve({}));
+    stubPushSupport({
+      getSubscription: mock(() =>
+        Promise.resolve({ endpoint: "https://push.example.com/still-good" }),
+      ),
+      subscribe: subscribeMock,
+    });
+    global.fetch = mockFetchWithCheckResult(200) as unknown as typeof fetch;
+
+    renderToggle();
+
+    await waitFor(() => expect(screen.getByRole("switch")).toBeChecked());
+    expect(subscribeMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to unsubscribed when /check 404s and resubscribe fails", async () => {
+    const unsubscribeMock = mock(() => Promise.resolve(true));
+    const subscribeMock = mock(() =>
+      Promise.reject(new Error("permission revoked")),
+    );
+    stubPushSupport({
+      getSubscription: mock(() =>
+        Promise.resolve({
+          endpoint: "https://push.example.com/stale",
+          unsubscribe: unsubscribeMock,
+        }),
+      ),
+      subscribe: subscribeMock,
+    });
+    (global as any).Notification = {
+      requestPermission: mock(() => Promise.resolve("granted")),
+    };
+    global.fetch = mockFetchWithCheckResult(404) as unknown as typeof fetch;
+
+    renderToggle();
+
+    await waitFor(() => expect(screen.getByRole("switch")).not.toBeChecked());
+    expect(screen.getByRole("switch")).not.toBeDisabled();
   });
 });

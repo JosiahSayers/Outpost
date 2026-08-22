@@ -1,4 +1,5 @@
 import {
+  checkPushSubscription,
   useSubscribeToPush,
   useUnsubscribeFromPush,
 } from "$/frontend/utils/api/push-subscriptions";
@@ -20,6 +21,30 @@ function urlBase64ToUint8Array(base64: string) {
   return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
+// Shared by the manual toggle-on flow and the mount-time auto-heal flow
+// below -- requests permission, subscribes, and upserts to the server.
+// Returns null (rather than throwing) when permission isn't granted, since
+// that's an expected outcome both callers need to branch on, not a bug.
+async function subscribeAndUpsert(
+  registration: ServiceWorkerRegistration,
+  subscribe: ReturnType<typeof useSubscribeToPush>,
+  onError?: (error: Error) => void,
+) {
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    return null;
+  }
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(
+      process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY,
+    ),
+  });
+  await subscribe.mutateAsync(subscription.toJSON(), { onError });
+  return subscription;
+}
+
 // A separate axis from the per-notification "Push" toggles below -- this is
 // the browser-level subscription (one per device), while those are an
 // account-wide content preference. They're intentionally not coupled: a
@@ -36,11 +61,46 @@ export default function PushSubscriptionToggle() {
       setState("unsupported");
       return;
     }
-    navigator.serviceWorker.ready
-      .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) =>
-        setState(subscription ? "subscribed" : "unsubscribed"),
-      );
+
+    (async () => {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        setState("unsubscribed");
+        return;
+      }
+
+      let stillExists = true;
+      try {
+        stillExists = await checkPushSubscription(subscription.endpoint);
+      } catch {
+        // Inconclusive (network error, etc.) -- assume it's still good
+        // rather than forcing a disruptive resubscribe on a guess.
+      }
+
+      if (stillExists) {
+        setState("subscribed");
+        return;
+      }
+
+      // The nightly stale-prune job deleted this subscription server-side
+      // (see prune-stale-push-subscriptions.ts) -- silently redo what used
+      // to require manually toggling off then on: force a fresh
+      // negotiation with the push service (unsubscribe first, or
+      // subscribe() can just hand back the same possibly-dead
+      // registration) and re-register the new one.
+      try {
+        await subscription.unsubscribe();
+        const newSubscription = await subscribeAndUpsert(
+          registration,
+          subscribe,
+        );
+        setState(newSubscription ? "subscribed" : "unsubscribed");
+      } catch {
+        setState("unsubscribed");
+      }
+    })();
   }, []);
 
   const handleToggle = async (checked: boolean) => {
@@ -58,22 +118,12 @@ export default function PushSubscriptionToggle() {
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      setState("denied");
-      return;
-    }
-
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY,
-      ),
-    });
-    await subscribe.mutateAsync(subscription.toJSON(), {
-      onError: notifyError("Couldn't enable push notifications"),
-    });
-    setState("subscribed");
+    const subscription = await subscribeAndUpsert(
+      registration,
+      subscribe,
+      notifyError("Couldn't enable push notifications"),
+    );
+    setState(subscription ? "subscribed" : "denied");
   };
 
   if (state === "unsupported") return null;
