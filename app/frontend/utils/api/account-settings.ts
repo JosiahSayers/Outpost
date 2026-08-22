@@ -64,3 +64,40 @@ export function useUpdateAccountSetting() {
     },
   });
 }
+
+// Bulk variant for callers that need to change several settings in one
+// request (e.g. enabling push defaults across every notification at once) --
+// the PATCH route already accepts an array, this just exposes that instead
+// of firing useUpdateAccountSetting once per slug.
+export function useUpdateAccountSettings() {
+  const queryClient = useQueryClient();
+  const queryKey = accountSettingsKeys.all;
+  return useMutation({
+    mutationFn: (settings: AccountSettingInput[]) =>
+      apiClient("/api/account/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings }),
+      }),
+    onMutate: async (settings) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous =
+        queryClient.getQueryData<ClientUserAccountSetting[]>(queryKey);
+      queryClient.setQueryData<ClientUserAccountSetting[]>(queryKey, (old) =>
+        old?.map((s) => {
+          const update = settings.find((setting) => setting.slug === s.slug);
+          return update ? { ...s, value: update.value } : s;
+        }),
+      );
+      return { previous };
+    },
+    onError: (_error, _settings, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
