@@ -1,4 +1,5 @@
 import { Heading, Section, Text } from "@react-email/components";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 import EmailButton from "./components/button";
 import EmailLayout from "./components/layout";
 import { emailColors, emailFonts } from "./theme";
@@ -70,7 +71,7 @@ export function MealPlanReminderEmail({
 }: MealPlanReminderEmailProps) {
   return (
     <EmailLayout
-      previewText={`${tripName}: ${unpurchasedCount} meal plan ${unpurchasedCount === 1 ? "item" : "items"} still need purchased`}
+      previewText={`${tripName}: ${unpurchasedCount} meal plan ${pluralize("item", unpurchasedCount)} still need purchased`}
     >
       <Heading style={styles.heading}>Still need to pick these up</Heading>
       <Text style={styles.tripName}>{tripName}</Text>

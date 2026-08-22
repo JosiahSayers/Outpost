@@ -4,6 +4,7 @@ import { defaultJobOptions } from "$/jobs/workers/default-options";
 import { sendEmailQueue } from "$/jobs/workers/email/send-email";
 import { createNotificationQueue } from "$/jobs/workers/notifications/create-notification";
 import { db } from "$/utils/db";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 
 export const MEAL_PLAN__UNPURCHASED_ITEMS_REMINDER_WORKER =
   "meal_plan__unpurchased_items_reminder";
@@ -108,7 +109,7 @@ export async function sendUnpurchasedMealPlanItemReminders(
             data: {
               userId: trip.userId,
               title: "Meal plan shopping reminder",
-              description: `You still need to buy ${count} item${count === 1 ? "" : "s"} for ${trip.name}, which starts ${formatTripStartDate(trip.start!)}.`,
+              description: `You still need to buy ${count} ${pluralize("item", count)} for ${trip.name}, which starts ${formatTripStartDate(trip.start!)}.`,
               icon: "ShoppingCartIcon",
               referenceUrl: `/trips/${trip.id}`,
               notificationSettingName: "meal_plan_unpurchased_items",

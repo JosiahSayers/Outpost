@@ -17,6 +17,7 @@ import { useWeightDisplay } from "$/frontend/utils/hooks/unit-conversion/use-wei
 import { sortByPosition } from "$/frontend/utils/sort-by-position";
 import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientFullPackingList } from "$/transformers/packing-list";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 import type { ClientPackingListItem } from "$/transformers/packing-list-item";
 import { Box, Divider, Flex, Group, Stack, Text } from "@mantine/core";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
@@ -224,7 +225,7 @@ export default function PackingListView({ editable = false, list }: Props) {
           </Flex>
           {totals.totalItems > 0 && (
             <Text size="sm" c="dimmed">
-              {totals.totalItems} item{totals.totalItems === 1 ? "" : "s"}
+              {totals.totalItems} {pluralize("item", totals.totalItems)}
               {totals.totalGrams > 0 && ` · ${formatWeight(totals.totalGrams)}`}
             </Text>
           )}

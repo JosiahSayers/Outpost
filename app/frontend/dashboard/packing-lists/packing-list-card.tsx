@@ -1,5 +1,6 @@
 import AppLink from "$/frontend/app-link";
 import type { ClientPackingList } from "$/transformers/packing-list";
+import { pluralize } from "$/utils/format-helpers/pluralization";
 import { Anchor, Badge, Card, Group, Stack, Text } from "@mantine/core";
 import {
   FilePdfIcon,
@@ -15,8 +16,8 @@ interface Props {
 export default function PackingListCard({ list }: Props) {
   const itemsSummary =
     list.totalItems === list.totalUniqueItems
-      ? `${list.totalItems} items`
-      : `${list.totalItems} items (${list.totalUniqueItems} unique)`;
+      ? `${list.totalItems} ${pluralize("item", list.totalItems)}`
+      : `${list.totalItems} ${pluralize("item", list.totalItems)} (${list.totalUniqueItems} unique)`;
 
   return (
     <Card>
@@ -51,7 +52,7 @@ export default function PackingListCard({ list }: Props) {
         </Group>
 
         <Text size="sm" c="dimmed">
-          {list.totalSections} section{list.totalSections !== 1 ? "s" : ""} ·{" "}
+          {list.totalSections} {pluralize("section", list.totalSections)} ·{" "}
           {itemsSummary}
         </Text>
 
