@@ -98,7 +98,8 @@ const newUserSettingsNotificationsJob = defineJob<undefined>({
   defaultJobOptions,
   schedule: {
     id: "new-user-settings-notification-nightly",
-    pattern: "1 0 * * *",
+    pattern: "1 3 * * *",
+    tz: "America/New_York",
   },
 });
 

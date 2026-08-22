@@ -123,7 +123,11 @@ const moveToFinishedJob = defineJob({
   name: TRIPS__MOVE_TO_FINISHED_WORKER,
   processor: async () => moveTripsToFinished(),
   defaultJobOptions,
-  schedule: { id: "move-to-finished-nightly", pattern: "1 0 * * *" },
+  schedule: {
+    id: "move-to-finished-nightly",
+    pattern: "1 3 * * *",
+    tz: "America/New_York",
+  },
 });
 
 export const { queue: moveToFinishedQueue, worker: moveToFinishedWorker } =

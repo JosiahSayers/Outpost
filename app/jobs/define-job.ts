@@ -13,9 +13,13 @@ import {
 
 export interface JobSchedule {
   // schedulerId + repeat pattern, passed straight through to
-  // Queue#upsertJobScheduler(id, { pattern }).
+  // Queue#upsertJobScheduler(id, { pattern, tz }).
   id: string;
   pattern: string;
+  // IANA tz name (e.g. "America/New_York") the pattern is evaluated in.
+  // Omitted means UTC. BullMQ/cron-parser handle DST for named zones, so
+  // e.g. a fixed "3am Eastern" schedule doesn't drift across the DST switch.
+  tz?: string;
 }
 
 export interface DefineJobOptions<DataType, ResultType = unknown> {
@@ -69,6 +73,7 @@ export function defineJob<DataType = unknown, ResultType = unknown>(
     ? (job, ...rest) =>
         Sentry.withMonitor(schedule.id, () => processor(job, ...rest), {
           schedule: { type: "crontab", value: schedule.pattern },
+          timezone: schedule.tz,
         })
     : processor;
 

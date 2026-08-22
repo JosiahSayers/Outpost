@@ -16,6 +16,7 @@ for (const entry of registry) {
       try {
         await entry.queue.upsertJobScheduler(entry.schedule.id, {
           pattern: entry.schedule.pattern,
+          tz: entry.schedule.tz,
         });
       } catch (error) {
         logger.error(
@@ -30,7 +31,7 @@ for (const entry of registry) {
         try {
           await entry.queue.upsertJobScheduler(
             member.schedule.id,
-            { pattern: member.schedule.pattern },
+            { pattern: member.schedule.pattern, tz: member.schedule.tz },
             {
               name: member.name,
               ...(member.defaultJobOptions

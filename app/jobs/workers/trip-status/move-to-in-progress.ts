@@ -122,7 +122,11 @@ const moveToInProgressJob = defineJob({
   name: TRIPS__MOVE_TO_IN_PROGRESS_WORKER,
   processor: async () => moveTripsToInProgress(),
   defaultJobOptions,
-  schedule: { id: "move-to-in-progress-nightly", pattern: "1 0 * * *" },
+  schedule: {
+    id: "move-to-in-progress-nightly",
+    pattern: "1 3 * * *",
+    tz: "America/New_York",
+  },
 });
 
 export const { queue: moveToInProgressQueue, worker: moveToInProgressWorker } =

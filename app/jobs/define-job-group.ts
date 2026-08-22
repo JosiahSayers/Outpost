@@ -61,6 +61,7 @@ export function createGroupDispatcher<DataType, ResultType>(
     // for this schedule, not just errors that happen to throw loudly.
     return Sentry.withMonitor(schedule.id, () => processor(job, ...rest), {
       schedule: { type: "crontab", value: schedule.pattern },
+      timezone: schedule.tz,
     });
   };
 }
