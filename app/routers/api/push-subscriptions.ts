@@ -79,6 +79,23 @@ pushSubscriptionsRouter.post(
   },
 );
 
+// Existence check the client calls on mount (see push-subscription-toggle.tsx)
+// to reconcile a still-present client-side subscription against a server
+// row the nightly stale-prune job may have already deleted. No side
+// effects, so it's a separate route from /ack rather than overloading that
+// endpoint's "I received a push" semantics.
+pushSubscriptionsRouter.post(
+  "/check",
+  validate({ body: deletePushSubscription }),
+  async (req, res) => {
+    const subscription = await db.pushSubscription.findUnique({
+      where: { endpoint: req.body.endpoint },
+    });
+    const exists = subscription && subscription.userId === req.session!.user.id;
+    return res.sendStatus(exists ? 200 : 404);
+  },
+);
+
 pushSubscriptionsRouter.delete(
   "/",
   validate({ body: deletePushSubscription }),

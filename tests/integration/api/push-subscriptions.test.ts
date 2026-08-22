@@ -272,3 +272,60 @@ describe("POST /ack", () => {
     expect(subscription?.lastAckedAt).not.toBeNull();
   });
 });
+
+describe("POST /check", () => {
+  it("requires a valid session", async () => {
+    await request(app)
+      .post("/api/push-subscriptions/check")
+      .send({ endpoint: "https://push.example.com/abc" })
+      .expect(401);
+  });
+
+  it("returns 404 for a nonexistent endpoint", async () => {
+    await request(app)
+      .post("/api/push-subscriptions/check")
+      .send({ endpoint: "https://push.example.com/does-not-exist" })
+      .set("Cookie", await getAuthCookies())
+      .expect(404);
+  });
+
+  it("returns 404 for another user's subscription", async () => {
+    const user2 = await db.user.findUnique({
+      where: { email: "user2@test.com" },
+    });
+    await db.pushSubscription.create({
+      data: {
+        endpoint: "https://push.example.com/check-other-user",
+        p256dh: "p256dh-key",
+        auth: "auth-key",
+        userId: user2!.id,
+      },
+    });
+
+    await request(app)
+      .post("/api/push-subscriptions/check")
+      .send({ endpoint: "https://push.example.com/check-other-user" })
+      .set("Cookie", await getAuthCookies())
+      .expect(404);
+  });
+
+  it("returns 200 for the owner's own subscription", async () => {
+    const user = await db.user.findUnique({
+      where: { email: "user@test.com" },
+    });
+    await db.pushSubscription.create({
+      data: {
+        endpoint: "https://push.example.com/check-test",
+        p256dh: "p256dh-key",
+        auth: "auth-key",
+        userId: user!.id,
+      },
+    });
+
+    await request(app)
+      .post("/api/push-subscriptions/check")
+      .send({ endpoint: "https://push.example.com/check-test" })
+      .set("Cookie", await getAuthCookies())
+      .expect(200);
+  });
+});
