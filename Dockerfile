@@ -33,7 +33,7 @@ RUN NODE_ENV=production \
     BUN_PUBLIC_SHA=$COMMIT_SHA \
     BUN_PUBLIC_SENTRY_DSN=https://c2fd120dcf22ae492553be8f8ebbc47f@o1160609.ingest.us.sentry.io/4511841888763904 \
     BUN_PUBLIC_ENVIRONMENT=staging \
-    BUN_PUBLIC_VAPID_PUBLIC_KEY=BB4dEQ_hxm7o6RbntaRavaz0wzsLygbcoNH1CsIHcXdybjJlI3ryXyNzpWGwRhM8q9A2hBTJXXEbCRwQP18Db6M \
+    BUN_PUBLIC_VAPID_PUBLIC_KEY=BIBHV371TwueYw-AOq-DmrSvbPGEqyQ6mhRVX_4X15nk10mAQ9oyiAZfxpik_9P3w5QOLCMgZGxHzpeTRlgcAiM \
     bun build /usr/src/app/app/frontend/index.html --minify --sourcemap=external --public-path=/ --outdir=/usr/src/app/dist/frontend --env='BUN_PUBLIC_*'
 # manifest icons + service worker aren't referenced from index.html in a way
 # Bun's bundler resolves (icons are nested inside manifest.json, and the

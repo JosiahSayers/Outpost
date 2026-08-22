@@ -16,3 +16,8 @@ services:
       - BETTER_AUTH_URL=http://localhost:3000
       - REDIS_URL=valkey://redis:6379
       - RESEND_API_KEY=not-a-real-key
+      # Same throwaway keypair as .github/workflows/ci.yml -- BUN_PUBLIC_VAPID_PUBLIC_KEY
+      # is already baked into the built bundle via the Dockerfile's prerelease
+      # build step; this is the server-only key app/utils/web-push.ts needs
+      # at runtime so it doesn't throw on import.
+      - VAPID_PRIVATE_KEY=aj5xfdpVKs--me0chGMfyHncLP1uNzWjIQUhe9lsow0
