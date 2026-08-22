@@ -31,55 +31,26 @@ export function useAccountSettings(options?: { enabled?: boolean }) {
   });
 }
 
+// Accepts either one setting or several so callers changing a whole batch
+// at once (e.g. enabling push defaults across every notification) don't
+// need to fire this once per slug -- the PATCH route already accepts an
+// array either way.
 export function useUpdateAccountSetting() {
   const queryClient = useQueryClient();
   const queryKey = accountSettingsKeys.all;
   return useMutation({
-    mutationFn: (setting: AccountSettingInput) =>
-      apiClient("/api/account/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings: [setting] }),
-      }),
-    // Optimistically apply the new value so the select updates instantly;
-    // roll back if the request fails, then refetch to reconcile.
-    onMutate: async (setting) => {
-      await queryClient.cancelQueries({ queryKey });
-      const previous =
-        queryClient.getQueryData<ClientUserAccountSetting[]>(queryKey);
-      queryClient.setQueryData<ClientUserAccountSetting[]>(queryKey, (old) =>
-        old?.map((s) =>
-          s.slug === setting.slug ? { ...s, value: setting.value } : s,
-        ),
-      );
-      return { previous };
-    },
-    onError: (_error, _setting, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
-  });
-}
-
-// Bulk variant for callers that need to change several settings in one
-// request (e.g. enabling push defaults across every notification at once) --
-// the PATCH route already accepts an array, this just exposes that instead
-// of firing useUpdateAccountSetting once per slug.
-export function useUpdateAccountSettings() {
-  const queryClient = useQueryClient();
-  const queryKey = accountSettingsKeys.all;
-  return useMutation({
-    mutationFn: (settings: AccountSettingInput[]) =>
-      apiClient("/api/account/settings", {
+    mutationFn: (input: AccountSettingInput | AccountSettingInput[]) => {
+      const settings = Array.isArray(input) ? input : [input];
+      return apiClient("/api/account/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settings }),
-      }),
-    onMutate: async (settings) => {
+      });
+    },
+    // Optimistically apply the new value(s) so the UI updates instantly;
+    // roll back if the request fails, then refetch to reconcile.
+    onMutate: async (input) => {
+      const settings = Array.isArray(input) ? input : [input];
       await queryClient.cancelQueries({ queryKey });
       const previous =
         queryClient.getQueryData<ClientUserAccountSetting[]>(queryKey);
@@ -91,7 +62,7 @@ export function useUpdateAccountSettings() {
       );
       return { previous };
     },
-    onError: (_error, _settings, context) => {
+    onError: (_error, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }

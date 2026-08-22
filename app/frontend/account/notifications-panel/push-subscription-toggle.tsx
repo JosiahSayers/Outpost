@@ -1,7 +1,7 @@
 import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import { computeDefaultPushSettingUpdates } from "$/frontend/account/notifications-panel/enable-default-push-settings";
 import { IOS_INSTALL_COPY } from "$/frontend/shared-components/install-ios-banner";
-import { useUpdateAccountSettings } from "$/frontend/utils/api/account-settings";
+import { useUpdateAccountSetting } from "$/frontend/utils/api/account-settings";
 import {
   checkPushSubscription,
   useSubscribeToPush,
@@ -74,7 +74,7 @@ export default function PushSubscriptionToggle() {
   const subscribe = useSubscribeToPush();
   const unsubscribe = useUnsubscribeFromPush();
   const { settings } = useAccountSettingsContext();
-  const updateSettings = useUpdateAccountSettings();
+  const updateSettings = useUpdateAccountSetting();
 
   useEffect(() => {
     if (isIos() && !isStandalone()) {
