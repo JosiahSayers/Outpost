@@ -1,5 +1,6 @@
 import { useAccountSettingsContext } from "$/frontend/account/account-settings-context";
 import NotificationToggleCard from "$/frontend/account/notifications-panel/notification-toggle-card";
+import PushSubscriptionToggle from "$/frontend/account/notifications-panel/push-subscription-toggle";
 import LoadingSwitch from "$/frontend/shared-components/loading-switch";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { NOTIFICATION_SLUG_PREFIX, Notifications } from "$/utils/notifications";
@@ -65,6 +66,8 @@ export default function NotificationsPanel() {
           <Text c="dimmed" size="sm">
             Choose how you want to hear from Outpost for each type of update.
           </Text>
+
+          <PushSubscriptionToggle />
 
           <Stack gap="md">
             {notifications.map(({ notification, title }) => (

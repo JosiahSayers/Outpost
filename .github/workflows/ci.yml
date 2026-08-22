@@ -38,6 +38,13 @@ jobs:
       BETTER_AUTH_SECRET: really-bad-secret
       BETTER_AUTH_URL: http://localhost:3000
       RESEND_API_KEY: not-a-real-key
+      # Not a secret worth protecting -- a throwaway keypair (bunx --bun
+      # web-push generate-vapid-keys) so app/utils/web-push.ts's
+      # setVapidDetails() doesn't throw at import time, which it does need a
+      # real base64url-encoded, correctly-sized key for (unlike
+      # RESEND_API_KEY, web-push validates key format/length up front).
+      VAPID_PRIVATE_KEY: aj5xfdpVKs--me0chGMfyHncLP1uNzWjIQUhe9lsow0
+      BUN_PUBLIC_VAPID_PUBLIC_KEY: BB4dEQ_hxm7o6RbntaRavaz0wzsLygbcoNH1CsIHcXdybjJlI3ryXyNzpWGwRhM8q9A2hBTJXXEbCRwQP18Db6M
     steps:
       - name: Checkout
         uses: actions/checkout@v4

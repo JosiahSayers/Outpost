@@ -120,7 +120,7 @@ describe("PATCH /settings", () => {
               "code": "invalid_union",
               "discriminator": "slug",
               "errors": [],
-              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup' | 'notification_trip_status_update_in_app' | 'notification_trip_status_update_email' | 'notification_meal_plan_unpurchased_items_in_app' | 'notification_meal_plan_unpurchased_items_email'",
+              "message": "Invalid discriminator value. Expected 'liquid_viewing_unit' | 'liquid_entry_unit' | 'weight_viewing_unit' | 'weight_entry_unit' | 'weight_rollup' | 'notification_trip_status_update_in_app' | 'notification_trip_status_update_email' | 'notification_trip_status_update_web_push' | 'notification_meal_plan_unpurchased_items_in_app' | 'notification_meal_plan_unpurchased_items_email' | 'notification_meal_plan_unpurchased_items_web_push'",
               "note": "No matching discriminator",
               "options": [
                 "liquid_viewing_unit",
@@ -130,8 +130,10 @@ describe("PATCH /settings", () => {
                 "weight_rollup",
                 "notification_trip_status_update_in_app",
                 "notification_trip_status_update_email",
+                "notification_trip_status_update_web_push",
                 "notification_meal_plan_unpurchased_items_in_app",
                 "notification_meal_plan_unpurchased_items_email",
+                "notification_meal_plan_unpurchased_items_web_push",
               ],
               "path": [
                 "settings",

@@ -1,7 +1,9 @@
 import { db } from "$/utils/db";
 import { initialAccountSettings } from "./account-settings/initial-account-settings";
 import { mealPlanReminderNotification } from "./account-settings/meal-plan-reminder-notification";
+import { mealPlanUnpurchasedItemsWebPushSetting } from "./account-settings/meal-plan-unpurchased-items-web-push-setting";
 import { notificationAccountSettings } from "./account-settings/notifications";
+import { tripStatusUpdateWebPushSetting } from "./account-settings/trip-status-update-web-push-setting";
 import { weightRollupSetting } from "./account-settings/weight-rollup-setting";
 import { weightRollupSettingDescriptionFix } from "./account-settings/weight-rollup-setting-description-fix";
 import { publicGearCategories } from "./gear-categories";
@@ -19,6 +21,8 @@ const productionSeeds = [
   gearCategoryKeywords,
   notificationAccountSettings,
   mealPlanReminderNotification,
+  tripStatusUpdateWebPushSetting,
+  mealPlanUnpurchasedItemsWebPushSetting,
 ];
 
 export default async function applyProductionSeeds() {

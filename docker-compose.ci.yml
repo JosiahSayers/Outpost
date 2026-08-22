@@ -16,3 +16,13 @@ services:
       - BETTER_AUTH_URL=http://localhost:3000
       - REDIS_URL=valkey://redis:6379
       - RESEND_API_KEY=not-a-real-key
+      # app/utils/web-push.ts runs server-side and reads both of these from
+      # process.env directly -- the Dockerfile's prerelease build step only
+      # bakes BUN_PUBLIC_VAPID_PUBLIC_KEY into the *client bundle*, it does
+      # NOT put it in the server process's own environment, so it still has
+      # to be set here too or setVapidDetails() throws on import (confirmed
+      # by reproducing this exact stack locally: `docker compose up` with
+      # only VAPID_PRIVATE_KEY set left the server crash-looping with "No
+      # key set vapidDetails.publicKey" on every request).
+      - VAPID_PRIVATE_KEY=aj5xfdpVKs--me0chGMfyHncLP1uNzWjIQUhe9lsow0
+      - BUN_PUBLIC_VAPID_PUBLIC_KEY=BIBHV371TwueYw-AOq-DmrSvbPGEqyQ6mhRVX_4X15nk10mAQ9oyiAZfxpik_9P3w5QOLCMgZGxHzpeTRlgcAiM

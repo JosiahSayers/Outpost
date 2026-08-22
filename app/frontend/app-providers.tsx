@@ -7,7 +7,8 @@ import { SignOutProvider } from "$/frontend/utils/sign-out-context";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { QueryClientProvider } from "@tanstack/react-query";
-import type { PropsWithChildren } from "react";
+import { type PropsWithChildren, useEffect } from "react";
+import { useLocation } from "wouter";
 
 // Runs the version-drift check globally, regardless of route/auth state —
 // needs to be a child of QueryClientProvider/MantineProvider, so it can't
@@ -25,6 +26,34 @@ function StorageBeaconWatcher() {
   return null;
 }
 
+// The service worker's notificationclick handler (public/service-worker.js)
+// can't reach React/wouter directly, so it postMessages a navigate
+// instruction to an already-open tab instead of hard-navigating it itself.
+// Global for the same reason as the watchers above -- a push can arrive on
+// any route.
+function PushNavigationWatcher() {
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (
+        event.data?.type === "navigate" &&
+        typeof event.data.referenceUrl === "string"
+      ) {
+        navigate(event.data.referenceUrl);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+    return () =>
+      navigator.serviceWorker.removeEventListener("message", handleMessage);
+  }, [navigate]);
+
+  return null;
+}
+
 // Centralizes the app's top-level providers so app.tsx stays focused on
 // routing. Add new app-wide providers/context here rather than in app.tsx.
 export default function AppProviders({ children }: PropsWithChildren) {
@@ -39,6 +68,7 @@ export default function AppProviders({ children }: PropsWithChildren) {
           <Notifications />
           <VersionDriftWatcher />
           <StorageBeaconWatcher />
+          <PushNavigationWatcher />
           <AccountSettingsProvider>
             <SignOutProvider>{children}</SignOutProvider>
           </AccountSettingsProvider>
