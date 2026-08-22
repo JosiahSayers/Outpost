@@ -1,8 +1,9 @@
 export const NOTIFICATION_SLUG_PREFIX = "notification_";
 const IN_APP_SUFFIX = "_in_app";
 const EMAIL_SUFFIX = "_email";
+const WEB_PUSH_SUFFIX = "_web_push";
 
-export type NotificationType = "in_app" | "email";
+export type NotificationType = "in_app" | "email" | "web_push";
 
 function getSuffix(type: NotificationType): string {
   switch (type) {
@@ -10,6 +11,8 @@ function getSuffix(type: NotificationType): string {
       return EMAIL_SUFFIX;
     case "in_app":
       return IN_APP_SUFFIX;
+    case "web_push":
+      return WEB_PUSH_SUFFIX;
   }
 }
 
@@ -40,6 +43,12 @@ function parseSlug(slug: string): ParsedNotificationSlug | null {
   }
   if (body.endsWith(EMAIL_SUFFIX)) {
     return { notification: body.slice(0, -EMAIL_SUFFIX.length), type: "email" };
+  }
+  if (body.endsWith(WEB_PUSH_SUFFIX)) {
+    return {
+      notification: body.slice(0, -WEB_PUSH_SUFFIX.length),
+      type: "web_push",
+    };
   }
   return null;
 }

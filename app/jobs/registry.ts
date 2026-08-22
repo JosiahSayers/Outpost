@@ -7,6 +7,9 @@ import inferMetadataJob from "$/jobs/workers/feedback/infer-metadata";
 import unpurchasedMealPlanItemsReminderJob from "$/jobs/workers/meal-plan/unpurchased-items-reminder";
 import createNotificationJob from "$/jobs/workers/notifications/create-notification";
 import newUserSettingsNotificationsJob from "$/jobs/workers/notifications/new-user-settings";
+import sendInAppNotificationJob from "$/jobs/workers/notifications/send-in-app-notification";
+import sendPushNotificationJob from "$/jobs/workers/notifications/send-push-notification";
+import sendPushToDeviceJob from "$/jobs/workers/notifications/send-push-to-device";
 import deriveCanonicalEntitiesJob from "$/jobs/workers/protected-areas/derive-canonical-entities";
 import finalizePadUsIngestJob from "$/jobs/workers/protected-areas/finalize-padus-ingest";
 import ingestPadUsJob from "$/jobs/workers/protected-areas/ingest-padus";
@@ -21,6 +24,9 @@ import moveToInProgressJob from "$/jobs/workers/trip-status/move-to-in-progress"
 // or bull-board.ts needs to change.
 export const registry: (DefinedJob<any, any> | DefinedJobGroup<any, any>)[] = [
   createNotificationJob,
+  sendInAppNotificationJob,
+  sendPushNotificationJob,
+  sendPushToDeviceJob,
   moveToInProgressJob,
   moveToFinishedJob,
   sendEmailJob,

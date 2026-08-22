@@ -1,10 +1,9 @@
 import { defineJob } from "$/jobs/define-job";
 import { getLogger } from "$/jobs/utils/logger-setup";
 import { defaultJobOptions } from "$/jobs/workers/default-options";
-import { transformers } from "$/transformers";
+import { sendInAppNotificationQueue } from "$/jobs/workers/notifications/send-in-app-notification";
+import { sendPushNotificationQueue } from "$/jobs/workers/notifications/send-push-notification";
 import type { NotificationIconName } from "$/transformers/notification";
-import { db } from "$/utils/db";
-import { Notifications } from "$/utils/notifications";
 import type { Job } from "bullmq";
 import type { NotificationUncheckedCreateInput } from "../../../../generated/prisma/models";
 
@@ -24,42 +23,31 @@ export interface CreateNotificationJobData extends Omit<
   notificationSettingName: string | null;
 }
 
+// A thin orchestrator: every existing trigger already enqueues onto this
+// queue by name, so fanning out to per-channel jobs here is how a new
+// channel (push) reaches every trigger for free, without editing any of
+// them. Each channel job independently gates on its own account-setting
+// suffix (_in_app / _web_push) and does its own delivery.
+//
+// The explicit jobIds matter for retry-safety: if this job is retried after
+// partially succeeding (e.g. the in-app enqueue lands but push throws on a
+// Redis blip), a deterministic id makes the re-add() a no-op for whichever
+// child already exists instead of double-firing it.
 export async function createNotification(job: Job<CreateNotificationJobData>) {
   const logger = getLogger(job);
   try {
-    const { notificationSettingName, ...notificationData } = job.data;
-    // Some notifications (ex. admin only notifications) don't have an account setting to check
-    if (notificationSettingName !== null) {
-      const accountSetting = await db.accountSetting.findUnique({
-        where: {
-          slug: Notifications.getSlug(notificationSettingName, "in_app"),
-        },
-        include: {
-          accountSettingValues: {
-            where: { userId: notificationData.userId },
-          },
-        },
-      });
-
-      if (!accountSetting) {
-        logger.error("tried to check unknown notification setting", {
-          notificationSettingName,
-        });
-        throw new Error("Notification does not exist");
-      }
-
-      const setting = transformers.userAccountSetting(accountSetting);
-      if (setting.value !== "true") {
-        return "No notification sent. User has this notification disabled.";
-      }
-    }
-
-    const notification = await db.notification.create({
-      data: notificationData,
-    });
-    return { notificationId: notification.id };
+    await Promise.all([
+      sendInAppNotificationQueue.add("send-in-app-notification", job.data, {
+        jobId: `${job.id}-in-app`,
+      }),
+      sendPushNotificationQueue.add("send-push-notification", job.data, {
+        jobId: `${job.id}-push`,
+      }),
+    ]);
   } catch (err) {
-    logger.error("Failed to create notification", { error: err });
+    logger.error("Failed to enqueue notification delivery jobs", {
+      error: err,
+    });
     throw err;
   }
 }
