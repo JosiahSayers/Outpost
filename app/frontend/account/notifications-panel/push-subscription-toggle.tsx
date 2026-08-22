@@ -41,7 +41,13 @@ async function subscribeAndUpsert(
       process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY,
     ),
   });
-  await subscribe.mutateAsync(subscription.toJSON(), { onError });
+  await subscribe.mutateAsync(
+    {
+      ...subscription.toJSON(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
+    { onError },
+  );
   return subscription;
 }
 
