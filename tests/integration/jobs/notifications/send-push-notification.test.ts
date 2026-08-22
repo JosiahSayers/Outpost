@@ -21,24 +21,14 @@ const JOB_STATES: JobType[] = [
   "failed",
 ];
 
+// Seeded by
+// prisma/seeds/production/account-settings/trip-status-update-web-push-setting.ts
+// with a default of "true", so it's enabled unless a test overrides it.
 beforeEach(async () => {
   const user = await db.user.findUniqueOrThrow({
     where: { email: "user@test.com" },
   });
   userId = user.id;
-
-  // The production seed for this setting is added in a follow-up step --
-  // upserting it here keeps this test self-contained either way.
-  await db.accountSetting.upsert({
-    where: { slug: Notifications.getSlug(NOTIFICATION_NAME, "web_push") },
-    create: {
-      slug: Notifications.getSlug(NOTIFICATION_NAME, "web_push"),
-      name: "Trip Status Updates - Push",
-      description: "Push notification test setting",
-      defaultValue: "true",
-    },
-    update: {},
-  });
 });
 
 async function setPushSetting(forUserId: string, value: boolean) {
