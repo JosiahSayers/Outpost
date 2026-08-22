@@ -5,6 +5,7 @@ import { gearInventoryRouter } from "$/routers/api/gear-inventory";
 import { notificationsRouter } from "$/routers/api/notifications";
 import { packingListRouter } from "$/routers/api/packing-list";
 import { placesRouter } from "$/routers/api/places";
+import { pushSubscriptionsRouter } from "$/routers/api/push-subscriptions";
 import { tripRouter } from "$/routers/api/trip";
 import { Router } from "express";
 
@@ -15,6 +16,7 @@ apiRouter.use("/gear-categories", gearCategoriesRouter);
 apiRouter.use("/notifications", notificationsRouter);
 apiRouter.use("/packing-lists", packingListRouter);
 apiRouter.use("/places", placesRouter);
+apiRouter.use("/push-subscriptions", pushSubscriptionsRouter);
 apiRouter.use("/trips", tripRouter);
 apiRouter.use("/account", accountRouter);
 apiRouter.use("/feedback", feedbackRouter);
