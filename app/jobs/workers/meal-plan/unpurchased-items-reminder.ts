@@ -158,7 +158,8 @@ const unpurchasedItemsReminderJob = defineJob({
   defaultJobOptions,
   schedule: {
     id: "meal-plan-unpurchased-items-reminder-nightly",
-    pattern: "1 0 * * *",
+    pattern: "1 3 * * *",
+    tz: "America/New_York",
   },
 });
 
