@@ -11,13 +11,28 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  const data = event.data ? event.data.json() : {};
+  // Parsing and showNotification must both happen inside waitUntil -- a
+  // synchronous throw from event.data.json() (e.g. malformed payload)
+  // outside it silently drops the notification with no error surfaced
+  // anywhere but the SW's own devtools console.
   event.waitUntil(
-    self.registration.showNotification(data.title ?? "Outpost", {
-      body: data.body,
-      icon: "/icons/icon-192.png",
-      data: { referenceUrl: data.referenceUrl },
-    }),
+    (async () => {
+      let data = {};
+      try {
+        data = event.data ? event.data.json() : {};
+      } catch (err) {
+        console.error("push event: failed to parse payload", err);
+      }
+      try {
+        await self.registration.showNotification(data.title ?? "Outpost", {
+          body: data.body,
+          icon: "/icons/icon-192.png",
+          data: { referenceUrl: data.referenceUrl },
+        });
+      } catch (err) {
+        console.error("push event: showNotification rejected", err);
+      }
+    })(),
   );
 });
 
