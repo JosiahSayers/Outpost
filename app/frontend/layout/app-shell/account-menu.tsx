@@ -90,7 +90,11 @@ export default function AccountMenu({
           <Box onClick={onNavigate}>
             <Group gap="xs">
               <GearIcon size={16} />
-              <Anchor component={AppLink} href="/account" c="black">
+              <Anchor
+                component={AppLink}
+                href="/account"
+                c="var(--mantine-color-text)"
+              >
                 Account Settings
               </Anchor>
             </Group>
@@ -99,7 +103,11 @@ export default function AccountMenu({
             <Box onClick={onNavigate}>
               <Group gap="xs">
                 <ShieldIcon size={16} />
-                <Anchor component={AppLink} href="/console" c="black">
+                <Anchor
+                  component={AppLink}
+                  href="/console"
+                  c="var(--mantine-color-text)"
+                >
                   Admin
                 </Anchor>
               </Group>
