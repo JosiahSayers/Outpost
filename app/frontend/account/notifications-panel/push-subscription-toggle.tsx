@@ -4,12 +4,19 @@ import {
   useUnsubscribeFromPush,
 } from "$/frontend/utils/api/push-subscriptions";
 import { notifyError } from "$/frontend/utils/notify-error";
+import { IOS_INSTALL_COPY } from "$/frontend/shared-components/install-ios-banner";
+import { isIos, isStandalone } from "$/frontend/utils/platform";
 import { Card, Group, Switch, Text, ThemeIcon, Title } from "@mantine/core";
 import { DeviceMobileIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 type SubscriptionState =
-  "loading" | "unsupported" | "subscribed" | "unsubscribed" | "denied";
+  | "loading"
+  | "unsupported"
+  | "ios-needs-install"
+  | "subscribed"
+  | "unsubscribed"
+  | "denied";
 
 // Standard VAPID-key conversion boilerplate -- pushManager.subscribe()
 // wants the application server key as a Uint8Array, not the base64url
@@ -63,6 +70,11 @@ export default function PushSubscriptionToggle() {
   const unsubscribe = useUnsubscribeFromPush();
 
   useEffect(() => {
+    if (isIos() && !isStandalone()) {
+      setState("ios-needs-install");
+      return;
+    }
+
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setState("unsupported");
       return;
@@ -133,6 +145,25 @@ export default function PushSubscriptionToggle() {
   };
 
   if (state === "unsupported") return null;
+
+  if (state === "ios-needs-install") {
+    return (
+      <Card p={{ base: "sm", sm: "lg" }}>
+        <Group gap="sm" wrap="nowrap">
+          <ThemeIcon variant="light" radius="sm" size={30}>
+            <DeviceMobileIcon size={16} />
+          </ThemeIcon>
+          <div>
+            <Title order={4}>Push Notifications</Title>
+            <Text c="dimmed" size="sm">
+              {IOS_INSTALL_COPY.title} — install to your Home Screen to turn
+              this on: {IOS_INSTALL_COPY.steps.join(", then ")}.
+            </Text>
+          </div>
+        </Group>
+      </Card>
+    );
+  }
 
   return (
     <Card p={{ base: "sm", sm: "lg" }}>

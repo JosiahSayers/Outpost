@@ -6,6 +6,17 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 const originalVapidKey = process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY;
+const defaultUserAgent = navigator.userAgent;
+
+const IPHONE_UA =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+
+function stubUserAgent(ua: string) {
+  Object.defineProperty(navigator, "userAgent", {
+    value: ua,
+    configurable: true,
+  });
+}
 
 function renderToggle() {
   const queryClient = new QueryClient({
@@ -53,6 +64,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env.BUN_PUBLIC_VAPID_PUBLIC_KEY = originalVapidKey;
+  stubUserAgent(defaultUserAgent);
   // @ts-expect-error -- undoing the per-test stub
   delete window.PushManager;
   // @ts-expect-error -- undoing the per-test stub
@@ -183,6 +195,20 @@ describe("when the browser supports push", () => {
     });
     await waitFor(() => expect(unsubscribeMock).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.getByRole("switch")).not.toBeChecked());
+  });
+});
+
+describe("on iOS Safari before it's been added to the Home Screen", () => {
+  it("shows an install message instead of the switch, even though the browser otherwise supports push", () => {
+    stubUserAgent(IPHONE_UA);
+    stubPushSupport({ getSubscription: mock(() => Promise.resolve(null)) });
+
+    renderToggle();
+
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/install to your home screen to turn this on/i),
+    ).toBeInTheDocument();
   });
 });
 

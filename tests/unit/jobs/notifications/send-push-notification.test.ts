@@ -63,9 +63,9 @@ describe("calculatePushDelayMs", () => {
       { zone: "America/New_York" },
     );
     const delay = calculatePushDelayMs(null, nowEastern);
-    expect(
-      nowEastern.plus({ milliseconds: delay }).toFormat("HH:mm"),
-    ).toBe("07:00");
+    expect(nowEastern.plus({ milliseconds: delay }).toFormat("HH:mm")).toBe(
+      "07:00",
+    );
   });
 
   it("computes the overnight window against the subscription's own timezone, not the server's", () => {
