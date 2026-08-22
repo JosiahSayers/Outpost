@@ -1,4 +1,4 @@
-import InstallIosBanner from "$/frontend/shared-components/install-ios-banner";
+import { InstallIosBannerBase } from "$/frontend/shared-components/install-ios-banner";
 import { MantineProvider } from "@mantine/core";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -34,10 +34,12 @@ function stubStandalone(matches: boolean) {
     }) as MediaQueryList;
 }
 
-function renderBanner() {
+function renderBanner({
+  isAuthenticated = true,
+}: { isAuthenticated?: boolean } = {}) {
   return render(
     <MantineProvider>
-      <InstallIosBanner />
+      <InstallIosBannerBase isAuthenticated={isAuthenticated} />
     </MantineProvider>,
   );
 }
@@ -67,6 +69,16 @@ it("is hidden when already running standalone", async () => {
   stubStandalone(true);
 
   renderBanner();
+
+  await waitFor(() =>
+    expect(screen.queryByText(/get the full outpost experience/i)).toBeNull(),
+  );
+});
+
+it("is hidden when not signed in, even on an iOS Safari tab", async () => {
+  stubUserAgent(IPHONE_UA);
+
+  renderBanner({ isAuthenticated: false });
 
   await waitFor(() =>
     expect(screen.queryByText(/get the full outpost experience/i)).toBeNull(),
