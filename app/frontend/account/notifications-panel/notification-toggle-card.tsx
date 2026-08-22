@@ -4,7 +4,12 @@ import { notifyError } from "$/frontend/utils/notify-error";
 import type { ClientUserAccountSetting } from "$/transformers/account-settings/user-account-settings";
 import { Notifications } from "$/utils/notifications";
 import { Card, Group, SimpleGrid, Text, ThemeIcon, Title } from "@mantine/core";
-import { BellIcon, EnvelopeIcon, type Icon } from "@phosphor-icons/react";
+import {
+  BellIcon,
+  DeviceMobileIcon,
+  EnvelopeIcon,
+  type Icon,
+} from "@phosphor-icons/react";
 
 interface NotificationToggleCardProps {
   /** Base notification name, e.g. "trip_status_update" -- combined with
@@ -31,13 +36,21 @@ export default function NotificationToggleCard({
 
   const inAppSlug = Notifications.getSlug(notification, "in_app");
   const emailSlug = Notifications.getSlug(notification, "email");
+  const webPushSlug = Notifications.getSlug(notification, "web_push");
   const inAppSetting = settings.find((setting) => setting.slug === inAppSlug);
   const emailSetting = settings.find((setting) => setting.slug === emailSlug);
+  const webPushSetting = settings.find(
+    (setting) => setting.slug === webPushSlug,
+  );
   const inAppEnabled = inAppSetting?.value === "true";
   const emailEnabled = emailSetting?.value === "true";
-  // Both rows carry the same description in the seed data -- fall back to
-  // the email row's in case only one has loaded.
-  const description = inAppSetting?.description ?? emailSetting?.description;
+  const webPushEnabled = webPushSetting?.value === "true";
+  // All three rows carry the same description in the seed data -- fall back
+  // through in case only some have loaded.
+  const description =
+    inAppSetting?.description ??
+    emailSetting?.description ??
+    webPushSetting?.description;
 
   const toggle = (slug: string, value: boolean) => {
     updateSetting.mutate(
@@ -57,7 +70,7 @@ export default function NotificationToggleCard({
       <Text c="dimmed" size="sm" mb="md">
         {description}
       </Text>
-      <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, xs: 3 }} spacing="md">
         <ToggleRow
           icon={BellIcon}
           label="In-app"
@@ -69,6 +82,12 @@ export default function NotificationToggleCard({
           label="Email"
           checked={emailEnabled}
           onChange={() => toggle(emailSlug, !emailEnabled)}
+        />
+        <ToggleRow
+          icon={DeviceMobileIcon}
+          label="Push"
+          checked={webPushEnabled}
+          onChange={() => toggle(webPushSlug, !webPushEnabled)}
         />
       </SimpleGrid>
     </Card>

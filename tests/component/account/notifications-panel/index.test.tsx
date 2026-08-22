@@ -31,6 +31,10 @@ const SETTINGS: ClientUserAccountSetting[] = [
     slug: "notification_trip_status_update_email",
     value: "false",
   }),
+  setting({
+    slug: "notification_trip_status_update_web_push",
+    value: "true",
+  }),
 ];
 
 function renderPanel(settings: ClientUserAccountSetting[] | undefined) {
@@ -102,6 +106,7 @@ describe("once settings have loaded", () => {
     const switches = screen.getAllByRole("switch");
     expect(switches[0]).toBeChecked();
     expect(switches[1]).not.toBeChecked();
+    expect(switches[2]).toBeChecked();
     await waitFor(() => {});
   });
 
@@ -154,7 +159,10 @@ describe("once settings have loaded", () => {
         name: "Shared Gear List Changes",
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("switch")).toHaveLength(4);
+    // 3 rows (in-app/email/push) per card, regardless of whether a matching
+    // setting was loaded for every channel -- the shared-gear-list card here
+    // has no web_push setting in its fixture data, but still renders the row.
+    expect(screen.getAllByRole("switch")).toHaveLength(6);
     await waitFor(() => {});
   });
 });
@@ -203,6 +211,31 @@ describe("toggling the email switch", () => {
     expect(JSON.parse(init.body as string)).toEqual({
       settings: [
         { slug: "notification_trip_status_update_email", value: "true" },
+      ],
+    });
+    await waitFor(() => {});
+  });
+});
+
+describe("toggling the push switch", () => {
+  it("optimistically updates the value and calls the API to persist it", async () => {
+    renderPanel(SETTINGS);
+    const [, , pushSwitch] = screen.getAllByRole("switch");
+
+    fireEvent.click(pushSwitch!);
+
+    await waitFor(() =>
+      expect(pushSwitch).toHaveAttribute("data-checked", "false"),
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const [url, init] = (global.fetch as unknown as ReturnType<typeof mock>)
+      .mock.calls[0]! as [string, RequestInit];
+    expect(url).toBe("/api/account/settings");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({
+      settings: [
+        { slug: "notification_trip_status_update_web_push", value: "false" },
       ],
     });
     await waitFor(() => {});
