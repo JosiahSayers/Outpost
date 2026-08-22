@@ -276,6 +276,11 @@ model CommunicationAuditLog {
   initiatedBy       User?   @relation("initiatedBy", fields: [initiatedByUserId], references: [id], onDelete: SetNull)
   initiatedByUserId String?
 
+  // Set when the recipient's device confirms receipt (currently push only --
+  // see send-push-to-device.ts / the push-subscriptions ack route). Not set
+  // for email; a null here just means "no ack channel for this type."
+  acknowledgedAt DateTime?
+
   user   User   @relation("recipient", fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
@@ -284,6 +289,7 @@ model CommunicationAuditLog {
   @@index([communicationType, createdAt])
   @@index([subject, createdAt])
   @@index([createdAt])
+  @@index([to, communicationType, createdAt])
 }
 
 enum CommunicationType {
@@ -303,10 +309,22 @@ model PushSubscription {
   p256dh   String
   auth     String
 
+  // Captured from the subscribing request's User-Agent header, for later
+  // analysis of delivery success rate by device/browser. Purely descriptive
+  // -- nothing reads this to make decisions (yet).
+  userAgent String?
+
+  // Bumped whenever this device confirms receipt of a push (see the
+  // push-subscriptions ack route). The nightly stale-prune job uses this as
+  // a cheap "is this device provably alive" boundary before it bothers
+  // querying CommunicationAuditLog at all.
+  lastAckedAt DateTime?
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   @@index([userId])
+  @@index([lastAckedAt])
 }
 
 //
