@@ -97,8 +97,12 @@ describe("on an iOS Safari tab that hasn't been added to the Home Screen", () =>
         screen.getByText(/get the full outpost experience/i),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Share")).toBeInTheDocument();
-    expect(screen.getByText(/"Add to Home Screen"/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/tap share in safari's toolbar/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/choose "add to home screen"/i),
+    ).toBeInTheDocument();
   });
 
   it("persists dismissal across remount", async () => {

@@ -5,6 +5,15 @@ import { useEffect, useState } from "react";
 
 const DISMISSED_KEY = "outpost.ios-install-prompt-dismissed";
 
+export const IOS_INSTALL_COPY = {
+  title: "Get the full Outpost experience",
+  body: "Install to your Home Screen for push notifications and offline trip access.",
+  steps: [
+    "Tap Share in Safari's toolbar",
+    'Choose "Add to Home Screen"',
+  ] as const,
+};
+
 function readDismissed(): boolean {
   try {
     return window.localStorage.getItem(DISMISSED_KEY) === "true";
@@ -50,33 +59,23 @@ export default function InstallIosBanner() {
             <CompassIcon size={14} weight="fill" />
           </ThemeIcon>
           <Text fw={700} span>
-            Get the full Outpost experience
+            {IOS_INSTALL_COPY.title}
           </Text>
         </Group>
       }
       mb="md"
     >
       <Text size="sm" mb={6}>
-        Install to your Home Screen for push notifications and offline trip
-        access.
+        {IOS_INSTALL_COPY.body}
       </Text>
       <List size="sm" spacing={4} c="dimmed">
         <List.Item icon={<ExportIcon size={13} />}>
-          Tap <b>Share</b> in Safari&apos;s toolbar
+          {IOS_INSTALL_COPY.steps[0]}
         </List.Item>
         <List.Item icon={<PlusSquareIcon size={13} />}>
-          Choose <b>&quot;Add to Home Screen&quot;</b>
+          {IOS_INSTALL_COPY.steps[1]}
         </List.Item>
       </List>
     </Alert>
   );
 }
-
-export const IOS_INSTALL_COPY = {
-  title: "Get the full Outpost experience",
-  body: "Install to your Home Screen for push notifications and offline trip access.",
-  steps: [
-    "Tap Share in Safari's toolbar",
-    'Choose "Add to Home Screen"',
-  ] as const,
-};
