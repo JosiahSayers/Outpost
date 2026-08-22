@@ -8,6 +8,7 @@ import { apiRouter } from "$/routers/api";
 import { emailAssetsRouter } from "$/routers/email-assets";
 import { frontendRouter } from "$/routers/frontend";
 import { healthRouter } from "$/routers/health";
+import { pwaAssetsRouter } from "$/routers/pwa-assets";
 import { sentryTunnelRouter } from "$/routers/sentry-tunnel";
 import { auth } from "$/utils/auth";
 import { CLOUDFLARE_PROXY_RANGES } from "$/utils/cloudflare-proxy-ranges";
@@ -54,6 +55,7 @@ if (process.env.NODE_ENV !== "production") {
   // In production Caddy serves /email-assets directly from a shared
   // volume (docker-compose.staging.yml); this stands in for that locally.
   app.use("/email-assets", emailAssetsRouter);
+  app.use(pwaAssetsRouter);
   app.use(frontendRouter); // Needs to be the final router
 }
 
