@@ -23,6 +23,10 @@ self.addEventListener("push", (event) => {
       } catch (err) {
         console.error("push event: failed to parse payload", err);
       }
+
+      const subscription =
+        await self.registration.pushManager.getSubscription();
+
       try {
         await self.registration.showNotification(data.title ?? "Outpost", {
           body: data.body,
@@ -31,6 +35,26 @@ self.addEventListener("push", (event) => {
         });
       } catch (err) {
         console.error("push event: showNotification rejected", err);
+        return;
+      }
+
+      // Delivery-confirmation beacon -- only fires once showNotification has
+      // actually succeeded, so a failed display never looks like a live
+      // subscription. Best-effort: an ack failure must never affect the
+      // notification the user already sees.
+      if (subscription) {
+        try {
+          await fetch("/api/push-subscriptions/ack", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              endpoint: subscription.endpoint,
+              notificationId: data.notificationId,
+            }),
+          });
+        } catch (err) {
+          console.error("push event: ack failed", err);
+        }
       }
     })(),
   );

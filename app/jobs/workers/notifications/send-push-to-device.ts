@@ -60,7 +60,12 @@ export async function sendPushToDevice(
         endpoint: subscription.endpoint,
         keys: { p256dh: subscription.p256dh, auth: subscription.auth },
       },
-      JSON.stringify({ title, body, referenceUrl }),
+      JSON.stringify({
+        title,
+        body,
+        referenceUrl,
+        notificationId: auditLog.id,
+      }),
     );
     return "sent";
   } catch (err) {
